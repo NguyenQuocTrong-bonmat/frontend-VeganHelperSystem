@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Botanical Hearth design tokens (DESIGN.md) ---- */
+:root {
+  --bg-herb-white: #F3F6EE;
+  --surface-paper: #FDFBF6;
+  --primary-moss: #2F5233;
+  --primary-moss-hover: #25401F;
+  --accent-beetroot: #A63446;
+  --accent-turmeric: #D9A441;
+  --text-charcoal: #2B2A25;
+  --text-stem-gray: #6B6F63;
+  --border-sage-mist: #DCE3D5;
+  --success-sprout: #4C8C4A;
+  --error-chili: #C1432E;
+  --warning-turmeric-deep: #B8791A;
+}
+
+body {
+  background-color: var(--bg-herb-white);
+  color: var(--text-charcoal);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom font utility classes used across the original mockups */
+.font-caslon {
+  font-family: 'Libre Caslon Text', serif;
+}
+.font-fraunces {
+  font-family: 'Fraunces', serif;
+}
+.font-vietnam {
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+/* Hero asymmetric radius (DESIGN.md - Shapes / Signature Corners) */
+.hero-radius {
+  border-top-left-radius: 32px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+/* The single elevation shadow allowed by the design system */
+.modal-shadow {
+  box-shadow: 0 2px 12px rgba(43, 42, 37, 0.12);
+}
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-moss);
+}

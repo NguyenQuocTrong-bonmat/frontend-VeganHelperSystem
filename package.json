@@ -1,0 +1,27 @@
+{
+  "name": "botanical-hearth",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.10"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead"
+    ],
+    "development": [
+      "last 1 chrome version"
+    ]
+  }
+}
