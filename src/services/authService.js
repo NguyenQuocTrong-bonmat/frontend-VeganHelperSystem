@@ -9,7 +9,7 @@ export const authService = {
 
   // Google Login
   googleLogin: async (data) => {
-    const response = await axiosInstance.post('/auth/google-login', data);
+    const response = await axiosInstance.post('/auth/google', data);
     return response.data;
   },
 
