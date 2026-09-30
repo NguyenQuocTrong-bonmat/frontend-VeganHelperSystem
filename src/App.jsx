@@ -21,6 +21,7 @@ import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
 import FindVeganStores from './pages/member/FindVeganStores.jsx'
 import SearchResults from './pages/member/SearchResults.jsx'
 import AccountSuspended from './pages/member/AccountSuspended.jsx'
+import CreatePost from './pages/member/CreatePost.jsx'
 
 // Admin pages
 import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
@@ -51,6 +52,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/users/:id" element={<PublicUserProfile />} />
       <Route path="/my-posts" element={<MyPosts />} />
+      <Route path="/posts/create" element={<CreatePost />} />
       <Route path="/posts/:id" element={<PostDetail />} />
       <Route path="/weekly-menu" element={<WeeklyMenu />} />
       <Route path="/vegan-stores" element={<FindVeganStores />} />
