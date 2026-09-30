@@ -8,7 +8,7 @@ function PostDetailGuest() {
         {/* Logo Botanical Hearth */}
         <div className="flex items-center shrink-0">
           <Link className="flex items-center gap-2 group text-decoration-none" to="/">
-            <svg className="w-6 h-6 text-primary-moss transition-transform group-hover:scale-105" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-primary-moss transition-transform group-hover:scale-105" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
               <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
               <path d="M2 21c0-3 1.85-5.36 5.08-6"></path>
             </svg>
@@ -55,7 +55,7 @@ function PostDetailGuest() {
         {/* Breadcrumb & Back action */}
         <div className="mb-6 flex items-center justify-between">
           <a className="inline-flex items-center gap-2 text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" href="#" title="Back to list">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
               <path d="m15 18-6-6 6-6"></path>
             </svg>
             <span className="">
@@ -80,7 +80,7 @@ function PostDetailGuest() {
           <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-y border-border-sage-mist text-[13px] text-text-stem-gray">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-surface-paper border border-border-sage-mist flex items-center justify-center text-text-stem-gray">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -99,7 +99,7 @@ function PostDetailGuest() {
             </div>
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
@@ -123,7 +123,7 @@ function PostDetailGuest() {
                 </svg>
               </button>
               <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded text-xs font-medium text-white flex items-center gap-1.5 border border-white/20">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect>
                   <circle cx="9" cy="9" r="2"></circle>
                   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
@@ -142,12 +142,12 @@ function PostDetailGuest() {
                 </span>
               </div>
               <button aria-label="Previous slide" className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="m15 18-6-6 6-6"></path>
                 </svg>
               </button>
               <button aria-label="Next slide" className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="m9 18 6-6-6-6"></path>
                 </svg>
               </button>
@@ -255,7 +255,7 @@ function PostDetailGuest() {
             <div className="pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-fraunces font-medium text-xl text-text-charcoal flex items-center gap-2">
-                  <svg className="w-5 h-5 text-primary-moss" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
                   <span className="">
@@ -327,8 +327,8 @@ function PostDetailGuest() {
             <div className="flex items-center gap-3">
               {/* Like / Heart Button (Guest outline state) */}
               <button id="like-btn" type="button" className="px-4 py-2 bg-surface-paper border border-border-sage-mist text-text-charcoal rounded-lg text-sm font-medium flex items-center gap-2 hover:text-[#2F5233] hover:border-primary-moss transition-colors cursor-pointer">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path>
                 </svg>
                 <span className="">
                   Like
@@ -339,8 +339,8 @@ function PostDetailGuest() {
               </button>
               {/* Save / Bookmark Button (Guest outline state) */}
               <button id="bookmark-btn" type="button" className="px-4 py-2 bg-surface-paper border border-border-sage-mist text-text-charcoal rounded-lg text-sm font-medium flex items-center gap-2 hover:text-[#2F5233] hover:border-primary-moss transition-colors cursor-pointer">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
                 </svg>
                 <span className="">
                   Save recipe
@@ -349,7 +349,7 @@ function PostDetailGuest() {
             </div>
             <div className="flex items-center gap-5 text-sm text-text-stem-gray">
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
@@ -365,7 +365,7 @@ function PostDetailGuest() {
           {/* Author Card Info */}
           <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-6 flex items-start gap-4">
             <div className="w-12 h-12 rounded-full bg-[#E5EBE0] border border-border-sage-mist flex items-center justify-center text-text-stem-gray shrink-0">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
@@ -397,7 +397,7 @@ function PostDetailGuest() {
             {/* Comment Input Box (Guest prompt state) */}
             <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-6 text-center space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-text-stem-gray">
-                <svg className="w-6 h-6 text-primary-moss" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
               </div>
@@ -432,7 +432,7 @@ function PostDetailGuest() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-text-stem-gray">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                       </svg>
@@ -448,7 +448,7 @@ function PostDetailGuest() {
                     <span className="">
                       Reply
                     </span>
-                    <svg className="w-3 h-3 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <rect height="10" rx="2" width="14" x="5" y="11"></rect>
                       <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
                     </svg>
@@ -502,7 +502,7 @@ function PostDetailGuest() {
               {/* Icon Trợ lý AI */}
               <div className="w-8 h-8 rounded-full bg-bg-herb-white text-primary-moss border border-border-sage-mist flex items-center justify-center shrink-0 shadow-sm">
                 <svg className="w-4 h-4 text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
                 </svg>
               </div>
               <div>
@@ -521,12 +521,12 @@ function PostDetailGuest() {
             {/* Minimize (-) and Close (x) buttons */}
             <div className="flex items-center gap-1 text-text-stem-gray">
               <button aria-label="Minimize" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-bg-herb-white hover:text-text-charcoal transition-colors focus:outline-none" title="Minimize (—)">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M5 12h14"></path>
                 </svg>
               </button>
               <button aria-label="Close" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-bg-herb-white hover:text-text-charcoal transition-colors focus:outline-none" title="Close (×)">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M18 6L6 18M6 6l12 12"></path>
                 </svg>
               </button>
@@ -537,8 +537,8 @@ function PostDetailGuest() {
             {/* AI Welcome Message */}
             <div className="flex items-start gap-2.5 max-w-[90%]">
               <div className="w-7 h-7 rounded-full bg-bg-herb-white text-primary-moss border border-border-sage-mist flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                <svg className="w-3.5 h-3.5 text-primary-moss" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-3.5 h-3.5 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
               <div className="bg-surface-paper border border-border-sage-mist rounded-xl rounded-tl-sm p-3 shadow-sm space-y-1 text-text-charcoal">
@@ -562,8 +562,8 @@ function PostDetailGuest() {
             {/* AI Response Message */}
             <div className="flex items-start gap-2.5 max-w-[90%]">
               <div className="w-7 h-7 rounded-full bg-bg-herb-white text-primary-moss border border-border-sage-mist flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                <svg className="w-3.5 h-3.5 text-primary-moss" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-3.5 h-3.5 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
               <div className="bg-surface-paper border border-border-sage-mist rounded-xl rounded-tl-sm p-3 shadow-sm space-y-1.5 text-text-charcoal">
@@ -604,7 +604,7 @@ function PostDetailGuest() {
               <input className="flex-1 bg-bg-herb-white border border-border-sage-mist rounded-xl px-3.5 py-2 text-xs text-text-charcoal placeholder-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors" placeholder="Ask AI nutrition assistant..." type="text" />
               <button aria-label="Send" className="w-8 h-8 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shrink-0 transition-colors shadow-sm focus:outline-none" title="Send question" type="button">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
                 </svg>
               </button>
             </form>
@@ -613,7 +613,7 @@ function PostDetailGuest() {
         {/* Chatbot FAB Trigger Button */}
         <button aria-label="Botanical Hearth AI Assistant" className="relative group w-14 h-14 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shadow-card-modal transition-all transform hover:scale-105 focus:outline-none" id="fab-chatbot" title="Open Botanical Hearth AI Assistant" type="button">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
           <span className="absolute top-0.5 right-0.5 w-3 h-3 bg-accent-turmeric rounded-full border-2 border-surface-paper" title="Guest Visitor"></span>
         </button>
@@ -622,13 +622,13 @@ function PostDetailGuest() {
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40"></div>
         <div className="relative z-10 bg-[#FDFBF6] border border-border-sage-mist rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-card-modal space-y-5 text-center">
           <button type="button" className="absolute top-4 right-4 text-text-stem-gray hover:text-text-charcoal p-1 rounded-lg hover:bg-bg-herb-white transition-colors duration-200 focus:outline-none" aria-label="Close modal">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
           <div className="w-14 h-14 mx-auto rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss shadow-sm">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path>
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path>
             </svg>
           </div>
           <div className="space-y-2">

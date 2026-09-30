@@ -16,7 +16,7 @@ function AdminDashboardHomeOverview() {
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="w-9 h-9 rounded-lg bg-primary-moss flex items-center justify-center text-white shrink-0 border border-border-sage-mist">
                 {/* Organic Leaf / Sprout Icon */}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
                   <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
                 </svg>
@@ -33,13 +33,13 @@ function AdminDashboardHomeOverview() {
             {/* Desktop Collapse / Expand Toggle Button */}
             <button className="hidden lg:flex p-1.5 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-herb-white transition-colors border border-transparent hover:border-border-sage-mist" id="desktopSidebarCollapseBtn" title="Collapse Sidebar">
               <svg className="w-4 h-4 transition-transform duration-200" fill="none" id="collapseIcon" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
               </svg>
             </button>
             {/* Mobile Close Button */}
             <button className="lg:hidden p-1.5 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-herb-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
               </svg>
             </button>
           </div>
@@ -52,13 +52,13 @@ function AdminDashboardHomeOverview() {
                   Overview
                 </span>
                 <svg className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" id="arrow-overview" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
               </div>
               <div className="accordion-content expanded space-y-1" id="acc-overview">
                 <Link className="nav-link flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-white bg-primary-moss hover:bg-primary-moss-hover transition-all group" to="/admin">
                   <svg className="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   <span className="nav-text truncate font-semibold">
                     Dashboard (Home)
@@ -73,13 +73,13 @@ function AdminDashboardHomeOverview() {
                   Core system
                 </span>
                 <svg className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" id="arrow-core" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
               </div>
               <div className="accordion-content expanded space-y-1" id="acc-core">
                 <Link className="nav-link flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/members">
                   <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   <span className="nav-text truncate">
                     Member Management
@@ -87,7 +87,7 @@ function AdminDashboardHomeOverview() {
                 </Link>
                 <Link className="nav-link flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/categories">
                   <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   <span className="nav-text truncate">
                     Category Management
@@ -102,14 +102,14 @@ function AdminDashboardHomeOverview() {
                   Content moderation
                 </span>
                 <svg className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" id="arrow-moderation" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
               </div>
               <div className="accordion-content expanded space-y-1" id="acc-moderation">
                 <Link className="nav-link flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/content">
                   <div className="flex items-center gap-3 overflow-hidden">
                     <svg className="w-4 h-4 shrink-0 text-text-stem-gray group-hover:text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span className="nav-text truncate">
                       Manual Moderation
@@ -122,7 +122,7 @@ function AdminDashboardHomeOverview() {
                 <Link className="nav-link flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/ai-moderation">
                   <div className="flex items-center gap-3 overflow-hidden">
                     <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span className="nav-text truncate">
                       AI Flagged Queue
@@ -141,13 +141,13 @@ function AdminDashboardHomeOverview() {
                   AI operations & MLOps
                 </span>
                 <svg className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" id="arrow-ai" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
               </div>
               <div className="accordion-content expanded space-y-1" id="acc-ai">
                 <Link className="nav-link flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/ai-monitoring">
                   <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   <span className="nav-text truncate">
                     AI Model Monitoring
@@ -155,7 +155,7 @@ function AdminDashboardHomeOverview() {
                 </Link>
                 <Link className="nav-link flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/meal-planner-config">
                   <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   <span className="nav-text truncate">
                     Meal Planner Config
@@ -164,7 +164,7 @@ function AdminDashboardHomeOverview() {
                 <Link className="nav-link flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/video-summarization">
                   <div className="flex items-center gap-3 overflow-hidden">
                     <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span className="nav-text truncate">
                       Video Summarization Queue
@@ -206,14 +206,14 @@ function AdminDashboardHomeOverview() {
               {/* Hamburger Button (Mobile) */}
               <button className="lg:hidden p-2 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-herb-white transition-colors border border-transparent hover:border-border-sage-mist" title="Open Navigation Menu">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
               </button>
               {/* Global Search Input */}
               <div className="relative w-full">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-stem-gray">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                 </div>
                 <input className="w-full pl-10 pr-4 py-2 text-sm bg-herb-white border border-border-sage-mist rounded-lg focus:bg-surface-paper focus:border-primary-moss focus:ring-1 focus:ring-primary-moss outline-none transition-all placeholder-text-stem-gray text-text-charcoal" placeholder="Search members, recipes, categories, or AI logs... (Press '/' to focus)" type="text" />
@@ -229,7 +229,7 @@ function AdminDashboardHomeOverview() {
               {/* Quick Shortcut to Public Platform */}
               <Link className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-moss bg-moss-subtle border border-border-sage-mist hover:bg-primary-moss hover:text-white rounded-lg transition-colors" to="/home" title="View Public Platform">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                 </svg>
                 <span>
                   Live Site
@@ -239,7 +239,7 @@ function AdminDashboardHomeOverview() {
               <div className="relative">
                 <button className="relative p-2 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-herb-white transition-colors border border-transparent hover:border-border-sage-mist" id="notificationBtn" title="Notifications">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                   {/* Indicator Badge */}
                   <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -305,7 +305,7 @@ function AdminDashboardHomeOverview() {
                     </p>
                   </div>
                   <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                 </button>
                 {/* Admin Dropdown Menu */}
@@ -320,7 +320,7 @@ function AdminDashboardHomeOverview() {
                   </div>
                   <a className="flex items-center gap-2.5 px-4 py-2 text-xs text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors" href="#admin-settings">
                     <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span>
                       Admin Profile
@@ -328,7 +328,7 @@ function AdminDashboardHomeOverview() {
                   </a>
                   <a className="flex items-center gap-2.5 px-4 py-2 text-xs text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors" href="#security">
                     <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span>
                       Security & Keys
@@ -337,7 +337,7 @@ function AdminDashboardHomeOverview() {
                   <div className="h-px bg-border-sage-mist my-1"></div>
                   <Link className="flex items-center gap-2.5 px-4 py-2 text-xs text-error-chili hover:bg-[#ffdad6]/40 transition-colors" to="/">
                     <svg className="w-4 h-4 text-error-chili" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                     </svg>
                     <span>
                       Log Out
@@ -402,7 +402,7 @@ function AdminDashboardHomeOverview() {
                   <div className="flex flex-wrap items-center gap-3 shrink-0">
                     <Link className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#FCE8E6] bg-[#FCE8E6]/20 hover:bg-[#FCE8E6] text-error-chili text-xs sm:text-sm font-medium transition-colors shadow-none cursor-pointer" to="/admin/ai-moderation">
                       <svg className="w-4 h-4 text-error-chili" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                       </svg>
                       <span>
                         Review Flagged Items (5)
@@ -410,8 +410,8 @@ function AdminDashboardHomeOverview() {
                     </Link>
                     <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary-moss hover:bg-primary-moss-hover text-white text-xs sm:text-sm font-medium transition-colors shadow-none cursor-pointer">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                       </svg>
                       <span>
                         Platform Settings
@@ -434,13 +434,13 @@ function AdminDashboardHomeOverview() {
                       </div>
                       <div className="w-10 h-10 rounded-full bg-moss-subtle flex items-center justify-center text-primary-moss border border-border-sage-mist shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                          <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                         </svg>
                       </div>
                     </div>
                     <div className="mt-4 pt-3 border-t border-border-sage-mist flex items-center gap-1.5 text-xs font-medium text-success-sprout">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                        <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                       </svg>
                       <span>
                         +124 this week
@@ -460,7 +460,7 @@ function AdminDashboardHomeOverview() {
                       </div>
                       <div className="w-10 h-10 rounded-full bg-moss-subtle flex items-center justify-center text-primary-moss border border-border-sage-mist shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                         </svg>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ function AdminDashboardHomeOverview() {
                       </div>
                       <div className="w-10 h-10 rounded-full bg-[#FCE8E6] flex items-center justify-center text-[#A63446] border border-[#FCE8E6] shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                         </svg>
                       </div>
                     </div>
@@ -511,7 +511,7 @@ function AdminDashboardHomeOverview() {
                       </div>
                       <div className="w-10 h-10 rounded-full bg-[#EDF7EE] flex items-center justify-center text-success-sprout border border-border-sage-mist shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                          <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                         </svg>
                       </div>
                     </div>
@@ -542,7 +542,7 @@ function AdminDashboardHomeOverview() {
                             View Full Audit Log
                           </span>
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                           </svg>
                         </a>
                       </div>
@@ -575,7 +575,7 @@ function AdminDashboardHomeOverview() {
                         <div className="py-3.5 flex items-start gap-3.5 hover:bg-herb-white/50 px-2 rounded-lg transition-colors">
                           <div className="w-8 h-8 rounded-full bg-[#FCE8E6] text-error-chili flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-[#FCE8E6]">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -747,40 +747,40 @@ function AdminDashboardHomeOverview() {
                         <Link className="flex items-center justify-between px-3 py-2 rounded-lg border border-border-sage-mist text-xs font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/ai-monitoring">
                           <div className="flex items-center gap-2.5">
                             <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                             </svg>
                             <span>
                               AI Model Monitoring
                             </span>
                           </div>
                           <svg className="w-3.5 h-3.5 text-text-stem-gray group-hover:text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                           </svg>
                         </Link>
                         <Link className="flex items-center justify-between px-3 py-2 rounded-lg border border-border-sage-mist text-xs font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/meal-planner-config">
                           <div className="flex items-center gap-2.5">
                             <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                              <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                             </svg>
                             <span>
                               Meal Planner Config
                             </span>
                           </div>
                           <svg className="w-3.5 h-3.5 text-text-stem-gray group-hover:text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                           </svg>
                         </Link>
                         <Link className="flex items-center justify-between px-3 py-2 rounded-lg border border-border-sage-mist text-xs font-medium text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors group" to="/admin/video-summarization">
                           <div className="flex items-center gap-2.5">
                             <svg className="w-4 h-4 text-text-stem-gray group-hover:text-primary-moss shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                              <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                             </svg>
                             <span>
                               Video Summarization Queue
                             </span>
                           </div>
                           <svg className="w-3.5 h-3.5 text-text-stem-gray group-hover:text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                           </svg>
                         </Link>
                       </div>

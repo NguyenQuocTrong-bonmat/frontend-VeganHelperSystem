@@ -9,7 +9,7 @@ function PostDetail() {
           {/* Logo Botanical Hearth */}
           <div className="flex items-center gap-3 gap-6 justify-end">
             <Link className="flex items-center gap-2 group text-decoration-none" to="/home">
-              <svg className="w-6 h-6 text-primary-moss transition-transform group-hover:scale-105" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-primary-moss transition-transform group-hover:scale-105" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
                 <path d="M2 21c0-3 1.85-5.36 5.08-6"></path>
               </svg>
@@ -37,7 +37,7 @@ function PostDetail() {
           <div className="flex items-center gap-6 justify-end">
             <div className="relative" id="notifications-container">
               <button aria-label="Notifications" className="w-9 h-9 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss transition-colors focus:outline-none relative" id="notifications-btn" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" viewBox="0 0 24 24">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
@@ -102,7 +102,7 @@ function PostDetail() {
                   </div>
                   <div className="p-3.5 flex items-start gap-3 hover:bg-bg-herb-white/40 transition-colors cursor-pointer">
                     <div className="w-8 h-8 rounded-full bg-accent-turmeric/15 text-warning-turmeric-deep flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-round="round" stroke-width="1.8" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinejoin="round" stroke-round="round" strokeWidth="1.8" viewBox="0 0 24 24">
                         <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
                         <line x1="16" x2="16" y1="2" y2="6"></line>
                         <line x1="8" x2="8" y1="2" y2="6"></line>
@@ -132,14 +132,14 @@ function PostDetail() {
             </div>
             <div className="relative" id="profile-dropdown-container">
               <button aria-label="Open account menu" className="w-9 h-9 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss transition-colors focus:outline-none" id="profile-dropdown-btn" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </button>
               <div className="hidden absolute right-0 top-full mt-2 w-56 bg-surface-paper border border-border-sage-mist shadow-[0_2px_12px_rgba(43,42,37,0.12)] py-1.5 z-50 rounded-xl" id="profile-dropdown-menu">
                 <Link className="h-11 flex items-center px-4 gap-3 text-sm text-text-charcoal hover:bg-bg-herb-white hover:text-primary-moss transition-colors" to="/profile">
-                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
@@ -149,8 +149,8 @@ function PostDetail() {
                 </Link>
                 <div className="border-t border-border-sage-mist my-1"></div>
                 <Link className="h-11 flex items-center px-4 gap-3 text-sm text-accent-beetroot hover:bg-bg-herb-white transition-colors" to="/">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                   <span className="">
                     Log Out
@@ -166,7 +166,7 @@ function PostDetail() {
         {/* Breadcrumb & Back action */}
         <div className="mb-6 flex items-center justify-between">
           <a className="inline-flex items-center gap-2 text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" href="#">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
               <path d="m15 18-6-6 6-6"></path>
             </svg>
             <span className="">
@@ -192,7 +192,7 @@ function PostDetail() {
             <div className="flex items-center gap-3">
               {/* User Avatar Placeholder */}
               <div className="w-8 h-8 rounded-full bg-surface-paper border border-border-sage-mist flex items-center justify-center text-text-stem-gray">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -211,7 +211,7 @@ function PostDetail() {
             </div>
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
@@ -279,7 +279,7 @@ function PostDetail() {
                         <span className="hover:text-white cursor-pointer transition-colors">
                           1080p HD
                         </span>
-                        <svg className="w-3.5 h-3.5 cursor-pointer hover:text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 cursor-pointer hover:text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                           <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
                         </svg>
                       </div>
@@ -325,12 +325,12 @@ function PostDetail() {
               </div>
               {/* Prev / Next Navigation Arrows */}
               <button aria-label="Previous media" className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-paper/90 hover:bg-surface-paper border border-border-sage-mist text-text-charcoal flex items-center justify-center shadow-sm backdrop-blur-sm transition-all hover:scale-105 z-20 focus:outline-none" type="button">
-                <svg className="w-5 h-5 text-text-charcoal" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-text-charcoal" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="m15 18-6-6 6-6"></path>
                 </svg>
               </button>
               <button aria-label="Next media" className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-paper/90 hover:bg-surface-paper border border-border-sage-mist text-text-charcoal flex items-center justify-center shadow-sm backdrop-blur-sm transition-all hover:scale-105 z-20 focus:outline-none" type="button">
-                <svg className="w-5 h-5 text-text-charcoal" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-text-charcoal" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="m9 18 6-6-6-6"></path>
                 </svg>
               </button>
@@ -370,8 +370,8 @@ function PostDetail() {
           </section>
           <div className="my-6 max-w-[760px]">
             <button className="bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] font-medium text-sm flex items-center gap-2 px-4 py-2.5 rounded-tl-[16px] rounded-tr-[6px] rounded-b-[6px] hover:bg-[#F3F6EE] transition-colors duration-200 focus:outline-none" type="button">
-              <svg className="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" stroke-linecap="round" stroke-linejoin="round"></path>
+              <svg className="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
               <span className="">
                 ✨ AI Video Summary
@@ -513,7 +513,7 @@ function PostDetail() {
             <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-5 space-y-3">
               <div className="flex items-center justify-between border-b border-border-sage-mist pb-2.5">
                 <h3 className="font-fraunces font-medium text-base text-text-charcoal flex items-center gap-2">
-                  <svg className="w-4 h-4 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
@@ -580,7 +580,7 @@ function PostDetail() {
             <div className="flex items-center gap-3">
               {/* Heart/Like & Vote Button */}
               <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#2B2A25] text-sm font-medium transition-colors duration-200 ease-in-out hover:border-[#A63446]/40 cursor-pointer" id="like-button" type="button">
-                <svg className="w-5 h-5 text-current transition-colors" fill="none" id="like-icon" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-current transition-colors" fill="none" id="like-icon" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
                 </svg>
                 <span id="like-label" className="">
@@ -592,7 +592,7 @@ function PostDetail() {
               </button>
               {/* Save Recipe Button */}
               <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#2B2A25] text-sm font-medium transition-colors duration-200 ease-in-out hover:border-[#A63446]/40 cursor-pointer" id="save-button" type="button">
-                <svg className="w-4 h-4 text-current transition-colors" fill="none" id="save-icon" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-current transition-colors" fill="none" id="save-icon" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
                 </svg>
                 <span id="save-text" className="">
@@ -603,7 +603,7 @@ function PostDetail() {
             <div className="flex items-center gap-2">
               {/* Share button */}
               <button className="h-11 px-4 border border-border-sage-mist bg-surface-paper hover:bg-bg-herb-white text-text-charcoal font-medium text-sm rounded-lg flex items-center gap-2 transition-colors cursor-pointer" type="button">
-                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <circle cx="18" cy="5" r="3"></circle>
                   <circle cx="6" cy="12" r="3"></circle>
                   <circle cx="18" cy="19" r="3"></circle>
@@ -649,7 +649,7 @@ function PostDetail() {
             <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-text-stem-gray">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
@@ -778,8 +778,8 @@ function PostDetail() {
           <div className="px-4 py-3 bg-surface-paper border-b border-border-sage-mist flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
               <div>
@@ -796,13 +796,13 @@ function PostDetail() {
             </div>
             <div className="flex items-center gap-1">
               <button aria-label="Minimize" className="w-7 h-7 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-bg-herb-white flex items-center justify-center transition-colors" id="chat-minimize" title="Minimize" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="5" x2="19" y1="12" y2="12"></line>
                 </svg>
               </button>
               <button aria-label="Close" className="w-7 h-7 rounded-lg text-text-stem-gray hover:text-text-charcoal hover:bg-bg-herb-white flex items-center justify-center transition-colors" id="chat-close" title="Close" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </button>
             </div>
@@ -812,8 +812,8 @@ function PostDetail() {
             {/* AI greeting */}
             <div className="flex items-start gap-2 max-w-[85%]">
               <div className="w-6 h-6 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss shrink-0 mt-0.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
               <div className="bg-surface-paper border border-border-sage-mist text-text-charcoal p-3 rounded-2xl rounded-tl-sm shadow-sm">
@@ -829,8 +829,8 @@ function PostDetail() {
             {/* AI response */}
             <div className="flex items-start gap-2 max-w-[88%]">
               <div className="w-6 h-6 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss shrink-0 mt-0.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
               <div className="bg-surface-paper border border-border-sage-mist text-text-charcoal p-3 rounded-2xl rounded-tl-sm shadow-sm">
@@ -855,7 +855,7 @@ function PostDetail() {
             <div className="flex items-center gap-2">
               <input className="flex-1 bg-white border border-border-sage-mist rounded-xl px-3.5 py-2.5 text-xs text-text-charcoal placeholder-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors" placeholder="Ask AI assistant about nutrition..." type="text" />
               <button aria-label="Send message" className="w-9 h-9 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shrink-0 transition-colors shadow-sm" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-round="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinejoin="round" stroke-round="round" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="22" x2="11" y1="2" y2="13"></line>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
@@ -866,7 +866,7 @@ function PostDetail() {
         {/* Chatbot FAB */}
         <button aria-label="Open AI Nutrition Assistant" className="w-14 h-14 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shadow-[0_2px_12px_rgba(43,42,37,0.12)] transition-all transform hover:scale-105 focus:outline-none" id="chat-fab" type="button">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 001.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
         </button>
       </div>

@@ -7,7 +7,7 @@ function SignUp() {
       <header className="w-full h-16 bg-surface-paper border-b border-border-sage-mist px-6 lg:px-12 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* Leaf Icon line-art */}
-          <svg className="w-6 h-6 text-primary-moss stroke-[1.5]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-primary-moss stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
             <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
           </svg>
@@ -27,7 +27,7 @@ function SignUp() {
           {/* Top Icon & Heading */}
           <div className="text-center mb-6">
             <div className="w-12 h-12 rounded-full bg-bg-herb-white border border-border-sage-mist mx-auto flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-text-stem-gray stroke-[1.5]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-text-stem-gray stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <line x1="19" x2="19" y1="8" y2="14"></line>
@@ -69,7 +69,7 @@ function SignUp() {
               <div className="relative">
                 <input className="w-full h-11 px-3.5 pr-10 rounded-lg border border-border-sage-mist bg-surface-paper text-[15px] text-text-charcoal placeholder:text-text-stem-gray transition-colors duration-150" id="password" placeholder="Enter your password" type="password" />
                 <button aria-label="Show password" className="absolute right-3 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-text-charcoal p-1" type="button">
-                  <svg className="w-4 h-4 stroke-[1.5]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
@@ -84,7 +84,7 @@ function SignUp() {
               <div className="relative">
                 <input className="w-full h-11 px-3.5 pr-10 rounded-lg border border-border-sage-mist bg-surface-paper text-[15px] text-text-charcoal placeholder:text-text-stem-gray transition-colors duration-150" id="confirm-password" placeholder="Re-enter your password" type="password" />
                 <button aria-label="Show password" className="absolute right-3 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-text-charcoal p-1" type="button">
-                  <svg className="w-4 h-4 stroke-[1.5]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>

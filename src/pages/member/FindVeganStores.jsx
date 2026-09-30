@@ -9,7 +9,7 @@ function FindVeganStores() {
           {/* Left: Logo */}
           <Link className="flex items-center gap-2.5 text-decoration-none group" to="/home">
             <div className="w-8 h-8 rounded-full bg-primary-moss/10 text-primary-moss flex items-center justify-center transition group-hover:bg-primary-moss/20">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
                 <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
               </svg>
@@ -39,7 +39,7 @@ function FindVeganStores() {
           <div className="flex items-center justify-end gap-6">
             <div className="relative" id="notifications-dropdown-container">
               <button aria-expanded="false" aria-haspopup="true" aria-label="Notifications" className="relative w-9 h-9 rounded-full bg-bg-herb-white border border-[#DCE3D5] flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss transition focus:outline-none focus:ring-2 focus:ring-primary-moss focus:ring-offset-2 cursor-pointer" id="notifications-dropdown-btn" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
                   <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
                 </svg>
@@ -82,7 +82,7 @@ function FindVeganStores() {
                   </a>
                   <a className="px-4 py-3 bg-bg-herb-white hover:bg-surface-paper transition flex items-start gap-3 border-b border-border-sage-mist cursor-pointer text-decoration-none" href="#">
                     <div className="w-8 h-8 rounded-full bg-accent-turmeric/10 text-accent-turmeric flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-accent-turmeric" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-accent-turmeric" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                       </svg>
                     </div>
@@ -104,7 +104,7 @@ function FindVeganStores() {
                   </a>
                   <a className="px-4 py-3 bg-bg-herb-white hover:bg-surface-paper transition flex items-start gap-3 border-b border-border-sage-mist cursor-pointer text-decoration-none" href="#">
                     <div className="w-8 h-8 rounded-full bg-success-sprout/10 text-success-sprout flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-success-sprout" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-success-sprout" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M20 6L9 17l-5-5"></path>
                       </svg>
                     </div>
@@ -124,7 +124,7 @@ function FindVeganStores() {
                   </a>
                   <a className="px-4 py-3 bg-transparent hover:bg-bg-herb-white transition flex items-start gap-3 border-b border-border-sage-mist cursor-pointer text-decoration-none" href="#">
                     <div className="w-8 h-8 rounded-full bg-text-stem-gray/10 text-text-stem-gray flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
                         <circle cx="12" cy="10" fill="currentColor" r="2"></circle>
                       </svg>
@@ -149,14 +149,14 @@ function FindVeganStores() {
             </div>
             <div className="relative" id="profile-dropdown-container">
               <button aria-expanded="false" aria-haspopup="true" className="w-9 h-9 rounded-full bg-bg-herb-white border border-[#DCE3D5] flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss transition focus:outline-none focus:ring-2 focus:ring-primary-moss focus:ring-offset-2 cursor-pointer" id="profile-dropdown-btn" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </button>
               <div className="hidden absolute right-0 top-full mt-2 w-56 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl shadow-[0_2px_12px_rgba(43,42,37,0.12)] z-50 py-1.5 overflow-hidden flex-col" id="profile-dropdown-menu">
                 <Link className="h-[44px] flex items-center px-4 gap-3 text-[14px] text-text-charcoal hover:bg-bg-herb-white hover:text-primary-moss transition cursor-pointer text-decoration-none" to="/profile">
-                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
@@ -165,7 +165,7 @@ function FindVeganStores() {
                   </span>
                 </Link>
                 <Link className="h-[44px] flex items-center px-4 gap-3 text-[14px] text-text-charcoal hover:bg-bg-herb-white hover:text-primary-moss transition cursor-pointer text-decoration-none" to="/admin">
-                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
                   </svg>
@@ -175,7 +175,7 @@ function FindVeganStores() {
                 </Link>
                 <div className="border-t border-border-sage-mist/60 my-1"></div>
                 <Link className="h-[44px] flex items-center px-4 gap-3 text-[14px] text-accent-beetroot hover:bg-bg-herb-white transition cursor-pointer text-decoration-none" to="/">
-                  <svg className="w-4 h-4 text-accent-beetroot" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-accent-beetroot" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" x2="9" y1="12" y2="12"></line>
@@ -205,7 +205,7 @@ function FindVeganStores() {
           <div className="flex items-center gap-2">
             <div className="relative w-full sm:w-80">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-text-stem-gray">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.35-4.35"></path>
                 </svg>
@@ -213,7 +213,7 @@ function FindVeganStores() {
               <input className="w-full pl-9 pr-4 py-2 bg-surface-paper border border-border-sage-mist rounded-lg text-[14px] text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition" placeholder="Search by eatery name, address, cuisine..." type="text" />
             </div>
             <button className="h-10 px-3.5 bg-surface-paper border border-border-sage-mist rounded-lg flex items-center gap-1.5 text-text-charcoal text-[13px] hover:border-primary-moss hover:text-primary-moss transition shrink-0">
-              <svg className="w-4 h-4 text-primary-moss" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
@@ -234,26 +234,26 @@ function FindVeganStores() {
             <path d="M 850,50 C 940,30 1050,70 1100,140 C 1140,200 1110,260 1040,280 C 970,300 900,260 860,200 C 820,150 800,80 850,50 Z" fill="#D7E6CC" opacity="0.7"></path>
             <path d="M 450,260 C 520,230 620,270 660,330 C 690,380 660,420 590,420 C 510,420 460,370 430,320 C 410,280 420,270 450,260 Z" fill="#D7E6CC" opacity="0.75"></path>
             {/* River / Water feature */}
-            <path d="M -20,280 C 180,250 320,310 440,300 C 580,290 700,210 820,180 C 960,150 1100,190 1220,170" fill="none" opacity="0.85" stroke="#CADDE3" stroke-linecap="round" stroke-width="32"></path>
-            <path d="M -20,280 C 180,250 320,310 440,300 C 580,290 700,210 820,180 C 960,150 1100,190 1220,170" fill="none" opacity="0.9" stroke="#BDD5DC" stroke-linecap="round" stroke-width="20"></path>
+            <path d="M -20,280 C 180,250 320,310 440,300 C 580,290 700,210 820,180 C 960,150 1100,190 1220,170" fill="none" opacity="0.85" stroke="#CADDE3" strokeLinecap="round" strokeWidth="32"></path>
+            <path d="M -20,280 C 180,250 320,310 440,300 C 580,290 700,210 820,180 C 960,150 1100,190 1220,170" fill="none" opacity="0.9" stroke="#BDD5DC" strokeLinecap="round" strokeWidth="20"></path>
             {/* Secondary Road Grid */}
-            <path d="M 0,90 L 1200,90" opacity="0.9" stroke="#FAF8F2" stroke-width="6"></path>
-            <path d="M 0,160 L 1200,160" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
-            <path d="M 0,250 L 1200,250" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
-            <path d="M 0,350 L 1200,350" opacity="0.9" stroke="#FAF8F2" stroke-width="6"></path>
-            <path d="M 140,0 L 140,420" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
-            <path d="M 310,0 L 310,420" opacity="0.85" stroke="#FAF8F2" stroke-width="6"></path>
-            <path d="M 520,0 L 520,420" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
-            <path d="M 720,0 L 720,420" opacity="0.85" stroke="#FAF8F2" stroke-width="6"></path>
-            <path d="M 940,0 L 940,420" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
-            <path d="M 1080,0 L 1080,420" opacity="0.8" stroke="#FAF8F2" stroke-width="5"></path>
+            <path d="M 0,90 L 1200,90" opacity="0.9" stroke="#FAF8F2" strokeWidth="6"></path>
+            <path d="M 0,160 L 1200,160" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
+            <path d="M 0,250 L 1200,250" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
+            <path d="M 0,350 L 1200,350" opacity="0.9" stroke="#FAF8F2" strokeWidth="6"></path>
+            <path d="M 140,0 L 140,420" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
+            <path d="M 310,0 L 310,420" opacity="0.85" stroke="#FAF8F2" strokeWidth="6"></path>
+            <path d="M 520,0 L 520,420" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
+            <path d="M 720,0 L 720,420" opacity="0.85" stroke="#FAF8F2" strokeWidth="6"></path>
+            <path d="M 940,0 L 940,420" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
+            <path d="M 1080,0 L 1080,420" opacity="0.8" stroke="#FAF8F2" strokeWidth="5"></path>
             {/* Main Diagonal Avenues */}
-            <path d="M -40,380 L 580,-20" stroke="#FFFFFF" stroke-linecap="square" stroke-width="12"></path>
-            <path d="M -40,380 L 580,-20" stroke="#F1EDE2" stroke-linecap="square" stroke-width="8"></path>
-            <path d="M 460,440 L 1020,-30" stroke="#FFFFFF" stroke-linecap="square" stroke-width="14"></path>
-            <path d="M 460,440 L 1020,-30" stroke="#F1EDE2" stroke-linecap="square" stroke-width="9"></path>
-            <path d="M 320,120 L 1180,380" stroke="#FFFFFF" stroke-width="9"></path>
-            <path d="M 320,120 L 1180,380" stroke="#F1EDE2" stroke-width="6"></path>
+            <path d="M -40,380 L 580,-20" stroke="#FFFFFF" strokeLinecap="square" strokeWidth="12"></path>
+            <path d="M -40,380 L 580,-20" stroke="#F1EDE2" strokeLinecap="square" strokeWidth="8"></path>
+            <path d="M 460,440 L 1020,-30" stroke="#FFFFFF" strokeLinecap="square" strokeWidth="14"></path>
+            <path d="M 460,440 L 1020,-30" stroke="#F1EDE2" strokeLinecap="square" strokeWidth="9"></path>
+            <path d="M 320,120 L 1180,380" stroke="#FFFFFF" strokeWidth="9"></path>
+            <path d="M 320,120 L 1180,380" stroke="#F1EDE2" strokeWidth="6"></path>
             {/* Subtle Building Blocks Grid */}
             <rect fill="#DCE5D3" height="40" opacity="0.7" rx="3" width="120" x="165" y="105"></rect>
             <rect fill="#DCE5D3" height="60" opacity="0.7" rx="3" width="80" x="330" y="175"></rect>
@@ -281,7 +281,7 @@ function FindVeganStores() {
             </div>
             {/* Pin Icon */}
             <div className="w-9 h-9 mx-auto rounded-full bg-primary-moss text-white flex items-center justify-center shadow-md relative">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
                 <circle cx="12" cy="10" fill="white" r="2.5"></circle>
               </svg>
@@ -334,7 +334,7 @@ function FindVeganStores() {
               −
             </button>
             <button className="w-9 h-9 rounded-lg bg-surface-paper border border-border-sage-mist text-primary-moss flex items-center justify-center hover:bg-bg-herb-white transition shadow-sm mt-1" title="Current location">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
               </svg>
@@ -391,7 +391,7 @@ function FindVeganStores() {
                     Open now
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -443,7 +443,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -466,7 +466,7 @@ function FindVeganStores() {
                     Open now
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -516,7 +516,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -539,7 +539,7 @@ function FindVeganStores() {
                     Open now
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -589,7 +589,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -612,7 +612,7 @@ function FindVeganStores() {
                     Open now
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -662,7 +662,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -685,7 +685,7 @@ function FindVeganStores() {
                     Break time
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -735,7 +735,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -758,7 +758,7 @@ function FindVeganStores() {
                     Open now
                   </span>
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-paper/95 border border-border-sage-mist text-[11px] font-medium text-text-charcoal flex items-center gap-1">
-                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-primary-moss" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -808,7 +808,7 @@ function FindVeganStores() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button className="px-2.5 py-1.5 border border-border-sage-mist hover:border-primary-moss rounded-lg text-[13px] text-text-charcoal hover:text-primary-moss transition flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                     </svg>
                     <span className="">
@@ -868,12 +868,12 @@ function FindVeganStores() {
             </div>
             <div className="flex items-center gap-1">
               <button className="w-8 h-8 rounded-lg flex items-center justify-center text-text-stem-gray hover:text-text-charcoal hover:bg-bg-herb-white transition" id="chat-minimize" title="Minimize" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="5" x2="19" y1="12" y2="12"></line>
                 </svg>
               </button>
               <button className="w-8 h-8 rounded-lg flex items-center justify-center text-text-stem-gray hover:text-text-charcoal hover:bg-bg-herb-white transition" id="chat-close" title="Close" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="18" x2="6" y1="6" y2="18"></line>
                   <line x1="6" x2="18" y1="6" y2="18"></line>
                 </svg>
@@ -928,7 +928,7 @@ function FindVeganStores() {
             <div className="flex items-center gap-2 bg-bg-herb-white border border-border-sage-mist rounded-xl px-3 py-1.5 focus-within:border-primary-moss transition">
               <input className="flex-1 bg-transparent text-[13px] text-text-charcoal placeholder:text-text-stem-gray focus:outline-none" placeholder="Ask AI nutrition assistant..." type="text" />
               <button className="w-8 h-8 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center transition shrink-0" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="22" x2="11" y1="2" y2="13"></line>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
@@ -939,7 +939,7 @@ function FindVeganStores() {
         {/* AI Sparkle FAB Button */}
         <button aria-label="Open AI Nutrition Assistant" className="w-14 h-14 rounded-full bg-primary-moss text-white flex items-center justify-center shadow-app-fab hover:bg-primary-moss-hover transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-moss focus:ring-offset-2" id="chat-fab" type="button">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
         </button>
       </div>

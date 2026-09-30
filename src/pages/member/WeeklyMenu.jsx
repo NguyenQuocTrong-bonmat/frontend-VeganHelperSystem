@@ -8,7 +8,7 @@ function WeeklyMenu() {
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary-moss/10 flex items-center justify-center text-primary-moss">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
               <path d="M12 2C6.5 2 2 6.5 2 12c0 4.5 3 8 7 9.5 0-3 .5-6 2-8 1.5-2 3.5-3.5 6.5-4 0 5-2 8-5 9.5-1 0-2 0-2 0s2 2.5 5 1.5c4-1.5 6.5-5 6.5-8.5C22 6.5 17.5 2 12 2z"></path>
             </svg>
           </div>
@@ -35,7 +35,7 @@ function WeeklyMenu() {
         <div className="flex items-center justify-end gap-6" id="header-user-actions">
           <div className="relative" id="notification-dropdown-container">
             <button aria-haspopup="true" aria-label="Notifications" className="relative w-9 h-9 rounded-full border border-[#DCE3D5] overflow-visible flex items-center justify-center bg-herb-white hover:border-primary-moss transition-colors focus:outline-none focus:ring-2 focus:ring-primary-moss/30 cursor-pointer" id="notification-menu-button" title="Notifications">
-              <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
@@ -58,7 +58,7 @@ function WeeklyMenu() {
               <div className="max-h-[340px] overflow-y-auto divide-y divide-border-sage-mist">
                 <a className="flex items-start gap-3 p-3.5 bg-herb-white hover:bg-herb-white/80 transition-colors cursor-pointer block" href="#">
                   <div className="w-8 h-8 rounded-full bg-primary-moss/10 text-primary-moss flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
                   </div>
@@ -80,7 +80,7 @@ function WeeklyMenu() {
                 </a>
                 <a className="flex items-start gap-3 p-3.5 bg-herb-white hover:bg-herb-white/80 transition-colors cursor-pointer block" href="#">
                   <div className="w-8 h-8 rounded-full bg-accent-turmeric/20 text-[#B8791A] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                   </div>
@@ -99,7 +99,7 @@ function WeeklyMenu() {
                 </a>
                 <a className="flex items-start gap-3 p-3.5 hover:bg-herb-white transition-colors cursor-pointer block" href="#">
                   <div className="w-8 h-8 rounded-full bg-herb-white border border-border-sage-mist text-text-stem-gray flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
@@ -127,14 +127,14 @@ function WeeklyMenu() {
           </div>
           <div className="relative" id="profile-dropdown-container">
             <button aria-haspopup="true" className="relative w-9 h-9 rounded-full border border-[#DCE3D5] overflow-hidden flex items-center justify-center bg-herb-white hover:border-primary-moss transition-colors focus:outline-none focus:ring-2 focus:ring-primary-moss/30 cursor-pointer" id="profile-menu-button" title="User Profile">
-              <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </button>
             <div className="hidden absolute right-0 top-full mt-2 w-56 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl py-1.5 shadow-subtle z-50" id="profile-dropdown">
               <Link className="flex items-center gap-3 px-4 h-11 text-sm text-text-charcoal hover:bg-herb-white transition-colors cursor-pointer" to="/profile">
-                <svg className="w-4 h-4 text-text-stem-gray flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray flex-shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -143,7 +143,7 @@ function WeeklyMenu() {
                 </span>
               </Link>
               <Link className="flex items-center gap-3 px-4 h-11 text-sm text-text-charcoal hover:bg-herb-white transition-colors cursor-pointer" to="/admin">
-                <svg className="w-4 h-4 text-text-stem-gray flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-text-stem-gray flex-shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
                 </svg>
@@ -153,7 +153,7 @@ function WeeklyMenu() {
               </Link>
               <div className="my-1 border-t border-[#DCE3D5]"></div>
               <Link className="flex items-center gap-3 px-4 h-11 text-sm text-accent-beetroot hover:bg-herb-white transition-colors cursor-pointer" to="/">
-                <svg className="w-4 h-4 text-accent-beetroot flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-accent-beetroot flex-shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                   <polyline points="16 17 21 12 16 7"></polyline>
                   <line x1="21" x2="9" y1="12" y2="12"></line>
@@ -240,7 +240,7 @@ function WeeklyMenu() {
                           Male
                         </span>
                         <svg className="w-4 h-4 text-stem-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                          <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                         </svg>
                       </button>
                       <ul className="hidden absolute left-0 top-full mt-1 w-full z-[60] bg-surface-paper border border-sage-mist rounded-lg shadow-md overflow-hidden" id="gender-menu">
@@ -469,7 +469,7 @@ function WeeklyMenu() {
           <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-moss/10 text-primary-moss flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                 </svg>
               </div>
@@ -483,7 +483,7 @@ function WeeklyMenu() {
               </div>
             </div>
             <button className="w-full sm:w-auto h-11 px-8 rounded-lg bg-primary-moss hover:bg-primary-moss-hover text-white text-[15px] font-medium transition-colors inline-flex items-center justify-center gap-2 flex-shrink-0 shadow-sm" type="button">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
               </svg>
               <span className="">
@@ -512,7 +512,7 @@ function WeeklyMenu() {
             </div>
             <div>
               <button className="h-10 px-4 rounded-lg border border-primary-moss text-primary-moss hover:bg-herb-white text-sm font-medium transition-colors inline-flex items-center gap-2" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                   <polyline points="17 21 17 13 7 13 7 21"></polyline>
                   <polyline points="7 3 7 8 15 8"></polyline>
@@ -565,8 +565,8 @@ function WeeklyMenu() {
                     </span>
                   </div>
                   <button className="inline-flex items-center gap-1 text-xs font-medium text-text-stem-gray hover:text-primary-moss px-2 py-1 rounded bg-herb-white hover:bg-border-sage-mist/50 transition-colors focus:outline-none" title="Swap meal" type="button">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                     <span className="">
                       Swap
@@ -595,8 +595,8 @@ function WeeklyMenu() {
                 <span className="font-medium">
                   View recipe detail
                 </span>
-                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
             </div>
@@ -611,8 +611,8 @@ function WeeklyMenu() {
                     </span>
                   </div>
                   <button className="inline-flex items-center gap-1 text-xs font-medium text-text-stem-gray hover:text-primary-moss px-2 py-1 rounded bg-herb-white hover:bg-border-sage-mist/50 transition-colors focus:outline-none" title="Swap meal" type="button">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                     <span className="">
                       Swap
@@ -641,8 +641,8 @@ function WeeklyMenu() {
                 <span className="font-medium">
                   View recipe detail
                 </span>
-                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
             </div>
@@ -657,8 +657,8 @@ function WeeklyMenu() {
                     </span>
                   </div>
                   <button className="inline-flex items-center gap-1 text-xs font-medium text-text-stem-gray hover:text-primary-moss px-2 py-1 rounded bg-herb-white hover:bg-border-sage-mist/50 transition-colors focus:outline-none" title="Swap meal" type="button">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                     <span className="">
                       Swap
@@ -687,8 +687,8 @@ function WeeklyMenu() {
                 <span className="font-medium">
                   View recipe detail
                 </span>
-                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M8.25 4.5l7.5 7.5-7.5 7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
             </div>
@@ -700,7 +700,7 @@ function WeeklyMenu() {
         {/* Chat FAB Button (56px circle, primary-moss, white AI sparkle) */}
         <button className="w-14 h-14 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shadow-subtle transition-all focus:outline-none focus:ring-2 focus:ring-primary-moss/40 cursor-pointer" id="chat-fab" title="AI Nutrition Assistant">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
         </button>
         {/* Chat Popup Panel */}
@@ -710,7 +710,7 @@ function WeeklyMenu() {
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss flex-shrink-0">
                 <svg className="w-5 h-5 text-primary-moss" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+                  <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
                 </svg>
               </div>
               <div>
@@ -727,12 +727,12 @@ function WeeklyMenu() {
             </div>
             <div className="flex items-center gap-1 text-text-stem-gray">
               <button className="w-7 h-7 rounded-lg hover:bg-herb-white flex items-center justify-center transition-colors" id="chat-minimize" title="Minimize">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="5" x2="19" y1="12" y2="12"></line>
                 </svg>
               </button>
               <button className="w-7 h-7 rounded-lg hover:bg-herb-white flex items-center justify-center transition-colors" id="chat-close" title="Close">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="18" x2="6" y1="6" y2="18"></line>
                   <line x1="6" x2="18" y1="6" y2="18"></line>
                 </svg>
@@ -744,7 +744,7 @@ function WeeklyMenu() {
             {/* AI Greeting */}
             <div className="flex items-start gap-2 max-w-[88%]">
               <div className="w-7 h-7 rounded-full bg-primary-moss/10 flex items-center justify-center text-primary-moss flex-shrink-0 mt-0.5">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                 </svg>
               </div>
@@ -761,7 +761,7 @@ function WeeklyMenu() {
             {/* AI Reply */}
             <div className="flex items-start gap-2 max-w-[90%]">
               <div className="w-7 h-7 rounded-full bg-primary-moss/10 flex items-center justify-center text-primary-moss flex-shrink-0 mt-0.5">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                 </svg>
               </div>
@@ -795,7 +795,7 @@ function WeeklyMenu() {
             <form className="flex items-center gap-2">
               <input className="flex-1 h-10 px-3.5 rounded-lg bg-herb-white border border-border-sage-mist text-[13px] text-text-charcoal focus:outline-none focus:border-primary-moss" placeholder="Ask AI nutrition assistant..." type="text" />
               <button className="w-10 h-10 rounded-lg bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center flex-shrink-0 transition-colors focus:outline-none" title="Send message" type="submit">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="22" x2="11" y1="2" y2="13"></line>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
