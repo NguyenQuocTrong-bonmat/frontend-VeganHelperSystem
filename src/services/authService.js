@@ -13,6 +13,18 @@ export const authService = {
     return response.data;
   },
 
+  // Xác minh email (OTP)
+  verifyEmail: async (data) => {
+    const response = await axiosInstance.post('/auth/verify-email', data);
+    return response.data;
+  },
+
+  // Gửi lại mã OTP
+  resendVerification: async (data) => {
+    const response = await axiosInstance.post('/auth/resend-verification', data);
+    return response.data;
+  },
+
   // FN05: Xem hồ sơ cá nhân
   getProfile: async () => {
     const response = await axiosInstance.get('/users/me');

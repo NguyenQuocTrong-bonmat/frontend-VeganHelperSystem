@@ -51,8 +51,13 @@ function SignUp() {
       };
       
       await authService.register(payload);
-      toast.success('Registration successful! Please check your email for the verification code.');
-      navigate('/login');
+      toast.success('Registration successful! Please verify your email.');
+      navigate('/verify-otp', {
+        state: {
+          email: data.email,
+          password: data.password // Pass password to auto-login later
+        }
+      });
     } catch (err) {
       const errorMsg = err.response?.data?.error?.toLowerCase() || '';
       
