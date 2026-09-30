@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
+import { useGoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 
 // 1. Define validation schema
@@ -21,6 +23,7 @@ const registerSchema = z.object({
 });
 
 function SignUp() {
+  const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -73,6 +76,20 @@ function SignUp() {
     }
   };
 
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsSubmitting(true);
+        await loginWithGoogle(tokenResponse.access_token);
+        navigate('/home');
+      } catch (err) {
+        toast.error('Google login failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    onError: () => toast.error('Google login was unsuccessful.'),
+  });
   return (
     <>
       <header className="w-full h-16 bg-surface-paper border-b border-border-sage-mist px-6 lg:px-12 flex items-center justify-between">
@@ -236,7 +253,12 @@ function SignUp() {
             </div>
 
             {/* Google Register Button */}
-            <button className="w-full h-11 bg-surface-paper hover:bg-bg-herb-white text-text-charcoal border border-border-sage-mist font-medium text-[15px] rounded-lg transition-colors duration-150 flex items-center justify-center gap-2.5 cursor-pointer shadow-none" type="button">
+            <button 
+              className="w-full h-11 bg-surface-paper hover:bg-bg-herb-white text-text-charcoal border border-border-sage-mist font-medium text-[15px] rounded-lg transition-colors duration-150 flex items-center justify-center gap-2.5 cursor-pointer shadow-none" 
+              type="button"
+              onClick={() => handleGoogleLogin()}
+              disabled={isSubmitting}
+            >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>

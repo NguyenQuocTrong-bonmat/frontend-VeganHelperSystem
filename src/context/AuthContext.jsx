@@ -48,6 +48,17 @@ export const AuthProvider = ({ children }) => {
     setUser(profile);
   };
 
+  const loginWithGoogle = async (idToken) => {
+    const data = await authService.googleLogin({ idToken });
+    // Same as normal login but no "rememberMe" choice (default to localStorage)
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    setIsAuthenticated(true);
+    
+    const profile = await authService.getProfile();
+    setUser(profile);
+  };
+
   const logout = async () => {
     await authService.logout();
     setUser(null);
@@ -55,7 +66,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
