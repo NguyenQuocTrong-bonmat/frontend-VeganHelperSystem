@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an Axios instance with base configuration
 const axiosInstance = axios.create({
   // Use environment variable for API URL. If not set, use localhost as fallback
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7087/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7180/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
