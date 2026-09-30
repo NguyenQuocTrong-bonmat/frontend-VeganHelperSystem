@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
 });
 
 function Login() {
@@ -147,7 +148,7 @@ function Login() {
             </div>
             
             <div className="flex items-center gap-2 pt-1">
-              <input className="w-4 h-4 rounded border-border-sage-mist text-primary-moss focus:ring-0 cursor-pointer accent-[#2F5233]" id="remember" type="checkbox" />
+              <input {...register('rememberMe')} className="w-4 h-4 rounded border-border-sage-mist text-primary-moss focus:ring-0 cursor-pointer accent-[#2F5233]" id="remember" type="checkbox" />
               <label className="text-xs text-text-stem-gray select-none cursor-pointer" htmlFor="remember">
                 Remember me on this device
               </label>

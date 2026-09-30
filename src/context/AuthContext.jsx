@@ -10,12 +10,20 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       if (token) {
         try {
           // If token exists, fetch user profile to verify and load data
           const profile = await authService.getProfile();
-          setUser(profile);
+          
+          // Decode JWT to get role
+          let role = 'member';
+          try {
+            const decoded = JSON.parse(atob(token.split('.')[1]));
+            role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'member';
+          } catch(e) {}
+          
+          setUser({ ...profile, role });
           setIsAuthenticated(true);
         } catch (error) {
           console.error("Auth check failed:", error);
@@ -29,14 +37,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
-    const data = await authService.login(credentials);
+    const { rememberMe, ...apiCredentials } = credentials;
+    const data = await authService.login(apiCredentials);
     // Assuming backend returns { accessToken: "..." }
-    localStorage.setItem('accessToken', data.accessToken);
+    if (rememberMe) {
+      localStorage.setItem('accessToken', data.accessToken);
+    } else {
+      sessionStorage.setItem('accessToken', data.accessToken);
+    }
     setIsAuthenticated(true);
     
     // Optionally fetch profile immediately after login
     const profile = await authService.getProfile();
-    setUser(profile);
+    
+    // Decode JWT to get role
+    let role = 'member';
+    try {
+      const decoded = JSON.parse(atob(data.accessToken.split('.')[1]));
+      role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'member';
+    } catch(e) {}
+    
+    setUser({ ...profile, role });
   };
 
   const logout = () => {

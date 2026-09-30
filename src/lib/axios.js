@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
 // Request Interceptor: Attach JWT token to every request if it exists
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -45,9 +45,11 @@ axiosInstance.interceptors.response.use(
         
         // For now, if 401, just clear token and force logout
         localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
         window.location.href = '/login';
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
         window.location.href = '/login';
       }
     }
