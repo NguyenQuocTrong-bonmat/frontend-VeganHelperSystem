@@ -15,7 +15,7 @@ export const authService = {
 
   // FN05: Xem hồ sơ cá nhân
   getProfile: async () => {
-    const response = await axiosInstance.get('/users/profile');
+    const response = await axiosInstance.get('/users/me');
     return response.data;
   },
 
