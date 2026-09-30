@@ -35,8 +35,10 @@ export const AuthProvider = ({ children }) => {
     // Assuming backend returns { accessToken: "..." }
     if (rememberMe) {
       localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
     } else {
       sessionStorage.setItem('accessToken', data.accessToken);
+      sessionStorage.setItem('refreshToken', data.refreshToken);
     }
     setIsAuthenticated(true);
     
@@ -46,8 +48,8 @@ export const AuthProvider = ({ children }) => {
     setUser(profile);
   };
 
-  const logout = () => {
-    authService.logout();
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
     setIsAuthenticated(false);
   };

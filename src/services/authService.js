@@ -21,8 +21,16 @@ export const authService = {
 
   // FN03: Đăng xuất
   logout: async () => {
-    // Optionally call BE logout if it exists to revoke token
-    // await axiosInstance.post('/auth/logout');
-    localStorage.removeItem('accessToken');
+    try {
+      const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+      await axiosInstance.post('/auth/logout', { refreshToken });
+    } catch (e) {
+      console.error("Logout API failed", e);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+    }
   },
 };

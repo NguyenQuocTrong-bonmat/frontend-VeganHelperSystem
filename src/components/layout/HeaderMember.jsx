@@ -26,9 +26,9 @@ export default function HeaderMember() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
-    logout();
+    await logout();
     navigate('/login');
   };
 
