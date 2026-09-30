@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom'
 import HomeGuest from './pages/guest/HomeGuest.jsx'
 import Login from './pages/guest/Login.jsx'
 import SignUp from './pages/guest/SignUp.jsx'
+import VerifyOTP from './pages/guest/VerifyOTP.jsx'
 import ForgotPasswordResetPassword from './pages/guest/ForgotPasswordResetPassword.jsx'
 import SearchResultsGuest from './pages/guest/SearchResultsGuest.jsx'
 import PostDetailGuest from './pages/guest/PostDetailGuest.jsx'
@@ -45,6 +46,7 @@ function App() {
         <Route path="/" element={<HomeGuest />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/forgot-password" element={<ForgotPasswordResetPassword />} />
         <Route path="/search-guest" element={<SearchResultsGuest />} />
         <Route path="/posts/:id/guest" element={<PostDetailGuest />} />
