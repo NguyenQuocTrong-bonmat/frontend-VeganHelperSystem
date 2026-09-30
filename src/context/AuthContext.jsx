@@ -16,14 +16,7 @@ export const AuthProvider = ({ children }) => {
           // If token exists, fetch user profile to verify and load data
           const profile = await authService.getProfile();
           
-          // Decode JWT to get role
-          let role = 'member';
-          try {
-            const decoded = JSON.parse(atob(token.split('.')[1]));
-            role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'member';
-          } catch(e) {}
-          
-          setUser({ ...profile, role });
+          setUser(profile);
           setIsAuthenticated(true);
         } catch (error) {
           console.error("Auth check failed:", error);
@@ -50,14 +43,7 @@ export const AuthProvider = ({ children }) => {
     // Optionally fetch profile immediately after login
     const profile = await authService.getProfile();
     
-    // Decode JWT to get role
-    let role = 'member';
-    try {
-      const decoded = JSON.parse(atob(data.accessToken.split('.')[1]));
-      role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'member';
-    } catch(e) {}
-    
-    setUser({ ...profile, role });
+    setUser(profile);
   };
 
   const logout = () => {
