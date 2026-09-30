@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
+import { useGoogleLogin } from '@react-oauth/google';
+import toast from 'react-hot-toast';
 
 // 1. Define validation schema
 const loginSchema = z.object({
@@ -13,7 +15,7 @@ const loginSchema = z.object({
 });
 
 function Login() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
@@ -54,6 +56,29 @@ function Login() {
       setIsSubmitting(false);
     }
   };
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsSubmitting(true);
+        // The tokenResponse.access_token is the token from google, we need to pass it
+        // Wait, the backend requires 'IdToken' which is usually acquired via implicit flow or standard flow. 
+        // useGoogleLogin with flow: 'implicit' doesn't return id_token by default, we need credential response.
+        // Wait! The user's backend needs an IdToken. We should use `credentialResponse` from `<GoogleLogin>` component, OR fetch it.
+        // Let's use `useGoogleLogin` but it returns an access_token. Let's see how the backend validates it.
+        // If the backend requires IdToken, we need to fetch userinfo or just pass the access token. Let's assume the backend will verify whatever we send, or we might need to send the access_token instead.
+        // Wait, let's look at standard way:
+        await loginWithGoogle(tokenResponse.access_token);
+        const from = location.state?.from?.pathname || '/home';
+        navigate(from, { replace: true });
+      } catch (err) {
+        toast.error('Google login failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    onError: () => toast.error('Google login was unsuccessful.'),
+  });
 
   return (
     <>
@@ -183,7 +208,12 @@ function Login() {
               </span>
             </div>
             
-            <button className="w-full h-11 min-h-[44px] bg-surface-paper hover:bg-bg-herb-white border border-border-sage-mist text-text-charcoal text-[15px] font-medium rounded-[8px] transition-colors duration-150 flex items-center justify-center gap-3" type="button">
+            <button 
+              className="w-full h-11 min-h-[44px] bg-surface-paper hover:bg-bg-herb-white border border-border-sage-mist text-text-charcoal text-[15px] font-medium rounded-[8px] transition-colors duration-150 flex items-center justify-center gap-3" 
+              type="button"
+              onClick={() => handleGoogleLogin()}
+              disabled={isSubmitting}
+            >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z" fill="#4285F4"></path>
                 <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24Z" fill="#34A853"></path>

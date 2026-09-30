@@ -7,6 +7,12 @@ export const authService = {
     return response.data;
   },
 
+  // Google Login
+  googleLogin: async (data) => {
+    const response = await axiosInstance.post('/auth/google-login', data);
+    return response.data;
+  },
+
   // FN01: Đăng ký tài khoản
   register: async (userData) => {
     const response = await axiosInstance.post('/auth/register', userData);
