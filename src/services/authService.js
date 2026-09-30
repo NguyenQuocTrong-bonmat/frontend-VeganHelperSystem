@@ -31,6 +31,18 @@ export const authService = {
     return response.data;
   },
 
+  // FN04: Quên mật khẩu
+  forgotPassword: async (data) => {
+    const response = await axiosInstance.post('/auth/forgot-password', data);
+    return response.data;
+  },
+
+  // FN04: Đặt lại mật khẩu
+  resetPassword: async (data) => {
+    const response = await axiosInstance.post('/auth/reset-password', data);
+    return response.data;
+  },
+
   // FN03: Đăng xuất
   logout: async () => {
     try {
