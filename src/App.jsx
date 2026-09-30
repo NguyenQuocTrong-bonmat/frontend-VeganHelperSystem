@@ -32,41 +32,48 @@ import AdminAiModerationQueue from './pages/admin/AdminAiModerationQueue.jsx'
 import AdminAiModelMonitoring from './pages/admin/AdminAiModelMonitoring.jsx'
 import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQueue.jsx'
 
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/layout/ProtectedRoute'
+import { Toaster } from 'react-hot-toast'
+
 function App() {
   return (
-    <Routes>
-      {/* Guest */}
-      <Route path="/" element={<HomeGuest />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/sign-up" element={<SignUp />} />
-      <Route path="/forgot-password" element={<ForgotPasswordResetPassword />} />
-      <Route path="/search-guest" element={<SearchResultsGuest />} />
-      <Route path="/posts/:id/guest" element={<PostDetailGuest />} />
-      <Route path="/weekly-menu/locked" element={<WeeklyMenuGuestLocked />} />
-      <Route path="/vegan-stores/locked" element={<FindVeganStoresGuestLocked />} />
-      <Route path="/my-posts/locked" element={<MyPostsGuestLocked />} />
+    <AuthProvider>
+      <Toaster position="top-right" />
+      <Routes>
+        {/* Guest */}
+        <Route path="/" element={<HomeGuest />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPasswordResetPassword />} />
+        <Route path="/search-guest" element={<SearchResultsGuest />} />
+        <Route path="/posts/:id/guest" element={<PostDetailGuest />} />
+        <Route path="/weekly-menu/locked" element={<WeeklyMenuGuestLocked />} />
+        <Route path="/vegan-stores/locked" element={<FindVeganStoresGuestLocked />} />
+        <Route path="/my-posts/locked" element={<MyPostsGuestLocked />} />
 
-      {/* Member */}
-      <Route path="/home" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/users/:id" element={<PublicUserProfile />} />
-      <Route path="/my-posts" element={<MyPosts />} />
-      <Route path="/posts/:id" element={<PostDetail />} />
-      <Route path="/weekly-menu" element={<WeeklyMenu />} />
-      <Route path="/vegan-stores" element={<FindVeganStores />} />
-      <Route path="/search" element={<SearchResults />} />
-      <Route path="/account-suspended" element={<AccountSuspended />} />
+        {/* Member */}
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/users/:id" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
+        <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
+        <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+        <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
+        <Route path="/vegan-stores" element={<ProtectedRoute><FindVeganStores /></ProtectedRoute>} />
+        <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+        <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
 
-      {/* Admin */}
-      <Route path="/admin" element={<AdminDashboardHomeOverview />} />
-      <Route path="/admin/content" element={<AdminContentManagement />} />
-      <Route path="/admin/members" element={<AdminMemberManagement />} />
-      <Route path="/admin/categories" element={<AdminCategoryManagement />} />
-      <Route path="/admin/meal-planner-config" element={<AdminMealPlannerConfiguration />} />
-      <Route path="/admin/ai-moderation" element={<AdminAiModerationQueue />} />
-      <Route path="/admin/ai-monitoring" element={<AdminAiModelMonitoring />} />
-      <Route path="/admin/video-summarization" element={<AdminVideoSummarizationQueue />} />
-    </Routes>
+        {/* Admin */}
+        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboardHomeOverview /></ProtectedRoute>} />
+        <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
+        <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
+        <Route path="/admin/meal-planner-config" element={<ProtectedRoute requireAdmin={true}><AdminMealPlannerConfiguration /></ProtectedRoute>} />
+        <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
+        <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
+        <Route path="/admin/video-summarization" element={<ProtectedRoute requireAdmin={true}><AdminVideoSummarizationQueue /></ProtectedRoute>} />
+      </Routes>
+    </AuthProvider>
   )
 }
 
