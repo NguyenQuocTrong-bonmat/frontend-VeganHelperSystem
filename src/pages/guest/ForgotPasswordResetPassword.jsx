@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ const forgotPasswordSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
@@ -20,18 +21,12 @@ const resetPasswordSchema = z.object({
 });
 
 function ForgotPasswordResetPassword() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const token = searchParams.get('token');
-  const emailQuery = searchParams.get('email');
-  
   // States
+  const [currentStep, setCurrentStep] = useState('forgot'); // 'forgot' or 'reset'
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  
-  // Determine Mode: "forgot" or "reset"
-  const mode = token && emailQuery ? 'reset' : 'forgot';
+  const [userEmail, setUserEmail] = useState(''); // Store email for the reset step
 
   const forgotForm = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -45,7 +40,9 @@ function ForgotPasswordResetPassword() {
     setIsSubmitting(true);
     try {
       await authService.forgotPassword({ email: data.email });
-      setIsSuccess(true);
+      setUserEmail(data.email);
+      setCurrentStep('reset');
+      toast.success('Reset token sent to your email.');
     } catch (err) {
       forgotForm.setError('email', { 
         type: 'manual', 
@@ -60,16 +57,17 @@ function ForgotPasswordResetPassword() {
     setIsSubmitting(true);
     try {
       await authService.resetPassword({
-        email: emailQuery,
-        token: token,
+        email: userEmail,
+        token: data.token,
         newPassword: data.newPassword
       });
       toast.success('Password reset successfully! Please log in.');
       navigate('/login');
     } catch (err) {
-      resetForm.setError('newPassword', { 
+      // The error could be due to an invalid token or something else
+      resetForm.setError('token', { 
         type: 'manual', 
-        message: err.response?.data?.error || 'Failed to reset password. The link might be expired.' 
+        message: err.response?.data?.error || 'Failed to reset password. The token might be invalid or expired.' 
       });
     } finally {
       setIsSubmitting(false);
@@ -97,23 +95,30 @@ function ForgotPasswordResetPassword() {
         <div className="w-full max-w-[480px] bg-surface-paper border border-border-sage-mist rounded-[12px] p-8 sm:p-10 flex flex-col items-center shadow-sm">
           
           <div className="w-12 h-12 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss mb-4">
-            <svg className="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              <circle cx="12" cy="16" r="1"></circle>
-            </svg>
+            {currentStep === 'forgot' ? (
+              <svg className="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <circle cx="12" cy="16" r="1"></circle>
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            )}
           </div>
           
           <h1 className="font-serif text-[28px] leading-tight font-normal text-text-charcoal text-center mb-2">
-            {mode === 'forgot' ? 'Reset Password' : 'Set New Password'}
+            {currentStep === 'forgot' ? 'Reset Password' : 'Set New Password'}
           </h1>
           <p className="font-sans text-[14px] text-text-stem-gray text-center leading-relaxed max-w-[340px] mb-8">
-            {mode === 'forgot' 
-              ? "Enter your email and we'll send you a recovery link"
-              : "Please enter your new password below"}
+            {currentStep === 'forgot' 
+              ? "Enter your email and we'll send you a recovery token"
+              : `Enter the token sent to ${userEmail} and your new password`}
           </p>
 
-          {mode === 'forgot' && !isSuccess && (
+          {currentStep === 'forgot' && (
             <form className="w-full space-y-5" onSubmit={forgotForm.handleSubmit(onForgotSubmit)}>
               <div className="space-y-1.5">
                 <label htmlFor="email" className="block text-[13px] font-medium text-text-charcoal">
@@ -136,26 +141,31 @@ function ForgotPasswordResetPassword() {
                   disabled={isSubmitting}
                   className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Sending...' : 'Send Recovery Link'}
+                  {isSubmitting ? 'Sending...' : 'Send Recovery Token'}
                 </button>
               </div>
             </form>
           )}
 
-          {mode === 'forgot' && isSuccess && (
-            <div className="w-full p-4 bg-[#E8F0E4] border border-[#C5D8BF] rounded-[8px] text-[14px] text-primary-moss flex items-start gap-3 transition-all">
-              <svg className="w-5 h-5 mt-0.5 shrink-0 text-success-sprout stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              <span>
-                A password reset link has been dispatched to your email inbox. Please check your spam folder if you don't see it.
-              </span>
-            </div>
-          )}
-
-          {mode === 'reset' && (
+          {currentStep === 'reset' && (
             <form className="w-full space-y-5" onSubmit={resetForm.handleSubmit(onResetSubmit)}>
+              
+              <div className="space-y-1.5">
+                <label htmlFor="token" className="block text-[13px] font-medium text-text-charcoal">
+                  Reset Token
+                </label>
+                <input 
+                  {...resetForm.register('token')}
+                  type="text" 
+                  id="token" 
+                  placeholder="Paste your reset token here" 
+                  className={`w-full px-3.5 py-2.5 bg-white border ${resetForm.formState.errors.token ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus:ring-2 focus:ring-primary-moss focus:border-transparent transition-colors font-mono text-sm`} 
+                />
+                {resetForm.formState.errors.token && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{resetForm.formState.errors.token.message}</p>
+                )}
+              </div>
+
               <div className="space-y-1.5">
                 <label htmlFor="newPassword" className="block text-[13px] font-medium text-text-charcoal">
                   New Password
@@ -188,13 +198,20 @@ function ForgotPasswordResetPassword() {
                 )}
               </div>
 
-              <div className="pt-1">
+              <div className="pt-1 flex flex-col gap-3">
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
                   className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setCurrentStep('forgot')}
+                  className="text-xs text-text-stem-gray hover:text-primary-moss transition-colors"
+                >
+                  Did not receive the token? Try again
                 </button>
               </div>
             </form>
