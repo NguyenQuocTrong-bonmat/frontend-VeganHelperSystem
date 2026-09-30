@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 
 // 1. Define validation schema
@@ -57,28 +57,7 @@ function Login() {
     }
   };
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setIsSubmitting(true);
-        // The tokenResponse.access_token is the token from google, we need to pass it
-        // Wait, the backend requires 'IdToken' which is usually acquired via implicit flow or standard flow. 
-        // useGoogleLogin with flow: 'implicit' doesn't return id_token by default, we need credential response.
-        // Wait! The user's backend needs an IdToken. We should use `credentialResponse` from `<GoogleLogin>` component, OR fetch it.
-        // Let's use `useGoogleLogin` but it returns an access_token. Let's see how the backend validates it.
-        // If the backend requires IdToken, we need to fetch userinfo or just pass the access token. Let's assume the backend will verify whatever we send, or we might need to send the access_token instead.
-        // Wait, let's look at standard way:
-        await loginWithGoogle(tokenResponse.access_token);
-        const from = location.state?.from?.pathname || '/home';
-        navigate(from, { replace: true });
-      } catch (err) {
-        toast.error('Google login failed. Please try again.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    onError: () => toast.error('Google login was unsuccessful.'),
-  });
+
 
   return (
     <>
