@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { updatePost, getCategories } from '../../services/postService';
+import { updatePost, getCategories, getPostDetail } from '../../services/postService';
 
 export default function EditPost() {
   const navigate = useNavigate();
@@ -13,10 +13,10 @@ export default function EditPost() {
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [content, setContent] = useState('');
-  const [difficultyLevel, setDifficultyLevel] = useState('Easy');
+  const [difficultyLevel, setDifficultyLevel] = useState('easy');
   const [prepTimeMins, setPrepTimeMins] = useState(15);
   const [cookingTimeMins, setCookingTimeMins] = useState(30);
-  const [dietType, setDietType] = useState('Vegan');
+  const [dietType, setDietType] = useState('vegan');
   const [mediaFiles, setMediaFiles] = useState([]);
 
   // Ingredients & Steps lists
@@ -40,12 +40,27 @@ export default function EditPost() {
     }
     
     async function loadPost() {
-      // Mock loading post data, as GET /api/Posts/:id isn't guaranteed to work with auth yet, or might need a service method.
-      // We will just mock populate some data so FN14 Edit form can be tested as requested.
-      setTitle('Existing Mock Title');
-      setContent('Existing mock content...');
-      setIngredients(['Mock Ingredient 1']);
-      setSteps(['Mock step 1']);
+      try {
+        const data = await getPostDetail(id);
+        setTitle(data.title || '');
+        setCategoryId(data.categoryId || '');
+        setContent(data.content || '');
+        setDifficultyLevel(data.difficultyLevel || 'easy');
+        setPrepTimeMins(data.prepTimeMins || 15);
+        setCookingTimeMins(data.cookingTimeMins || 30);
+        setDietType(data.dietType || 'vegan');
+        
+        // Populate arrays safely
+        if (data.ingredients && data.ingredients.length > 0) {
+           setIngredients(data.ingredients);
+        }
+        if (data.steps && data.steps.length > 0) {
+           setSteps(data.steps);
+        }
+      } catch (err) {
+        console.error('Failed to load post details:', err);
+        setErrorMessage('Could not load post details. Please try again.');
+      }
     }
     
     loadCats();
@@ -94,7 +109,7 @@ export default function EditPost() {
 
       const payload = {
         title: title.trim(),
-        postType: 'Recipe',
+        postType: 'recipe',
         categoryId: parseInt(categoryId, 10),
         content: content.trim(),
         difficultyLevel,
@@ -178,9 +193,8 @@ export default function EditPost() {
                 onChange={(e) => setDietType(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
               >
-                <option value="Vegan">Vegan</option>
-                <option value="Raw Vegan">Raw Vegan</option>
-                <option value="Plant-based">Plant-based</option>
+                <option value="vegan">Vegan</option>
+                <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
               </select>
             </div>
           </div>
@@ -220,9 +234,9 @@ export default function EditPost() {
                 onChange={(e) => setDifficultyLevel(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
               >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
               </select>
             </div>
           </div>

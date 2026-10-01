@@ -245,3 +245,99 @@ export async function deletePost(id) {
     throw error;
   }
 }
+
+// Lấy chi tiết bài viết (FN10 / FN14)
+export async function getPostDetail(id) {
+  const token = getAuthToken();
+  const headers = { 'Accept': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch post details (${res.status})`);
+  }
+
+  return await res.json();
+}
+
+// Cập nhật bài viết (FN14)
+export async function updatePost(id, postData) {
+  const token = getAuthToken();
+  const formData = new FormData();
+
+  formData.append('Title', postData.title);
+  formData.append('PostType', postData.postType || 'recipe');
+  formData.append('CategoryId', postData.categoryId);
+  formData.append('Content', postData.content);
+  formData.append('DifficultyLevel', postData.difficultyLevel || 'easy');
+  formData.append('PrepTimeMins', postData.prepTimeMins || 0);
+  formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
+  formData.append('DietType', postData.dietType || 'vegan');
+
+  // Gắn file ảnh nếu có
+  if (postData.mediaFiles && postData.mediaFiles.length > 0) {
+    for (let i = 0; i < postData.mediaFiles.length; i++) {
+      formData.append('MediaFiles', postData.mediaFiles[i]);
+    }
+  }
+
+  // Serialize Ingredients và Steps
+  formData.append('IngredientsJson', JSON.stringify(postData.ingredients || []));
+  formData.append('StepsJson', JSON.stringify(postData.steps || []));
+
+  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let errorMessage = `Failed to update post (${res.status})`;
+    try {
+      const text = await res.text();
+      try {
+        const errorJson = JSON.parse(text);
+        errorMessage = errorJson.message || errorJson.title || text;
+        if (errorJson.errors) {
+          let details = '';
+          if (Array.isArray(errorJson.errors)) {
+            details = errorJson.errors.map(e => {
+              if (typeof e === 'string') return e;
+              if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
+              return e.errorMessage || e.message || e.description || JSON.stringify(e);
+            }).join(' | ');
+          } else if (typeof errorJson.errors === 'object') {
+            details = Object.entries(errorJson.errors)
+              .map(([field, msgs]) => {
+                const cleanField = field.replace('$.', '');
+                const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
+                return `${cleanField}: ${msgsStr}`;
+              })
+              .join(' | ');
+          }
+          if (details) {
+            errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
+          }
+        }
+      } catch {
+        if (text) errorMessage = text;
+      }
+    } catch (readErr) {
+      console.error('Error reading update post response:', readErr);
+    }
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    throw error;
+  }
+
+  return await res.json();
+}
