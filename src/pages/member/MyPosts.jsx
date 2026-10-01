@@ -123,7 +123,7 @@ function MyPosts() {
               My Content
             </span>
             <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-border-sage-mist/60 text-text-charcoal">
-              6
+              {posts.length}
             </span>
           </button>
           <button id="tab-saved" className="pb-3 text-sm font-medium text-[#6B6F63] border-b-2 border-transparent hover:text-text-charcoal transition-colors flex items-center gap-2 focus:outline-none">
@@ -131,7 +131,7 @@ function MyPosts() {
               Saved
             </span>
             <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-border-sage-mist/40 text-text-stem-gray">
-              4
+              0
             </span>
           </button>
         </div>
@@ -167,13 +167,13 @@ function MyPosts() {
               posts.map(post => (
                 <article key={post.id} onClick={() => navigate(`/posts/${post.id}`)} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                   <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                    {post.mediaFiles && post.mediaFiles.length > 0 ? (
-                      <img alt={post.title} className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.mediaFiles[0].mediaUrl)} />
-                    ) : null}
+                    {post.thumbnailUrl ? (
+                      <img alt={post.title} className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.thumbnailUrl)} />
+                    ) : <div className="absolute inset-0 flex items-center justify-center text-text-stem-gray text-sm">No Image</div>}
                     <div className="relative z-10 flex items-center justify-between">
                       <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
                         <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                        {post.category?.name || 'Recipe'}
+                        {post.categoryName || 'Recipe'}
                       </span>
                       <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
                         {post.postType || 'Blog'}
