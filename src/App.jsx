@@ -22,6 +22,7 @@ import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
 import FindVeganStores from './pages/member/FindVeganStores.jsx'
 import SearchResults from './pages/member/SearchResults.jsx'
 import AccountSuspended from './pages/member/AccountSuspended.jsx'
+import CreatePost from './pages/member/CreatePost.jsx'
 
 // Admin pages
 import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
@@ -59,12 +60,12 @@ function App() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/users/:id" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
         <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
+        <Route path="/posts/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
         <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
         <Route path="/vegan-stores" element={<ProtectedRoute><FindVeganStores /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
         <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
-
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboardHomeOverview /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
