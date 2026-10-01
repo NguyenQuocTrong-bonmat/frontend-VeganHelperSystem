@@ -1,6 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { getPostDetail } from '../../services/postService';
+import { getPostDetail, getCategories } from '../../services/postService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getTimeAgo } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
@@ -13,6 +13,7 @@ function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [categoryName, setCategoryName] = useState('Recipe');
 
   const hasFetched = useRef(false);
 
@@ -24,6 +25,14 @@ function PostDetail() {
       try {
         const data = await getPostDetail(id);
         setPost(data);
+        try {
+          const catsData = await getCategories();
+          const cats = Array.isArray(catsData) ? catsData : catsData.items || [];
+          const foundCat = cats.find(c => c.id === data.categoryId);
+          if (foundCat) setCategoryName(foundCat.name);
+        } catch (catErr) {
+          console.warn('Failed to load categories mapping:', catErr);
+        }
       } catch (err) {
         setError('Failed to load post details.');
         console.error(err);
@@ -67,8 +76,8 @@ function PostDetail() {
           {/* Category Tag */}
           <div className="inline-flex items-center gap-2">
             <span className="w-[3px] h-4 bg-primary-moss rounded-full"></span>
-            <span className="text-sm font-medium text-text-charcoal">
-              {post.postType} / Recipe
+            <span className="text-sm font-medium text-text-charcoal capitalize">
+              {post.postType || 'recipe'} / {categoryName}
             </span>
           </div>
         </div>
