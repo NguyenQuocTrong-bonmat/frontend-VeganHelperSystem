@@ -246,25 +246,7 @@ export async function deletePost(id) {
   }
 }
 
-// Lấy chi tiết bài viết (FN10 / FN14)
-export async function getPostDetail(id) {
-  const token = getAuthToken();
-  const headers = { 'Accept': 'application/json' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
-  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
-    method: 'GET',
-    headers,
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch post details (${res.status})`);
-  }
-
-  return await res.json();
-}
 
 // Cập nhật bài viết (FN14)
 export async function updatePost(id, postData) {
