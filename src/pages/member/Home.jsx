@@ -165,8 +165,8 @@ function Home() {
                       <div className="pt-4 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
-                            {featured.user?.avatarUrl ? (
-                              <img src={getImageUrl(featured.user.avatarUrl)} className="w-full h-full object-cover" />
+                            {featured.avatarUrl ? (
+                              <img src={getImageUrl(featured.avatarUrl)} className="w-full h-full object-cover" />
                             ) : (
                               <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                                 <circle cx="12" cy="7" r="4"></circle>
@@ -175,7 +175,7 @@ function Home() {
                             )}
                           </div>
                           <span className="font-medium text-[#2B2A25]">
-                            {featured.user?.displayName || featured.user?.username || 'User'}
+                            {featured.authorName || 'Anonymous'}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -254,8 +254,8 @@ function Home() {
                     <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
-                          {post.user?.avatarUrl ? (
-                            <img src={getImageUrl(post.user.avatarUrl)} className="w-full h-full object-cover" />
+                          {post.avatarUrl ? (
+                            <img src={getImageUrl(post.avatarUrl)} className="w-full h-full object-cover" />
                           ) : (
                             <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                               <circle cx="12" cy="7" r="4"></circle>
@@ -264,7 +264,7 @@ function Home() {
                           )}
                         </div>
                         <span className="font-medium text-[#2B2A25]">
-                          {post.user?.displayName || post.user?.username || 'User'}
+                          {post.authorName || 'Anonymous'}
                         </span>
                       </div>
                       <div className="flex items-center gap-4">
