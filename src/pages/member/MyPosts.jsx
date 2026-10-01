@@ -225,7 +225,7 @@ function MyPosts() {
               ))
             )}
           </div>
-        }
+        </div>
       </main>
       {/* END: MainContent */}
       {/* BEGIN: FloatingActionButtons */}
