@@ -4,6 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
 
 function Profile() {
@@ -151,7 +152,7 @@ function Profile() {
   if (!profile) return <div className="min-h-screen flex items-center justify-center text-accent-beetroot">Error loading profile.</div>;
 
   const defaultAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80";
-  const userAvatar = profile.avatarUrl || defaultAvatar;
+  const userAvatar = getImageUrl(profile.avatarUrl) || defaultAvatar;
   const currentAvatarPreview = avatarPreview || userAvatar;
 
   return (

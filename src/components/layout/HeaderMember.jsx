@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export default function HeaderMember() {
   const { user, logout } = useAuth();
@@ -117,7 +118,7 @@ export default function HeaderMember() {
             className="w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] transition-colors cursor-pointer overflow-hidden focus:outline-none"
           >
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.displayName} className="w-full h-full object-cover" />
+              <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
             ) : (
               <span className="font-semibold text-xs text-[#2F5233]">
                 {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
