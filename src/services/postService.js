@@ -156,15 +156,27 @@ export async function createPost(postData) {
 
   if (!res.ok) {
     let errorMessage = `Failed to create post (${res.status})`;
-    try {
-      const text = await res.text();
       try {
-        const errorJson = JSON.parse(text);
-        errorMessage = errorJson.message || errorJson.title || text;
-      } catch {
-        if (text) errorMessage = text;
-      }
-    } catch (readErr) {
+        const text = await res.text();
+        try {
+          const errorJson = JSON.parse(text);
+          errorMessage = errorJson.message || errorJson.title || text;
+          // Extract specific validation errors if available
+          if (errorJson.errors && typeof errorJson.errors === 'object') {
+            const details = Object.entries(errorJson.errors)
+              .map(([field, msgs]) => {
+                const cleanField = field.replace('$.', '');
+                return `${cleanField}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`;
+              })
+              .join(' | ');
+            if (details) {
+              errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
+            }
+          }
+        } catch {
+          if (text) errorMessage = text;
+        }
+      } catch (readErr) {
       console.error('Error reading create post response:', readErr);
     }
 
