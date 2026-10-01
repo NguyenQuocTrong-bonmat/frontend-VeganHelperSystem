@@ -1,50 +1,11 @@
 import { Link } from 'react-router-dom'
+import HeaderGuest from '../../components/layout/HeaderGuest';
 
 function MyPostsGuestLocked() {
   return (
     <>
       {/* BEGIN: MainHeader */}
-      <header className="sticky top-0 z-40 bg-surface-paper border-b border-border-sage-mist" data-purpose="logged-in-navigation-bar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Logo & Name */}
-          <Link aria-label="Botanical Hearth Home" className="flex items-center gap-2.5 text-primary-moss font-bold group" to="/">
-            <span className="p-1.5 rounded-lg bg-herb-white text-primary-moss group-hover:scale-105 transition-transform duration-200">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"></path>
-                <path d="M12 22V9"></path>
-              </svg>
-            </span>
-            <span className="font-serif-title text-xl font-bold tracking-tight text-text-charcoal group-hover:text-primary-moss transition-colors">
-              Botanical Hearth
-            </span>
-          </Link>
-          {/* Middle Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-text-stem-gray">
-            <Link className="hover:text-primary-moss transition-colors py-5 border-b-2 border-transparent hover:border-border-sage-mist" to="/">
-              Home
-            </Link>
-            <Link className="hover:text-primary-moss transition-colors py-5 border-b-2 border-transparent hover:border-border-sage-mist" to="/weekly-menu/locked">
-              Weekly Menu
-            </Link>
-            <Link className="hover:text-primary-moss transition-colors py-5 border-b-2 border-transparent hover:border-border-sage-mist" to="/vegan-stores/locked">
-              Find Vegan Stores
-            </Link>
-            {/* Active Tab: My Posts */}
-            <Link aria-current="page" className="text-primary-moss font-semibold py-5 border-b-2 border-primary-moss" to="/my-posts/locked">
-              My Posts
-            </Link>
-          </nav>
-          {/* Right: User Avatar Dropdown */}
-          <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-sm font-medium text-primary-moss hover:bg-herb-white rounded-lg transition-colors" type="button">
-              Log In
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-surface-paper bg-primary-moss hover:bg-primary-moss-hover rounded-lg transition-colors shadow-sm" type="button">
-              Sign Up
-            </button>
-          </div>
-        </div>
-      </header>
+      <HeaderGuest />
       {/* END: MainHeader */}
       {/* BEGIN: MainContent */}
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" data-purpose="my-posts-management-screen">

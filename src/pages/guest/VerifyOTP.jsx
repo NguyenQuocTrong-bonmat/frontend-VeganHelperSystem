@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import HeaderAuth from '../../components/layout/HeaderAuth';
 
 const otpSchema = z.object({
   otp: z.string().min(6, 'OTP must be exactly 6 digits').max(6, 'OTP must be exactly 6 digits').regex(/^\d+$/, 'OTP must contain only numbers'),
@@ -107,20 +108,7 @@ function VerifyOTP() {
 
   return (
     <>
-      <header className="w-full bg-surface-paper border-b border-border-sage-mist h-16 flex items-center px-6 md:px-12">
-        <div className="max-w-[1120px] w-full mx-auto flex items-center justify-between">
-          <Link className="flex items-center gap-2.5 text-primary-moss font-fraunces font-semibold text-2xl tracking-tight" to="/">
-            <svg className="w-6 h-6 text-primary-moss stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-              <path d="M2 21c0-3 1.85-5.36 5.08-6"></path>
-            </svg>
-            <span>Botanical Hearth</span>
-          </Link>
-          <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" to="/login">
-            Back to login
-          </Link>
-        </div>
-      </header>
+      <HeaderAuth />
       
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-[440px] bg-surface-paper border border-border-sage-mist rounded-[16px] p-8 md:p-10">

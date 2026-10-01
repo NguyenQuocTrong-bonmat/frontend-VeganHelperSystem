@@ -1,51 +1,11 @@
 import { Link } from 'react-router-dom'
+import HeaderGuest from '../../components/layout/HeaderGuest';
 
 function FindVeganStoresGuestLocked() {
   return (
     <>
       {/* ==================== HEADER (Header-LoggedIn) ==================== */}
-      <header className="sticky top-0 z-40 h-16 bg-surface-paper border-b border-border-sage-mist w-full px-6 lg:px-12 flex items-center justify-between transition-colors">
-        <div className="max-w-7xl w-full mx-auto flex items-center justify-between relative">
-          {/* Left: Logo */}
-          <Link className="flex items-center gap-2.5 text-decoration-none group" to="/">
-            <div className="w-8 h-8 rounded-full bg-primary-moss/10 text-primary-moss flex items-center justify-center transition group-hover:bg-primary-moss/20">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-              </svg>
-            </div>
-            <span className="font-display font-semibold text-2xl tracking-tight text-primary-moss">
-              Botanical Hearth
-            </span>
-          </Link>
-          {/* Center: 4 Horizontal Navigation Items */}
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full text-[15px]">
-            <Link className="text-text-charcoal hover:text-primary-moss transition h-full flex items-center font-normal" to="/">
-              Home
-            </Link>
-            <Link className="text-text-charcoal hover:text-primary-moss transition h-full flex items-center font-normal" to="/weekly-menu/locked">
-              Weekly Menu
-            </Link>
-            <Link className="text-primary-moss font-semibold border-b-2 border-primary-moss h-full flex items-center" to="/vegan-stores/locked">
-              <span className="">
-                Find Vegan Stores
-              </span>
-            </Link>
-            <Link className="text-text-charcoal hover:text-primary-moss transition h-full flex items-center font-normal" to="/my-posts/locked">
-              My Posts
-            </Link>
-          </nav>
-          {/* Right: User Avatar Area */}
-          <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-[14px] font-medium text-primary-moss border border-primary-moss rounded-lg hover:bg-bg-herb-white transition cursor-pointer" type="button">
-              Log In
-            </button>
-            <button className="px-4 py-2 text-[14px] font-medium text-white bg-primary-moss hover:bg-primary-moss-hover rounded-lg transition cursor-pointer shadow-sm" type="button">
-              Sign Up
-            </button>
-          </div>
-        </div>
-      </header>
+      <HeaderGuest />
       {/* ==================== MAIN CONTENT ==================== */}
       <main className="flex-1 flex flex-col w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 gap-6">
         <div className="min-h-[70vh] flex items-center justify-center w-full my-auto py-12">

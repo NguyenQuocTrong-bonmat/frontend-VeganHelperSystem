@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
+import HeaderAuth from '../../components/layout/HeaderAuth';
 
 // 1. Define validation schema
 const registerSchema = z.object({
@@ -79,24 +80,7 @@ function SignUp() {
 
   return (
     <>
-      <header className="w-full h-16 bg-surface-paper border-b border-border-sage-mist px-6 lg:px-12 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <svg className="w-6 h-6 text-primary-moss stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-            </svg>
-            <span className="font-fraunces text-2xl font-semibold text-primary-moss tracking-tight">
-              Botanical Hearth
-            </span>
-          </Link>
-        </div>
-        <div>
-          <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors duration-150" to="/">
-            Back to home
-          </Link>
-        </div>
-      </header>
+      <HeaderAuth />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 my-4">
         <div className="w-full max-w-[480px] bg-surface-paper border border-border-sage-mist rounded-2xl p-6 sm:p-8">

@@ -1,47 +1,11 @@
 import { Link } from 'react-router-dom'
+import HeaderGuest from '../../components/layout/HeaderGuest';
 
 function SearchResultsGuest() {
   return (
     <>
       {/* HEADER-GUEST (Strict standard 64px, surface-paper, border-sage-mist) */}
-      <header className="w-full sticky top-0 z-40 bg-[#FDFBF6] border-b border-[#DCE3D5]">
-        <div className="w-full flex items-center justify-between px-6 py-4 relative">
-          <div className="flex items-center gap-3">
-            <Link className="flex items-center gap-2.5 text-[#2F5233] hover:opacity-95 transition-opacity" to="/">
-              <svg className="w-6 h-6 text-[#2F5233]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-              </svg>
-              <span className="font-fraunces text-2xl font-semibold tracking-tight text-[#2F5233]">
-                Botanical Hearth
-              </span>
-            </Link>
-          </div>
-          {/* Middle Nav: Only 'Home' active with 2px underline in primary-moss for Guest */}
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full text-[15px]">
-            <Link className="text-[#2B2A25] font-medium pb-1 border-b-2 border-[#2F5233] transition-colors" to="/">
-              Home
-            </Link>
-            <Link className="text-[#6B6F63] hover:text-[#2F5233] font-medium transition-colors" to="/weekly-menu">
-              Weekly Menu
-            </Link>
-            <Link className="text-[#6B6F63] hover:text-[#2F5233] font-medium transition-colors" to="/vegan-stores">
-              Find Vegan Stores
-            </Link>
-            <Link className="text-[#6B6F63] hover:text-[#2F5233] font-medium transition-colors" to="/my-posts">
-              My Posts
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link className="px-4 py-2 border border-[#2F5233] text-[#2F5233] hover:bg-[#E9EFE6] rounded-lg text-sm font-medium transition-colors" to="/login">
-              Log In
-            </Link>
-            <Link className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg text-sm font-medium transition-colors" to="/sign-up">
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </header>
+      <HeaderGuest />
       {/* MAIN CONTENT CONTAINER (max-w 1120px, gutter 24px per botanical guidelines) */}
       <main className="flex-1 w-full max-w-[1120px] mx-auto px-6 py-8 md:py-10">
         {/* SEARCH BAR & SUMMARY SECTION */}

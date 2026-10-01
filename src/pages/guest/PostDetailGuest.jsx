@@ -1,55 +1,11 @@
 import { Link } from 'react-router-dom'
+import HeaderGuest from '../../components/layout/HeaderGuest';
 
 function PostDetailGuest() {
   return (
     <>
       {/* TOP HEADER (Header-Guest: height 64px, surface-paper, 1px border-sage-mist) */}
-      <header className="w-full sticky top-0 z-40 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-6 lg:px-8 py-4 relative">
-        {/* Logo Botanical Hearth */}
-        <div className="flex items-center shrink-0">
-          <Link className="flex items-center gap-2 group text-decoration-none" to="/">
-            <svg className="w-6 h-6 text-primary-moss transition-transform group-hover:scale-105" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-              <path d="M2 21c0-3 1.85-5.36 5.08-6"></path>
-            </svg>
-            <span className="font-fraunces font-semibold text-2xl text-primary-moss tracking-tight">
-              Botanical Hearth
-            </span>
-          </Link>
-        </div>
-        {/* Middle Nav: ONLY "Home" link active for Guest */}
-        <nav className="hidden sm:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full font-sans text-[15px]">
-          <Link className="relative h-full flex items-center text-text-charcoal font-semibold border-b-2 border-primary-moss transition-colors" to="/">
-            <span className="">
-              Home
-            </span>
-          </Link>
-          <Link className="relative h-full flex items-center text-text-stem-gray font-medium hover:text-primary-moss transition-colors cursor-pointer" to="/weekly-menu/locked">
-            <span className="">
-              Weekly Menu
-            </span>
-          </Link>
-          <Link className="relative h-full flex items-center text-text-stem-gray font-medium hover:text-primary-moss transition-colors cursor-pointer" to="/vegan-stores/locked">
-            <span className="">
-              Find Vegan Stores
-            </span>
-          </Link>
-          <Link className="relative h-full flex items-center text-text-stem-gray font-medium hover:text-primary-moss transition-colors cursor-pointer" to="/my-posts/locked">
-            <span className="">
-              My Posts
-            </span>
-          </Link>
-        </nav>
-        {/* Guest Auth Buttons */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link className="px-4 py-2 text-sm font-medium text-primary-moss border-[1.5px] border-primary-moss hover:bg-bg-herb-white transition-colors rounded-lg" to="/login">
-            Log In
-          </Link>
-          <Link className="px-4 py-2 text-sm font-medium text-white bg-primary-moss hover:bg-primary-moss-hover transition-colors rounded-lg shadow-sm" to="/sign-up">
-            Sign Up
-          </Link>
-        </div>
-      </header>
+      <HeaderGuest />
       {/* MAIN ARTICLE CONTAINER (max-w-[1120px], 12 cols, left-aligned) */}
       <main className="w-full max-w-[1120px] mx-auto px-6 py-8 md:py-12 flex-1">
         {/* Breadcrumb & Back action */}

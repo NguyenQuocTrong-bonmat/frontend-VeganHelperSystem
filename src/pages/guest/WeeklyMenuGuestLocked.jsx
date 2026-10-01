@@ -1,46 +1,11 @@
 import { Link } from 'react-router-dom'
+import HeaderGuest from '../../components/layout/HeaderGuest';
 
 function WeeklyMenuGuestLocked() {
   return (
     <>
       {/* 1. Header-LoggedIn (Fixed 64px, 'Weekly Menu' active) */}
-      <header className="sticky top-0 z-40 bg-surface-paper border-b border-border-sage-mist h-16 px-6 lg:px-12 flex items-center justify-between relative">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary-moss/10 flex items-center justify-center text-primary-moss">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path d="M12 2C6.5 2 2 6.5 2 12c0 4.5 3 8 7 9.5 0-3 .5-6 2-8 1.5-2 3.5-3.5 6.5-4 0 5-2 8-5 9.5-1 0-2 0-2 0s2 2.5 5 1.5c4-1.5 6.5-5 6.5-8.5C22 6.5 17.5 2 12 2z"></path>
-            </svg>
-          </div>
-          <span className="font-fraunces text-2xl font-semibold text-primary-moss tracking-tight">
-            Botanical Hearth
-          </span>
-        </div>
-        {/* Navigation Menu (Weekly Menu active) */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full">
-          <Link className="inline-flex items-center h-full text-[15px] font-medium text-text-charcoal hover:text-primary-moss transition-colors" to="/">
-            Home
-          </Link>
-          <Link className="inline-flex items-center h-full text-[15px] font-semibold text-primary-moss border-b-2 border-primary-moss transition-colors" to="/weekly-menu/locked">
-            Weekly Menu
-          </Link>
-          <Link className="inline-flex items-center h-full text-[15px] font-medium text-text-charcoal hover:text-primary-moss transition-colors" to="/vegan-stores/locked">
-            Find Vegan Stores
-          </Link>
-          <Link className="inline-flex items-center h-full text-[15px] font-medium text-text-charcoal hover:text-primary-moss transition-colors" to="/my-posts/locked">
-            My Posts
-          </Link>
-        </nav>
-        {/* User Profile Avatar */}
-        <div className="flex items-center gap-3">
-          <button className="h-10 px-4 rounded-lg border border-primary-moss text-primary-moss hover:bg-herb-white text-sm font-medium transition-colors" type="button">
-            Log In
-          </button>
-          <button className="h-10 px-4 rounded-lg bg-primary-moss hover:bg-primary-moss-hover text-white text-sm font-medium transition-colors" type="button">
-            Sign Up
-          </button>
-        </div>
-      </header>
+      <HeaderGuest />
       {/* Main Content Container */}
       <main className="flex-1 max-w-[1120px] w-full mx-auto px-6 py-10 space-y-12">
         <div className="min-h-[70vh] flex items-center justify-center py-12">
