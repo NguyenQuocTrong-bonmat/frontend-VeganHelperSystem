@@ -137,8 +137,8 @@ function Home() {
                return (
                  <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center cursor-pointer hover:border-[#2F5233] transition-colors group" to={`/posts/${featured.id}`}>
                     <div className="relative overflow-hidden lg:col-span-6 w-full h-64 md:h-80 bg-[#E9EFE6] border border-[#DCE3D5] hero-radius flex flex-col items-center justify-center p-4 text-center transition-transform group-hover:scale-[1.01]">
-                      {featured.mediaFiles && featured.mediaFiles.length > 0 ? (
-                        <img src={getImageUrl(featured.mediaFiles[0].mediaUrl)} alt={featured.title} className="w-full h-full object-cover" />
+                      {featured.thumbnailUrl ? (
+                        <img src={getImageUrl(featured.thumbnailUrl)} alt={featured.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-[#6B6F63] text-sm">No Image</div>
                       )}
@@ -226,8 +226,8 @@ function Home() {
               posts.slice(1).map(post => (
                 <Link key={post.id} className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to={`/posts/${post.id}`}>
                   <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
-                    {post.mediaFiles && post.mediaFiles.length > 0 ? (
-                      <img src={getImageUrl(post.mediaFiles[0].mediaUrl)} alt={post.title} className="w-full h-full object-cover rounded-lg" />
+                    {post.thumbnailUrl ? (
+                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover rounded-lg" />
                     ) : (
                       <div className="text-[#6B6F63] text-sm">No Image</div>
                     )}
