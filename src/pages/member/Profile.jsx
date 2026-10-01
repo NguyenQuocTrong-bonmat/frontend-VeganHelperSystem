@@ -151,7 +151,22 @@ function Profile() {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center text-primary-moss">Loading profile...</div>;
   if (!profile) return <div className="min-h-screen flex items-center justify-center text-accent-beetroot">Error loading profile.</div>;
 
+  const getJoinedText = () => {
+    if (!profile?.createdAt) return 'Joined recently';
+    const date = new Date(profile.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 30) return `Joined ${diffDays === 0 ? 'today' : `${diffDays} days ago`}`;
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `Joined ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+    const diffYears = Math.floor(diffDays / 365);
+    return `Joined ${diffYears} year${diffYears > 1 ? 's' : ''} ago`;
+  };
+
   const defaultAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80";
+
   const userAvatar = getImageUrl(profile.avatarUrl) || defaultAvatar;
   const currentAvatarPreview = avatarPreview || userAvatar;
 
@@ -202,7 +217,7 @@ function Profile() {
                     <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                   <span className="">
-                    Joined 4 months ago
+                    {getJoinedText()}
                   </span>
                 </div>
               </div>
