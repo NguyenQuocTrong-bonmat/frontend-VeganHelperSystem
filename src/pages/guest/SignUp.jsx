@@ -64,9 +64,9 @@ function SignUp() {
     } catch (err) {
       const errorMsg = err.response?.data?.error?.toLowerCase() || '';
       
-      if (errorMsg.includes('email') && errorMsg.includes('exist')) {
+      if (errorMsg.includes('email') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
         setError('email', { type: 'manual', message: 'Email is already in use' });
-      } else if (errorMsg.includes('username') && errorMsg.includes('exist')) {
+      } else if (errorMsg.includes('username') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
         setError('username', { type: 'manual', message: 'Username is already taken' });
       } else {
         toast.error(err.response?.data?.error || 'Registration failed. Please try again.');

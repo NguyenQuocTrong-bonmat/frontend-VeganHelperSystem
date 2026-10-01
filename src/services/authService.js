@@ -63,4 +63,32 @@ export const authService = {
       sessionStorage.removeItem('refreshToken');
     }
   },
+
+  // FN05: Cập nhật hồ sơ cá nhân (bao gồm avatar)
+  updateProfile: async (formData) => {
+    const response = await axiosInstance.put('/users/me', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Link Google Account
+  linkGoogle: async (data) => {
+    const response = await axiosInstance.post('/auth/google/link', data);
+    return response.data;
+  },
+
+  // Set Password (trước khi unlink Google)
+  setPassword: async (data) => {
+    const response = await axiosInstance.post('/auth/set-password', data);
+    return response.data;
+  },
+
+  // Unlink Google Account
+  unlinkGoogle: async (data) => {
+    const response = await axiosInstance.delete('/auth/google/link', { data });
+    return response.data;
+  }
 };

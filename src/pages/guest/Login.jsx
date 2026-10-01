@@ -39,6 +39,16 @@ function Login() {
       const from = location.state?.from?.pathname || '/home';
       navigate(from, { replace: true });
     } catch (err) {
+      if (err.response?.status === 403) {
+        toast.error('Vui lòng xác thực email trước khi đăng nhập.');
+        navigate('/verify-otp', {
+          state: {
+            email: data.email,
+            password: data.password
+          }
+        });
+        return;
+      }
       // Assuming backend returns an error message inside err.response.data.error
       const errorMsg = err.response?.data?.error?.toLowerCase() || '';
       
@@ -196,7 +206,11 @@ function Login() {
                     const from = location.state?.from?.pathname || '/home';
                     navigate(from, { replace: true });
                   } catch (err) {
-                    toast.error('Google login failed. Please try again.');
+                    if (err.response?.status === 409) {
+                      toast.error('Email này đã được đăng ký. Hãy đăng nhập bằng email/password để liên kết Google.');
+                    } else {
+                      toast.error(err.response?.data?.error || 'Google login failed. Please try again.');
+                    }
                   } finally {
                     setIsSubmitting(false);
                   }
