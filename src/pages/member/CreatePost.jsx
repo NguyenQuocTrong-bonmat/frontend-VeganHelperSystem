@@ -238,9 +238,38 @@ export default function CreatePost() {
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) => setMediaFiles(Array.from(e.target.files))}
+              onChange={(e) => {
+                if (e.target.files) {
+                  // Merge new files with existing ones if you want to keep them,
+                  // or just replace. Here we replace for simplicity.
+                  setMediaFiles(Array.from(e.target.files));
+                }
+              }}
               className="w-full text-sm text-[#6B6F63] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#E9EFE6] file:text-[#2F5233] hover:file:bg-[#DCE3D5] cursor-pointer"
             />
+            {mediaFiles.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                {mediaFiles.map((file, idx) => (
+                  <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-[#DCE3D5] group">
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt={`Preview ${idx + 1}`} 
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
+                      className="absolute top-2 right-2 bg-white/90 rounded-full p-1.5 text-[#A63446] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                      title="Remove image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Ingredients list */}
