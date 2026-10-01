@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { getPostsFeed } from '../../services/postService'
+import { getPostsFeed, getCategories } from '../../services/postService'
 import { getImageUrl } from '../../utils/imageUtils'
 
 import HeaderMember from '../../components/layout/HeaderMember'
@@ -9,11 +9,22 @@ function Home() {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+
+  useEffect(() => {
+    async function initCategories() {
+      const cats = await getCategories();
+      setCategories(cats || []);
+    }
+    initCategories();
+  }, []);
 
   useEffect(() => {
     async function loadFeed() {
+      setLoading(true);
       try {
-        const data = await getPostsFeed({ pageIndex: 1, pageSize: 10 });
+        const data = await getPostsFeed({ pageIndex: 1, pageSize: 10, categoryId: selectedCategoryId });
         setPosts(data.items || []);
       } catch (err) {
         console.error('Failed to load feed:', err);
@@ -22,7 +33,7 @@ function Home() {
       }
     }
     loadFeed();
-  }, []);
+  }, [selectedCategoryId]);
 
   const getTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -35,6 +46,15 @@ function Home() {
     if (diffHrs < 24) return `${diffHrs} hours ago`;
     const diffDays = Math.floor(diffHrs / 24);
     return `${diffDays} days ago`;
+  };
+
+  const getCategoryColor = (name) => {
+    if (!name) return 'bg-[#2F5233]';
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('soup') || lowerName.includes('dessert')) return 'bg-[#D9A441] hover:border-[#D9A441]';
+    if (lowerName.includes('salad') || lowerName.includes('video')) return 'bg-[#A63446] hover:border-[#A63446]';
+    if (lowerName.includes('braised')) return 'bg-[#6B6F63] hover:border-[#6B6F63]';
+    return 'bg-[#2F5233] hover:border-[#2F5233]'; // default moss
   };
 
   return (
@@ -68,55 +88,32 @@ function Home() {
         {/* CATEGORY BAR (Vertical 3px color bar + lowercase category name per DESIGN.md section 6) */}
         <section className="mb-10">
           <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-            {/* Tab All (Active) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#2F5233] rounded-lg text-[14px] font-medium text-[#2F5233] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#2F5233] rounded-full"></span>
-              <span className="">
-                all
-              </span>
+            {/* Tab All */}
+            <button 
+              onClick={() => setSelectedCategoryId(null)}
+              className={`flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border rounded-lg text-[14px] font-medium transition-colors whitespace-nowrap cursor-pointer ${selectedCategoryId === null ? 'border-[#2F5233] text-[#2F5233]' : 'border-[#DCE3D5] text-[#2B2A25] hover:border-[#2F5233] hover:bg-[#F3F6EE]'}`}
+            >
+              <span className={`w-[3px] h-4 rounded-full ${selectedCategoryId === null ? 'bg-[#2F5233]' : 'bg-[#6B6F63]'}`}></span>
+              <span className="">all</span>
             </button>
-            {/* Category: Main Dishes (Moss) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#2F5233] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#2F5233] rounded-full"></span>
-              <span className="">
-                main dishes
-              </span>
-            </button>
-            {/* Category: Soups (Turmeric) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#D9A441] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#D9A441] rounded-full"></span>
-              <span className="">
-                soups
-              </span>
-            </button>
-            {/* Category: Salads (Beetroot) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#A63446] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#A63446] rounded-full"></span>
-              <span className="">
-                salads
-              </span>
-            </button>
-            {/* Category: Braised Dishes (Stem Gray) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#6B6F63] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#6B6F63] rounded-full"></span>
-              <span className="">
-                braised dishes
-              </span>
-            </button>
-            {/* Category: Desserts (Turmeric) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#D9A441] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#D9A441] rounded-full"></span>
-              <span className="">
-                desserts
-              </span>
-            </button>
-            {/* Category: Cooking Videos (Beetroot) */}
-            <button className="flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg text-[14px] font-medium text-[#2B2A25] hover:border-[#A63446] hover:bg-[#F3F6EE] transition-colors whitespace-nowrap">
-              <span className="w-[3px] h-4 bg-[#A63446] rounded-full"></span>
-              <span className="">
-                cooking videos
-              </span>
-            </button>
+            {/* Dynamic Categories */}
+            {categories.map(cat => {
+              const colors = getCategoryColor(cat.name).split(' ');
+              const bgColorClass = colors[0];
+              const hoverBorderClass = colors[1] || 'hover:border-[#2F5233]';
+              const isSelected = selectedCategoryId === cat.id;
+              
+              return (
+                <button 
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryId(cat.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2 bg-[#FDFBF6] border rounded-lg text-[14px] font-medium transition-colors whitespace-nowrap cursor-pointer ${isSelected ? 'border-[#2F5233] text-[#2F5233]' : `border-[#DCE3D5] text-[#2B2A25] ${hoverBorderClass} hover:bg-[#F3F6EE]`}`}
+                >
+                  <span className={`w-[3px] h-4 rounded-full ${isSelected ? 'bg-[#2F5233]' : bgColorClass}`}></span>
+                  <span className="">{cat.name.toLowerCase()}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
         {/* SECTION: FEATURED POST (Card lớn với ảnh hero bo góc bất đối xứng top-left 32px per DESIGN.md section 5) */}

@@ -50,12 +50,12 @@ export default function EditPost() {
         setCookingTimeMins(data.cookingTimeMins || 30);
         setDietType(data.dietType || 'vegan');
         
-        // Populate arrays safely
+        // Populate arrays safely, handling object DTOs from backend
         if (data.ingredients && data.ingredients.length > 0) {
-           setIngredients(data.ingredients);
+           setIngredients(data.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || ''));
         }
         if (data.steps && data.steps.length > 0) {
-           setSteps(data.steps);
+           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.instruction || ''));
         }
       } catch (err) {
         console.error('Failed to load post details:', err);

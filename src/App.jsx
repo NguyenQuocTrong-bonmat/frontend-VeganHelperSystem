@@ -23,6 +23,7 @@ import FindVeganStores from './pages/member/FindVeganStores.jsx'
 import SearchResults from './pages/member/SearchResults.jsx'
 import AccountSuspended from './pages/member/AccountSuspended.jsx'
 import CreatePost from './pages/member/CreatePost.jsx'
+import EditPost from './pages/member/EditPost.jsx'
 
 // Admin pages
 import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
@@ -61,6 +62,7 @@ function App() {
         <Route path="/users/:id" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
         <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
         <Route path="/posts/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
+        <Route path="/posts/edit/:id" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
         <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
         <Route path="/vegan-stores" element={<ProtectedRoute><FindVeganStores /></ProtectedRoute>} />
