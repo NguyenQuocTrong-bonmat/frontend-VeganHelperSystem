@@ -17,7 +17,7 @@ function Profile() {
   const [editForm, setEditForm] = useState({
     displayName: '',
     phoneNumber: '',
-    biologicalSex: 'Female',
+    biologicalSex: 'female',
     birthDate: ''
   });
   const [avatarFile, setAvatarFile] = useState(null);
@@ -44,7 +44,7 @@ function Profile() {
       setEditForm({
         displayName: p.displayName || '',
         phoneNumber: p.phoneNumber || '',
-        biologicalSex: p.biologicalSex || 'Female',
+        biologicalSex: p.biologicalSex || 'female',
         birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
       });
     } catch (err) {
@@ -688,7 +688,7 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalSex">
                   Biological Sex
                 </label>
-                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select>
+                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
