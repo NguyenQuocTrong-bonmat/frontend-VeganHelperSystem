@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 export default function HeaderGuest() {
   return (
@@ -15,18 +15,18 @@ export default function HeaderGuest() {
         </Link>
       </div>
       <nav className="hidden md:flex items-center gap-8 h-16">
-        <Link className="relative flex items-center h-full text-[15px] font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" to="/">
+        <NavLink to="/" end className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Home
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/weekly-menu/locked">
+        </NavLink>
+        <NavLink to="/weekly-menu/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Weekly Menu
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/vegan-stores/locked">
+        </NavLink>
+        <NavLink to="/vegan-stores/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Find Vegan Stores
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/my-posts/locked">
+        </NavLink>
+        <NavLink to="/my-posts/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           My Posts
-        </Link>
+        </NavLink>
       </nav>
       <div className="flex items-center gap-3 shrink-0">
         <Link className="h-10 px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[14px] font-medium hover:bg-[#F3F6EE] transition-colors" to="/login">

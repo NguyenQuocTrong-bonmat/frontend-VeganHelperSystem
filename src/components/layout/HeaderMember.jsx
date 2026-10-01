@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function HeaderMember() {
@@ -49,18 +49,18 @@ export default function HeaderMember() {
 
       {/* Navigation Menu 4 items */}
       <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full">
-        <Link className="relative flex items-center h-full text-[15px] font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" to="/home">
+        <NavLink to="/home"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Home
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/weekly-menu">
+        </NavLink>
+        <NavLink to="/weekly-menu"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Weekly Menu
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/vegan-stores">
+        </NavLink>
+        <NavLink to="/vegan-stores"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           Find Vegan Stores
-        </Link>
-        <Link className="flex items-center h-full text-[15px] font-medium text-[#2B2A25] hover:text-[#2F5233] transition-colors" to="/my-posts">
+        </NavLink>
+        <NavLink to="/my-posts"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
           My Posts
-        </Link>
+        </NavLink>
       </nav>
 
       {/* User Actions */}
