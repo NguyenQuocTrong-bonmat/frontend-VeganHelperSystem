@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
-import { deletePost, getMyPosts } from '../../services/postService';
+import { deletePost, getMyPosts, getCategories } from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useEffect } from 'react';
@@ -12,12 +12,20 @@ function MyPosts() {
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState({});
 
   useEffect(() => {
     async function loadMyPosts() {
       try {
         const data = await getMyPosts({ pageIndex: 1, pageSize: 50 });
         setPosts(data.items || []);
+        try {
+          const catsData = await getCategories();
+          const catsList = Array.isArray(catsData) ? catsData : catsData.items || [];
+          const catsMap = {};
+          catsList.forEach(c => catsMap[c.id] = c.name);
+          setCategories(catsMap);
+        } catch(e) {}
       } catch (err) {
         console.error('Failed to load my posts:', err);
       } finally {
@@ -173,10 +181,10 @@ function MyPosts() {
                     <div className="relative z-10 flex items-center justify-between">
                       <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
                         <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                        {post.categoryName || 'Recipe'}
+                        {categories[post.categoryId] || 'Recipe'}
                       </span>
                       <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                        {post.postType || 'Blog'}
+                        {post.postType || 'recipe'}
                       </span>
                     </div>
                   </div>
