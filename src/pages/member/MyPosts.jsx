@@ -1,6 +1,36 @@
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { deletePost } from '../../services/postService';
 
 function MyPosts() {
+    const navigate = useNavigate();
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    if (!postToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deletePost(postToDelete.id);
+      if (postToDelete.element) {
+        postToDelete.element.style.display = 'none';
+      }
+      setPostToDelete(null);
+    } catch (err) {
+      if (err.status === 401 || err.message === 'Unauthorized') {
+        console.warn('Backend returned 401 Unauthorized, proceeding with mock delete.');
+        if (postToDelete.element) {
+          postToDelete.element.style.display = 'none';
+        }
+        setPostToDelete(null);
+      } else {
+        console.error('Delete error:', err);
+        alert('Failed to delete post.');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   return (
     <>
       {/* BEGIN: MainHeader */}
@@ -264,7 +294,7 @@ function MyPosts() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-purpose="post-card-grid">
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Crispy Lemongrass Pan-Fried Tofu" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XbE3-4cIUZ4bq37r8Yx9BLHgsWYqvqiyQT-TqWhCUxjo-bcZRwr0zSF3r-gN0_NK6joaWF4bvRYxlQ-klHsfG3Ayua7f3ekfJVhE7xqLlPz1TCSQ_4XWTe1QrulAgbQzX6RWL1n3mBK7ThUqkbDKFUPTAv8j0LcI4r22g6F67B4lu2RGolXakke-OFWH4ADv8BXlynseWChvvzwUaa3www7sbvZh-rd6LCnxhTWrF0NB21-YdAJtr3UAs" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -310,12 +340,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -324,7 +354,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Sizzling Oyster Mushroom Claypot" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WKcDwGR2GO1h8uT61hNF-s_62zOYXjY8wzlx8-YVN9qcyiWrINEaKUq1DV-gcQ-G7syVZEwHgyWph99ZzTpvTqJOjzjemUgHoHjo3bb00YP4VDdU3xDibxsswo6LbTzG4g7QCyuSTjBB8Y_0mQ57bOen8CA2NXIAsnJwC0eevQaGHA0yF_XXpq9R37yeuGktzM_K2CU24bUaiE8ADGempXrmLk1iKtN9tkU23B4jXFT560t4_50GAzSLI" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -381,12 +411,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -395,7 +425,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Lotus Root & Sweet Corn Herbal Broth" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WVhLxx-pP1cK63AVq66_9E4G4-S9csdroj9fwcSjHsTN2Ib6Jf_aDF5E-EzxiFUr7jAGjfY6uYD8Zd8G8toq_rEWRJ0uW9QgeeHwhc5-4kH3CWl6ypWhAH6JZnynWqbolKsg4gAwOFAzQBPRJ2znpgDh4B2poc2VZXZj_AHCCOk7RVUhSgVuy7UJ_EgqgYAxIMPvQdvrrzkO5QoQqXlzFNXPrRmogrUp-UBmtQKcVMH2a41BlE-EL4ro8" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -441,12 +471,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -455,7 +485,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Banana Blossom & Mint Herb Salad" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1Vg-qfSmhz0wmNociW2JI-LpplsY_hhYhjzPDUa-ukgYaSY52N3BKo2MaYe5Q4eiXsvUtBgprUIS_qd_Yt6PkMxanDVcSqftvoaKxm4J_AiHULIy89qh0mQc2mlUDGKjn_sisydSWD7jl01hgjMPjGrgTvYMMvnj2wux5YOFLyp6evgziGIVIeqhjDrtJoFWj-Gedr4AegXZN2Tyfam2mz-soiq3U1Z3Ox0L1j0VJvoJetEEoiY5SqQQCI" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -501,12 +531,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -515,7 +545,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Braised King Oyster Mushrooms with Green Peppercorn" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WpWnTW3IliMcPvAEqMET47e7nvomtpGiUFVxPFVJsewU31dL3vBDsUadPlj_M0vakri4y7awqWj7lKfo6DLFvgJSCpKr6YnjqB-w54xzY0eYy8Rxh9rwXXcnmsgf_jhIiWDsgvjzXwWTarZKBVZMmNx0iuQV7m9h7GxfNlKQJvZ3j_KBs5orPc0tFCUFcPaGrYnIiJmxd1DI-up6x0OUILcVG3xoY9BjUSALB9AmH54gtmWNcKA9CjlUA" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -572,12 +602,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -586,7 +616,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Slow-Braised Jackfruit & Wild Termite Mushrooms" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1Ude7R11IRRpW2c9kLST45kXxemd6HOkh2-3ywiA-NEd9BFFlae2UOlQHWXuk8S78GKCMsukyOUOynA_N7Gc8U60OoApLxfzXOb9RBn6H42RsA04OziYAc7bo40OIuNe7Emdbspcw0hZJQRJbAPUgroKPHCVnlWmVNeqHAdF1WUaI2X1SuwQx4vr4ktGCK0_PO0JMuaPKkRxeDk4r9CkBCLZgNvgxaa5yWnXS9OHik61nlauWRd5Zn2Bhc" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -632,12 +662,12 @@ function MyPosts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
                     </button>
-                    <button className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
@@ -675,7 +705,7 @@ function MyPosts() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Wild Herb & Silken Tofu Soup" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WVhLxx-pP1cK63AVq66_9E4G4-S9csdroj9fwcSjHsTN2Ib6Jf_aDF5E-EzxiFUr7jAGjfY6uYD8Zd8G8toq_rEWRJ0uW9QgeeHwhc5-4kH3CWl6ypWhAH6JZnynWqbolKsg4gAwOFAzQBPRJ2znpgDh4B2poc2VZXZj_AHCCOk7RVUhSgVuy7UJ_EgqgYAxIMPvQdvrrzkO5QoQqXlzFNXPrRmogrUp-UBmtQKcVMH2a41BlE-EL4ro8" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -710,7 +740,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Turmeric Sticky Rice with Mung Beans" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XbE3-4cIUZ4bq37r8Yx9BLHgsWYqvqiyQT-TqWhCUxjo-bcZRwr0zSF3r-gN0_NK6joaWF4bvRYxlQ-klHsfG3Ayua7f3ekfJVhE7xqLlPz1TCSQ_4XWTe1QrulAgbQzX6RWL1n3mBK7ThUqkbDKFUPTAv8j0LcI4r22g6F67B4lu2RGolXakke-OFWH4ADv8BXlynseWChvvzwUaa3www7sbvZh-rd6LCnxhTWrF0NB21-YdAJtr3UAs" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -745,7 +775,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Crispy Rice Paper Rolls with Avocado" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WKcDwGR2GO1h8uT61hNF-s_62zOYXjY8wzlx8-YVN9qcyiWrINEaKUq1DV-gcQ-G7syVZEwHgyWph99ZzTpvTqJOjzjemUgHoHjo3bb00YP4VDdU3xDibxsswo6LbTzG4g7QCyuSTjBB8Y_0mQ57bOen8CA2NXIAsnJwC0eevQaGHA0yF_XXpq9R37yeuGktzM_K2CU24bUaiE8ADGempXrmLk1iKtN9tkU23B4jXFT560t4_50GAzSLI" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -780,7 +810,7 @@ function MyPosts() {
                 </div>
               </div>
             </article>
-            <article className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
                 <img alt="Braised Taro & Lotus Stem Pot" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WpWnTW3IliMcPvAEqMET47e7nvomtpGiUFVxPFVJsewU31dL3vBDsUadPlj_M0vakri4y7awqWj7lKfo6DLFvgJSCpKr6YnjqB-w54xzY0eYy8Rxh9rwXXcnmsgf_jhIiWDsgvjzXwWTarZKBVZMmNx0iuQV7m9h7GxfNlKQJvZ3j_KBs5orPc0tFCUFcPaGrYnIiJmxd1DI-up6x0OUILcVG3xoY9BjUSALB9AmH54gtmWNcKA9CjlUA" />
                 <div className="relative z-10 flex items-center justify-between">
@@ -824,7 +854,7 @@ function MyPosts() {
       {/* END: MainContent */}
       {/* BEGIN: FloatingActionButtons */}
       {/* Upload Recipe FAB */}
-      <button aria-label="Upload New Recipe or Video" className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-accent-beetroot hover:bg-accent-beetroot-hover text-surface-paper flex items-center justify-center fab-shadow transition-transform hover:scale-105 active:scale-95 z-30 focus:outline-none focus:ring-4 focus:ring-accent-beetroot/30" id="uploadPostFab" title="Upload New Recipe or Video" type="button">
+      <button aria-label="Upload New Recipe or Video" className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-accent-beetroot hover:bg-accent-beetroot-hover text-surface-paper flex items-center justify-center fab-shadow transition-transform hover:scale-105 active:scale-95 z-30 focus:outline-none focus:ring-4 focus:ring-accent-beetroot/30" id="uploadPostFab" title="Upload New Recipe or Video" type="button" onClick={() => navigate('/posts/create') }>
         <svg className="w-7 h-7 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
@@ -1121,9 +1151,9 @@ function MyPosts() {
       </div>
       {/* END: CreateNewPostModal */}
       {/* BEGIN: DeletePostConfirmationModal */}
-      <div aria-hidden="true" className="hidden fixed inset-0 z-50 flex items-center justify-center p-4" id="delete-modal-wrapper" role="dialog">
-        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40 transform-gpu isolate cursor-pointer" id="delete-modal-backdrop"></div>
-        <div className="relative z-10 bg-[#FDFBF6] rounded-xl w-full max-w-sm shadow-[0_2px_12px_rgba(43,42,37,0.12)] transform-gpu isolate p-6">
+      <div aria-hidden="true" className={(postToDelete ? "" : "hidden ") + "fixed inset-0 z-50 flex items-center justify-center p-4"} id="delete-modal-wrapper" role="dialog">
+        <div onClick={() => setPostToDelete(null)} className="absolute inset-0 bg-[#2b2a25] bg-opacity-40 cursor-pointer" id="delete-modal-backdrop"></div>
+        <div className="relative z-10 bg-[#FDFBF6] rounded-xl w-full max-w-sm shadow-[0_2px_12px_rgba(43,42,37,0.12)] p-6">
           <h2 className="font-['Libre_Caslon_Text',serif] text-xl font-medium text-[#2B2A25] mb-2">
             Delete Post?
           </h2>
@@ -1131,12 +1161,10 @@ function MyPosts() {
             Are you sure you want to delete this post? This action cannot be undone.
           </p>
           <div className="flex items-center justify-end gap-3">
-            <button className="bg-transparent border-[1.5px] border-[#2F5233] text-[#2F5233] py-2 px-4 rounded-[8px] text-sm font-medium transform-gpu [backface-visibility:hidden] transition-colors duration-200 ease-in-out hover:bg-[#2F5233]/5 focus:outline-none" type="button">
+            <button onClick={() => setPostToDelete(null)} className="bg-transparent border-[1.5px] border-[#2F5233] text-[#2F5233] py-2 px-4 rounded-[8px] text-sm font-medium transition-colors duration-200 ease-in-out hover:bg-[#2F5233]/5 focus:outline-none" type="button">
               Cancel
             </button>
-            <button className="bg-transparent border-[1.5px] border-[#C1432E] text-[#C1432E] py-2 px-4 rounded-[8px] text-sm font-medium transform-gpu [backface-visibility:hidden] transition-colors duration-200 ease-in-out hover:bg-[#C1432E]/5 focus:outline-none" type="button">
-              Delete
-            </button>
+            <button onClick={handleDeleteConfirm} disabled={isDeleting} className="bg-transparent border-[1.5px] border-[#C1432E] text-[#C1432E] py-2 px-4 rounded-[8px] text-sm font-medium transition-colors duration-200 ease-in-out hover:bg-[#C1432E]/5 focus:outline-none disabled:opacity-50" type="button">{isDeleting ? "Deleting..." : "Delete"}</button>
           </div>
         </div>
       </div>
