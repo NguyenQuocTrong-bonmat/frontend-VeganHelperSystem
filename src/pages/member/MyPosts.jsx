@@ -1,10 +1,45 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
-import { deletePost } from '../../services/postService';
+import { deletePost, getMyPosts } from '../../services/postService';
+import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
+import { useEffect } from 'react';
 
 function MyPosts() {
     const navigate = useNavigate();
+
+  const { user } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadMyPosts() {
+      try {
+        const data = await getMyPosts({ pageIndex: 1, pageSize: 50 });
+        setPosts(data.items || []);
+      } catch (err) {
+        console.error('Failed to load my posts:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMyPosts();
+  }, []);
+
+  const getTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs} hours ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    return `${diffDays} days ago`;
+  };
+
   const [postToDelete, setPostToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -41,20 +76,23 @@ function MyPosts() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" data-purpose="my-posts-management-screen">
         {/* Page Title */}
         <div className="flex flex-col items-center text-center mb-8">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="User Profile Avatar" className="w-24 h-24 rounded-full object-cover border-2 border-[#DCE3D5]" />
+          {user?.avatarUrl ? (
+            <img src={getImageUrl(user.avatarUrl)} alt="User Profile Avatar" className="w-24 h-24 rounded-full object-cover border-2 border-[#DCE3D5]" />
+          ) : (
+            <div className="w-24 h-24 rounded-full border-2 border-[#DCE3D5] flex items-center justify-center bg-[#F3F6EE] text-3xl font-semibold text-[#2F5233]">
+              {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+            </div>
+          )}
           <h1 className="text-3xl font-normal text-[#2B2A25] mt-4 font-['Libre_Caslon_Text',serif]" style={{ fontFamily: '\'Libre Caslon Text\', serif' }}>
-            An Nhiên
+            {user?.displayName || user?.username || 'User'}
           </h1>
           <p className="text-sm text-[#6B6F63] mt-1 font-['Be_Vietnam_Pro',sans-serif]" style={{ fontFamily: '\'Be Vietnam Pro\', sans-serif' }}>
-            @annhien.cooks · Joined March 2024
-          </p>
-          <p className="text-[#6B6F63] text-sm text-center max-w-md mt-3 mb-0 font-['Be_Vietnam_Pro',sans-serif]" style={{ fontFamily: '\'Be Vietnam Pro\', sans-serif' }}>
-            Home cook passionate about plant-based Vietnamese heritage flavors, mindful fermentation, and wholesome family nourishment.
+            @{user?.username || 'user'}
           </p>
           <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl inline-flex mt-6 p-4 shadow-none">
             <div className="flex flex-col items-center px-6 border-r border-[#DCE3D5]">
               <span className="text-[#2B2A25] font-bold text-lg leading-none">
-                6
+                {posts.length}
               </span>
               <span className="text-[#6B6F63] text-xs uppercase tracking-wider mt-1 font-medium">
                 Total Posts
@@ -106,7 +144,7 @@ function MyPosts() {
             <div className="self-start sm:self-auto bg-surface-paper border border-border-sage-mist rounded-md px-3 py-1.5 text-xs font-medium text-text-charcoal shadow-sm">
               Total published:
               <span className="font-semibold text-primary-moss">
-                6 items
+                {posts.length} items
               </span>
             </div>
           </div>
@@ -121,556 +159,73 @@ function MyPosts() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-purpose="post-card-grid">
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Crispy Lemongrass Pan-Fried Tofu" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XbE3-4cIUZ4bq37r8Yx9BLHgsWYqvqiyQT-TqWhCUxjo-bcZRwr0zSF3r-gN0_NK6joaWF4bvRYxlQ-klHsfG3Ayua7f3ekfJVhE7xqLlPz1TCSQ_4XWTe1QrulAgbQzX6RWL1n3mBK7ThUqkbDKFUPTAv8j0LcI4r22g6F67B4lu2RGolXakke-OFWH4ADv8BXlynseWChvvzwUaa3www7sbvZh-rd6LCnxhTWrF0NB21-YdAJtr3UAs" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Main Dishes
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Blog
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Crispy Lemongrass Pan-Fried Tofu
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Golden organic tofu crisped with fragrant minced lemongrass, fresh red chilies, and toasted sesame seeds.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      2 days ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 428
-                    </span>
+            {loading ? (
+              <div className="col-span-full text-center py-10 text-[#6B6F63]">Loading posts...</div>
+            ) : posts.length === 0 ? (
+              <div className="col-span-full text-center py-10 text-[#6B6F63]">You haven't published any posts yet.</div>
+            ) : (
+              posts.map(post => (
+                <article key={post.id} onClick={() => navigate(`/posts/${post.id}`)} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
+                    {post.mediaFiles && post.mediaFiles.length > 0 ? (
+                      <img alt={post.title} className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.mediaFiles[0].mediaUrl)} />
+                    ) : null}
+                    <div className="relative z-10 flex items-center justify-between">
+                      <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
+                        <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
+                        {post.category?.name || 'Recipe'}
+                      </span>
+                      <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
+                        {post.postType || 'Blog'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
+                  <div className="p-5 flex flex-col flex-grow justify-between">
+                    <div>
+                      <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
+                        {post.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
+                        {post.content}
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
+                          <line x1="16" x2="16" y1="2" y2="6"></line>
+                          <line x1="8" x2="8" y1="2" y2="6"></line>
+                          <line x1="3" x2="21" y1="10" y2="10"></line>
+                        </svg>
+                        <span className="">
+                          {getTimeAgo(post.createdAt)}
+                        </span>
+                        <span className="">•</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span className="">Views: {post.viewCount || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/posts/edit/${post.id}`); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                            <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
+                          </svg>
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: post.id, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                            <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Sizzling Oyster Mushroom Claypot" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WKcDwGR2GO1h8uT61hNF-s_62zOYXjY8wzlx8-YVN9qcyiWrINEaKUq1DV-gcQ-G7syVZEwHgyWph99ZzTpvTqJOjzjemUgHoHjo3bb00YP4VDdU3xDibxsswo6LbTzG4g7QCyuSTjBB8Y_0mQ57bOen8CA2NXIAsnJwC0eevQaGHA0yF_XXpq9R37yeuGktzM_K2CU24bUaiE8ADGempXrmLk1iKtN9tkU23B4jXFT560t4_50GAzSLI" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-beetroot rounded-full mr-1.5"></span>
-                    Cooking Videos
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Video
-                  </span>
-                </div>
-                <div className="relative z-10 flex flex-col items-center justify-center gap-1.5">
-                  <div className="w-10 h-10 rounded-full bg-primary-moss/90 backdrop-blur-sm flex items-center justify-center text-surface-paper shadow-md group-hover:scale-105 transition-transform">
-                    <svg className="w-4 h-4 ml-0.5 fill-current" viewBox="0 0 24 24">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </div>
-                </div>
-                <div className="relative z-10 flex justify-end">
-                  <span className="bg-text-charcoal/80 text-surface-paper text-[11px] font-mono px-2 py-0.5 rounded shadow-xs">
-                    14:20
-                  </span>
-                </div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Sizzling Oyster Mushroom Claypot
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Step-by-step master video on caramelizing fresh oyster mushrooms in sweet soy reduction and Thai basil.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      5 days ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 1,240
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Lotus Root & Sweet Corn Herbal Broth" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WVhLxx-pP1cK63AVq66_9E4G4-S9csdroj9fwcSjHsTN2Ib6Jf_aDF5E-EzxiFUr7jAGjfY6uYD8Zd8G8toq_rEWRJ0uW9QgeeHwhc5-4kH3CWl6ypWhAH6JZnynWqbolKsg4gAwOFAzQBPRJ2znpgDh4B2poc2VZXZj_AHCCOk7RVUhSgVuy7UJ_EgqgYAxIMPvQdvrrzkO5QoQqXlzFNXPrRmogrUp-UBmtQKcVMH2a41BlE-EL4ro8" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Soups
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Blog
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Lotus Root & Sweet Corn Herbal Broth
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    A nourishing, naturally sweet broth simmered gently with sliced lotus root, fresh corn cobs, and goji berries.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      1 week ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 852
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Banana Blossom & Mint Herb Salad" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1Vg-qfSmhz0wmNociW2JI-LpplsY_hhYhjzPDUa-ukgYaSY52N3BKo2MaYe5Q4eiXsvUtBgprUIS_qd_Yt6PkMxanDVcSqftvoaKxm4J_AiHULIy89qh0mQc2mlUDGKjn_sisydSWD7jl01hgjMPjGrgTvYMMvnj2wux5YOFLyp6evgziGIVIeqhjDrtJoFWj-Gedr4AegXZN2Tyfam2mz-soiq3U1Z3Ox0L1j0VJvoJetEEoiY5SqQQCI" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Salads
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Blog
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Banana Blossom & Mint Herb Salad
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Shredded crisp banana blossom tossed with fresh spearmint, crushed roasted peanuts, and calamansi vinaigrette.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      2 weeks ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 610
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Braised King Oyster Mushrooms with Green Peppercorn" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WpWnTW3IliMcPvAEqMET47e7nvomtpGiUFVxPFVJsewU31dL3vBDsUadPlj_M0vakri4y7awqWj7lKfo6DLFvgJSCpKr6YnjqB-w54xzY0eYy8Rxh9rwXXcnmsgf_jhIiWDsgvjzXwWTarZKBVZMmNx0iuQV7m9h7GxfNlKQJvZ3j_KBs5orPc0tFCUFcPaGrYnIiJmxd1DI-up6x0OUILcVG3xoY9BjUSALB9AmH54gtmWNcKA9CjlUA" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-beetroot rounded-full mr-1.5"></span>
-                    Braised Dishes
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Video
-                  </span>
-                </div>
-                <div className="relative z-10 flex flex-col items-center justify-center gap-1.5">
-                  <div className="w-10 h-10 rounded-full bg-primary-moss/90 backdrop-blur-sm flex items-center justify-center text-surface-paper shadow-md group-hover:scale-105 transition-transform">
-                    <svg className="w-4 h-4 ml-0.5 fill-current" viewBox="0 0 24 24">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </div>
-                </div>
-                <div className="relative z-10 flex justify-end">
-                  <span className="bg-text-charcoal/80 text-surface-paper text-[11px] font-mono px-2 py-0.5 rounded shadow-xs">
-                    18:45
-                  </span>
-                </div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Braised King Oyster Mushrooms with Green Peppercorn
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Full cooking walkthrough showing how to infuse earthy king oyster mushrooms with spicy green peppercorns.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      3 weeks ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 2,180
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Slow-Braised Jackfruit & Wild Termite Mushrooms" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1Ude7R11IRRpW2c9kLST45kXxemd6HOkh2-3ywiA-NEd9BFFlae2UOlQHWXuk8S78GKCMsukyOUOynA_N7Gc8U60OoApLxfzXOb9RBn6H42RsA04OziYAc7bo40OIuNe7Emdbspcw0hZJQRJbAPUgroKPHCVnlWmVNeqHAdF1WUaI2X1SuwQx4vr4ktGCK0_PO0JMuaPKkRxeDk4r9CkBCLZgNvgxaa5yWnXS9OHik61nlauWRd5Zn2Bhc" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Desserts
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Blog
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Slow-Braised Jackfruit & Wild Termite Mushrooms
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Tender young jackfruit simmered slowly in coconut water with wild termite mushrooms and rustic garden herbs.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
-                      <line x1="16" x2="16" y1="2" y2="6"></line>
-                      <line x1="8" x2="8" y1="2" y2="6"></line>
-                      <line x1="3" x2="21" y1="10" y2="10"></line>
-                    </svg>
-                    <span className="">
-                      1 month ago
-                    </span>
-                    <span className="">
-                      •
-                    </span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span className="">
-                      Views: 940
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); navigate('/posts/edit/1'); }} className="p-1 text-text-stem-gray hover:text-primary-moss hover:bg-herb-white rounded transition-colors" title="Edit post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: 1, element: e.currentTarget.closest('article') }); }} className="p-1 text-text-stem-gray hover:text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Delete post">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path>                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
+                </article>
+              ))
+            )}
           </div>
-          <nav aria-label="Pagination" className="flex items-center justify-center gap-2 mt-12 mb-6">
-            <button className="px-4 py-2 text-sm font-medium text-text-stem-gray bg-surface-paper border border-border-sage-mist rounded-lg hover:bg-herb-white transition-colors" disabled>
-              Previous
-            </button>
-            <button aria-current="page" className="w-10 h-10 flex items-center justify-center text-sm font-semibold rounded-lg bg-primary-moss text-surface-paper shadow-sm">
-              1
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center text-sm font-medium text-text-charcoal bg-surface-paper border border-border-sage-mist rounded-lg hover:bg-herb-white transition-colors">
-              2
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-text-charcoal bg-surface-paper border border-border-sage-mist rounded-lg hover:bg-herb-white transition-colors">
-              Next
-            </button>
-          </nav>
-        </div>
-        <div id="view-saved" className="hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <p className="text-sm text-text-stem-gray">
-              Your bookmarked recipes and culinary inspirations
-            </p>
-            <div className="self-start sm:self-auto bg-surface-paper border border-border-sage-mist rounded-md px-3 py-1.5 text-xs font-medium text-text-charcoal shadow-sm">
-              Total saved:
-              <span className="font-semibold text-primary-moss">
-                4 items
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Wild Herb & Silken Tofu Soup" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WVhLxx-pP1cK63AVq66_9E4G4-S9csdroj9fwcSjHsTN2Ib6Jf_aDF5E-EzxiFUr7jAGjfY6uYD8Zd8G8toq_rEWRJ0uW9QgeeHwhc5-4kH3CWl6ypWhAH6JZnynWqbolKsg4gAwOFAzQBPRJ2znpgDh4B2poc2VZXZj_AHCCOk7RVUhSgVuy7UJ_EgqgYAxIMPvQdvrrzkO5QoQqXlzFNXPrRmogrUp-UBmtQKcVMH2a41BlE-EL4ro8" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Soups
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Saved
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Wild Herb & Silken Tofu Soup
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    A fragrant herbal soup with gentle mountain herbs, silken tofu cubes, and toasted coriander roots.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <span className="text-text-stem-gray">
-                    By Chef Duy
-                  </span>
-                  <button className="p-1 text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Remove from saved">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Turmeric Sticky Rice with Mung Beans" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XbE3-4cIUZ4bq37r8Yx9BLHgsWYqvqiyQT-TqWhCUxjo-bcZRwr0zSF3r-gN0_NK6joaWF4bvRYxlQ-klHsfG3Ayua7f3ekfJVhE7xqLlPz1TCSQ_4XWTe1QrulAgbQzX6RWL1n3mBK7ThUqkbDKFUPTAv8j0LcI4r22g6F67B4lu2RGolXakke-OFWH4ADv8BXlynseWChvvzwUaa3www7sbvZh-rd6LCnxhTWrF0NB21-YdAJtr3UAs" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Main Dishes
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Saved
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Turmeric Sticky Rice with Mung Beans
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Aromatic jasmine sticky rice steamed with turmeric infusion, layered with smashed savory mung bean puree.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <span className="text-text-stem-gray">
-                    By Anna Lin
-                  </span>
-                  <button className="p-1 text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Remove from saved">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Crispy Rice Paper Rolls with Avocado" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WKcDwGR2GO1h8uT61hNF-s_62zOYXjY8wzlx8-YVN9qcyiWrINEaKUq1DV-gcQ-G7syVZEwHgyWph99ZzTpvTqJOjzjemUgHoHjo3bb00YP4VDdU3xDibxsswo6LbTzG4g7QCyuSTjBB8Y_0mQ57bOen8CA2NXIAsnJwC0eevQaGHA0yF_XXpq9R37yeuGktzM_K2CU24bUaiE8ADGempXrmLk1iKtN9tkU23B4jXFT560t4_50GAzSLI" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-ochre rounded-full mr-1.5"></span>
-                    Salads
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Saved
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Crispy Rice Paper Rolls with Avocado
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Handcrafted crunchy spring rolls filled with wood ear fungus, jicama, and dipping peanut hoisin.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <span className="text-text-stem-gray">
-                    By Maya Kapoor
-                  </span>
-                  <button className="p-1 text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Remove from saved">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-            <article onClick={() => navigate('/posts/1')} className="bg-surface-paper border border-border-sage-mist rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <div className="relative bg-[#EBEFE6] h-52 overflow-hidden flex flex-col justify-between p-3.5">
-                <img alt="Braised Taro & Lotus Stem Pot" className="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WpWnTW3IliMcPvAEqMET47e7nvomtpGiUFVxPFVJsewU31dL3vBDsUadPlj_M0vakri4y7awqWj7lKfo6DLFvgJSCpKr6YnjqB-w54xzY0eYy8Rxh9rwXXcnmsgf_jhIiWDsgvjzXwWTarZKBVZMmNx0iuQV7m9h7GxfNlKQJvZ3j_KBs5orPc0tFCUFcPaGrYnIiJmxd1DI-up6x0OUILcVG3xoY9BjUSALB9AmH54gtmWNcKA9CjlUA" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center text-xs font-semibold text-text-charcoal tracking-wide bg-surface-paper/90 px-2.5 py-0.5 rounded-full border border-border-sage-mist shadow-xs">
-                    <span className="w-1.5 h-3 bg-accent-beetroot rounded-full mr-1.5"></span>
-                    Braised Dishes
-                  </span>
-                  <span className="text-xs bg-surface-paper/90 text-text-stem-gray border border-border-sage-mist px-2.5 py-0.5 rounded-full font-medium shadow-xs">
-                    Saved
-                  </span>
-                </div>
-                <div></div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="font-serif-title font-bold text-text-charcoal text-base mb-1.5 hover:text-primary-moss transition-colors cursor-pointer">
-                    Braised Taro & Lotus Stem Pot
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-stem-gray leading-relaxed mb-4 line-clamp-2">
-                    Earthy taro root slow-braised with sweet young coconut juice and crunchy lotus rhizomes.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-border-sage-mist/60 flex items-center justify-between text-xs text-text-stem-gray">
-                  <span className="text-text-stem-gray">
-                    By Clara
-                  </span>
-                  <button className="p-1 text-accent-beetroot hover:bg-rose-50 rounded transition-colors" title="Remove from saved">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-        {/* Search Bar */}
-        {/* Grid of 6 Post Cards */}
-        {/* Pagination Controls */}
+        }
       </main>
       {/* END: MainContent */}
       {/* BEGIN: FloatingActionButtons */}
