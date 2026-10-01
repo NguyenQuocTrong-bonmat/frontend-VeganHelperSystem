@@ -45,7 +45,7 @@ function PublicUserProfile() {
             <div className="w-full max-w-md grid grid-cols-2 divide-x divide-border-sage-mist py-3.5 px-4 mb-7 bg-bg-herb-white/80 border border-border-sage-mist rounded-lg">
               <div className="flex flex-col items-center">
                 <span className="text-xl sm:text-2xl font-bold font-caslon text-text-charcoal leading-tight">
-                  2,480
+                  0
                 </span>
                 <span className="text-xs font-medium text-text-stem-gray mt-0.5">
                   Followers
