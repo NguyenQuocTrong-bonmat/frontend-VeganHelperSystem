@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getPostDetail } from '../../services/postService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getTimeAgo } from '../../utils/dateUtils';
@@ -12,7 +12,12 @@ function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     async function loadPost() {
       try {
         const data = await getPostDetail(id);
