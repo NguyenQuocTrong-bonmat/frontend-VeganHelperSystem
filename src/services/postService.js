@@ -162,13 +162,24 @@ export async function createPost(postData) {
           const errorJson = JSON.parse(text);
           errorMessage = errorJson.message || errorJson.title || text;
           // Extract specific validation errors if available
-          if (errorJson.errors && typeof errorJson.errors === 'object') {
-            const details = Object.entries(errorJson.errors)
-              .map(([field, msgs]) => {
-                const cleanField = field.replace('$.', '');
-                return `${cleanField}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`;
-              })
-              .join(' | ');
+          if (errorJson.errors) {
+            let details = '';
+            if (Array.isArray(errorJson.errors)) {
+              // Handle array of error objects (e.g. FluentValidation)
+              details = errorJson.errors.map(e => {
+                if (typeof e === 'string') return e;
+                return e.errorMessage || e.message || e.description || JSON.stringify(e);
+              }).join(' | ');
+            } else if (typeof errorJson.errors === 'object') {
+              // Handle ASP.NET Core default validation problem format
+              details = Object.entries(errorJson.errors)
+                .map(([field, msgs]) => {
+                  const cleanField = field.replace('$.', '');
+                  const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
+                  return `${cleanField}: ${msgsStr}`;
+                })
+                .join(' | ');
+            }
             if (details) {
               errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
             }
