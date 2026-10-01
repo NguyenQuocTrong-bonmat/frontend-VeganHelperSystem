@@ -191,3 +191,33 @@ export async function getCategories() {
 
   return await res.json();
 }
+
+// Xóa bài viết
+export async function deletePost(id) {
+  const token = getAuthToken();
+  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    let errorMessage = `Failed to delete post (${res.status})`;
+    try {
+      const text = await res.text();
+      try {
+        const errorJson = JSON.parse(text);
+        errorMessage = errorJson.message || errorJson.title || text;
+      } catch {
+        if (text) errorMessage = text;
+      }
+    } catch (readErr) {
+      console.error('Error reading delete post response:', readErr);
+    }
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    throw error;
+  }
+}
