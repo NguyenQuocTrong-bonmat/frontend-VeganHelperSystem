@@ -38,7 +38,7 @@ export default function EditPost() {
         console.error('Failed to load categories:', err);
       }
     }
-    
+
     async function loadPost() {
       try {
         const data = await getPostDetail(id);
@@ -62,7 +62,7 @@ export default function EditPost() {
         setErrorMessage('Could not load post details. Please try again.');
       }
     }
-    
+
     loadCats();
     loadPost();
   }, [id]);

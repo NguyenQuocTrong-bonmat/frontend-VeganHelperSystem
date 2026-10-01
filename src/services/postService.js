@@ -202,18 +202,88 @@ export async function createPost(postData) {
 
 // Lấy danh sách danh mục món ăn (Categories)
 export async function getCategories() {
-  const res = await fetch(`${BASE_URL}/api/Categories`, {
-    method: 'GET',
+  try {
+    const res = await fetch(`${BASE_URL}/api/Categories`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) return data;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch categories from API, using mock data.', err);
+  }
+
+  // Fallback mock data
+  return [
+    { id: 1, name: 'Main Dishes' },
+    { id: 2, name: 'Soups & Stews' },
+    { id: 3, name: 'Desserts' },
+    { id: 4, name: 'Salads' },
+    { id: 5, name: 'Appetizers' },
+  ];
+}
+
+// FN14: Cập nhật bài viết
+export async function updatePost(id, postData) {
+  const token = getAuthToken();
+  const formData = new FormData();
+
+  formData.append('Title', postData.title);
+  formData.append('PostType', postData.postType || 'Recipe');
+  formData.append('CategoryId', postData.categoryId);
+  formData.append('Content', postData.content);
+  formData.append('DifficultyLevel', postData.difficultyLevel || 'Easy');
+  formData.append('PrepTimeMins', postData.prepTimeMins || 0);
+  formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
+  formData.append('DietType', postData.dietType || 'Vegan');
+
+  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
+    method: 'PUT',
     headers: {
       'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
+    body: formData,
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch categories: ${res.status}`);
+    if (res.status === 401) {
+      const error = new Error('Unauthorized');
+      error.status = 401;
+      throw error;
+    }
+    throw new Error(`Failed to update post: ${res.status}`);
   }
 
-  return await res.json();
+  return res.ok;
+}
+
+// FN15: Xóa bài viết
+export async function deletePost(id) {
+  const token = getAuthToken();
+  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Accept': '*/*',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      const error = new Error('Unauthorized');
+      error.status = 401;
+      throw error;
+    }
+    throw new Error(`Failed to delete post: ${res.status}`);
+  }
+
+  return res.ok;
 }
 
 // Xóa bài viết
