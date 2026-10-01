@@ -126,75 +126,80 @@ function Home() {
               Featured Post
             </h2>
             <span className="text-[13px] font-medium text-[#6B6F63]">
-              Weekly recommendation
+              Newest addition
             </span>
           </div>
-          <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center cursor-pointer hover:border-[#2F5233] transition-colors group" to="/posts/1">
-            {/* Featured Image with Asymmetric Radius */}
-            <div className="relative overflow-hidden lg:col-span-6 w-full h-64 md:h-80 bg-[#E9EFE6] border border-[#DCE3D5] hero-radius flex flex-col items-center justify-center p-4 text-center transition-transform group-hover:scale-[1.01]">
-              <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-white text-[12px] font-medium z-10 font-vietnam" style={{ background: 'rgba(43, 42, 37, 0.6)' }}>
-                1/5
-              </span>
-              <img src="https://lh3.googleusercontent.com/aida/AEtjO1WB5ue4YCiF80yX2LzmxjB651NSmec6AmpbmpsEy1yW2-RMH9r6Fa4PggMuAx5Grp-uwgUJ6OPHepQksJuRi6w6mXPryD_ffHB6dt4S8aLkuIaMrpE2GkbpHQ579qI0feP47eU3GW1We4Znk4_VP1cUcagdQ2fOCkgqdbLJORKO5mrR3oCKdmvYTWCmapm2oMAjUBSCNUXJgEwMVMlvDpkLFAW9v4-XBXy5P9u6krFA6hwJi5RXRipZfjI" alt="Claypot Braised King Oyster Mushrooms with Green Peppercorn" className="w-full h-full object-cover" />
-            </div>
-            {/* Featured Content */}
-            <div className="lg:col-span-6 flex flex-col justify-between h-full py-1 text-left">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-[3px] h-4 bg-[#2F5233] rounded-full"></span>
-                  <span className="text-[13px] font-medium text-[#6B6F63]">
-                    main dishes
-                  </span>
-                  <span className="text-xs text-[#6B6F63]">
-                    •
-                  </span>
-                  <span className="text-[13px] text-[#6B6F63]">
-                    25 minutes ago
-                  </span>
-                </div>
-                <h3 className="font-fraunces text-2xl md:text-3xl font-semibold text-[#2B2A25] group-hover:text-[#2F5233] transition-colors mb-3 leading-snug">
-                  Claypot Braised King Oyster Mushrooms with Green Peppercorn
-                </h3>
-                <p className="text-[15px] leading-relaxed text-[#6B6F63] mb-6">
-                  Tender king oyster mushrooms gently simmered in an earthenware pot with fresh green peppercorns, aromatic soy reduction, and coconut water for authentic rustic sweetness.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <circle cx="12" cy="7" r="4"></circle>
-                      <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                    </svg>
-                  </div>
-                  <span className="font-medium text-[#2B2A25]">
-                    Chef Duy
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="">
-                    Views:
-                    <strong className="font-semibold text-[#2B2A25]">
-                      342
-                    </strong>
-                  </span>
-                  <span className="flex items-center gap-1 text-[#A63446]">
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                    </svg>
-                    <span className="text-[#6B6F63]">
-                      Likes:
-                    </span>
-                    <strong className="font-semibold text-[#2B2A25]">
-                      124
-                    </strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Link>
+          {loading ? (
+             <div className="text-center py-10 text-[#6B6F63]">Loading...</div>
+          ) : posts.length > 0 ? (
+             (() => {
+               const featured = posts[0];
+               return (
+                 <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center cursor-pointer hover:border-[#2F5233] transition-colors group" to={`/posts/${featured.id}`}>
+                    <div className="relative overflow-hidden lg:col-span-6 w-full h-64 md:h-80 bg-[#E9EFE6] border border-[#DCE3D5] hero-radius flex flex-col items-center justify-center p-4 text-center transition-transform group-hover:scale-[1.01]">
+                      {featured.mediaFiles && featured.mediaFiles.length > 0 ? (
+                        <img src={getImageUrl(featured.mediaFiles[0].mediaUrl)} alt={featured.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-[#6B6F63] text-sm">No Image</div>
+                      )}
+                    </div>
+                    <div className="lg:col-span-6 flex flex-col justify-between h-full py-1 text-left">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-[3px] h-4 bg-[#2F5233] rounded-full"></span>
+                          <span className="text-[13px] font-medium text-[#6B6F63] lowercase">
+                            {featured.category?.name || 'recipe'}
+                          </span>
+                          <span className="text-xs text-[#6B6F63]">•</span>
+                          <span className="text-[13px] text-[#6B6F63]">
+                            {getTimeAgo(featured.createdAt)}
+                          </span>
+                        </div>
+                        <h3 className="font-fraunces text-2xl md:text-3xl font-semibold text-[#2B2A25] group-hover:text-[#2F5233] transition-colors mb-3 leading-snug">
+                          {featured.title}
+                        </h3>
+                        <p className="text-[15px] leading-relaxed text-[#6B6F63] mb-6 line-clamp-3">
+                          {featured.content}
+                        </p>
+                      </div>
+                      <div className="pt-4 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
+                            {featured.user?.avatarUrl ? (
+                              <img src={getImageUrl(featured.user.avatarUrl)} className="w-full h-full object-cover" />
+                            ) : (
+                              <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                <circle cx="12" cy="7" r="4"></circle>
+                                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium text-[#2B2A25]">
+                            {featured.user?.displayName || featured.user?.username || 'User'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="">
+                            Views:
+                            <strong className="font-semibold text-[#2B2A25] ml-1">{featured.viewCount || 0}</strong>
+                          </span>
+                          <span className="flex items-center gap-1 text-[#A63446]">
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                            </svg>
+                            <span className="text-[#6B6F63]">Likes:</span>
+                            <strong className="font-semibold text-[#2B2A25]">{featured.likeCount || 0}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                 </Link>
+               )
+             })()
+          ) : (
+             <div className="text-center py-10 text-[#6B6F63]">No featured post.</div>
+          )}
         </section>
-        {/* SECTION: NEWEST RECIPES & VIDEOS (Feed / List Item per DESIGN.md section 6) */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-fraunces text-2xl font-medium text-[#2B2A25]">
@@ -218,7 +223,7 @@ function Home() {
             ) : posts.length === 0 ? (
               <div className="text-center py-10 text-[#6B6F63]">No posts found.</div>
             ) : (
-              posts.map(post => (
+              posts.slice(1).map(post => (
                 <Link key={post.id} className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to={`/posts/${post.id}`}>
                   <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
                     {post.mediaFiles && post.mediaFiles.length > 0 ? (
