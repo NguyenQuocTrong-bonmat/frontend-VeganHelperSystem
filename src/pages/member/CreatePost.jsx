@@ -12,10 +12,10 @@ export default function CreatePost() {
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [content, setContent] = useState('');
-  const [difficultyLevel, setDifficultyLevel] = useState('Easy');
+  const [difficultyLevel, setDifficultyLevel] = useState('easy');
   const [prepTimeMins, setPrepTimeMins] = useState(15);
   const [cookingTimeMins, setCookingTimeMins] = useState(30);
-  const [dietType, setDietType] = useState('Vegan');
+  const [dietType, setDietType] = useState('vegan');
   const [mediaFiles, setMediaFiles] = useState([]);
 
   // Ingredients & Steps lists
@@ -82,7 +82,7 @@ export default function CreatePost() {
 
       const payload = {
         title: title.trim(),
-        postType: 'Recipe',
+        postType: 'recipe', // Backend expects lowercase
         categoryId: parseInt(categoryId, 10),
         content: content.trim(),
         difficultyLevel,
@@ -166,9 +166,8 @@ export default function CreatePost() {
                 onChange={(e) => setDietType(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
               >
-                <option value="Vegan">Vegan</option>
-                <option value="Raw Vegan">Raw Vegan</option>
-                <option value="Plant-based">Plant-based</option>
+                <option value="vegan">Vegan</option>
+                <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
               </select>
             </div>
           </div>
@@ -208,9 +207,9 @@ export default function CreatePost() {
                 onChange={(e) => setDifficultyLevel(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
               >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
               </select>
             </div>
           </div>

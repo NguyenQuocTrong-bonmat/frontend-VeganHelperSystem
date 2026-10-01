@@ -165,9 +165,10 @@ export async function createPost(postData) {
           if (errorJson.errors) {
             let details = '';
             if (Array.isArray(errorJson.errors)) {
-              // Handle array of error objects (e.g. FluentValidation)
+              // Handle array of error objects (e.g. FluentValidation or custom format)
               details = errorJson.errors.map(e => {
                 if (typeof e === 'string') return e;
+                if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
                 return e.errorMessage || e.message || e.description || JSON.stringify(e);
               }).join(' | ');
             } else if (typeof errorJson.errors === 'object') {
