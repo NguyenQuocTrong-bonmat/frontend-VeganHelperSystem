@@ -1,8 +1,42 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { getPostsFeed } from '../../services/postService'
+import { getImageUrl } from '../../utils/imageUtils'
 
 import HeaderMember from '../../components/layout/HeaderMember'
 
 function Home() {
+
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFeed() {
+      try {
+        const data = await getPostsFeed({ pageIndex: 1, pageSize: 10 });
+        setPosts(data.items || []);
+      } catch (err) {
+        console.error('Failed to load feed:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFeed();
+  }, []);
+
+  const getTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs} hours ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    return `${diffDays} days ago`;
+  };
+
   return (
     <>
       <HeaderMember />
@@ -179,273 +213,73 @@ function Home() {
             </div>
           </div>
           <div className="flex flex-col gap-4">
-            {/* Card 1: Main Dishes */}
-            <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to="/posts/1">
-              <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-white text-[12px] font-medium z-10 font-vietnam" style={{ background: 'rgba(43, 42, 37, 0.6)' }}>
-                  1/4
-                </span>
-                <img src="https://lh3.googleusercontent.com/aida/AEtjO1WKQI6FUHWfVtKTrj04MIGfapn2kKdbvISdihxFG-f7w0ySFktcAXUJeEK-um1Yo5mY9fgSSIEGLX1EfoSMS9NIkBhDMHqAamg0DpCajzR5k5F-lDIuyHmiPeupCwIPvAmL3nRnyg7YAOw8PaR-BTt8oakaY6bVCq-jAnbta0HL0nOf1EWsSbtxT2P-QBKdbWNNFv0igMkQnaed7Oigqp4cdbCOPC1OhWSkt9tVerGToLBZxByrBuEVHKk" alt="Crispy Pan-Fried Lemongrass & Chili Tofu" className="w-full h-full object-cover rounded-lg" />
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-[3px] h-3.5 bg-[#2F5233] rounded-full"></span>
-                    <span className="text-[13px] font-medium text-[#6B6F63]">
-                      main dishes
-                    </span>
-                    <span className="text-xs text-[#6B6F63]">
-                      •
-                    </span>
-                    <span className="text-[13px] text-[#6B6F63]">
-                      45 minutes ago
-                    </span>
+            {loading ? (
+              <div className="text-center py-10 text-[#6B6F63]">Loading posts...</div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-10 text-[#6B6F63]">No posts found.</div>
+            ) : (
+              posts.map(post => (
+                <Link key={post.id} className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to={`/posts/${post.id}`}>
+                  <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
+                    {post.mediaFiles && post.mediaFiles.length > 0 ? (
+                      <img src={getImageUrl(post.mediaFiles[0].mediaUrl)} alt={post.title} className="w-full h-full object-cover rounded-lg" />
+                    ) : (
+                      <div className="text-[#6B6F63] text-sm">No Image</div>
+                    )}
                   </div>
-                  <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors">
-                    Crispy Pan-Fried Lemongrass & Chili Tofu
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
-                    Golden tofu cubes pan-seared with minced lemongrass, spicy chili flakes, and toasted white sesame seeds for a heartwarming savory crunch.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <circle cx="12" cy="7" r="4"></circle>
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                      </svg>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-[3px] h-3.5 bg-[#2F5233] rounded-full"></span>
+                        <span className="text-[13px] font-medium text-[#6B6F63] lowercase">
+                          {post.category?.name || 'recipe'}
+                        </span>
+                        <span className="text-xs text-[#6B6F63]">•</span>
+                        <span className="text-[13px] text-[#6B6F63]">
+                          {getTimeAgo(post.createdAt)}
+                        </span>
+                      </div>
+                      <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
+                        {post.content}
+                      </p>
                     </div>
-                    <span className="font-medium text-[#2B2A25]">
-                      Mai Linh
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="">
-                      Views:
-                      <strong className="font-semibold text-[#2B2A25]">
-                        185
-                      </strong>
-                    </span>
-                    <span className="flex items-center gap-1 text-[#A63446]">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                      </svg>
-                      <span className="text-[#6B6F63]">
-                        Likes:
-                      </span>
-                      <strong className="font-semibold text-[#2B2A25]">
-                        124
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-            {/* Card 2: Cooking Videos */}
-            <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to="/posts/1">
-              <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-white text-[12px] font-medium z-10 font-vietnam" style={{ background: 'rgba(43, 42, 37, 0.6)' }}>
-                  1/3
-                </span>
-                <img src="https://lh3.googleusercontent.com/aida/AEtjO1WqIsz4GnoHBjWcsOHd9DJdnW7nbpBXvwgi_0YK6Ef78LClR--vFqo_W8tAu2JeZZeyPI6aq-uiqy7jxrcLO3qQfwfCqsB-CGKzjynTFFBgRNMuukYROErofB871vLBJou-rW42Xc5ayw6MmEMD7ALmpkch0xUDvgZEiI2x5m051G2T8JH8n8Q95NIHptQurB2bReYOfWUYVNmeAxJU4mogmDoeiWEo6paW4NL9mKLLtZSuz-yjhGhssTI" alt="Sizzling Claypot Oyster Mushrooms with Thai Basil" className="w-full h-full object-cover rounded-lg" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-10 h-10 rounded-full bg-[#2F5233]/90 text-white flex items-center justify-center shadow-sm group-hover:bg-[#25401F] transition-colors">
-                    <svg className="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </div>
-                </div>
-                <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-[#2B2A25] text-white text-[11px] font-medium z-10">
-                  08:45
-                </span>
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-[3px] h-3.5 bg-[#A63446] rounded-full"></span>
-                    <span className="text-[13px] font-medium text-[#6B6F63]">
-                      cooking videos
-                    </span>
-                    <span className="text-xs text-[#6B6F63]">
-                      •
-                    </span>
-                    <span className="text-[13px] text-[#6B6F63]">
-                      2 hours ago
-                    </span>
-                  </div>
-                  <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors">
-                    Video: Sizzling Claypot Oyster Mushrooms with Thai Basil
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
-                    Step-by-step 8-minute technique to sear oyster mushrooms over high heat before glazing in rich sweet soy sauce and crushed chili.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <circle cx="12" cy="7" r="4"></circle>
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                      </svg>
+                    <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
+                          {post.user?.avatarUrl ? (
+                            <img src={getImageUrl(post.user.avatarUrl)} className="w-full h-full object-cover" />
+                          ) : (
+                            <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <circle cx="12" cy="7" r="4"></circle>
+                              <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+                            </svg>
+                          )}
+                        </div>
+                        <span className="font-medium text-[#2B2A25]">
+                          {post.user?.displayName || post.user?.username || 'User'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="">
+                          Views:
+                          <strong className="font-semibold text-[#2B2A25] ml-1">{post.viewCount || 0}</strong>
+                        </span>
+                        <span className="flex items-center gap-1 text-[#A63446]">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                          </svg>
+                          <span className="text-[#6B6F63]">Likes:</span>
+                          <strong className="font-semibold text-[#2B2A25]">{post.likeCount || 0}</strong>
+                        </span>
+                      </div>
                     </div>
-                    <span className="font-medium text-[#2B2A25]">
-                      Chef Duy
-                    </span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="">
-                      Views:
-                      <strong className="font-semibold text-[#2B2A25]">
-                        520
-                      </strong>
-                    </span>
-                    <span className="flex items-center gap-1 text-[#A63446]">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                      </svg>
-                      <span className="text-[#6B6F63]">
-                        Likes:
-                      </span>
-                      <strong className="font-semibold text-[#2B2A25]">
-                        124
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-            {/* Card 3: Soups */}
-            <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to="/posts/1">
-              <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-white text-[12px] font-medium z-10 font-vietnam" style={{ background: 'rgba(43, 42, 37, 0.6)' }}>
-                  1/3
-                </span>
-                <img src="https://lh3.googleusercontent.com/aida/AEtjO1VcZsiyaVI88SiJ5oF01zka1aPwHscql5pOU0eV1GBLXbcJxrX4A3RTqNAXUIAu62_1EGvr-A2Spq0xAuF-aXpqwtuluK43WCwyFLqvJH8Nd1KmO8NM2W_TzYODDB779KmKfdPmtFsxWV__eOJzy6hRDbx-Zu9rRNITFgMiPxhVSTrqYZgHtzbtD3nnXZRynX2p_iPhFvzuCk8ZG7NTu9LmpJ-5wqV_0K07WcfdTtuOrs3H10U3ioP7FEQ" alt="Silken Tofu Soup with Shiitake & Sweet Carrots" className="w-full h-full object-cover rounded-lg" />
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-[3px] h-3.5 bg-[#D9A441] rounded-full"></span>
-                    <span className="text-[13px] font-medium text-[#6B6F63]">
-                      soups
-                    </span>
-                    <span className="text-xs text-[#6B6F63]">
-                      •
-                    </span>
-                    <span className="text-[13px] text-[#6B6F63]">
-                      4 hours ago
-                    </span>
-                  </div>
-                  <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors">
-                    Silken Tofu Soup with Shiitake & Sweet Carrots
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
-                    Delicate and nourishing clear vegetable broth gently simmered with soft silken tofu, rehydrated dried shiitake caps, and tender spring onions.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <circle cx="12" cy="7" r="4"></circle>
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                      </svg>
-                    </div>
-                    <span className="font-medium text-[#2B2A25]">
-                      Thao Nguyen
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="">
-                      Views:
-                      <strong className="font-semibold text-[#2B2A25]">
-                        210
-                      </strong>
-                    </span>
-                    <span className="flex items-center gap-1 text-[#A63446]">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                      </svg>
-                      <span className="text-[#6B6F63]">
-                        Likes:
-                      </span>
-                      <strong className="font-semibold text-[#2B2A25]">
-                        124
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-            {/* Card 4: Salads */}
-            <Link className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group" to="/posts/1">
-              <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 flex flex-col items-center justify-center p-3 text-center transition-transform group-hover:scale-[1.01]">
-                <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-white text-[12px] font-medium z-10 font-vietnam" style={{ background: 'rgba(43, 42, 37, 0.6)' }}>
-                  1/4
-                </span>
-                <img src="https://lh3.googleusercontent.com/aida/AEtjO1Vg-qfSmhz0wmNociW2JI-LpplsY_hhYhjzPDUa-ukgYaSY52N3BKo2MaYe5Q4eiXsvUtBgprUIS_qd_Yt6PkMxanDVcSqftvoaKxm4J_AiHULIy89qh0mQc2mlUDGKjn_sisydSWD7jl01hgjMPjGrgTvYMMvnj2wux5YOFLyp6evgziGIVIeqhjDrtJoFWj-Gedr4AegXZN2Tyfam2mz-soiq3U1Z3Ox0L1j0VJvoJetEEoiY5SqQQCI" alt="Zesty Purple Banana Blossom Salad" className="w-full h-full object-cover rounded-lg" />
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-[3px] h-3.5 bg-[#A63446] rounded-full"></span>
-                    <span className="text-[13px] font-medium text-[#6B6F63]">
-                      salads
-                    </span>
-                    <span className="text-xs text-[#6B6F63]">
-                      •
-                    </span>
-                    <span className="text-[13px] text-[#6B6F63]">
-                      Yesterday
-                    </span>
-                  </div>
-                  <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors">
-                    Zesty Purple Banana Blossom Salad
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
-                    Crisp shredded banana flower threads tossed with fresh mint leaves, crushed roasted peanuts, and tangy calamansi lime dressing.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <circle cx="12" cy="7" r="4"></circle>
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                      </svg>
-                    </div>
-                    <span className="font-medium text-[#2B2A25]">
-                      Lan Huong
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="">
-                      Views:
-                      <strong className="font-semibold text-[#2B2A25]">
-                        295
-                      </strong>
-                    </span>
-                    <span className="flex items-center gap-1 text-[#A63446]">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                      </svg>
-                      <span className="text-[#6B6F63]">
-                        Likes:
-                      </span>
-                      <strong className="font-semibold text-[#2B2A25]">
-                        124
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-          <div className="mt-8 flex justify-center">
-            <button className="h-11 px-6 rounded-lg border-[1.5px] border-[#2F5233] bg-transparent text-[#2F5233] text-[14px] font-medium hover:bg-[#E9EFE6] transition-colors cursor-pointer">
-              View More Recipes & Posts
-            </button>
+                </Link>
+              ))
+            )}
           </div>
         </section>
       </main>
