@@ -1,4 +1,5 @@
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180';
+const BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180')
+  .replace(/\/api\/?$/, '');
 
 /**
  * Lấy danh sách bài viết cho trang Feed

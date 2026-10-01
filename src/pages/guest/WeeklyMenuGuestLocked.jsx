@@ -23,12 +23,12 @@ function WeeklyMenuGuestLocked() {
               Log in to create personalized meal plans and track your BMI.
             </p>
             <div className="flex items-center justify-center gap-4">
-              <button className="flex-1 sm:flex-initial bg-primary-moss hover:bg-primary-moss-hover text-white px-6 py-3 rounded-lg font-medium transition-colors" type="button">
+              <Link className="flex-1 sm:flex-initial bg-primary-moss hover:bg-primary-moss-hover text-white px-6 py-3 rounded-lg font-medium transition-colors" to="/login">
                 Log In
-              </button>
-              <button className="flex-1 sm:flex-initial border border-primary-moss hover:bg-herb-white text-primary-moss px-6 py-3 rounded-lg font-medium transition-colors" type="button">
+              </Link>
+              <Link className="flex-1 sm:flex-initial border border-primary-moss hover:bg-herb-white text-primary-moss px-6 py-3 rounded-lg font-medium transition-colors" to="/sign-up">
                 Sign Up
-              </button>
+              </Link>
             </div>
           </div>
         </div>
