@@ -1,7 +1,46 @@
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getPostDetail } from '../../services/postService';
+import { getImageUrl } from '../../utils/imageUtils';
+import { getTimeAgo } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
 
 function PostDetail() {
+
+  const { id } = useParams();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function loadPost() {
+      try {
+        const data = await getPostDetail(id);
+        setPost(data);
+      } catch (err) {
+        setError('Failed to load post details.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPost();
+  }, [id]);
+
+  if (loading) return (
+    <div className="min-h-screen flex flex-col">
+      <HeaderMember />
+      <main className="w-full max-w-[1120px] mx-auto px-6 py-12 flex-1 text-center text-text-stem-gray">Loading post details...</main>
+    </div>
+  );
+
+  if (error || !post) return (
+    <div className="min-h-screen flex flex-col">
+      <HeaderMember />
+      <main className="w-full max-w-[1120px] mx-auto px-6 py-12 flex-1 text-center text-accent-beetroot">{error || 'Post not found.'}</main>
+    </div>
+  );
+
   return (
     <>
       {/* TOP HEADER */}
@@ -22,7 +61,7 @@ function PostDetail() {
           <div className="inline-flex items-center gap-2">
             <span className="w-[3px] h-4 bg-primary-moss rounded-full"></span>
             <span className="text-sm font-medium text-text-charcoal">
-              Main Dishes / Guides
+              {post.postType} / Recipe
             </span>
           </div>
         </div>
@@ -30,7 +69,7 @@ function PostDetail() {
         <article className="space-y-6">
           {/* Title: Fraunces H2 */}
           <h1 className="font-fraunces font-semibold text-[28px] leading-[36px] text-text-charcoal tracking-tight">
-            Claypot Braised King Oyster Mushrooms with Fresh Green Peppercorn
+            {post.title}
           </h1>
           {/* Meta Information Row: Author, Date, Views, Rating */}
           <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-y border-border-sage-mist text-[13px] text-text-stem-gray">
@@ -44,13 +83,13 @@ function PostDetail() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-text-charcoal">
-                  Chef Duy
+                  {post.authorName || 'Anonymous'}
                 </span>
                 <span className="">
                   •
                 </span>
                 <span className="">
-                  45 minutes ago
+                  {getTimeAgo(post.createdAt)}
                 </span>
               </div>
             </div>
@@ -63,7 +102,7 @@ function PostDetail() {
                 <span className="">
                   Views:
                   <strong className="font-semibold text-text-charcoal">
-                    342
+                    {post.viewCount}
                   </strong>
                 </span>
               </div>
@@ -77,7 +116,7 @@ function PostDetail() {
               <div className="gallery-slide absolute inset-0 w-full h-full flex flex-col justify-between" id="gallery-slide-1">
                 {/* Background Video Simulation Canvas with Realistic Photo */}
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                  <img alt="Claypot braised king oyster mushrooms with fresh green peppercorns" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WB5ue4YCiF80yX2LzmxjB651NSmec6AmpbmpsEy1yW2-RMH9r6Fa4PggMuAx5Grp-uwgUJ6OPHepQksJuRi6w6mXPryD_ffHB6dt4S8aLkuIaMrpE2GkbpHQ579qI0feP47eU3GW1We4Znk4_VP1cUcagdQ2fOCkgqdbLJORKO5mrR3oCKdmvYTWCmapm2oMAjUBSCNUXJgEwMVMlvDpkLFAW9v4-XBXy5P9u6krFA6hwJi5RXRipZfjI" />
+                  <img alt="Claypot braised king oyster mushrooms with fresh green peppercorns" className="w-full h-full object-cover" src={post.media && post.media.length > 0 ? getImageUrl(post.media[0].mediaUrl) : "https://placehold.co/800x450/2B2A25/FDFBF6?text=No+Image"} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/50"></div>
                 </div>
                 {/* Top Overlays: Slide counter badge & Duration badge */}
@@ -237,7 +276,7 @@ function PostDetail() {
                 </span>
               </div>
               <p className="text-[#2B2A25] leading-relaxed text-[15px]">
-                AI analysis synthesizes Chef Duy's master braising technique: searing king oyster mushrooms golden-brown in cold-pressed oil, then slow-reducing in fresh young coconut broth and crushed green peppercorns to achieve an earthy, deeply caramelized texture.
+                AI analysis synthesizes {post.authorName || 'Anonymous'}'s master braising technique: searing king oyster mushrooms golden-brown in cold-pressed oil, then slow-reducing in fresh young coconut broth and crushed green peppercorns to achieve an earthy, deeply caramelized texture.
               </p>
               <div className="mt-4 pt-4 border-t border-[#DCE3D5]">
                 <h4 className="text-[13px] font-semibold text-[#2F5233] uppercase tracking-wide">
@@ -312,7 +351,7 @@ function PostDetail() {
           <div className="max-w-[760px] space-y-6 pt-4 text-text-charcoal leading-relaxed text-[17px]">
             {/* Quote highlight / Description summary */}
             <p className="font-medium text-lg text-text-charcoal/90 leading-relaxed border-l-2 border-primary-moss pl-4 italic">
-              A deeply satisfying Southern Vietnamese claypot classic. Searing king oyster mushrooms until golden-brown before slow-braising in young coconut water and crushed green peppercorns releases a sweet, warm, earthy aroma that gathers the whole family around the dining table.
+              {post.content}
             </p>
             <p className="">
               Wholesome plant-based home cooking honors simplicity. Fresh king oyster mushrooms provide a hearty, succulent texture while crushed green peppercorns offer mild, lingering warmth without overpowering the natural sweetness of root broth.
@@ -323,30 +362,15 @@ function PostDetail() {
             </h2>
             {/* Ingredients Card */}
             <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-6 space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full bg-primary-moss shrink-0"></span>
-                <span className="">
-                  Fresh king oyster mushrooms or shiitake sliced
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full bg-primary-moss shrink-0"></span>
-                <span className="">
-                  Silken tofu or gently pan-fried golden tofu
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full bg-primary-moss shrink-0"></span>
-                <span className="">
-                  Lotus root, carrots and fresh lotus seeds for sweet broth
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full bg-primary-moss shrink-0"></span>
-                <span className="">
-                  Naturally fermented soy sauce, raw cane sugar, cracked black pepper
-                </span>
-              </div>
+              {post.ingredients && post.ingredients.map((ing, idx) => (
+                <div key={idx} className="flex items-center gap-3 text-sm">
+                  <span className="w-2 h-2 rounded-full bg-primary-moss shrink-0"></span>
+                  <span className="">{ing.ingredientName || ing.name || JSON.stringify(ing)}</span>
+                </div>
+              ))}
+              {(!post.ingredients || post.ingredients.length === 0) && (
+                <div className="text-sm text-text-stem-gray">No ingredients listed.</div>
+              )}
             </div>
             <h2 className="font-fraunces font-medium text-2xl text-text-charcoal pt-4">
               Step-by-step Instructions
@@ -464,11 +488,11 @@ function PostDetail() {
           {/* Author Card Info */}
           <div className="bg-surface-paper border border-border-sage-mist rounded-xl p-6 flex items-start gap-4">
             <div className="w-12 h-12 rounded-full bg-[#E5EBE0] border border-border-sage-mist flex items-center justify-center text-primary-moss shrink-0 font-fraunces font-bold text-lg">
-              CD
+              {(post.authorName || 'Anonymous').substring(0, 2).toUpperCase()}
             </div>
             <div className="space-y-1">
               <h3 className="font-semibold text-base text-text-charcoal">
-                Author: Chef Duy
+                Author: {post.authorName || 'Anonymous'}
               </h3>
               <p className="text-sm text-text-stem-gray">
                 Plant-based culinary instructor & cookbook author, sharing hearty traditional home recipes.
@@ -542,7 +566,7 @@ function PostDetail() {
                   </button>
                 </div>
                 <p className="text-sm text-text-charcoal/90 pl-9">
-                  I made this dish for dinner yesterday and my family loved the fragrant green peppercorn sauce! Thank you Chef Duy for sharing this wonderful technique.
+                  I made this dish for dinner yesterday and my family loved the fragrant green peppercorn sauce! Thank you {post.authorName || 'Anonymous'} for sharing this wonderful technique.
                 </p>
               </div>
               {/* Realistic comment 2 */}
