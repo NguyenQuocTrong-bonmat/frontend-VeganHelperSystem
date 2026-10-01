@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { getPostDetail } from '../../services/postService';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -8,6 +8,7 @@ import HeaderMember from '../../components/layout/HeaderMember';
 function PostDetail() {
 
   const { id } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,14 +56,14 @@ function PostDetail() {
       <main className="w-full max-w-[1120px] mx-auto px-6 py-8 md:py-12 flex-1">
         {/* Breadcrumb & Back action */}
         <div className="mb-6 flex items-center justify-between">
-          <a className="inline-flex items-center gap-2 text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" href="#">
+          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors focus:outline-none cursor-pointer" type="button">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
               <path d="m15 18-6-6 6-6"></path>
             </svg>
             <span className="">
-              ‹ Back to list
+              Back
             </span>
-          </a>
+          </button>
           {/* Category Tag */}
           <div className="inline-flex items-center gap-2">
             <span className="w-[3px] h-4 bg-primary-moss rounded-full"></span>
