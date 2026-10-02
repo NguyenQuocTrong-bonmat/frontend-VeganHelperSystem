@@ -104,7 +104,7 @@ function MyPosts() {
             </div>
             <div className="flex flex-col items-center px-6 border-r border-[#DCE3D5]">
               <span className="text-[#2B2A25] font-bold text-lg leading-none">
-                1,280
+                0
               </span>
               <span className="text-[#6B6F63] text-xs uppercase tracking-wider mt-1 font-medium">
                 Followers
@@ -112,7 +112,7 @@ function MyPosts() {
             </div>
             <div className="flex flex-col items-center px-6">
               <span className="text-[#2B2A25] font-bold text-lg leading-none">
-                142
+                0
               </span>
               <span className="text-[#6B6F63] text-xs uppercase tracking-wider mt-1 font-medium">
                 Following

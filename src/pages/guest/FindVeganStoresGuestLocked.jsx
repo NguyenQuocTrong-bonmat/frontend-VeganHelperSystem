@@ -23,12 +23,12 @@ function FindVeganStoresGuestLocked() {
               Log in to explore nearby wholesome plant-based eateries, organic markets, and get directions.
             </p>
             <div className="flex items-center justify-center gap-3.5">
-              <button className="px-6 py-3 bg-primary-moss hover:bg-primary-moss-hover text-white rounded-lg text-[14px] font-medium transition cursor-pointer shadow-sm" type="button">
+              <Link to="/login" className="px-6 py-3 bg-primary-moss hover:bg-primary-moss-hover text-white rounded-lg text-[14px] font-medium transition cursor-pointer shadow-sm text-center inline-block">
                 Log In
-              </button>
-              <button className="px-6 py-3 border border-primary-moss text-primary-moss hover:bg-bg-herb-white rounded-lg text-[14px] font-medium transition cursor-pointer" type="button">
+              </Link>
+              <Link to="/sign-up" className="px-6 py-3 border border-primary-moss text-primary-moss hover:bg-bg-herb-white rounded-lg text-[14px] font-medium transition cursor-pointer text-center inline-block">
                 Sign Up
-              </button>
+              </Link>
             </div>
           </div>
         </div>

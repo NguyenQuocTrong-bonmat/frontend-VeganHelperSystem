@@ -7,6 +7,31 @@ import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
 
+const formatDateInputValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getLatestValidBirthDate = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return formatDateInputValue(yesterday);
+};
+
+const isValidBirthDate = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split('-').map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+  const isRealDate = parsedDate.getFullYear() === year
+    && parsedDate.getMonth() === month - 1
+    && parsedDate.getDate() === day;
+
+  return isRealDate && value < formatDateInputValue(new Date());
+};
+
 function Profile() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -22,6 +47,7 @@ function Profile() {
     biologicalSex: 'female',
     birthDate: ''
   });
+  const [editErrors, setEditErrors] = useState({});
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -65,6 +91,7 @@ function Profile() {
     if (id === 'modalDob') key = 'birthDate';
 
     setEditForm(prev => ({ ...prev, [key]: value }));
+    setEditErrors(prev => ({ ...prev, [key]: '' }));
   };
 
   const handleFileSelect = (e) => {
@@ -81,9 +108,27 @@ function Profile() {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+
+    const displayName = editForm.displayName.trim();
+    const errors = {};
+
+    if (displayName.length < 3) {
+      errors.displayName = 'Full name must contain at least 3 characters.';
+    }
+
+    if (editForm.birthDate && !isValidBirthDate(editForm.birthDate)) {
+      errors.birthDate = 'Date of birth must be a valid date before today.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      toast.error('Please correct the highlighted profile fields.');
+      return;
+    }
+
     try {
       const formData = new FormData();
-      if (editForm.displayName) formData.append('displayName', editForm.displayName);
+      formData.append('displayName', displayName);
       if (editForm.phoneNumber) formData.append('phoneNumber', editForm.phoneNumber);
       if (editForm.biologicalSex) formData.append('biologicalSex', editForm.biologicalSex);
       if (editForm.birthDate) formData.append('birthDate', editForm.birthDate);
@@ -91,6 +136,7 @@ function Profile() {
 
       await authService.updateProfile(formData);
       toast.success('Profile updated successfully!');
+      setEditErrors({});
       setIsEditOpen(false);
       fetchProfile();
     } catch (err) {
@@ -526,7 +572,17 @@ function Profile() {
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalFullName">
                 Full Name
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalFullName" type="text" value={editForm.displayName} onChange={handleEditChange} />
+              <input
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
+                id="modalFullName"
+                type="text"
+                value={editForm.displayName}
+                minLength={3}
+                required
+                aria-invalid={Boolean(editErrors.displayName)}
+                onChange={handleEditChange}
+              />
+              {editErrors.displayName && <p className="mt-1 text-xs text-red-600">{editErrors.displayName}</p>}
             </div>
             {/* Email Address */}
             <div>
@@ -562,7 +618,16 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
                   Date of Birth
                 </label>
-                <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalDob" type="date" value={editForm.birthDate} onChange={handleEditChange} />
+                <input
+                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
+                  id="modalDob"
+                  type="date"
+                  value={editForm.birthDate}
+                  max={getLatestValidBirthDate()}
+                  aria-invalid={Boolean(editErrors.birthDate)}
+                  onChange={handleEditChange}
+                />
+                {editErrors.birthDate && <p className="mt-1 text-xs text-red-600">{editErrors.birthDate}</p>}
               </div>
             </div>
             {/* Modal Actions */}

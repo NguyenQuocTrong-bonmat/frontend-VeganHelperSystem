@@ -23,12 +23,12 @@ function MyPostsGuestLocked() {
               Log in to share plant-based culinary recipes, publish cooking videos, and manage your saved dishes.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button className="w-full sm:w-auto bg-primary-moss hover:bg-primary-moss-hover text-surface-paper font-medium px-6 py-3 rounded-lg transition-colors shadow-sm" type="button">
+              <Link to="/login" className="w-full sm:w-auto bg-primary-moss hover:bg-primary-moss-hover text-surface-paper font-medium px-6 py-3 rounded-lg transition-colors shadow-sm text-center inline-block">
                 Log In
-              </button>
-              <button className="w-full sm:w-auto border border-primary-moss text-primary-moss hover:bg-herb-white font-medium px-6 py-3 rounded-lg transition-colors" type="button">
+              </Link>
+              <Link to="/sign-up" className="w-full sm:w-auto border border-primary-moss text-primary-moss hover:bg-herb-white font-medium px-6 py-3 rounded-lg transition-colors text-center inline-block">
                 Sign Up
-              </button>
+              </Link>
             </div>
           </div>
         </div>

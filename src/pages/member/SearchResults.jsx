@@ -816,7 +816,7 @@ function SearchResults() {
                     Holistic vegan culinarian • 42 recipes
                   </p>
                   <span className="text-[11px] text-[#2F5233] font-medium mt-1 inline-block">
-                    1.4k followers
+                    0 followers
                   </span>
                 </div>
               </div>
@@ -837,7 +837,7 @@ function SearchResults() {
                     Mushroom & broth specialist • 28 recipes
                   </p>
                   <span className="text-[11px] text-[#2F5233] font-medium mt-1 inline-block">
-                    980 followers
+                    0 followers
                   </span>
                 </div>
               </div>
@@ -858,7 +858,7 @@ function SearchResults() {
                     Family nutrition coach • 19 recipes
                   </p>
                   <span className="text-[11px] text-[#2F5233] font-medium mt-1 inline-block">
-                    640 followers
+                    0 followers
                   </span>
                 </div>
               </div>
@@ -879,7 +879,7 @@ function SearchResults() {
                     Wild mushroom forager • 35 recipes
                   </p>
                   <span className="text-[11px] text-[#2F5233] font-medium mt-1 inline-block">
-                    810 followers
+                    0 followers
                   </span>
                 </div>
               </div>
