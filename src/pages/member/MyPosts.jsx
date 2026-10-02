@@ -13,6 +13,7 @@ function MyPosts() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     async function loadMyPosts() {
@@ -28,6 +29,8 @@ function MyPosts() {
         } catch(e) {}
       } catch (err) {
         console.error('Failed to load my posts:', err);
+        setPosts([]);
+        setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : 'Failed to load your posts. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -61,16 +64,8 @@ function MyPosts() {
       }
       setPostToDelete(null);
     } catch (err) {
-      if (err.status === 401 || err.message === 'Unauthorized') {
-        console.warn('Backend returned 401 Unauthorized, proceeding with mock delete.');
-        if (postToDelete.element) {
-          postToDelete.element.style.display = 'none';
-        }
-        setPostToDelete(null);
-      } else {
-        console.error('Delete error:', err);
-        alert('Failed to delete post.');
-      }
+      console.error('Delete error:', err);
+      setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : 'Failed to delete post.');
     } finally {
       setIsDeleting(false);
     }
@@ -82,6 +77,7 @@ function MyPosts() {
       {/* END: MainHeader */}
       {/* BEGIN: MainContent */}
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" data-purpose="my-posts-management-screen">
+        {errorMessage && <p role="alert" className="mb-4 text-[#A63446]">{errorMessage} {<Link to="/login" className="underline">Log In</Link>}</p>}
         {/* Page Title */}
         <div className="flex flex-col items-center text-center mb-8">
           {user?.avatarUrl ? (

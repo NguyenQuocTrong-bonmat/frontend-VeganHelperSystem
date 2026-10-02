@@ -1,15 +1,16 @@
 import axiosInstance from '../lib/axios';
+import { getRefreshToken, clearAuthTokens } from '../utils/authStorage';
 
 export const authService = {
   // FN02: Đăng nhập hệ thống
   login: async (credentials) => {
-    const response = await axiosInstance.post('/auth/login', credentials);
+    const response = await axiosInstance.post('/auth/login', credentials, { skipAuthRedirect: true });
     return response.data;
   },
 
   // Google Login
   googleLogin: async (data) => {
-    const response = await axiosInstance.post('/auth/google', data);
+    const response = await axiosInstance.post('/auth/google', data, { skipAuthRedirect: true });
     return response.data;
   },
 
@@ -52,15 +53,12 @@ export const authService = {
   // FN03: Đăng xuất
   logout: async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+      const refreshToken = getRefreshToken();
       await axiosInstance.post('/auth/logout', { refreshToken });
     } catch (e) {
       console.error("Logout API failed", e);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      sessionStorage.removeItem('accessToken');
-      sessionStorage.removeItem('refreshToken');
+      clearAuthTokens();
     }
   },
 

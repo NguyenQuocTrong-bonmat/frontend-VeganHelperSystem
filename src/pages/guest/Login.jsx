@@ -50,8 +50,13 @@ function Login() {
         });
         return;
       }
-      // Assuming backend returns an error message inside err.response.data.error
-      const errorMsg = err.response?.data?.error?.toLowerCase() || '';
+      if (err.response?.status === 401) {
+        setError('email', { type: 'manual', message: 'Incorrect email or password' });
+        setError('password', { type: 'manual', message: 'Incorrect email or password' });
+        return;
+      }
+      // Read the backend's error contract without losing the form state.
+      const errorMsg = (err.response?.data?.message || err.response?.data?.error || '').toLowerCase();
       
       // Map backend errors to inline field errors as requested
       if (errorMsg.includes('not found') || errorMsg.includes('user')) {
@@ -98,13 +103,13 @@ function Login() {
               </label>
               <input 
                 {...register('email')}
-                className={`w-full h-11 px-3.5 bg-surface-paper border ${errors.email ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`} 
+                className={`w-full h-11 px-3.5 bg-surface-paper border ${errors.email ? 'border-[#A63446]' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`}
                 id="email" 
                 placeholder="email@example.com" 
                 type="text" // Use text so html validation doesn't override zod
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.email.message}</p>
+                <p className="text-[#A63446] text-xs mt-1.5 font-medium">{errors.email.message}</p>
               )}
             </div>
             
@@ -120,7 +125,7 @@ function Login() {
               <div className="relative">
                 <input 
                   {...register('password')}
-                  className={`w-full h-11 px-3.5 pr-10 bg-surface-paper border ${errors.password ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`} 
+                  className={`w-full h-11 px-3.5 pr-10 bg-surface-paper border ${errors.password ? 'border-[#A63446]' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`}
                   id="password" 
                   placeholder="Enter your password" 
                   type={showPassword ? "text" : "password"} 
@@ -145,7 +150,7 @@ function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.password.message}</p>
+                <p className="text-[#A63446] text-xs mt-1.5 font-medium">{errors.password.message}</p>
               )}
             </div>
             

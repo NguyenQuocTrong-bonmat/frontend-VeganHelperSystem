@@ -97,13 +97,8 @@ export default function CreatePost() {
       await createPost(payload);
       navigate('/my-posts');
     } catch (err) {
-        if (err.status === 401 || err.message === 'Unauthorized') {
-          console.warn('Backend returned 401 Unauthorized, proceeding with mock create.');
-          navigate('/my-posts');
-        } else {
-          console.error('Submit post error:', err);
-          setErrorMessage(err.message || 'Failed to create post. Please try again.');
-        }
+        console.error('Submit post error:', err);
+        setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : err.message || 'Failed to create post. Please try again.');
       } finally {
       setLoading(false);
     }

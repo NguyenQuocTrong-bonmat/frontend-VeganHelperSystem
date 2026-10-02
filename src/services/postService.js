@@ -1,4 +1,6 @@
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180';
+import { getAccessToken } from '../utils/authStorage';
+
+const BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180').replace(/\/api\/?$/, '');
 
 /**
  * Lấy danh sách bài viết cho trang Feed
@@ -74,7 +76,7 @@ export async function getPostDetail(id) {
 
 // Helper lấy token
 export function getAuthToken() {
-  return localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+  return getAccessToken();
 }
 
 // FN16: Lấy danh sách bài viết của người dùng hiện tại
@@ -114,18 +116,6 @@ export async function getMyPosts(params = {}) {
     const error = new Error(errorMessage);
     error.status = res.status;
 
-    if (res.status === 401) {
-      console.warn('Backend returned 401 Unauthorized for getMyPosts. Returning fallback mock data.');
-      // Fallback to getPostsFeed to show seeded data for testing purposes
-      try {
-        const fallbackData = await getPostsFeed(params);
-        return fallbackData;
-      } catch (e) {
-        console.error('Fallback failed', e);
-        throw error;
-      }
-    }
-
     throw error;
   }
 
@@ -138,13 +128,13 @@ export async function createPost(postData) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
-  formData.append('PostType', postData.postType || 'Recipe');
+  formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);
   formData.append('Content', postData.content);
-  formData.append('DifficultyLevel', postData.difficultyLevel || 'Easy');
+  formData.append('DifficultyLevel', (postData.difficultyLevel || 'easy').toLowerCase());
   formData.append('PrepTimeMins', postData.prepTimeMins || 0);
   formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
-  formData.append('DietType', postData.dietType || 'Vegan');
+  formData.append('DietType', (postData.dietType || 'vegan').toLowerCase());
 
   // Gắn file ảnh nếu có
   if (postData.mediaFiles && postData.mediaFiles.length > 0) {
@@ -154,8 +144,8 @@ export async function createPost(postData) {
   }
 
   // Serialize Ingredients và Steps thành chuỗi JSON
-  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i }));
-  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s, Instruction: s }));
+  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i.trim() }));
+  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s.trim() }));
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
@@ -299,8 +289,8 @@ export async function updatePost(id, postData) {
   }
 
   // Serialize Ingredients và Steps
-  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i }));
-  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s, Instruction: s }));
+  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i.trim() }));
+  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s.trim() }));
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 

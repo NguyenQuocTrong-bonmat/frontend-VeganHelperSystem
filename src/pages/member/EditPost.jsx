@@ -55,7 +55,7 @@ export default function EditPost() {
            setIngredients(data.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || ''));
         }
         if (data.steps && data.steps.length > 0) {
-           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.instruction || ''));
+           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.description || step.instruction || ''));
         }
       } catch (err) {
         console.error('Failed to load post details:', err);
@@ -125,12 +125,7 @@ export default function EditPost() {
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      if (err.status === 401 || err.message === 'Unauthorized') {
-        console.warn('Backend returned 401 Unauthorized, but proceeding with mock success as requested.');
-        navigate('/my-posts');
-      } else {
-        setErrorMessage(err.message || 'Failed to create post. Please try again.');
-      }
+      setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : err.message || 'Failed to update post. Please try again.');
     } finally {
       setLoading(false);
     }
