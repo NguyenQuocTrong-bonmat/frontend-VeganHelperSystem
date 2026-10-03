@@ -1,31 +1,4 @@
 
-
-#Cụ thể, trong commit vừa thực hiện đã ghi nhận sự thay đổi và thêm mới của các file giao diện sau:
-
-##Các trang (Pages):
-
-src/pages/guest/HomeGuest.jsx
-src/pages/member/CreatePost.jsx
-src/pages/member/EditPost.jsx
-src/pages/member/Home.jsx
-src/pages/member/MyPosts.jsx
-src/pages/member/PostDetail.jsx
-Các Components UI mới:
-
-src/components/home/CategoryBar.jsx
-src/components/home/FeaturedPost.jsx
-src/components/home/PostList.jsx
-src/components/home/SearchBar.jsx
-Toàn bộ thư mục src/components/ui/ mới được tạo (chứa Button.jsx, CategoryChip.jsx, Input.jsx...)
-##CSS & Cấu hình:
-
-src/styles/index.css (Cập nhật các style mới)
-tailwind.config.js (Cấu hình mã màu chuẩn)
-Thư mục design-system/ và file Design.MD
-Tất cả đã nằm an toàn trên nhánh redesignFE trên Github của bạn. Bạn có thể kiểm tra trực tiếp trên đó nhé!
-
-
-
 # Hướng Dẫn Design & Nối Luồng UI - VeganHelper
 
 Tài liệu này cung cấp cái nhìn tổng quan về hệ thống UI mới và hướng dẫn từng bước để các lập trình viên frontend thực hiện việc "nối luồng" (tích hợp logic, API, state) vào các file giao diện tĩnh đã được chuyển đổi.
