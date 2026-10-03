@@ -16,6 +16,7 @@ import MyPostsGuestLocked from './pages/guest/MyPostsGuestLocked.jsx'
 import Home from './pages/member/Home.jsx'
 import Profile from './pages/member/Profile.jsx'
 import Security from './pages/member/Security.jsx'
+import ChangeEmail from './pages/member/ChangeEmail.jsx'
 import PublicUserProfile from './pages/member/PublicUserProfile.jsx'
 import MyPosts from './pages/member/MyPosts.jsx'
 import PostDetail from './pages/member/PostDetail.jsx'
@@ -61,6 +62,7 @@ function App() {
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
+        <Route path="/security/change-email" element={<ProtectedRoute><ChangeEmail /></ProtectedRoute>} />
         <Route path="/users/:id" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
         <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
         <Route path="/posts/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />

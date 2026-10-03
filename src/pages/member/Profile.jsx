@@ -373,28 +373,43 @@ function Profile() {
             </div>
 
           </section>
-          {/* BEGIN: LinkedAccountsCard */}
           <section className="bg-surface-paper rounded-xl border border-border-sage-mist p-6 sm:p-8 shadow-subtle mt-6">
-            <div className="pb-6 border-b border-border-sage-mist/70">
-              <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-text-charcoal">Security & Linked Accounts</h2>
-              <p className="text-sm text-text-stem-gray mt-1">Manage your login methods and connected accounts</p>
+            <div className="pb-6 border-b border-border-sage-mist/70 flex justify-between items-end">
+              <div>
+                <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-text-charcoal">Linked Accounts</h2>
+                <p className="text-sm text-text-stem-gray mt-1">Manage your connected login methods</p>
+              </div>
             </div>
             <div className="mt-6 space-y-4">
-              <div className="p-4 rounded-lg bg-herb-white/50 border border-border-sage-mist/80 flex items-center justify-between">
+              <div className="p-4 rounded-lg bg-herb-white/50 border border-border-sage-mist/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-[13px] text-text-stem-gray font-normal">Google Account</p>
-                  <p className="text-sm font-semibold text-text-charcoal">Connect your Google account for quicker login</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[13px] text-text-stem-gray font-normal">Google Account</p>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${(profile?.provider === 'google' || profile?.isGoogleLinked) ? 'bg-badge-green-bg text-badge-green-text border border-badge-green-text/20' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                      {(profile?.provider === 'google' || profile?.isGoogleLinked) ? 'Connected' : 'Not connected'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-text-charcoal">
+                    {(profile?.provider === 'google' || profile?.isGoogleLinked) 
+                      ? 'Your account is linked to Google.' 
+                      : 'Connect your Google account for quicker login'}
+                  </p>
                 </div>
                 <div>
-                  <GoogleLogin
-                    onSuccess={handleLinkGoogle}
-                    onError={() => toast.error('Google login failed')}
-                    text="continue_with"
-                    shape="rectangular"
-                  />
-                  <div className="mt-2 text-right">
-                    <button onClick={() => setIsUnlinkModalOpen(true)} className="text-xs text-accent-beetroot hover:underline font-medium">Unlink Google Account</button>
-                  </div>
+                  {!(profile?.provider === 'google' || profile?.isGoogleLinked) ? (
+                    <GoogleLogin
+                      onSuccess={handleLinkGoogle}
+                      onError={() => toast.error('Google login failed')}
+                      text="continue_with"
+                      shape="rectangular"
+                    />
+                  ) : (
+                    <div className="text-right">
+                      <button onClick={() => setIsUnlinkModalOpen(true)} className="px-4 py-2 text-sm border-2 border-accent-beetroot text-accent-beetroot rounded-lg hover:bg-accent-beetroot hover:text-white transition-colors font-semibold">
+                        Unlink Google
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -597,7 +612,7 @@ function Profile() {
                   Verified
                 </span>
               </div>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalEmail" type="email" value={profile.email} readOnly disabled className="w-full text-sm bg-gray-100 border border-border-sage-mist rounded-lg px-3 py-2 text-text-stem-gray cursor-not-allowed" />
+              <input className="w-full text-sm bg-gray-100 border border-border-sage-mist rounded-lg px-3 py-2 text-text-stem-gray cursor-not-allowed" id="modalEmail" type="email" value={profile.email} readOnly disabled />
             </div>
             {/* Phone Number */}
             <div>

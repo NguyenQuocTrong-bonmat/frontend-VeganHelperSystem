@@ -47,8 +47,8 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // If error is 401 and we haven't already retried this request, and it's not the refresh endpoint itself
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/refresh')) {
+    // If error is 401 and we haven't already retried this request, and it's not the refresh or login endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/refresh') && !originalRequest.url.includes('/auth/login')) {
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
