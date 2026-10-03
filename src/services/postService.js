@@ -1,5 +1,4 @@
-const BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180')
-  .replace(/\/api\/?$/, '');
+import axiosInstance from '../lib/axios';
 
 /**
  * Lấy danh sách bài viết cho trang Feed
@@ -39,49 +38,29 @@ export async function getPostsFeed(params = {}) {
     queryParams.append('PrepTimeMax', prepTimeMax);
   }
 
-  const response = await fetch(`${BASE_URL}/api/Posts?${queryParams.toString()}`, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Lỗi kết nối API Posts (${response.status}): ${errorBody}`);
+  try {
+    const response = await axiosInstance.get(`/Posts?${queryParams.toString()}`);
+    return response.data;
+  } catch (error) {
+    const errorBody = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    throw new Error(`Lỗi kết nối API Posts (${error.response?.status || 'Unknown'}): ${errorBody}`);
   }
-
-  return await response.json();
 }
 
 export async function getPostDetail(id) {
-  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    const error = new Error(errorText || `HTTP Error ${res.status}`);
-    error.status = res.status;
+  try {
+    const response = await axiosInstance.get(`/Posts/${id}`);
+    return response.data;
+  } catch (err) {
+    const errorText = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    const error = new Error(errorText || `HTTP Error ${err.response?.status}`);
+    error.status = err.response?.status;
     throw error;
   }
-
-  return await res.json();
 }
 
-// Helper lấy token
-export function getAuthToken() {
-  return localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
-}
-
-// FN16: Lấy danh sách bài viết của người dùng hiện tại
 export async function getMyPosts(params = {}) {
   const { pageIndex = 1, pageSize = 10, status } = params;
-  const token = getAuthToken();
 
   const query = new URLSearchParams();
   query.append('PageIndex', pageIndex);
@@ -90,41 +69,25 @@ export async function getMyPosts(params = {}) {
     query.append('Status', status);
   }
 
-  const res = await fetch(`${BASE_URL}/api/Posts/my-posts?${query.toString()}`, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    let errorMessage = `HTTP Error ${res.status}`;
-    try {
-      const text = await res.text();
-      try {
-        const errorJson = JSON.parse(text);
-        errorMessage = errorJson.message || errorJson.title || text;
-      } catch {
-        if (text) errorMessage = text;
-      }
-    } catch (readErr) {
-      console.error('Error reading response body:', readErr);
+  try {
+    const response = await axiosInstance.get(`/Posts/my-posts?${query.toString()}`);
+    return response.data;
+  } catch (err) {
+    let errorMessage = `HTTP Error ${err.response?.status}`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
     }
 
     const error = new Error(errorMessage);
-    error.status = res.status;
-
-
+    error.status = err.response?.status;
     throw error;
   }
-
-  return await res.json();
 }
 
 // FN13: Tạo bài viết mới (multipart/form-data)
 export async function createPost(postData) {
-  const token = getAuthToken();
   const formData = new FormData();
 
   formData.append('Title', postData.title);
@@ -149,122 +112,84 @@ export async function createPost(postData) {
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
-  // Lưu ý: Không set 'Content-Type' header thủ công để browser tự sinh boundary cho multipart/form-data
-  const res = await fetch(`${BASE_URL}/api/Posts`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    let errorMessage = `Failed to create post (${res.status})`;
-      try {
-        const text = await res.text();
-        try {
-          const errorJson = JSON.parse(text);
-          errorMessage = errorJson.message || errorJson.title || text;
-          // Extract specific validation errors if available
-          if (errorJson.errors) {
-            let details = '';
-            if (Array.isArray(errorJson.errors)) {
-              // Handle array of error objects (e.g. FluentValidation or custom format)
-              details = errorJson.errors.map(e => {
-                if (typeof e === 'string') return e;
-                if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
-                return e.errorMessage || e.message || e.description || JSON.stringify(e);
-              }).join(' | ');
-            } else if (typeof errorJson.errors === 'object') {
-              // Handle ASP.NET Core default validation problem format
-              details = Object.entries(errorJson.errors)
-                .map(([field, msgs]) => {
-                  const cleanField = field.replace('$.', '');
-                  const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
-                  return `${cleanField}: ${msgsStr}`;
-                })
-                .join(' | ');
-            }
-            if (details) {
-              errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
-            }
-          }
-        } catch {
-          if (text) errorMessage = text;
+  try {
+    const response = await axiosInstance.post('/Posts', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `Failed to create post (${err.response?.status})`;
+    if (err.response?.data) {
+      const errorJson = err.response.data;
+      errorMessage = errorJson.message || errorJson.title || JSON.stringify(errorJson);
+      
+      if (errorJson.errors) {
+        let details = '';
+        if (Array.isArray(errorJson.errors)) {
+          details = errorJson.errors.map(e => {
+            if (typeof e === 'string') return e;
+            if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
+            return e.errorMessage || e.message || e.description || JSON.stringify(e);
+          }).join(' | ');
+        } else if (typeof errorJson.errors === 'object') {
+          details = Object.entries(errorJson.errors)
+            .map(([field, msgs]) => {
+              const cleanField = field.replace('$.', '');
+              const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
+              return `${cleanField}: ${msgsStr}`;
+            })
+            .join(' | ');
         }
-      } catch (readErr) {
-      console.error('Error reading create post response:', readErr);
-    }
-
-    const error = new Error(errorMessage);
-    error.status = res.status;
-    throw error;
-  }
-
-  return await res.json();
-}
-
-// Lấy danh sách danh mục món ăn (Categories)
-export async function getCategories() {
-  const res = await fetch(`${BASE_URL}/api/Categories`, {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
-  });
-
-  if (!res.ok) {
-    let errorText = '';
-    try {
-      errorText = await res.text();
-    } catch(e) {}
-    const error = new Error(errorText || `HTTP Error ${res.status}`);
-    error.status = res.status;
-    throw error;
-  }
-
-  const data = await res.json();
-  return data;
-}
-
-
-
-// Xóa bài viết
-export async function deletePost(id) {
-  const token = getAuthToken();
-  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    let errorMessage = `Failed to delete post (${res.status})`;
-    try {
-      const text = await res.text();
-      try {
-        const errorJson = JSON.parse(text);
-        errorMessage = errorJson.message || errorJson.title || text;
-      } catch {
-        if (text) errorMessage = text;
+        if (details) {
+          errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
+        }
       }
-    } catch (readErr) {
-      console.error('Error reading delete post response:', readErr);
+    } else if (err.message) {
+      errorMessage = err.message;
     }
+    
     const error = new Error(errorMessage);
-    error.status = res.status;
+    error.status = err.response?.status;
+    throw error;
+  }
+}
+
+export async function getCategories() {
+  try {
+    const response = await axiosInstance.get('/Categories');
+    return response.data;
+  } catch (err) {
+    const errorText = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    const error = new Error(errorText || `HTTP Error ${err.response?.status}`);
+    error.status = err.response?.status;
     throw error;
   }
 }
 
 
 
-// Cập nhật bài viết (FN14)
+export async function deletePost(id) {
+  try {
+    await axiosInstance.delete(`/Posts/${id}`);
+  } catch (err) {
+    let errorMessage = `Failed to delete post (${err.response?.status})`;
+    if (err.response?.data) {
+      const errorJson = err.response.data;
+      errorMessage = errorJson.message || errorJson.title || JSON.stringify(errorJson);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    throw error;
+  }
+}
+
+
+
 export async function updatePost(id, postData) {
-  const token = getAuthToken();
   const formData = new FormData();
 
   formData.append('Title', postData.title);
@@ -289,53 +214,44 @@ export async function updatePost(id, postData) {
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
-  const res = await fetch(`${BASE_URL}/api/Posts/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    let errorMessage = `Failed to update post (${res.status})`;
-    try {
-      const text = await res.text();
-      try {
-        const errorJson = JSON.parse(text);
-        errorMessage = errorJson.message || errorJson.title || text;
-        if (errorJson.errors) {
-          let details = '';
-          if (Array.isArray(errorJson.errors)) {
-            details = errorJson.errors.map(e => {
-              if (typeof e === 'string') return e;
-              if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
-              return e.errorMessage || e.message || e.description || JSON.stringify(e);
-            }).join(' | ');
-          } else if (typeof errorJson.errors === 'object') {
-            details = Object.entries(errorJson.errors)
-              .map(([field, msgs]) => {
-                const cleanField = field.replace('$.', '');
-                const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
-                return `${cleanField}: ${msgsStr}`;
-              })
-              .join(' | ');
-          }
-          if (details) {
-            errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
-          }
+  try {
+    const response = await axiosInstance.put(`/Posts/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `Failed to update post (${err.response?.status})`;
+    if (err.response?.data) {
+      const errorJson = err.response.data;
+      errorMessage = errorJson.message || errorJson.title || JSON.stringify(errorJson);
+      if (errorJson.errors) {
+        let details = '';
+        if (Array.isArray(errorJson.errors)) {
+          details = errorJson.errors.map(e => {
+            if (typeof e === 'string') return e;
+            if (e.Field && e.Error) return `${e.Field}: ${e.Error}`;
+            return e.errorMessage || e.message || e.description || JSON.stringify(e);
+          }).join(' | ');
+        } else if (typeof errorJson.errors === 'object') {
+          details = Object.entries(errorJson.errors)
+            .map(([field, msgs]) => {
+              const cleanField = field.replace('$.', '');
+              const msgsStr = Array.isArray(msgs) ? msgs.join(', ') : (typeof msgs === 'object' ? JSON.stringify(msgs) : msgs);
+              return `${cleanField}: ${msgsStr}`;
+            })
+            .join(' | ');
         }
-      } catch {
-        if (text) errorMessage = text;
+        if (details) {
+          errorMessage = `${errorJson.title || 'Validation failed'}: ${details}`;
+        }
       }
-    } catch (readErr) {
-      console.error('Error reading update post response:', readErr);
+    } else if (err.message) {
+      errorMessage = err.message;
     }
     const error = new Error(errorMessage);
-    error.status = res.status;
+    error.status = err.response?.status;
     throw error;
   }
-
-  return await res.json();
 }

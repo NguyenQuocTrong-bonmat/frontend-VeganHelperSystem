@@ -10,7 +10,7 @@ import HeaderAuth from '../../components/layout/HeaderAuth';
 
 // 1. Define validation schema
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  username: z.string().min(1, 'Username is required'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
 });
@@ -35,7 +35,7 @@ function Login() {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await login(data);
+      await login({ identifier: data.username, password: data.password, rememberMe: data.rememberMe });
       // Navigate to the previous page or /home
       const from = location.state?.from?.pathname || '/home';
       navigate(from, { replace: true });
@@ -44,7 +44,7 @@ function Login() {
         toast.error('Vui lòng xác thực email trước khi đăng nhập.');
         navigate('/verify-otp', {
           state: {
-            email: data.email,
+            username: data.username,
             password: data.password
           }
         });
@@ -55,13 +55,13 @@ function Login() {
       
       // Map backend errors to inline field errors as requested
       if (errorMsg.includes('not found') || errorMsg.includes('user')) {
-        setError('email', { type: 'manual', message: 'Email address does not exist' });
+        setError('username', { type: 'manual', message: 'Username does not exist' });
       } else if (errorMsg.includes('password') || errorMsg.includes('invalid')) {
         setError('password', { type: 'manual', message: 'Incorrect password' });
       } else {
         // Fallback generic error
-        setError('email', { type: 'manual', message: 'Incorrect email or password' });
-        setError('password', { type: 'manual', message: 'Incorrect email or password' });
+        setError('username', { type: 'manual', message: 'Incorrect username or password' });
+        setError('password', { type: 'manual', message: 'Incorrect username or password' });
       }
     } finally {
       setIsSubmitting(false);
@@ -93,18 +93,18 @@ function Login() {
           
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <label className="block text-xs font-medium text-text-charcoal mb-1.5" htmlFor="email">
-                Email address
+              <label className="block text-xs font-medium text-text-charcoal mb-1.5" htmlFor="username">
+                Username
               </label>
               <input 
-                {...register('email')}
-                className={`w-full h-11 px-3.5 bg-surface-paper border ${errors.email ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`} 
-                id="email" 
-                placeholder="email@example.com" 
-                type="text" // Use text so html validation doesn't override zod
+                {...register('username')}
+                className={`w-full h-11 px-3.5 bg-surface-paper border ${errors.username ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`} 
+                id="username" 
+                placeholder="Enter your username" 
+                type="text" 
               />
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.email.message}</p>
+              {errors.username && (
+                <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.username.message}</p>
               )}
             </div>
             

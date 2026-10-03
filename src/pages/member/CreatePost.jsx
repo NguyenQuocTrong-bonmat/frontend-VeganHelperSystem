@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost, getCategories } from '../../services/postService';
+import toast from 'react-hot-toast';
 
 export default function CreatePost() {
   const navigate = useNavigate();
@@ -24,10 +25,12 @@ export default function CreatePost() {
 
   // UI state
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     async function loadCats() {
+      setIsFetching(true);
       try {
         const data = await getCategories();
         const cats = Array.isArray(data) ? data : data.items || [];
@@ -35,6 +38,8 @@ export default function CreatePost() {
         if (cats.length > 0) setCategoryId(cats[0].id);
       } catch (err) {
         console.error('Failed to load categories:', err);
+      } finally {
+        setIsFetching(false);
       }
     }
     loadCats();
@@ -95,10 +100,13 @@ export default function CreatePost() {
       };
 
       await createPost(payload);
+      toast.success('Recipe published successfully!');
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      setErrorMessage(err.message || 'Failed to create post. Please try again.');
+      const msg = err.message || 'Failed to create post. Please try again.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -126,7 +134,16 @@ export default function CreatePost() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
+        {isFetching ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <svg className="animate-spin h-8 w-8 text-vh-sage mb-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-vh-text-secondary font-medium">Preparing recipe studio...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
           
           {/* Recipe Information */}
           <section className="space-y-6">
@@ -202,11 +219,11 @@ export default function CreatePost() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
                 onChange={(e) => {
-                  if (e.target.files) {
-                    setMediaFiles(Array.from(e.target.files));
+                  if (e.target.files && e.target.files.length > 0) {
+                    setMediaFiles(prev => [...prev, ...Array.from(e.target.files)]);
                   }
+                  e.target.value = null; // allow selecting the same file again if needed
                 }}
                 className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
@@ -214,11 +231,26 @@ export default function CreatePost() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
                   {mediaFiles.map((file, idx) => (
                     <div key={idx} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
-                      <img 
-                        src={URL.createObjectURL(file)} 
-                        alt={`Preview ${idx + 1}`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
-                      />
+                      {file.type.startsWith('video/') ? (
+                        <video 
+                          src={URL.createObjectURL(file)} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
+                          controls
+                        />
+                      ) : (
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt={`Preview ${idx + 1}`} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
+                        />
+                      )}
+                      
+                      {/* Badge cho video */}
+                      {file.type.startsWith('video/') && (
+                        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-control shadow-sm font-medium z-10 pointer-events-none">
+                          Video
+                        </div>
+                      )}
                       <button
                         type="button"
                         onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
@@ -389,6 +421,7 @@ export default function CreatePost() {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

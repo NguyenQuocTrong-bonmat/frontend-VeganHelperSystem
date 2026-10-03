@@ -11,6 +11,7 @@ import HeaderAuth from '../../components/layout/HeaderAuth';
 
 // 1. Define validation schema
 const registerSchema = z.object({
+  fullName: z.string().min(3, 'Full Name must be at least 3 characters').max(100, 'Full Name is too long'),
   username: z.string().min(3, 'Username must be at least 3 characters').max(100, 'Username is too long'),
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -48,6 +49,7 @@ function SignUp() {
     try {
       // Map to backend expected DTO
       const payload = {
+        fullName: data.fullName,
         username: data.username,
         email: data.email,
         password: data.password,
@@ -102,6 +104,23 @@ function SignUp() {
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            {/* Field 0: Full Name */}
+            <div>
+              <label className="block text-[13px] font-medium text-text-charcoal mb-1.5" htmlFor="fullName">
+                Full Name
+              </label>
+              <div className="relative">
+                <input 
+                  {...register('fullName')}
+                  className={`w-full h-11 px-3.5 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-border-sage-mist'} bg-surface-paper text-[15px] text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors`} 
+                  id="fullName" 
+                  placeholder="John Doe" 
+                  type="text" 
+                />
+                {errors.fullName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.fullName.message}</p>}
+              </div>
+            </div>
+
             {/* Field 1: Username */}
             <div>
               <label className="block text-[13px] font-medium text-text-charcoal mb-1.5" htmlFor="username">

@@ -86,9 +86,15 @@ export const authService = {
     return response.data;
   },
 
-  // Unlink Google Account
-  unlinkGoogle: async (data) => {
-    const response = await axiosInstance.delete('/auth/google/link', { data });
+  // Request Unlink Google Account
+  requestUnlinkGoogle: async (data) => {
+    const response = await axiosInstance.post('/auth/google/unlink/request', data);
+    return response.data;
+  },
+
+  // Confirm Unlink Google Account
+  confirmUnlinkGoogle: async (data) => {
+    const response = await axiosInstance.post('/auth/google/unlink/confirm', data);
     return response.data;
   }
 };

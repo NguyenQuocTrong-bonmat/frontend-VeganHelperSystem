@@ -129,3 +129,14 @@ Lỗi 400 Bad Request thường xảy ra do Payload gửi từ Frontend không k
     *   **Lỗi thường gặp:** Form đăng ký thiếu trường `fullName` trong payload, dẫn đến lỗi validation.
 
 > **Cách khắc phục:** Luôn ánh xạ (map) lại keys cho đúng với DTO của Backend trước khi truyền vào `axios` (ví dụ: `const payload = { identifier: data.email, ... }`).
+
+## 5. Các nâng cấp mới (Phase: Authentication & Media Upload)
+
+*   **Security Page (`/security`):** Giao diện quản lý tài khoản Responsive với 2 cột (trên desktop), cho phép hiển thị thông báo Đổi mật khẩu và Hỗ trợ Liên kết/Hủy liên kết tài khoản Google bằng OTP.
+*   **English Localization:** Đảm bảo toàn bộ UI text và toast notifications trong ứng dụng hoàn toàn bằng Tiếng Anh.
+*   **Token Refresh Handling:** Tái cấu trúc toàn bộ `postService.js` chuyển từ `fetch()` thuần sang sử dụng `axiosInstance`. Điều này đảm bảo Request Interceptor bắt lỗi 401, tự động gọi `/auth/refresh` và retry request một cách mượt mà.
+*   **Multi-media Upload UI:** 
+    *   Trong `CreatePost` và `EditPost`, đã hỗ trợ upload nhiều file cùng lúc bằng cách dùng mảng lưu trữ tạm thời `setMediaFiles(prev => [...prev, ...Array.from(e.target.files)])`.
+    *   Tích hợp Video Preview (`<video controls>`) cùng thẻ Badge đánh dấu "Video" hay "Image" cực kỳ trực quan với phong cách Botanical Glassmorphism.
+    *   Trong `EditPost`, hỗ trợ hiển thị song song *Existing Media* (dữ liệu cũ từ API) và *New Media*. Hỗ trợ giả lập nút Delete và Undo đối với Existing Media.
+*   **Xử lý lỗi Multipart/form-data Axios:** Khi gửi ảnh bằng `FormData` thông qua Axios (tại các service `postService`, `authService`), luôn truyền `headers: { 'Content-Type': 'multipart/form-data' }` để trình duyệt tự động sinh mã `boundary`.

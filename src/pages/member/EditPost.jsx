@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { updatePost, getCategories, getPostDetail } from '../../services/postService';
+import toast from 'react-hot-toast';
 
 export default function EditPost() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ export default function EditPost() {
   const [cookingTimeMins, setCookingTimeMins] = useState(30);
   const [dietType, setDietType] = useState('vegan');
   const [mediaFiles, setMediaFiles] = useState([]);
+  const [existingMedia, setExistingMedia] = useState([]);
+  const [removedMediaUrls, setRemovedMediaUrls] = useState([]); // track urls to hide from UI
 
   // Ingredients & Steps lists
   const [ingredients, setIngredients] = useState(['']);
@@ -25,6 +28,7 @@ export default function EditPost() {
 
   // UI state
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -57,14 +61,23 @@ export default function EditPost() {
         if (data.steps && data.steps.length > 0) {
            setSteps(data.steps.map(step => typeof step === 'string' ? step : step.instruction || ''));
         }
+        
+        if (data.media && data.media.length > 0) {
+           setExistingMedia(data.media);
+        }
       } catch (err) {
         console.error('Failed to load post details:', err);
         setErrorMessage('Could not load post details. Please try again.');
       }
     }
 
-    loadCats();
-    loadPost();
+    async function initData() {
+      setIsFetching(true);
+      await Promise.all([loadCats(), loadPost()]);
+      setIsFetching(false);
+    }
+    
+    initData();
   }, [id]);
 
   const handleAddIngredient = () => setIngredients([...ingredients, '']);
@@ -120,12 +133,19 @@ export default function EditPost() {
         ingredients: ingredients.filter((i) => i.trim() !== ''),
         steps: steps.filter((s) => s.trim() !== ''),
       };
+      
+      if (removedMediaUrls.length > 0) {
+        toast.error('Note: Deleting existing media is simulated. Backend API is missing media ID to perform actual deletion.');
+      }
 
       await updatePost(id, payload);
+      toast.success('Recipe updated successfully!');
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      setErrorMessage(err.message || 'Failed to create post. Please try again.');
+      const msg = err.message || 'Failed to update post. Please try again.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -153,7 +173,16 @@ export default function EditPost() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
+        {isFetching ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <svg className="animate-spin h-8 w-8 text-vh-sage mb-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-vh-text-secondary font-medium">Loading recipe details...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
           
           {/* Recipe Information */}
           <section className="space-y-6">
@@ -229,37 +258,81 @@ export default function EditPost() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
                 onChange={(e) => {
-                  if (e.target.files) {
-                    setMediaFiles(Array.from(e.target.files));
+                  if (e.target.files && e.target.files.length > 0) {
+                    setMediaFiles(prev => [...prev, ...Array.from(e.target.files)]);
                   }
+                  e.target.value = null;
                 }}
                 className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
-              {mediaFiles.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
-                  {mediaFiles.map((file, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
-                      <img 
-                        src={URL.createObjectURL(file)} 
-                        alt={`Preview ${idx + 1}`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
-                      />
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+                {/* Hiển thị Existing Media */}
+                {existingMedia.filter(m => !removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
+                  <div key={`existing-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-sage/40 group shadow-sm bg-vh-surface">
+                    <div className="absolute top-2 left-2 bg-vh-mint/90 text-vh-forest text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
+                      Existing {m.mediaType}
+                    </div>
+                    {m.mediaType === 'video' ? (
+                      <video src={m.mediaUrl} className="w-full h-full object-cover opacity-80" controls />
+                    ) : (
+                      <img src={m.mediaUrl} alt="Existing" className="w-full h-full object-cover opacity-80" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setRemovedMediaUrls([...removedMediaUrls, m.mediaUrl])}
+                      className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
+                      title="Remove existing media"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Hiển thị Existing Media Đã Xóa (Hoàn tác) */}
+                {existingMedia.filter(m => removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
+                  <div key={`removed-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-red-300 group shadow-sm bg-red-50/50">
+                    <div className="absolute inset-0 bg-red-100/50 flex flex-col items-center justify-center z-10">
+                      <span className="text-vh-error font-medium mb-2">Deleted</span>
                       <button
                         type="button"
-                        onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
-                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
-                        title="Remove image"
+                        onClick={() => setRemovedMediaUrls(removedMediaUrls.filter(url => url !== m.mediaUrl))}
+                        className="px-3 py-1 bg-white rounded-control text-vh-text-primary hover:text-vh-forest text-sm font-medium shadow-sm transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
-                        </svg>
+                        Undo
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                    {m.mediaType === 'video' ? (
+                      <video src={m.mediaUrl} className="w-full h-full object-cover opacity-20 grayscale" />
+                    ) : (
+                      <img src={m.mediaUrl} alt="Deleted" className="w-full h-full object-cover opacity-20 grayscale" />
+                    )}
+                  </div>
+                ))}
+
+                {/* Hiển thị New Media */}
+                {mediaFiles.map((file, idx) => (
+                  <div key={`new-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
+                    {file.type.startsWith('video/') ? (
+                      <video src={URL.createObjectURL(file)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow" controls />
+                    ) : (
+                      <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow" />
+                    )}
+                    <div className="absolute top-2 left-2 bg-blue-500/80 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
+                      New {file.type.startsWith('video/') ? 'Video' : 'Image'}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
+                      className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
+                      title="Remove new media"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
@@ -416,6 +489,7 @@ export default function EditPost() {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
