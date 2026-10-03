@@ -119,3 +119,40 @@ function MyPage() {
 
 ---
 **Lưu ý quan trọng:** Trước khi gọi API, hãy đảm bảo bạn kiểm tra cấu trúc Payload (DTO) ở Backend để tránh các lỗi HTTP 400 Bad Request không đáng có.
+
+## 4. Các File & Thành phần Mới (redesignFE)
+
+Danh sách các trang giao diện và components mới đã được cập nhật trong nhánh `redesignFE`:
+
+**Các trang (Pages):**
+*   `src/pages/guest/HomeGuest.jsx`
+*   `src/pages/member/CreatePost.jsx`
+*   `src/pages/member/EditPost.jsx`
+*   `src/pages/member/Home.jsx`
+*   `src/pages/member/MyPosts.jsx`
+*   `src/pages/member/PostDetail.jsx`
+
+**Các Components UI mới:**
+*   `src/components/home/CategoryBar.jsx`
+*   `src/components/home/FeaturedPost.jsx`
+*   `src/components/home/PostList.jsx`
+*   `src/components/home/SearchBar.jsx`
+*   Toàn bộ thư mục `src/components/ui/` (chứa `Button.jsx`, `CategoryChip.jsx`, `Input.jsx`...)
+
+**CSS & Cấu hình:**
+*   `src/styles/index.css` (Cập nhật các style mới)
+*   `tailwind.config.js` (Cấu hình mã màu chuẩn)
+*   Thư mục `design-system/` và file `Design.MD`
+## 4. Các lỗi thường gặp (Troubleshooting)
+
+### Lỗi HTTP 400 khi gọi API Auth (Login/Register)
+Lỗi 400 Bad Request thường xảy ra do Payload gửi từ Frontend không khớp với Data Transfer Object (DTO) yêu cầu bởi Backend (bị chặn tự động bởi ASP.NET Core Validation).
+
+*   **API Login (`/api/auth/login`):**
+    *   **Backend yêu cầu:** `{ "identifier": "...", "password": "..." }`
+    *   **Lỗi thường gặp:** Frontend truyền key `email` thay vì `identifier`. 
+*   **API Register (`/api/auth/register`):**
+    *   **Backend yêu cầu:** Bắt buộc có trường `fullName` (tối thiểu 3 ký tự) bên cạnh `username`, `email`, `password`, `confirmPassword`.
+    *   **Lỗi thường gặp:** Form đăng ký thiếu trường `fullName` trong payload, dẫn đến lỗi validation.
+
+> **Cách khắc phục:** Luôn ánh xạ (map) lại keys cho đúng với DTO của Backend trước khi truyền vào `axios` (ví dụ: `const payload = { identifier: data.email, ... }`).
