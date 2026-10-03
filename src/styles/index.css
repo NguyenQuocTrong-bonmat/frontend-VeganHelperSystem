@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---- Botanical Hearth design tokens (DESIGN.md) ---- */
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..1000;1,9..40,400..1000&family=DM+Serif+Display:ital@0;1&display=swap');
+}
+
+/* ---- Botanical Hearth design tokens (Old) ---- */
 :root {
   --bg-herb-white: #F3F6EE;
   --surface-paper: #FDFBF6;
@@ -16,10 +20,18 @@
   --success-sprout: #4C8C4A;
   --error-chili: #C1432E;
   --warning-turmeric-deep: #B8791A;
+
+  /* VeganHelper Master Design System (New) */
+  --vh-forest: #244C38;
+  --vh-sage: #A8BDA2;
+  --vh-mint: #DDF2E1;
+  --vh-cream: #FAF8F0;
+  --vh-glass: rgba(255, 255, 255, 0.65);
+  --vh-gold: #D6B66A;
 }
 
 body {
-  background-color: var(--bg-herb-white);
+  background-color: var(--bg-herb-white); /* Kept for old pages, new pages will use bg-vh-cream */
   color: var(--text-charcoal);
   font-family: 'Be Vietnam Pro', sans-serif;
   margin: 0;
@@ -27,18 +39,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom font utility classes used across the original mockups */
-.font-caslon {
-  font-family: 'Libre Caslon Text', serif;
-}
-.font-fraunces {
-  font-family: 'Fraunces', serif;
-}
-.font-vietnam {
-  font-family: 'Be Vietnam Pro', sans-serif;
-}
+/* Custom font utility classes */
+.font-caslon { font-family: 'Libre Caslon Text', serif; }
+.font-fraunces { font-family: 'Fraunces', serif; }
+.font-vietnam { font-family: 'Be Vietnam Pro', sans-serif; }
+.font-dm-serif { font-family: 'DM Serif Display', serif; }
+.font-dm-sans { font-family: 'DM Sans', sans-serif; }
 
-/* Hero asymmetric radius (DESIGN.md - Shapes / Signature Corners) */
+/* Hero asymmetric radius (Old) */
 .hero-radius {
   border-top-left-radius: 32px;
   border-top-right-radius: 8px;
@@ -46,7 +54,7 @@ body {
   border-bottom-left-radius: 8px;
 }
 
-/* The single elevation shadow allowed by the design system */
+/* Shadows */
 .modal-shadow {
   box-shadow: 0 2px 12px rgba(43, 42, 37, 0.12);
 }
@@ -54,4 +62,35 @@ body {
 .focus-ring:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--primary-moss);
+}
+
+.focus-ring-vh:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--vh-forest);
+  outline-offset: 2px;
+}
+
+/* Glassmorphism System */
+.glass-surface {
+  background: var(--vh-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px rgba(36, 76, 56, 0.08);
+}
+
+@supports not (backdrop-filter: blur(16px)) {
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

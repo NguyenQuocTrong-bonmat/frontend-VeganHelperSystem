@@ -125,173 +125,213 @@ export default function EditPost() {
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      if (err.status === 401 || err.message === 'Unauthorized') {
-        console.warn('Backend returned 401 Unauthorized, but proceeding with mock success as requested.');
-        navigate('/my-posts');
-      } else {
-        setErrorMessage(err.message || 'Failed to create post. Please try again.');
-      }
+      setErrorMessage(err.message || 'Failed to create post. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF6] py-10 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
-        <h1 className="font-fraunces text-2xl sm:text-3xl text-[#2B2A25] font-semibold mb-6">
-          Edit Recipe
-        </h1>
+    <div className="min-h-screen bg-vh-cream py-10 px-4 sm:px-6 relative overflow-hidden font-dm-sans text-vh-text-primary">
+      {/* Botanical Background Glows */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-vh-mint rounded-full mix-blend-multiply filter blur-3xl opacity-40 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-vh-sage rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="mb-8 text-center">
+          <h1 className="font-dm-serif text-3xl sm:text-4xl text-vh-forest font-normal mb-2">
+            Refine Your Recipe
+          </h1>
+          <p className="text-vh-text-secondary text-sm sm:text-base">
+            Update and perfect your botanical creation.
+          </p>
+        </div>
 
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-lg bg-[#FDF8F7] border border-[#F2D6D3] text-[#A63446] text-sm">
+          <div className="mb-6 p-4 rounded-control bg-red-50 border border-vh-error/30 text-vh-error text-sm font-medium">
             {errorMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-              Recipe Title <span className="text-[#A63446]">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Traditional Hue Style Vegan Pho"
-              className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm"
-            />
-          </div>
-
-          {/* Category & Diet Type */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
+          
+          {/* Recipe Information */}
+          <section className="space-y-6">
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Recipe Information</h2>
+            
             <div>
-              <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-                Category <span className="text-[#A63446]">*</span>
-              </label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-                Diet Type
-              </label>
-              <select
-                value={dietType}
-                onChange={(e) => setDietType(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
-              >
-                <option value="vegan">Vegan</option>
-                <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Prep, Cook Time & Difficulty */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-                Prep Time (mins)
+              <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                Recipe Title <span className="text-vh-error">*</span>
               </label>
               <input
-                type="number"
-                min="0"
-                value={prepTimeMins}
-                onChange={(e) => setPrepTimeMins(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm"
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Traditional Hue Style Vegan Pho"
+                className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
               />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                  Category <span className="text-vh-error">*</span>
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                  Diet Type
+                </label>
+                <select
+                  value={dietType}
+                  onChange={(e) => setDietType(e.target.value)}
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                >
+                  <option value="vegan">Vegan</option>
+                  <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
+                </select>
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-                Cook Time (mins)
+              <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                Description <span className="text-vh-error">*</span>
               </label>
+              <textarea
+                rows="4"
+                required
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Introduce your recipe, culinary background or special notes..."
+                className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
+              ></textarea>
+            </div>
+          </section>
+
+          {/* Recipe Cover */}
+          <section className="space-y-4">
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Recipe Cover</h2>
+            
+            <div className="w-full">
               <input
-                type="number"
-                min="0"
-                value={cookingTimeMins}
-                onChange={(e) => setCookingTimeMins(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setMediaFiles(Array.from(e.target.files));
+                  }
+                }}
+                className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
+              {mediaFiles.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+                  {mediaFiles.map((file, idx) => (
+                    <div key={idx} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt={`Preview ${idx + 1}`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
+                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
+                        title="Remove image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-                Difficulty
-              </label>
-              <select
-                value={difficultyLevel}
-                onChange={(e) => setDifficultyLevel(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm bg-white"
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
+          </section>
+
+          {/* Cooking Details */}
+          <section className="space-y-6">
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                  Prep Time (mins)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={prepTimeMins}
+                  onChange={(e) => setPrepTimeMins(e.target.value)}
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                  Cook Time (mins)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={cookingTimeMins}
+                  onChange={(e) => setCookingTimeMins(e.target.value)}
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                  Difficulty
+                </label>
+                <select
+                  value={difficultyLevel}
+                  onChange={(e) => setDifficultyLevel(e.target.value)}
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Content / Description */}
-          <div>
-            <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-              Description <span className="text-[#A63446]">*</span>
-            </label>
-            <textarea
-              rows="4"
-              required
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Introduce your recipe, culinary background or special notes..."
-              className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus:border-[#2F5233] text-sm"
-            ></textarea>
-          </div>
-
-          {/* Media Files */}
-          <div>
-            <label className="block text-sm font-medium text-[#2B2A25] mb-1.5">
-              Recipe Images
-            </label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setMediaFiles(Array.from(e.target.files))}
-              className="w-full text-sm text-[#6B6F63] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#E9EFE6] file:text-[#2F5233] hover:file:bg-[#DCE3D5] cursor-pointer"
-            />
-          </div>
-
-          {/* Ingredients list */}
-          <div>
-            <label className="block text-sm font-medium text-[#2B2A25] mb-2">
-              Ingredients
-            </label>
-            <div className="space-y-2">
+          {/* Ingredients */}
+          <section className="space-y-4">
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Ingredients</h2>
+            <div className="space-y-3">
               {ingredients.map((ing, idx) => (
-                <div key={idx} className="flex gap-2">
+                <div key={idx} className="flex gap-3 group items-center">
+                  <span className="text-vh-sage font-medium w-6 shrink-0 text-right">{idx + 1}.</span>
                   <input
                     type="text"
                     value={ing}
                     onChange={(e) => handleIngredientChange(e.target.value, idx)}
-                    placeholder={`Ingredient ${idx + 1}`}
-                    className="flex-1 px-4 py-2 rounded-lg border border-[#DCE3D5] text-sm"
+                    placeholder="e.g. 2 cups of fresh basil"
+                    className="flex-1 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
                   />
                   {ingredients.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveIngredient(idx)}
-                      className="px-3 text-[#A63446] hover:bg-[#FDF8F7] rounded-lg text-sm"
+                      className="p-2 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-colors"
+                      title="Remove ingredient"
                     >
-                      Remove
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
                   )}
                 </div>
@@ -300,34 +340,39 @@ export default function EditPost() {
             <button
               type="button"
               onClick={handleAddIngredient}
-              className="mt-2 text-sm text-[#2F5233] font-medium hover:underline cursor-pointer"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-colors cursor-pointer"
             >
-              + Add Ingredient
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Ingredient
             </button>
-          </div>
+          </section>
 
-          {/* Steps list */}
-          <div>
-            <label className="block text-sm font-medium text-[#2B2A25] mb-2">
-              Cooking Steps
-            </label>
-            <div className="space-y-2">
+          {/* Cooking Instructions */}
+          <section className="space-y-4">
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Instructions</h2>
+            <div className="space-y-3">
               {steps.map((st, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
+                <div key={idx} className="flex gap-3 group items-start">
+                  <span className="text-vh-sage font-medium w-6 shrink-0 pt-3 text-right">{idx + 1}.</span>
+                  <textarea
+                    rows="2"
                     value={st}
                     onChange={(e) => handleStepChange(e.target.value, idx)}
-                    placeholder={`Step ${idx + 1}`}
-                    className="flex-1 px-4 py-2 rounded-lg border border-[#DCE3D5] text-sm"
+                    placeholder="Describe this step..."
+                    className="flex-1 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
                   />
                   {steps.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveStep(idx)}
-                      className="px-3 text-[#A63446] hover:bg-[#FDF8F7] rounded-lg text-sm"
+                      className="p-2 mt-1 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-colors"
+                      title="Remove step"
                     >
-                      Remove
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
                   )}
                 </div>
@@ -336,27 +381,38 @@ export default function EditPost() {
             <button
               type="button"
               onClick={handleAddStep}
-              className="mt-2 text-sm text-[#2F5233] font-medium hover:underline cursor-pointer"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-colors cursor-pointer"
             >
-              + Add Step
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Step
             </button>
-          </div>
+          </section>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#DCE3D5]">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pt-8 border-t border-vh-border">
             <button
               type="button"
               onClick={() => navigate('/my-posts')}
-              className="px-5 py-2.5 rounded-lg border border-[#DCE3D5] text-sm font-medium text-[#6B6F63] hover:bg-[#F3F6EE] transition-colors"
+              className="w-full sm:w-auto px-6 py-3 rounded-control border-2 border-vh-sage/30 text-base font-medium text-vh-text-secondary hover:bg-vh-sage/10 hover:text-vh-forest transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-lg bg-[#2F5233] text-white text-sm font-medium hover:bg-[#25401F] transition-colors disabled:opacity-60 cursor-pointer"
+              className="w-full sm:w-auto px-8 py-3 rounded-control bg-vh-forest text-white text-base font-medium hover:bg-[#1a3829] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-floating cursor-pointer"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : 'Save Changes'}
             </button>
           </div>
         </form>

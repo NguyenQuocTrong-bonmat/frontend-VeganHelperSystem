@@ -115,17 +115,6 @@ export async function getMyPosts(params = {}) {
     const error = new Error(errorMessage);
     error.status = res.status;
 
-    if (res.status === 401) {
-      console.warn('Backend returned 401 Unauthorized for getMyPosts. Returning fallback mock data.');
-      // Fallback to getPostsFeed to show seeded data for testing purposes
-      try {
-        const fallbackData = await getPostsFeed(params);
-        return fallbackData;
-      } catch (e) {
-        console.error('Fallback failed', e);
-        throw error;
-      }
-    }
 
     throw error;
   }
@@ -218,30 +207,25 @@ export async function createPost(postData) {
 
 // Lấy danh sách danh mục món ăn (Categories)
 export async function getCategories() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/Categories`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+  const res = await fetch(`${BASE_URL}/api/Categories`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.length > 0) return data;
-    }
-  } catch (err) {
-    console.warn('Failed to fetch categories from API, using mock data.', err);
+  if (!res.ok) {
+    let errorText = '';
+    try {
+      errorText = await res.text();
+    } catch(e) {}
+    const error = new Error(errorText || `HTTP Error ${res.status}`);
+    error.status = res.status;
+    throw error;
   }
 
-  // Fallback mock data
-  return [
-    { id: 1, name: 'Main Dishes' },
-    { id: 2, name: 'Soups & Stews' },
-    { id: 3, name: 'Desserts' },
-    { id: 4, name: 'Salads' },
-    { id: 5, name: 'Appetizers' },
-  ];
+  const data = await res.json();
+  return data;
 }
 
 
