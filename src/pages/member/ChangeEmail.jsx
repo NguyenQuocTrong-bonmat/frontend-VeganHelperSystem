@@ -78,13 +78,43 @@ export default function ChangeEmail() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-lg mb-2">Step 1: Verify Current Email</h3>
-                  <p className="text-vh-text-secondary text-sm">We need to verify it's you before changing your email.</p>
+                  <h3 className="font-medium text-lg mb-2">Step 1: Enter New Email and Current Password</h3>
+                  <p className="text-vh-text-secondary text-sm">Please provide the new email address and your current password to continue.</p>
                 </div>
                 
-                <div className="p-4 bg-vh-surface/50 rounded-control border border-vh-border">
-                  <p className="text-sm text-vh-text-secondary mb-1">Current Email Address</p>
-                  <p className="font-medium">{getMaskedEmail(user?.email)}</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">New Email Address</label>
+                    <input 
+                      type="email" 
+                      placeholder="e.g. newemail@example.com"
+                      disabled
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-gray-50 text-gray-400 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Current Password</label>
+                    <input 
+                      type="password" 
+                      placeholder="Enter current password"
+                      disabled
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-gray-50 text-gray-400 cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="pt-2">
+                    <button disabled className="w-full px-6 py-2.5 rounded-control bg-gray-300 text-gray-600 font-medium cursor-not-allowed">
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-medium text-lg mb-2">Step 2: Verify OTP Sent to Current Email</h3>
+                  <p className="text-vh-text-secondary text-sm">A verification code has been sent to your current email.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -100,7 +130,7 @@ export default function ChangeEmail() {
                   
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <button disabled className="px-6 py-2.5 rounded-control bg-gray-200 text-gray-500 font-medium cursor-not-allowed flex-1">
-                      Send OTP
+                      Resend OTP
                     </button>
                     <button disabled className="px-6 py-2.5 rounded-control bg-gray-300 text-gray-600 font-medium cursor-not-allowed flex-1">
                       Verify OTP
@@ -110,36 +140,11 @@ export default function ChangeEmail() {
               </div>
             )}
 
-            {step === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-medium text-lg mb-2">Step 2: Enter New Email</h3>
-                  <p className="text-vh-text-secondary text-sm">Please provide your new email address.</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">New Email Address</label>
-                  <input 
-                    type="email" 
-                    placeholder="e.g. newemail@example.com"
-                    disabled
-                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-gray-50 text-gray-400 cursor-not-allowed"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button disabled className="w-full px-6 py-2.5 rounded-control bg-gray-300 text-gray-600 font-medium cursor-not-allowed">
-                    Continue
-                  </button>
-                </div>
-              </div>
-            )}
-
             {step === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-lg mb-2">Step 3: Verify New Email</h3>
-                  <p className="text-vh-text-secondary text-sm">Almost done! Verify your new email address.</p>
+                  <h3 className="font-medium text-lg mb-2">Step 3: Verify OTP Sent to New Email</h3>
+                  <p className="text-vh-text-secondary text-sm">A verification code has been sent to your new email address.</p>
                 </div>
                 
                 <div className="p-4 bg-vh-surface/50 rounded-control border border-vh-border">
@@ -160,10 +165,10 @@ export default function ChangeEmail() {
                   
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <button disabled className="px-6 py-2.5 rounded-control bg-gray-200 text-gray-500 font-medium cursor-not-allowed flex-1">
-                      Send OTP
+                      Resend OTP
                     </button>
                     <button disabled className="px-6 py-2.5 rounded-control bg-gray-300 text-gray-600 font-medium cursor-not-allowed flex-1">
-                      Confirm Change
+                      Verify and Change Email
                     </button>
                   </div>
                 </div>

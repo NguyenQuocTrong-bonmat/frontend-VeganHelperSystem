@@ -56,7 +56,10 @@ function Profile() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
+  const [unlinkStep, setUnlinkStep] = useState(1);
   const [currentPassword, setCurrentPassword] = useState('');
+  const [unlinkOTP, setUnlinkOTP] = useState('');
+  const [unlinkMessage, setUnlinkMessage] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -175,22 +178,35 @@ function Profile() {
     }
   };
 
-  const handleUnlinkGoogle = async (e) => {
+  const handleRequestUnlinkGoogle = async (e) => {
     e.preventDefault();
     try {
-      await authService.unlinkGoogle({ currentPassword });
-      toast.success('Google account unlinked successfully!');
-      setIsUnlinkModalOpen(false);
-      setCurrentPassword('');
-      fetchProfile();
+      const response = await authService.requestUnlinkGoogle({ currentPassword });
+      setUnlinkMessage(response.message || 'An OTP has been sent to your email.');
+      setUnlinkStep(2);
     } catch (err) {
       if (err.response?.status === 400 && (err.response?.data?.error?.includes('password') || err.response?.data?.error?.includes('tạo mật khẩu') || err.response?.data?.error?.includes('set a password'))) {
         toast.error('Bạn cần tạo mật khẩu trước khi hủy liên kết Google.');
         setIsUnlinkModalOpen(false);
         setIsPasswordModalOpen(true);
       } else {
-        toast.error(err.response?.data?.error || 'Failed to unlink Google account.');
+        toast.error(err.response?.data?.error || 'Failed to request unlink.');
       }
+    }
+  };
+
+  const handleConfirmUnlinkGoogle = async (e) => {
+    e.preventDefault();
+    try {
+      await authService.confirmUnlinkGoogle({ otp: unlinkOTP });
+      toast.success('Google account unlinked successfully!');
+      setIsUnlinkModalOpen(false);
+      setUnlinkStep(1);
+      setCurrentPassword('');
+      setUnlinkOTP('');
+      fetchProfile();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to unlink Google account.');
     }
   };
 
@@ -684,20 +700,39 @@ function Profile() {
 
       {/* Unlink Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isUnlinkModalOpen ? "" : "hidden"}`}>
-        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => setIsUnlinkModalOpen(false)}></div>
+        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }}></div>
         <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
           <h3 className="font-caslon text-xl font-bold mb-4">Unlink Google Account</h3>
-          <p className="text-sm text-text-stem-gray mb-4">Please enter your password to confirm this action.</p>
-          <form onSubmit={handleUnlinkGoogle} className="space-y-4">
-            <div>
-              <label className="block text-xs mb-1">Current Password</label>
-              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setIsUnlinkModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Confirm Unlink</button>
-            </div>
-          </form>
+          
+          {unlinkStep === 1 ? (
+            <>
+              <p className="text-sm text-text-stem-gray mb-4">Please enter your password to confirm this action.</p>
+              <form onSubmit={handleRequestUnlinkGoogle} className="space-y-4">
+                <div>
+                  <label className="block text-xs mb-1">Current Password</label>
+                  <input type="password" required className="w-full border rounded-lg px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Continue</button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-text-stem-gray mb-4">{unlinkMessage}</p>
+              <form onSubmit={handleConfirmUnlinkGoogle} className="space-y-4">
+                <div>
+                  <label className="block text-xs mb-1">OTP</label>
+                  <input type="text" required className="w-full border rounded-lg px-3 py-2" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Confirm Unlink</button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
 
