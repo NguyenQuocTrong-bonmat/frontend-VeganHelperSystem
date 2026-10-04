@@ -23,7 +23,7 @@ function AdminMealPlannerConfiguration() {
               </div>
               <div className="logo-text leading-tight truncate">
                 <h1 className="font-['Libre_Caslon_Text',serif] font-bold text-lg text-[#2F5233] tracking-tight truncate">
-                  Botanical Hearth
+                  Vegan Helper
                 </h1>
                 <p className="text-[11px] font-semibold text-[#4C8C4A] tracking-wider">
                   Vegan admin core
@@ -466,7 +466,7 @@ function AdminMealPlannerConfiguration() {
                       </span>
                     </div>
                     <textarea className="w-full rounded-lg border border-[#DCE3D5] bg-white p-4 text-sm text-[#2B2A25] leading-relaxed outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-all font-mono" rows="7">
-                      You are the Botanical Hearth Executive Nutritionist and Culinary AI. Your mission is to synthesize balanced, wholesome Vietnamese and pan-Asian vegan meal plans tailored to individual macro targets, caloric limits, and seasonal harvests.
+                      You are the Vegan Helper Executive Nutritionist and Culinary AI. Your mission is to synthesize balanced, wholesome Vietnamese and pan-Asian vegan meal plans tailored to individual macro targets, caloric limits, and seasonal harvests.
 
 Mandatory Guardrails:
 1. Ensure all recommended ingredients are 100% plant-based without animal byproducts or hidden oyster extracts.
@@ -625,7 +625,7 @@ Mandatory Guardrails:
                           Include Premium Verified Recipes
                         </span>
                         <p className="text-xs text-[#6B6F63]">
-                          Retrieve vetted recipes from Botanical Hearth certified master chefs and culinary nutrition staff.
+                          Retrieve vetted recipes from Vegan Helper certified master chefs and culinary nutrition staff.
                         </p>
                       </div>
                     </label>
@@ -687,7 +687,7 @@ Mandatory Guardrails:
               </div>
               <footer className="mt-6 text-center sm:text-left text-xs text-[#6B6F63] flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span className="">
-                  © 2025 Botanical Hearth • Vegan Cooking & Nutrition Platform
+                  © 2025 Vegan Helper • Vegan Cooking & Nutrition Platform
                 </span>
                 <div className="flex items-center gap-4">
                   <a className="hover:text-[#2F5233] transition-colors" href="#docs">

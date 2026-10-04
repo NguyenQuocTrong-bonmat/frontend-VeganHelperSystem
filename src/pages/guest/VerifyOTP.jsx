@@ -188,7 +188,7 @@ function VerifyOTP() {
       
       <footer className="w-full py-6 text-center text-xs text-text-stem-gray border-t border-border-sage-mist">
         <div className="max-w-[1120px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>© 2025 Botanical Hearth. Plant-based culinary & family nutrition platform.</span>
+          <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
           <div className="flex items-center gap-4">
             <Link className="hover:text-primary-moss transition-colors" to="#">Terms of Service</Link>
             <Link className="hover:text-primary-moss transition-colors" to="#">Privacy Policy</Link>

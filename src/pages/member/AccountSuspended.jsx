@@ -1,7 +1,7 @@
 function AccountSuspended() {
   return (
     <>
-      {/* Subtle organic background watermark elements consistent with Botanical Hearth */}
+      {/* Subtle organic background watermark elements consistent with Vegan Helper */}
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#EAEFE5] opacity-50 blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[#E5ECE0] opacity-40 blur-3xl pointer-events-none"></div>
       {/* Minimal Brand Header Indicator for Context (No Navbar) */}
@@ -13,7 +13,7 @@ function AccountSuspended() {
           </svg>
         </div>
         <span className="font-caslon text-lg font-bold text-text-charcoal tracking-tight">
-          Botanical Hearth
+          Vegan Helper
         </span>
       </div>
       {/* Warning Card */}

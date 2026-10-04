@@ -23,7 +23,7 @@ function AdminDashboardHomeOverview() {
               </div>
               <div className="logo-text leading-tight truncate">
                 <h1 className="font-serif font-bold text-base text-primary-moss tracking-tight truncate">
-                  Botanical Hearth
+                  Vegan Helper
                 </h1>
                 <p className="text-[10.5px] font-semibold text-success-sprout tracking-wide">
                   Vegan admin core
@@ -396,7 +396,7 @@ function AdminDashboardHomeOverview() {
                       Welcome back, Administrator
                     </h2>
                     <p className="text-sm text-text-stem-gray mt-2 leading-relaxed">
-                      Here is what happened across Botanical Hearth today. Community recipe engagement is up 18% and AI services are operating at 99.96% uptime.
+                      Here is what happened across Vegan Helper today. Community recipe engagement is up 18% and AI services are operating at 99.96% uptime.
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 shrink-0">
@@ -791,7 +791,7 @@ function AdminDashboardHomeOverview() {
               {/* Page Footer */}
               <footer className="mt-6 text-center sm:text-left text-xs text-text-stem-gray flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span>
-                  © 2025 Botanical Hearth • Vegan Cooking & Nutrition Platform
+                  © 2025 Vegan Helper • Vegan Cooking & Nutrition Platform
                 </span>
                 <div className="flex items-center gap-4">
                   <a className="hover:text-primary-moss transition-colors" href="#docs">

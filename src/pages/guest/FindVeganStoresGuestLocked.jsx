@@ -82,7 +82,7 @@ function FindVeganStoresGuestLocked() {
                 </svg>
               </div>
               <div className="bg-bg-herb-white border border-border-sage-mist/80 p-3 rounded-2xl rounded-tl-sm text-text-charcoal leading-relaxed">
-                Hello! I am your Botanical Hearth Nutrition Assistant. How can I help you find vegan recipes, balance nutrition, or plan wholesome daily meals today?
+                Hello! I am your Vegan Helper Nutrition Assistant. How can I help you find vegan recipes, balance nutrition, or plan wholesome daily meals today?
               </div>
             </div>
             {/* User Message */}
@@ -140,7 +140,7 @@ function FindVeganStoresGuestLocked() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-[#6B6F63] gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-semibold text-[#2F5233] text-base">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="">
               •

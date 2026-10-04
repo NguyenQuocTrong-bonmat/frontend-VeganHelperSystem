@@ -77,7 +77,7 @@ export default function FeaturedPost({ post, isGuest = false }) {
                 )}
               </div>
               <span className="font-medium text-vh-text-primary">
-                {post.authorName || 'Botanical Hearth'}
+                {post.authorName || 'Vegan Helper'}
               </span>
             </div>
             <div className="flex items-center gap-4">

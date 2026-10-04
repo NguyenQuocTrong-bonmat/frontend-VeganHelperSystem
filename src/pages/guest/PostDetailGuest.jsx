@@ -423,7 +423,7 @@ function PostDetailGuest() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-[#6B6F63] gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-semibold text-[#2F5233] text-base">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="">
               •
@@ -501,7 +501,7 @@ function PostDetailGuest() {
                 <p className="">
                   Hello! I am your
                   <strong className="font-medium text-primary-moss">
-                    Botanical Hearth AI Nutrition Assistant
+                    Vegan Helper AI Nutrition Assistant
                   </strong>
                   . I can help you explore vegan recipes, balance plant nutrients, or plan today's menu.
                 </p>
@@ -567,7 +567,7 @@ function PostDetailGuest() {
           </div>
         </div>
         {/* Chatbot FAB Trigger Button */}
-        <button aria-label="Botanical Hearth AI Assistant" className="relative group w-14 h-14 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shadow-card-modal transition-all transform hover:scale-105 focus:outline-none" id="fab-chatbot" title="Open Botanical Hearth AI Assistant" type="button">
+        <button aria-label="Vegan Helper AI Assistant" className="relative group w-14 h-14 rounded-full bg-primary-moss hover:bg-primary-moss-hover text-white flex items-center justify-center shadow-card-modal transition-all transform hover:scale-105 focus:outline-none" id="fab-chatbot" title="Open Vegan Helper AI Assistant" type="button">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
@@ -589,7 +589,7 @@ function PostDetailGuest() {
           </div>
           <div className="space-y-2">
             <h3 className="font-fraunces font-semibold text-2xl text-text-charcoal">
-              Join Botanical Hearth
+              Join Vegan Helper
             </h3>
             <p className="text-sm text-text-stem-gray leading-relaxed">
               Please log in or create an account to save recipes to your collection, favorite community posts, and join the conversation.

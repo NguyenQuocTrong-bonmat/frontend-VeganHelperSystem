@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-[#6B6F63] gap-4">
         <div className="flex items-center gap-2">
           <span className="font-serif font-semibold text-[#2F5233] text-base">
-            Botanical Hearth
+            Vegan Helper
           </span>
           <span className="">
             •

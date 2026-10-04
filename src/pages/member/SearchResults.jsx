@@ -738,7 +738,7 @@ function SearchResults() {
                 No matching results found
               </h3>
               <p className="text-[14px] text-[#6B6F63] max-w-md mb-6 leading-relaxed">
-                Unfortunately, Botanical Hearth could not find articles, videos, or stores matching
+                Unfortunately, Vegan Helper could not find articles, videos, or stores matching
                 <span className="font-semibold text-[#2B2A25]" id="empty-keyword"></span>
                 . Try searching for a different keyword!
               </p>
@@ -893,7 +893,7 @@ function SearchResults() {
       {/* CHATBOT FAB & POPUP (Fixed bottom-right) */}
       <aside className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {/* FAB BUTTON (w-14 h-14 / 56px, bg-[#2F5233], white 4-point AI sparkle star) */}
-        <button className="w-14 h-14 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white flex items-center justify-center modal-shadow transition-transform hover:scale-105 cursor-pointer" id="chat-fab" title="Botanical Hearth AI Assistant">
+        <button className="w-14 h-14 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white flex items-center justify-center modal-shadow transition-transform hover:scale-105 cursor-pointer" id="chat-fab" title="Vegan Helper AI Assistant">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 00-1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"></path>
           </svg>
@@ -944,7 +944,7 @@ function SearchResults() {
                 </svg>
               </div>
               <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl rounded-tl-none p-3 text-[#2B2A25]">
-                Hello! I'm your Botanical Hearth AI Assistant. I can help you discover wholesome plant-based recipes, balance macro-nutrients, or plan today's family menu.
+                Hello! I'm your Vegan Helper AI Assistant. I can help you discover wholesome plant-based recipes, balance macro-nutrients, or plan today's family menu.
               </div>
             </div>
             {/* User message */}
@@ -1003,7 +1003,7 @@ function SearchResults() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-[#6B6F63] gap-4">
           <div className="flex items-center gap-2">
             <span className="font-serif font-semibold text-[#2F5233] text-base">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="">
               •

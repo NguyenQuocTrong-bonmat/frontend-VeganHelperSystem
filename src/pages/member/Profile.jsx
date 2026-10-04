@@ -441,7 +441,7 @@ function Profile() {
           {/* Footer Brand & Mission */}
           <div className="flex items-center space-x-2">
             <span className="font-medium text-text-charcoal">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="text-border-sage-mist">
               •
@@ -510,7 +510,7 @@ function Profile() {
               </div>
               <div className="bg-surface-paper border border-border-sage-mist rounded-2xl rounded-tl-sm p-3 shadow-xs text-text-charcoal">
                 <p className="">
-                  Hello Linh! 👋 I'm your Botanical Hearth nutrition guide. How can I assist your plant-based meal planning today?
+                  Hello Linh! 👋 I'm your Vegan Helper nutrition guide. How can I assist your plant-based meal planning today?
                 </p>
               </div>
             </div>

@@ -135,7 +135,7 @@ function MyPostsGuestLocked() {
           {/* Left Trademark and Subtitle */}
           <div className="flex items-center gap-2 text-center md:text-left">
             <span className="font-bold text-text-charcoal">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span>
               •

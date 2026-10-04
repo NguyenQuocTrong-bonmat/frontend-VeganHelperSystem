@@ -589,7 +589,7 @@ function WeeklyMenu() {
                 </svg>
               </div>
               <div className="p-3 rounded-2xl rounded-tl-sm bg-surface-paper border border-border-sage-mist text-text-charcoal shadow-sm leading-relaxed">
-                Hello! I am the Botanical Hearth AI Nutrition Assistant. I can assist you with wholesome plant-based recipes, balanced nutrition insights, or personalized menu suggestions for today.
+                Hello! I am the Vegan Helper AI Nutrition Assistant. I can assist you with wholesome plant-based recipes, balanced nutrition insights, or personalized menu suggestions for today.
               </div>
             </div>
             {/* User message */}
@@ -649,7 +649,7 @@ function WeeklyMenu() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-sm text-[#6B6F63] gap-4">
           <div className="flex items-center gap-2">
             <span className="font-fraunces font-semibold text-[#2F5233] text-base">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="">
               •

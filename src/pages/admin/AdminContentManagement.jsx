@@ -23,7 +23,7 @@ function AdminContentManagement() {
               </div>
               <div className="logo-text leading-tight truncate">
                 <h1 className="font-['Libre_Caslon_Text',serif] font-bold text-lg text-[#2F5233] tracking-tight truncate">
-                  Botanical Hearth
+                  Vegan Helper
                 </h1>
                 <p className="text-[11px] font-semibold text-[#4C8C4A] tracking-wider">
                   Vegan admin core
@@ -787,7 +787,7 @@ function AdminContentManagement() {
               {/* Bottom Status Footer */}
               <footer className="mt-6 text-center sm:text-left text-xs text-[#6B6F63] flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span className="">
-                  © 2025 Botanical Hearth • Vegan Cooking & Nutrition Platform
+                  © 2025 Vegan Helper • Vegan Cooking & Nutrition Platform
                 </span>
                 <div className="flex items-center gap-4">
                   <a className="hover:text-[#2F5233] transition-colors" href="#docs">

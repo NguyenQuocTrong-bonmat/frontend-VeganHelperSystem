@@ -36,15 +36,9 @@ export default function HeaderMember() {
   return (
     <header className="sticky top-0 z-50 h-16 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-6 md:px-10 relative">
       <div className="flex items-center gap-3">
-        {/* Logo Botanical Hearth */}
+        {/* Logo Vegan Helper */}
         <Link className="flex items-center gap-2.5 text-[#2F5233] hover:opacity-95 transition-opacity" to="/home">
-          <svg className="w-6 h-6 text-[#2F5233]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-          </svg>
-          <span className="font-fraunces text-2xl font-semibold tracking-tight text-[#2F5233]">
-            Botanical Hearth
-          </span>
+          <img src="/logo.png" alt="Vegan Helper Logo" className="h-10" />
         </Link>
       </div>
 

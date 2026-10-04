@@ -451,12 +451,12 @@ function PublicUserProfile() {
           </svg>
         </button>
       </div>
-      {/* Standardized Botanical Hearth Footer */}
+      {/* Standardized Vegan Helper Footer */}
       <footer className="bg-surface-paper border-t border-border-sage-mist py-8 px-4 sm:px-8 mt-16 text-xs text-text-stem-gray">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-caslon font-bold text-primary-moss text-base">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="">
               ·
@@ -481,7 +481,7 @@ function PublicUserProfile() {
           </div>
           <div>
             <span className="">
-              © 2025 Botanical Hearth. All rights reserved.
+              © 2025 Vegan Helper. All rights reserved.
             </span>
           </div>
         </div>

@@ -99,7 +99,7 @@ function SignUp() {
               Sign Up
             </h1>
             <p className="text-sm text-text-stem-gray">
-              Create an account to join the Botanical Hearth community
+              Create an account to join the Vegan Helper community
             </p>
           </div>
 
@@ -279,7 +279,7 @@ function SignUp() {
       </main>
 
       <footer className="w-full py-4 text-center text-xs text-text-stem-gray">
-        © 2025 Botanical Hearth. Plant-based culinary & family nutrition platform.
+        © 2025 Vegan Helper. Plant-based culinary & family nutrition platform.
       </footer>
     </>
   );
