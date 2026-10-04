@@ -44,16 +44,16 @@ export default function HeaderMember() {
 
       {/* Navigation Menu 4 items */}
       <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-8 h-full">
-        <NavLink to="/home"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/home"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Home
         </NavLink>
-        <NavLink to="/weekly-menu"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/weekly-menu"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Weekly Menu
         </NavLink>
-        <NavLink to="/vegan-stores"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/vegan-stores"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Find Vegan Stores
         </NavLink>
-        <NavLink to="/my-posts"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/my-posts"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           My Posts
         </NavLink>
       </nav>
@@ -67,7 +67,7 @@ export default function HeaderMember() {
               setIsNotificationOpen(!isNotificationOpen);
               setIsProfileOpen(false);
             }}
-            className="relative w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] transition-colors cursor-pointer focus:outline-none"
+            className="relative w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] hover:shadow-sm hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"></path>
@@ -109,7 +109,7 @@ export default function HeaderMember() {
               setIsProfileOpen(!isProfileOpen);
               setIsNotificationOpen(false);
             }}
-            className="w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] transition-colors cursor-pointer overflow-hidden focus:outline-none"
+            className="w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] hover:shadow-sm hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
           >
             {user?.avatarUrl ? (
               <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />

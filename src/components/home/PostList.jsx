@@ -39,12 +39,12 @@ export default function PostList({ posts = [], isGuest = false }) {
         {posts.map(post => (
           <Link 
             key={post.id} 
-            className="flex flex-col bg-vh-surface border border-vh-border/50 rounded-card-lg overflow-hidden hover:shadow-lg hover:shadow-vh-sage/20 transition-all duration-normal ease-vh cursor-pointer group" 
+            className="flex flex-col bg-vh-surface border border-vh-border/50 rounded-card-lg overflow-hidden hover:shadow-xl hover:shadow-vh-sage/20 hover:border-vh-sage/60 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest" 
             to={getLinkTo(post.id)}
           >
             <div className="relative w-full h-56 bg-vh-mint overflow-hidden">
               {post.thumbnailUrl ? (
-                <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-slow group-hover:scale-[1.05]" />
+                <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center font-dm-sans text-vh-text-secondary text-sm">No Image</div>
               )}
@@ -102,7 +102,7 @@ export default function PostList({ posts = [], isGuest = false }) {
       </div>
       
       <div className="mt-12 flex justify-center">
-        <button className="h-12 px-8 rounded-full border border-vh-forest bg-transparent text-vh-forest font-dm-sans text-[15px] font-medium hover:bg-vh-forest hover:text-white transition-colors focus-ring-vh cursor-pointer">
+        <button className="h-12 px-8 rounded-full border border-vh-forest bg-transparent text-vh-forest font-dm-sans text-[15px] font-medium hover:bg-vh-forest hover:text-white hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-300 focus-ring-vh cursor-pointer">
           Load More Recipes
         </button>
       </div>

@@ -28,12 +28,12 @@ export default function FeaturedPost({ post, isGuest = false }) {
       </div>
       
       <Link 
-        className="block bg-vh-surface border border-vh-border/60 rounded-card-lg grid grid-cols-1 lg:grid-cols-12 overflow-hidden hover:shadow-lg hover:shadow-vh-sage/20 transition-all duration-normal ease-vh cursor-pointer group" 
+        className="block bg-vh-surface border border-vh-border/60 rounded-card-lg grid grid-cols-1 lg:grid-cols-12 overflow-hidden hover:shadow-xl hover:shadow-vh-sage/20 hover:border-vh-sage/60 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest" 
         to={linkTo}
       >
         <div className="relative lg:col-span-7 w-full h-72 md:h-[400px] lg:h-[480px] bg-vh-mint overflow-hidden">
           {post.thumbnailUrl ? (
-            <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-slow group-hover:scale-[1.05]" />
+            <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105" />
           ) : (
             <div className="w-full h-full flex items-center justify-center font-dm-sans text-vh-text-secondary text-sm">No Image</div>
           )}

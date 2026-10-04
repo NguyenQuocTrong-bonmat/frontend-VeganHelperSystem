@@ -9,24 +9,24 @@ export default function HeaderGuest() {
         </Link>
       </div>
       <nav className="hidden md:flex items-center gap-8 h-16">
-        <NavLink to="/" end className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/" end className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Home
         </NavLink>
-        <NavLink to="/weekly-menu/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/weekly-menu/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Weekly Menu
         </NavLink>
-        <NavLink to="/vegan-stores/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/vegan-stores/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           Find Vegan Stores
         </NavLink>
-        <NavLink to="/my-posts/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors ${isActive ? "font-semibold text-[#2F5233] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233]" : "font-medium text-[#2B2A25] hover:text-[#2F5233]"}`}>
+        <NavLink to="/my-posts/locked"  className={({ isActive }) => `relative flex items-center h-full text-[15px] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#2F5233] after:origin-center after:transition-transform after:duration-300 ${isActive ? "font-semibold text-[#2F5233] after:scale-x-100" : "font-medium text-[#2B2A25] hover:text-[#2F5233] after:scale-x-0 hover:after:scale-x-100"}`}>
           My Posts
         </NavLink>
       </nav>
       <div className="flex items-center gap-3 shrink-0">
-        <Link className="h-10 px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[14px] font-medium hover:bg-[#F3F6EE] transition-colors" to="/login">
+        <Link className="h-10 px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[14px] font-medium hover:bg-[#F3F6EE] hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]" to="/login">
           Log In
         </Link>
-        <Link className="h-10 px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[14px] font-medium hover:bg-[#25401F] transition-colors" to="/sign-up">
+        <Link className="h-10 px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[14px] font-medium hover:bg-[#25401F] hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1" to="/sign-up">
           Sign Up
         </Link>
       </div>
