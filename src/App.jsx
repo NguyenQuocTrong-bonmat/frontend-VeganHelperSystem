@@ -22,7 +22,11 @@ import MyPosts from './pages/member/MyPosts.jsx'
 import PostDetail from './pages/member/PostDetail.jsx'
 import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
 import FindVeganStores from './pages/member/FindVeganStores.jsx'
+import StoreDetail from './pages/member/StoreDetail.jsx'
 import SearchResults from './pages/member/SearchResults.jsx'
+import SavedPosts from './pages/member/SavedPosts.jsx'
+import HealthProfile from './pages/member/HealthProfile.jsx'
+import BmiDashboard from './pages/member/BmiDashboard.jsx'
 import AccountSuspended from './pages/member/AccountSuspended.jsx'
 import CreatePost from './pages/member/CreatePost.jsx'
 import EditPost from './pages/member/EditPost.jsx'
@@ -71,6 +75,10 @@ function App() {
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
         <Route path="/vegan-stores" element={<ProtectedRoute><FindVeganStores /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+        <Route path="/saved-posts" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
+        <Route path="/health" element={<ProtectedRoute><HealthProfile /></ProtectedRoute>} />
+        <Route path="/health/bmi" element={<ProtectedRoute><BmiDashboard /></ProtectedRoute>} />
+        <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
         <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboardHomeOverview /></ProtectedRoute>} />

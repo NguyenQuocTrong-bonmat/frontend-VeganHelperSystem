@@ -1,142 +1,239 @@
+# VeganHelper Design System & Product Structure
 
-# Hướng Dẫn Design & Nối Luồng UI - VeganHelper
+## 1. Product Vision
 
-Tài liệu này cung cấp cái nhìn tổng quan về hệ thống UI mới và hướng dẫn từng bước để các lập trình viên frontend thực hiện việc "nối luồng" (tích hợp logic, API, state) vào các file giao diện tĩnh đã được chuyển đổi.
+VeganHelper has transitioned from static HTML/CSS to a modern React/Vite architecture. This document serves as the single source of truth for the product structure, implemented pages, user flows, visual system, and current implementation status.
 
----
+**Tổng quan về Hệ thống UI (Từ Sprint 1):**
+*   **Chuyển đổi sang JSX:** Toàn bộ HTML gốc đã được chuyển đổi hoàn toàn sang cú pháp JSX.
+*   **Loại bỏ Javascript Inline:** Toàn bộ các đoạn mã `onclick` hay thẻ `<script>` điều khiển DOM cũ đã bị loại bỏ và thay thế bằng React State.
+*   **Kết nối Form & API:** Sử dụng `react-hook-form` + `zod` để quản lý form, gọi API qua `axiosInstance` với Interceptor bắt lỗi 401 tự động refresh token.
 
-## 1. Những thay đổi mới trong UI
+## 2. Visual Design System
 
-Dự án đã trải qua quá trình chuyển đổi từ HTML/CSS tĩnh sang React/Vite. Dưới đây là những thay đổi cốt lõi trong hệ thống UI:
+The project strictly follows the **Botanical Glassmorphism & Cream** visual system:
 
-*   **Chuyển đổi sang JSX:** Toàn bộ HTML gốc đã được chuyển đổi hoàn toàn sang cú pháp JSX. Các thuộc tính như `class` đã thành `className`, `for` thành `htmlFor`, thẻ không tự đóng như `<img>`, `<input>` đã được sửa. Thuộc tính `style=".."` đã chuyển thành object của React.
-*   **Design Tokens (Hệ thống màu sắc & Font):** 
-    *   Tailwind CSS đã được cấu hình trong `tailwind.config.js` để tích hợp sẵn các mã màu thiết kế. 
-    *   Các class hệ thống như `bg-primary-moss`, `text-accent-beetroot`, `bg-herb-white`, `border-sage-mist` đã hoạt động out-of-the-box.
-    *   Font chữ chuẩn hóa (`font-caslon`, `font-fraunces`, `font-vietnam`).
-*   **Loại bỏ Javascript Inline:** **Toàn bộ** các đoạn mã `onclick="..."` hay thẻ `<script>` điều khiển DOM (mở modal, đóng dropdown) trong HTML tĩnh **đã bị loại bỏ**. Mã nguồn hiện tại để lại các comment `{/* TODO: script goc da bi loai bo... */}` tại các vị trí cần xử lý lại bằng React State.
+*   **Design Tokens (Hệ thống màu sắc):**
+    *   Primary: `bg-primary-moss` (#2F5233)
+    *   Background: Cream `bg-[#FDFBF6]`, `bg-herb-white`
+    *   Accents: `text-accent-beetroot`, Turmeric for ratings
+    *   Borders: `border-sage-mist`, `#DCE3D5`
+*   **Typography:** Standardized fonts including `font-caslon`, `font-fraunces`, `font-vietnam`.
+*   **Component Language:**
+    *   Rounded cards with soft shadows or clean 1px borders.
+    *   Subtle hover and motion interactions.
+*   **English Localization:** All visible UI text and toast notifications are fully localized in English.
 
----
+## 3. Sprint 1 — Core Product Structure
 
-## 2. Hướng dẫn các bước nối luồng cho UI mới
+Sprint 1 thiết lập nền tảng cơ bản cho hệ thống:
 
-Để biến các màn hình UI tĩnh này thành một ứng dụng React hoàn chỉnh, hãy tuân theo quy trình 4 bước sau cho mỗi trang:
+*   **Authentication (Xác thực):** Đăng nhập, Đăng ký (đòi hỏi `fullName`), Quản lý OTP, Đổi mật khẩu.
+*   **Home / Discovery (Trang chủ):** Trang chủ dành cho Guest (`/guest`) và Member (`/`), hiển thị danh sách bài viết nổi bật.
+*   **Content / Posts (Bài viết):** 
+    *   Tạo bài viết (`/create-post`) và Chỉnh sửa bài viết (`/edit-post/:id`).
+    *   Hỗ trợ Multi-media Upload UI (chọn nhiều ảnh/video cùng lúc, preview).
+*   **Profile (Cá nhân):** Quản lý tài khoản, Bảo mật (`/security`).
+*   **Sprint 1 User Flows:**
+    *   Guest → Đăng nhập / Đăng ký → Member Home
+    *   Member → Tạo bài viết → Tải ảnh/video → Đăng bài
+    *   Member → Quản lý bảo mật → Đổi mật khẩu / Liên kết Google
 
-### Bước 1: Tách và tái sử dụng Component
-Hiện tại, nhiều file (như Login, SignUp, Home) đang chứa toàn bộ HTML từ đầu đến cuối (bao gồm cả Header, Footer).
-*   **Công việc:** Xác định các khối giao diện lặp lại.
-*   **Hành động:** Cắt phần Header (thanh điều hướng), Footer, Sidebar, Card bài viết... ra thành các Component độc lập trong thư mục `src/components/`.
-*   **Lợi ích:** Giữ code trang (Page) ngắn gọn, dễ bảo trì, dễ nối luồng logic chung (ví dụ: hiển thị tên User trên Header).
+## 4. Sprint 2 — Extended Features
 
-### Bước 2: Khôi phục tương tác UI (UI State)
-Thay vì dùng Vanilla JS để thao tác DOM như trước, giờ đây bạn cần dùng State của React.
-*   **Công việc:** Tìm tất cả các comment `{/* TODO: script goc da bi loai bo... */}`.
-*   **Hành động:** 
-    *   Khai báo `const [isOpen, setIsOpen] = useState(false);`
-    *   Gắn sự kiện `onClick={() => setIsOpen(!isOpen)}` vào các nút bấm.
-    *   Dùng toán tử điều kiện trong JSX để ẩn/hiện element (ví dụ: `className={isOpen ? 'block' : 'hidden'}`).
-*   *Các ví dụ phổ biến:* Dropdown menu, Modal/Popup, Tab chuyển đổi ngày, Nút ẩn/hiện Password.
+Sprint 2 mở rộng các tính năng tương tác và khám phá:
 
-### Bước 3: Nối luồng Form và Validation
-Các form hiện tại chỉ là giao diện. Bạn cần thu thập dữ liệu người dùng nhập.
-*   **Hành động:** 
-    *   Sử dụng thư viện `react-hook-form` kết hợp `zod` để quản lý form.
-    *   Áp dụng `register('fieldName')` vào các thẻ `<input>`.
-    *   Ánh xạ các trường dữ liệu cho khớp với DTOs của Backend (Ví dụ: Chú ý key là `identifier` hay `email`, có cần `fullName` hay không).
-    *   Hiển thị thông báo lỗi (errors) ngay dưới mỗi ô input.
+*   **Search:** Tìm kiếm bài viết (Recipes) và người dùng (People).
+*   **Post Interaction:** Thích (Like), Lưu (Save), và Bình luận (Comment).
+*   **Saved Recipes:** Xem danh sách các bài viết đã lưu.
+*   **Public Profile:** Xem trang cá nhân công khai của người dùng khác.
+*   **Health:** Hồ sơ sức khỏe và Dị ứng thức ăn.
+*   **BMI:** Bảng điều khiển BMI hiện tại và Lịch sử BMI.
+*   **Weekly Menu:** Lên thực đơn tuần chay (Chờ API).
+*   **Vegan Stores:** Tìm kiếm và xem chi tiết cửa hàng chay lân cận (Chờ API).
 
-### Bước 4: Tích hợp API và Data State (Nối luồng Backend)
-*   **Công việc:** Gọi API khi submit form hoặc khi load trang.
-*   **Hành động:**
-    *   Sử dụng các service trong `src/services/` (như `authService.js`, `postService.js`).
-    *   Sử dụng Hook `useAuth` để lấy thông tin đăng nhập từ Context.
-    *   Quản lý trạng thái chờ (`isLoading`, `isSubmitting`) để hiển thị spinner trên các nút bấm (UX).
-    *   Hiển thị thông báo (Toast/Alert) khi thành công hoặc thất bại.
+## 5. Current Information Architecture
 
----
-
-## 3. Ví dụ minh họa: Khôi phục Modal / Dropdown
-
-**Trước đây (HTML gốc):**
-```html
-<button onclick="document.getElementById('myModal').style.display='block'">Mở Modal</button>
-<div id="myModal" style="display:none;">Nội dung</div>
+```text
+VEGANHELPER
+│
+├── HOME / DISCOVERY
+│   ├── Search Recipes
+│   └── Search People
+│
+├── CONTENT
+│   ├── Post Detail
+│   │   ├── Like
+│   │   ├── Save
+│   │   └── Comments
+│   │
+│   ├── Saved Recipes
+│   │
+│   └── Public User Profile
+│       └── Published Posts
+│
+├── MEMBER PROFILE
+│   └── Private Profile / Security
+│
+├── HEALTH
+│   ├── Health Profile
+│   │   ├── Health Information
+│   │   └── Food Allergies
+│   │
+│   └── BMI Dashboard
+│       ├── Current BMI
+│       └── BMI History
+│
+└── VEGAN STORES
+    ├── Store Search / Nearby Stores
+    └── Store Detail
 ```
 
-**Bây giờ (React/JSX):**
-```jsx
-import { useState } from 'react';
+## 6. Current Pages & Routes
 
-function MyPage() {
-  const [showModal, setShowModal] = useState(false);
+| Page | Route | Purpose |
+| :--- | :--- | :--- |
+| **Home** | `/` (Member) / `/guest` | Landing page |
+| **Login / Register** | `/login`, `/register` | Authentication |
+| **Security** | `/security` | Account security & OTP |
+| **Create / Edit Post**| `/create-post`, `/edit-post/:id` | Content creation |
+| **Search** | `/search` | Search Posts & People |
+| **Post Detail** | `/posts/:id` | View post content |
+| **Saved Recipes** | `/saved-posts` | List of user's saved posts |
+| **Public Profile** | `/users/:username` | View another user's profile |
+| **Health Profile** | `/health` | Edit height/weight, allergies |
+| **BMI Dashboard** | `/health/bmi` | View BMI category, BMI history |
+| **Vegan Stores** | `/vegan-stores` | Discover nearby stores |
+| **Store Detail** | `/vegan-stores/:id` | View store info (Blocked) |
 
-  return (
-    <>
-      <button onClick={() => setShowModal(true)} className="bg-primary-moss text-white px-4 py-2 rounded">
-        Mở Modal
-      </button>
+## 7. Sprint 1 Function Status
 
-      {/* Hiển thị modal dựa vào state */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-modal-shadow">
-            <h2>Nội dung Modal</h2>
-            <button onClick={() => setShowModal(false)}>Đóng</button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-```
+*   **Authentication (Login/Register/Logout):** IMPLEMENTED
+*   **Token Refresh Handling (Axios Interceptors):** IMPLEMENTED
+*   **Create / Edit Post:** IMPLEMENTED (Including Multi-media Upload UI)
+*   **Security Page (Password / Google OTP):** IMPLEMENTED
+*   **Guest Home & Member Home:** IMPLEMENTED
 
----
-**Lưu ý quan trọng:** Trước khi gọi API, hãy đảm bảo bạn kiểm tra cấu trúc Payload (DTO) ở Backend để tránh các lỗi HTTP 400 Bad Request không đáng có.
+## 8. Sprint 2 Function Status
 
-## 4. Các File & Thành phần Mới (redesignFE)
+| FN Code | Feature | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| **FN09** | Search Posts | IMPLEMENTED | Tab-based UI |
+| **FN10** | Search Users | IMPLEMENTED | Tab-based UI |
+| **FN17** | Comments | UI IMPLEMENTED / BACKEND BLOCKED | |
+| **FN18** | Like Post | IMPLEMENTED | Optimistic UI support |
+| **FN19** | Save Post | IMPLEMENTED | |
+| **FN20** | Saved Posts | IMPLEMENTED | |
+| **FN21** | Public User Profile | IMPLEMENTED | *Protected route due to BE authorization constraints.* |
+| **FN22** | Health Profile | IMPLEMENTED | |
+| **FN23** | Food Allergies | PARTIALLY IMPLEMENTED | *Custom allergies work. No BE master-list.* |
+| **FN24** | Current BMI | IMPLEMENTED | |
+| **FN25** | BMI History | IMPLEMENTED | |
+| **FN26** | Weekly Menu | UI FOUNDATION / BACKEND BLOCKED | Page exists but API is missing. |
+| **FN27** | Find Nearby Stores | UI FOUNDATION / BACKEND BLOCKED | Requests Location cleanly, API missing. |
+| **FN28** | Search Vegan Stores | UI FOUNDATION / BACKEND BLOCKED | Search UI built, API missing. |
+| **FN29** | Vegan Store Detail | UI FOUNDATION / BACKEND BLOCKED | Skeleton layout built, API missing. |
 
-Danh sách các trang giao diện và components mới đã được cập nhật trong nhánh `redesignFE`:
+## 9. Current User Flows
 
-**Các trang (Pages):**
-*   `src/pages/guest/HomeGuest.jsx`
-*   `src/pages/member/CreatePost.jsx`
-*   `src/pages/member/EditPost.jsx`
-*   `src/pages/member/Home.jsx`
-*   `src/pages/member/MyPosts.jsx`
-*   `src/pages/member/PostDetail.jsx`
+### A. SPRINT 1 FLOWS (Core & Auth)
 
-**Các Components UI mới:**
-*   `src/components/home/CategoryBar.jsx`
-*   `src/components/home/FeaturedPost.jsx`
-*   `src/components/home/PostList.jsx`
-*   `src/components/home/SearchBar.jsx`
-*   Toàn bộ thư mục `src/components/ui/` (chứa `Button.jsx`, `CategoryChip.jsx`, `Input.jsx`...)
+**FLOW S1.1 — Authentication & Onboarding**
+1. Guest → Login Page (`/login`) → Enter Credentials → Member Home (`/`)
+2. Guest → Register Page (`/register`) → Enter Details & Full Name → Success → Login Page
 
-**CSS & Cấu hình:**
-*   `src/styles/index.css` (Cập nhật các style mới)
-*   `tailwind.config.js` (Cấu hình mã màu chuẩn)
-*   Thư mục `design-system/` và file `Design.MD`
-## 4. Các lỗi thường gặp (Troubleshooting)
+**FLOW S1.2 — Content Creation (Create / Edit Post)**
+1. Member → Click "Create Post" → Enter Title, Description, Ingredients, Steps
+2. Upload Media → Select multiple images/videos → Preview active
+3. Submit → Success → Redirect to My Posts / Post Detail
+4. Edit Flow: My Posts → Edit Post (`/edit-post/:id`) → View Existing Media & New Media → Update → Save
 
-### Lỗi HTTP 400 khi gọi API Auth (Login/Register)
-Lỗi 400 Bad Request thường xảy ra do Payload gửi từ Frontend không khớp với Data Transfer Object (DTO) yêu cầu bởi Backend (bị chặn tự động bởi ASP.NET Core Validation).
+**FLOW S1.3 — Account Security**
+1. Member → Profile Menu → Security (`/security`)
+2. Change Password: Enter Current Password + New Password → Save
+3. Link/Unlink Google: Authenticate via OTP/OAuth → Success
 
-*   **API Login (`/api/auth/login`):**
-    *   **Backend yêu cầu:** `{ "identifier": "...", "password": "..." }`
-    *   **Lỗi thường gặp:** Frontend truyền key `email` thay vì `identifier`. 
-*   **API Register (`/api/auth/register`):**
-    *   **Backend yêu cầu:** Bắt buộc có trường `fullName` (tối thiểu 3 ký tự) bên cạnh `username`, `email`, `password`, `confirmPassword`.
-    *   **Lỗi thường gặp:** Form đăng ký thiếu trường `fullName` trong payload, dẫn đến lỗi validation.
+### B. SPRINT 2 FLOWS (Extended Features)
 
-> **Cách khắc phục:** Luôn ánh xạ (map) lại keys cho đúng với DTO của Backend trước khi truyền vào `axios` (ví dụ: `const payload = { identifier: data.email, ... }`).
+**FLOW S2.1 — Recipe Discovery & Interaction**
+1. User → Search (`/search`) → Search Recipes Tab → Select Recipe → Post Detail (`/posts/:id`)
+2. From Post Detail → Click Like / Click Save 
+3. *Comment Flow is currently BLOCKED by Backend API.*
 
-## 5. Các nâng cấp mới (Phase: Authentication & Media Upload)
+**FLOW S2.2 — User Discovery**
+1. User → Search (`/search`) → People Tab → Select User → Public User Profile (`/users/:username`)
+2. Public Profile → View Published Posts → Post Detail
 
-*   **Security Page (`/security`):** Giao diện quản lý tài khoản Responsive với 2 cột (trên desktop), cho phép hiển thị thông báo Đổi mật khẩu và Hỗ trợ Liên kết/Hủy liên kết tài khoản Google bằng OTP.
-*   **English Localization:** Đảm bảo toàn bộ UI text và toast notifications trong ứng dụng hoàn toàn bằng Tiếng Anh.
-*   **Token Refresh Handling:** Tái cấu trúc toàn bộ `postService.js` chuyển từ `fetch()` thuần sang sử dụng `axiosInstance`. Điều này đảm bảo Request Interceptor bắt lỗi 401, tự động gọi `/auth/refresh` và retry request một cách mượt mà.
-*   **Multi-media Upload UI:** 
-    *   Trong `CreatePost` và `EditPost`, đã hỗ trợ upload nhiều file cùng lúc bằng cách dùng mảng lưu trữ tạm thời `setMediaFiles(prev => [...prev, ...Array.from(e.target.files)])`.
-    *   Tích hợp Video Preview (`<video controls>`) cùng thẻ Badge đánh dấu "Video" hay "Image" cực kỳ trực quan với phong cách Botanical Glassmorphism.
-    *   Trong `EditPost`, hỗ trợ hiển thị song song *Existing Media* (dữ liệu cũ từ API) và *New Media*. Hỗ trợ giả lập nút Delete và Undo đối với Existing Media.
-*   **Xử lý lỗi Multipart/form-data Axios:** Khi gửi ảnh bằng `FormData` thông qua Axios (tại các service `postService`, `authService`), luôn truyền `headers: { 'Content-Type': 'multipart/form-data' }` để trình duyệt tự động sinh mã `boundary`.
+**FLOW S2.3 — Saved Recipes Management**
+1. User → Post Detail → Save Recipe
+2. User → Profile Menu → Saved Recipes (`/saved-posts`) → View List
+3. User → Click Unsave → Recipe removed from saved list
+
+**FLOW S2.4 — Health Profile Management**
+1. Member → Profile Menu → Health (`/health`) → View Health Information
+2. Edit Height, Weight, Activity Level → Save
+3. Switch to Food Allergies Tab → Manage Custom Allergies → Save
+
+**FLOW S2.5 — BMI Dashboard**
+1. Member → Health Profile Menu → BMI Dashboard (`/health/bmi`)
+2. View Current BMI → View BMI Category → View BMI History Chart
+3. *Edge Case:* If Height/Weight are missing → Displays "Insufficient Health Data" → Button to update Health Profile.
+
+**FLOW S2.6 — Vegan Store Discovery (BLOCKED)**
+*Intended Flow:* User → Vegan Stores (`/vegan-stores`) → Search / View Nearby → Select Store → Store Detail (`/vegan-stores/:id`) → Get Directions.
+*Current State:* UI structure exists, but flow stops at Empty/Blocked state due to missing Backend APIs (No Store Data, No Coordinates).
+
+## 10. Navigation Map
+
+Currently verified navigation relationships:
+*   `Header` → `Home`
+*   `Search` → `Recipe` → `Post Detail`
+*   `Search` → `People` → `Public Profile`
+*   `Profile Dropdown` → `Saved Recipes`
+*   `Profile Dropdown` → `Health`
+*   `Profile Dropdown` → `BMI Dashboard`
+*   `Vegan Stores` → `Store Detail` (Layout verified)
+
+## 11. Page Design Rules
+
+All new pages must follow the existing VeganHelper visual system.
+*   **General Rules:** Existing cream background, botanical green palette, consistent typography, card language, border radii.
+*   **Health-related Pages:** Calm, clear, information-focused. Avoid excessive decoration and prioritize readability.
+*   **Search/Content Pages:** Discovery-focused, strong recipe imagery, clear author/content hierarchy.
+*   **Vegan Stores Pages:** Local discovery, clear map/list relationship, clear location information.
+
+## 12. Loading / Empty / Error / Blocked States
+
+Every data-driven page must support Loading, Empty, Error, Success, and Backend Blocked states where applicable.
+*   **Public Profile:** User not found, No posts yet.
+*   **Health:** Empty health profile, API error, Saving state.
+*   **BMI:** Insufficient Health Data, No BMI history.
+*   **Vegan Store Detail:** Store not found / API BLOCKED.
+
+## 13. Data Integrity Rules
+
+**NO MOCK DATA FOR BACKEND-DRIVEN FEATURES.**
+
+The frontend must never fabricate:
+*   Recipes / Users / Health data / BMI history
+*   Store names / ratings / addresses / coordinates / opening hours / images
+*   Allergy ingredient master lists
+
+When backend functionality does not exist, the UI must:
+1. Show a real empty state
+2. Show a blocked state
+3. Or leave the feature pending
+
+Never simulate successful backend data.
+
+## 14. Backend Dependencies / Blockers
+
+1.  **Comments:** FN17 backend support is missing.
+2.  **Food Allergy Ingredient Master List:** FN23 can use custom allergies, but dynamic ingredient IDs require a backend ingredient/allergy endpoint.
+3.  **Public Profile Guest Access:** Current backend authorization prevents unauthenticated access to the user controller.
+4.  **Vegan Stores:** Store controller/API is currently missing. FN27/FN28/FN29 cannot be considered fully integrated.
+5.  **Weekly Menu:** Meal planner/menu endpoints are missing.
+
+## 15. Remaining Sprint Scope
+
+*(To be updated as the sprint progresses and backend APIs are unblocked).*

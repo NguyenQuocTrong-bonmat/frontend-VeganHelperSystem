@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
 
 export default function FeaturedPost({ post, isGuest = false }) {
+  const { ref, isVisible } = useScrollReveal();
+
   if (!post) return null;
 
   const getTimeAgo = (dateStr) => {
@@ -20,7 +23,7 @@ export default function FeaturedPost({ post, isGuest = false }) {
   const linkTo = isGuest ? `/posts/${post.id}/guest` : `/posts/${post.id}`;
 
   return (
-    <section className="mb-16">
+    <section ref={ref} className={`mb-16 transform transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-dm-serif text-3xl font-medium text-vh-text-primary">
           Editor's Pick

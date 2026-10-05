@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
 
 export default function PostList({ posts = [], isGuest = false }) {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.05 });
+
   if (!posts || posts.length === 0) return null;
 
   const getTimeAgo = (dateStr) => {
@@ -20,8 +23,8 @@ export default function PostList({ posts = [], isGuest = false }) {
   const getLinkTo = (id) => isGuest ? `/posts/${id}/guest` : `/posts/${id}`;
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-8">
+    <section ref={ref}>
+      <div className={`flex items-center justify-between mb-8 transform transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         <h2 className="font-dm-serif text-3xl font-medium text-vh-text-primary">
           Explore Recipes
         </h2>
@@ -36,12 +39,16 @@ export default function PostList({ posts = [], isGuest = false }) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map(post => (
-          <Link 
-            key={post.id} 
-            className="flex flex-col bg-vh-surface border border-vh-border/50 rounded-card-lg overflow-hidden hover:shadow-xl hover:shadow-vh-sage/20 hover:border-vh-sage/60 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest" 
-            to={getLinkTo(post.id)}
+        {posts.map((post, index) => (
+          <div 
+            key={post.id}
+            style={{ transitionDelay: isVisible ? `${index * 100}ms` : '0ms' }}
+            className={`transform transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
           >
+            <Link 
+              className="flex flex-col h-full bg-vh-surface border border-vh-border/50 rounded-card-lg overflow-hidden hover:shadow-xl hover:shadow-vh-sage/20 hover:border-vh-sage/60 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest" 
+              to={getLinkTo(post.id)}
+            >
             <div className="relative w-full h-56 bg-vh-mint overflow-hidden">
               {post.thumbnailUrl ? (
                 <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105" />
@@ -98,10 +105,14 @@ export default function PostList({ posts = [], isGuest = false }) {
               </div>
             </div>
           </Link>
+          </div>
         ))}
       </div>
       
-      <div className="mt-12 flex justify-center">
+      <div 
+        className={`mt-12 flex justify-center transform transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+        style={{ transitionDelay: isVisible ? `${posts.length * 100}ms` : '0ms' }}
+      >
         <button className="h-12 px-8 rounded-full border border-vh-forest bg-transparent text-vh-forest font-dm-sans text-[15px] font-medium hover:bg-vh-forest hover:text-white hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-300 focus-ring-vh cursor-pointer">
           Load More Recipes
         </button>
