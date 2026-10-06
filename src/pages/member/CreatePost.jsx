@@ -105,7 +105,9 @@ export default function CreatePost() {
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      const msg = err.message || 'Failed to create post. Please try again.';
+      const msg = err.status === 401
+        ? 'Your session has expired. Please log in again.'
+        : err.message || 'Failed to create post. Please try again.';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {

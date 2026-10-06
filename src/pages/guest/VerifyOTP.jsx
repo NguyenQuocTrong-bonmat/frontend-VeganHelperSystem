@@ -1,115 +1,104 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
-import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import HeaderAuth from '../../components/layout/HeaderAuth';
 
 const otpSchema = z.object({
-  otp: z.string().min(6, 'OTP must be exactly 6 digits').max(6, 'OTP must be exactly 6 digits').regex(/^\d+$/, 'OTP must contain only numbers'),
+  otp: z.string()
+    .length(6, 'OTP must be exactly 6 digits')
+    .regex(/^\d+$/, 'OTP must contain only numbers'),
 });
 
 function VerifyOTP() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [countdown, setCountdown] = useState(120); // 2 minutes
-  const [isResending, setIsResending] = useState(false);
+  const initialEmail = location.state?.email || '';
+  const requiresEmail = Boolean(location.state?.requiresEmail) || !initialEmail;
 
-  // Get state from navigation (from SignUp or elsewhere)
-  const email = location.state?.email;
-  const password = location.state?.password;
+  const [email, setEmail] = useState(initialEmail);
+  const [codeSent, setCodeSent] = useState(Boolean(initialEmail) && !location.state?.requiresEmail);
+  const [countdown, setCountdown] = useState(initialEmail && !location.state?.requiresEmail ? 120 : 0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(otpSchema),
-  });
+  } = useForm({ resolver: zodResolver(otpSchema) });
 
-  // Countdown timer logic
   useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
+    if (countdown <= 0) return undefined;
+    const timer = setInterval(() => setCountdown((value) => value - 1), 1000);
     return () => clearInterval(timer);
   }, [countdown]);
 
-  // Format countdown as MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const errorMessage = (error, fallback) =>
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    fallback;
+
+  const sendCode = async (event) => {
+    event?.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      toast.error('Enter a valid email address.');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      await authService.resendVerification({ email: normalizedEmail });
+      setEmail(normalizedEmail);
+      setCodeSent(true);
+      setCountdown(120);
+      toast.success('A verification code has been sent to your email.');
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to send verification code. Try again later.'));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const onSubmit = async (data) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !codeSent) {
+      toast.error('Request a verification code first.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // 1. Verify the OTP
-      await authService.verifyEmail({
-        email,
-        otp: data.otp
+      await authService.verifyEmail({ email: normalizedEmail, otp: data.otp });
+      toast.success('Email verified successfully. Please log in.');
+      navigate('/login', {
+        replace: true,
+        state: { email: normalizedEmail, message: 'Email verified. Log in to continue.' },
       });
-      
-      toast.success('Email verified successfully!');
-
-      // 2. Auto-login if we have the password
-      if (password) {
-        try {
-          await login({ email, password, rememberMe: true });
-          toast.success('Logged in successfully!');
-          navigate('/home', { replace: true });
-        } catch (loginErr) {
-          // If auto-login fails, redirect to login page
-          navigate('/login');
-        }
-      } else {
-        // No password provided (maybe navigated directly?), go to login
-        navigate('/login');
-      }
-
-    } catch (err) {
-      setError('otp', { 
-        type: 'manual', 
-        message: err.response?.data?.error || 'Invalid or expired OTP.' 
+    } catch (error) {
+      setError('otp', {
+        type: 'manual',
+        message: errorMessage(error, 'Invalid or expired OTP.'),
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResend = async () => {
-    if (countdown > 0 || isResending) return;
-    
-    setIsResending(true);
-    try {
-      await authService.resendVerification({ email });
-      toast.success('A new verification code has been sent to your email.');
-      setCountdown(120); // Reset timer
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to resend OTP. Try again later.');
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  // If someone lands here without state, redirect to sign up
-  if (!email) {
-    return <Navigate to="/sign-up" replace />;
-  }
-
   return (
     <>
       <HeaderAuth />
-      
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-[440px] bg-surface-paper border border-border-sage-mist rounded-[16px] p-8 md:p-10">
           <div className="text-center mb-8">
@@ -124,68 +113,91 @@ function VerifyOTP() {
               Verify your email
             </h1>
             <p className="text-text-stem-gray text-sm px-4">
-              We've sent a 6-digit code to <strong className="text-text-charcoal font-semibold">{email}</strong>. Please enter it below.
+              {codeSent
+                ? <>Enter the 6-digit code sent to <strong className="text-text-charcoal font-semibold">{email}</strong>.</>
+                : 'Enter your registered email to receive a verification code.'}
             </p>
           </div>
-          
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div>
-              <label className="block text-xs font-medium text-text-charcoal mb-2 text-center" htmlFor="otp">
-                6-Digit Verification Code
-              </label>
-              <input 
-                {...register('otp')}
-                className={`w-full h-12 px-4 text-center tracking-[0.5em] text-lg bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus:border-primary-moss transition-colors`} 
-                id="otp" 
-                placeholder="000000"
-                maxLength={6}
-                type="text" 
-              />
-              {errors.otp && (
-                <p className="text-red-500 text-xs mt-2 font-medium text-center">{errors.otp.message}</p>
-              )}
-            </div>
-            
-            <button 
-              disabled={isSubmitting}
-              className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2" 
-              type="submit"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Verifying...
-                </>
-              ) : (
-                "Verify Code"
-              )}
-            </button>
-          </form>
-          
-          <div className="mt-8 pt-6 border-t border-border-sage-mist text-center">
-            <p className="text-sm text-text-stem-gray mb-3">
-              Didn't receive the code?
-            </p>
-            {countdown > 0 ? (
-              <p className="text-sm font-medium text-text-charcoal">
-                Resend available in <span className="text-primary-moss">{formatTime(countdown)}</span>
-              </p>
-            ) : (
+
+          {(!codeSent || requiresEmail) && (
+            <form className="space-y-4 mb-6" onSubmit={sendCode}>
+              <div>
+                <label className="block text-xs font-medium text-text-charcoal mb-2" htmlFor="verification-email">
+                  Registered email
+                </label>
+                <input
+                  id="verification-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="email@example.com"
+                  className="w-full h-11 px-3.5 bg-surface-paper border border-border-sage-mist rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors"
+                  required
+                />
+              </div>
               <button
-                onClick={handleResend}
-                disabled={isResending}
-                className="text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70"
+                type="submit"
+                disabled={isSending || countdown > 0}
+                className="w-full h-11 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors"
               >
-                {isResending ? 'Resending...' : 'Resend Code Now'}
+                {isSending ? 'Sending...' : countdown > 0 ? `Code sent (${formatTime(countdown)})` : 'Send verification code'}
               </button>
-            )}
-          </div>
+            </form>
+          )}
+
+          {codeSent && (
+            <>
+              <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                <div>
+                  <label className="block text-xs font-medium text-text-charcoal mb-2 text-center" htmlFor="otp">
+                    6-Digit Verification Code
+                  </label>
+                  <input
+                    {...register('otp')}
+                    className={`w-full h-12 px-4 text-center tracking-[0.5em] text-lg bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus:border-primary-moss transition-colors`}
+                    id="otp"
+                    placeholder="000000"
+                    maxLength={6}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                  />
+                  {errors.otp && (
+                    <p className="text-red-500 text-xs mt-2 font-medium text-center">{errors.otp.message}</p>
+                  )}
+                </div>
+                <button
+                  disabled={isSubmitting}
+                  className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2"
+                  type="submit"
+                >
+                  {isSubmitting ? 'Verifying...' : 'Verify Code'}
+                </button>
+              </form>
+
+              <div className="mt-8 pt-6 border-t border-border-sage-mist text-center">
+                <p className="text-sm text-text-stem-gray mb-3">Didn't receive the code?</p>
+                {countdown > 0 ? (
+                  <p className="text-sm font-medium text-text-charcoal">
+                    Resend available in <span className="text-primary-moss">{formatTime(countdown)}</span>
+                  </p>
+                ) : (
+                  <button
+                    onClick={sendCode}
+                    disabled={isSending}
+                    className="text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70"
+                  >
+                    {isSending ? 'Resending...' : 'Resend Code Now'}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          <p className="text-center mt-8 text-sm text-text-stem-gray">
+            Already verified? <Link className="text-primary-moss hover:underline" to="/login">Log in</Link>
+          </p>
         </div>
       </main>
-      
       <footer className="w-full py-6 text-center text-xs text-text-stem-gray border-t border-border-sage-mist">
         <div className="max-w-[1120px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
@@ -200,3 +212,4 @@ function VerifyOTP() {
 }
 
 export default VerifyOTP;
+

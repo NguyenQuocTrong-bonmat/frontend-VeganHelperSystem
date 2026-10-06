@@ -59,7 +59,7 @@ export default function EditPost() {
            setIngredients(data.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || ''));
         }
         if (data.steps && data.steps.length > 0) {
-           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.instruction || ''));
+           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.description || step.instruction || ''));
         }
         
         if (data.media && data.media.length > 0) {
@@ -143,7 +143,7 @@ export default function EditPost() {
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
-      const msg = err.message || 'Failed to update post. Please try again.';
+      const msg = err.status === 401 ? 'Your session has expired. Please log in again.' : err.message || 'Failed to update post. Please try again.';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -494,3 +494,4 @@ export default function EditPost() {
     </div>
   );
 }
+

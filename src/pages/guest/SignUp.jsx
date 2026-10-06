@@ -60,8 +60,7 @@ function SignUp() {
       toast.success('Registration successful! Please verify your email.');
       navigate('/verify-otp', {
         state: {
-          email: data.email,
-          password: data.password // Pass password to auto-login later
+          email: data.email
         }
       });
     } catch (err) {

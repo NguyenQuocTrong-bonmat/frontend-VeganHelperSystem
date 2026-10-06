@@ -1,115 +1,102 @@
 import axios from 'axios';
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  storeAuthTokens,
+} from '../utils/authStorage';
 
-// Create an Axios instance with base configuration
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180/api';
+
 const axiosInstance = axios.create({
-  // Use environment variable for API URL. If not set, use localhost as fallback
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180/api',
+  baseURL: API_BASE_URL,
   timeout: 10000,
 });
 
-// Request Interceptor: Attach JWT token to every request if it exists
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    const token = getAccessToken();
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
   });
-  
   failedQueue = [];
 };
 
-// Response Interceptor: Handle global errors like 401 Unauthorized
 axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-    
-    // If error is 401 and we haven't already retried this request, and it's not the refresh or login endpoint
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/refresh') && !originalRequest.url.includes('/auth/login')) {
-      if (isRefreshing) {
-        return new Promise(function(resolve, reject) {
-          failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers['Authorization'] = 'Bearer ' + token;
-          return axiosInstance(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
-      }
+    const originalRequest = error.config || {};
+    const requestUrl = originalRequest.url || '';
 
-      originalRequest._retry = true;
-      isRefreshing = true;
+    const shouldRefresh =
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.skipAuthRedirect &&
+      !requestUrl.includes('/auth/refresh') &&
+      !requestUrl.includes('/auth/login') &&
+      Boolean(getAccessToken());
 
-      const isLocalStorage = !!localStorage.getItem('refreshToken');
-      const refreshToken = isLocalStorage 
-        ? localStorage.getItem('refreshToken') 
-        : sessionStorage.getItem('refreshToken');
+    if (!shouldRefresh) {
+      return Promise.reject(error);
+    }
 
-      if (!refreshToken) {
-        processQueue(new Error('No refresh token'), null);
-        isRefreshing = false;
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
-      return new Promise(function (resolve, reject) {
-         // Use a direct axios call to avoid interceptors causing infinite loops just in case
-         axios.post((process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180/api') + '/auth/refresh', { refreshToken })
-           .then(({ data }) => {
-               const newAccessToken = data.accessToken;
-               const newRefreshToken = data.refreshToken;
-               
-               if (isLocalStorage) {
-                 localStorage.setItem('accessToken', newAccessToken);
-                 localStorage.setItem('refreshToken', newRefreshToken);
-               } else {
-                 sessionStorage.setItem('accessToken', newAccessToken);
-                 sessionStorage.setItem('refreshToken', newRefreshToken);
-               }
-
-               axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
-               originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
-               
-               processQueue(null, newAccessToken);
-               resolve(axiosInstance(originalRequest));
-           })
-           .catch((err) => {
-               processQueue(err, null);
-               localStorage.clear();
-               sessionStorage.clear();
-               window.location.href = '/login';
-               reject(err);
-           })
-           .finally(() => {
-               isRefreshing = false;
-           });
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return axiosInstance(originalRequest);
       });
     }
-    
-    return Promise.reject(error);
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+    const refreshToken = getRefreshToken();
+
+    if (!refreshToken) {
+      clearAuthTokens();
+      window.location.href = '/login';
+      isRefreshing = false;
+      processQueue(error);
+      return Promise.reject(error);
+    }
+
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+      const rememberMe = Boolean(localStorage.getItem('refreshToken'));
+      storeAuthTokens(data, rememberMe);
+      const newAccessToken = data.accessToken;
+
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      processQueue(null, newAccessToken);
+      return axiosInstance(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError);
+      clearAuthTokens();
+      window.location.href = '/login';
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 
 export default axiosInstance;
+

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { getAccessToken, storeAuthTokens, clearAuthTokens } from '../utils/authStorage';
 
 const AuthContext = createContext(null);
 
@@ -10,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (token) {
         try {
           // If token exists, fetch user profile to verify and load data
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
         } catch (error) {
           console.error("Auth check failed:", error);
-          localStorage.removeItem('accessToken');
+          clearAuthTokens();
         }
       }
       setIsLoading(false);
@@ -32,31 +33,21 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const { rememberMe, ...apiCredentials } = credentials;
     const data = await authService.login(apiCredentials);
-    // Assuming backend returns { accessToken: "..." }
-    if (rememberMe) {
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-    } else {
-      sessionStorage.setItem('accessToken', data.accessToken);
-      sessionStorage.setItem('refreshToken', data.refreshToken);
-    }
-    setIsAuthenticated(true);
-    
+    storeAuthTokens(data, rememberMe);
     // Optionally fetch profile immediately after login
     const profile = await authService.getProfile();
     
     setUser(profile);
+    setIsAuthenticated(true);
   };
 
   const loginWithGoogle = async (idToken) => {
     const data = await authService.googleLogin({ idToken });
     // Same as normal login but no "rememberMe" choice (default to localStorage)
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    setIsAuthenticated(true);
-    
+    storeAuthTokens(data, true);
     const profile = await authService.getProfile();
     setUser(profile);
+    setIsAuthenticated(true);
   };
 
   const logout = async () => {

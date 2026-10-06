@@ -112,17 +112,18 @@ function Login() {
       navigate(from, { replace: true });
     } catch (err) {
       if (err.response?.status === 403) {
-        toast.error('Vui lòng xác thực email trước khi đăng nhập.');
+        toast.error('Please verify your email before logging in.');
         navigate('/verify-otp', {
-          state: {
-            username: data.username,
-            password: data.password
-          }
+          state: { requiresEmail: true }
         });
         return;
       }
-      // Assuming backend returns an error message inside err.response.data.error
-      const errorMsg = err.response?.data?.error?.toLowerCase() || '';
+      if (err.response?.status === 401) {
+        setError('username', { type: 'manual', message: 'Incorrect username or password' });
+        setError('password', { type: 'manual', message: 'Incorrect username or password' });
+        return;
+      }
+      const errorMsg = (err.response?.data?.message || err.response?.data?.error || '').toLowerCase();
 
       // Map backend errors to inline field errors as requested
       if (errorMsg.includes('not found') || errorMsg.includes('user')) {
@@ -258,13 +259,13 @@ function Login() {
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <motion.div variants={itemVariants} className="relative pb-6">
                 <label className="block text-[12px] font-semibold text-text-charcoal mb-2 uppercase tracking-wider" htmlFor="username">
-                  Username
+                  Username or email
                 </label>
                 <input
                   {...register('username')}
                   className={getInputClasses(!!errors.username)}
                   id="username"
-                  placeholder="Enter your username"
+                  placeholder="Enter your username or email"
                   type="text"
                   disabled={isSuccess || isSubmitting}
                 />

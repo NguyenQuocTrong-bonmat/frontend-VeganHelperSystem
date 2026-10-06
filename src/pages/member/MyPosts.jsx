@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import { deletePost, getMyPosts } from '../../services/postService';
+import { deletePost, getMyPosts, getCategories } from '../../services/postService';
 import { toggleSave } from '../../services/interactionService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -18,14 +18,26 @@ function MyPosts() {
   const [loading, setLoading] = useState(true);
   const [postToDelete, setPostToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [categories, setCategories] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     async function loadMyPosts() {
       try {
         const data = await getMyPosts({ pageIndex: 1, pageSize: 50 });
         setPosts(data.items || []);
+        try {
+          const catsData = await getCategories();
+          const catsList = Array.isArray(catsData) ? catsData : catsData.items || [];
+          const catsMap = {};
+          catsList.forEach((category) => { catsMap[category.id] = category.name; });
+          setCategories(catsMap);
+        } catch (categoryError) {
+          console.error('Failed to load categories:', categoryError);
+        }
       } catch (err) {
         console.error('Failed to load my posts:', err);
+        setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : 'Failed to load your posts. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -55,7 +67,7 @@ function MyPosts() {
       setPostToDelete(null);
     } catch (err) {
       console.error('Delete error:', err);
-      alert('Failed to delete post.');
+      setErrorMessage(err.status === 401 ? 'Your session has expired. Please log in again.' : 'Failed to delete post.');
     } finally {
       setIsDeleting(false);
     }
@@ -64,6 +76,7 @@ function MyPosts() {
   return (
     <div className="min-h-screen flex flex-col bg-vh-cream">
       <HeaderMember />
+      {errorMessage && <p role="alert" className="mx-auto w-full max-w-[1200px] px-6 pt-4 text-red-700">{errorMessage} <Link to="/login" className="underline">Log in</Link></p>}
       
       {/* PAGE HEADER */}
       <div className="w-full bg-gradient-to-br from-vh-mint/40 to-vh-cream border-b border-vh-border/50">
@@ -177,7 +190,7 @@ function MyPosts() {
                     <div className="w-full h-full flex items-center justify-center font-dm-sans text-vh-text-secondary text-sm">No Image</div>
                   )}
                   <div className="absolute top-3 left-3 px-3 py-1 bg-white/70 backdrop-blur-md rounded-full border border-white/50 text-vh-forest font-dm-sans text-xs font-medium shadow-sm">
-                    {post.categoryName || post.category?.name || 'Recipe'}
+                    {categories[post.categoryId] || post.categoryName || post.category?.name || 'Recipe'}
                   </div>
                 </div>
                 
@@ -266,3 +279,4 @@ function MyPosts() {
 }
 
 export default MyPosts;
+

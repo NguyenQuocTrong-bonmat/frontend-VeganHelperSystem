@@ -1,4 +1,5 @@
 import axiosInstance from '../lib/axios';
+import { getAccessToken } from '../utils/authStorage';
 
 /**
  * Lấy danh sách bài viết cho trang Feed
@@ -59,6 +60,10 @@ export async function getPostDetail(id) {
   }
 }
 
+export function getAuthToken() {
+  return getAccessToken();
+}
+
 export async function getMyPosts(params = {}) {
   const { pageIndex = 1, pageSize = 10, status } = params;
 
@@ -91,13 +96,13 @@ export async function createPost(postData) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
-  formData.append('PostType', postData.postType || 'Recipe');
+  formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);
   formData.append('Content', postData.content);
-  formData.append('DifficultyLevel', postData.difficultyLevel || 'Easy');
+  formData.append('DifficultyLevel', (postData.difficultyLevel || 'easy').toLowerCase());
   formData.append('PrepTimeMins', postData.prepTimeMins || 0);
   formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
-  formData.append('DietType', postData.dietType || 'Vegan');
+  formData.append('DietType', (postData.dietType || 'vegan').toLowerCase());
 
   // Gắn file ảnh nếu có
   if (postData.mediaFiles && postData.mediaFiles.length > 0) {
@@ -107,8 +112,8 @@ export async function createPost(postData) {
   }
 
   // Serialize Ingredients và Steps thành chuỗi JSON
-  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i }));
-  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s, Instruction: s }));
+  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i.trim() }));
+  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s.trim() }));
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
@@ -189,13 +194,13 @@ export async function updatePost(id, postData) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
-  formData.append('PostType', postData.postType || 'recipe');
+  formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);
   formData.append('Content', postData.content);
-  formData.append('DifficultyLevel', postData.difficultyLevel || 'easy');
+  formData.append('DifficultyLevel', (postData.difficultyLevel || 'easy').toLowerCase());
   formData.append('PrepTimeMins', postData.prepTimeMins || 0);
   formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
-  formData.append('DietType', postData.dietType || 'vegan');
+  formData.append('DietType', (postData.dietType || 'vegan').toLowerCase());
 
   // Gắn file ảnh nếu có
   if (postData.mediaFiles && postData.mediaFiles.length > 0) {
@@ -205,8 +210,8 @@ export async function updatePost(id, postData) {
   }
 
   // Serialize Ingredients và Steps
-  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i }));
-  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s, Instruction: s }));
+  const mappedIngredients = (postData.ingredients || []).map(i => ({ Name: i.trim() }));
+  const mappedSteps = (postData.steps || []).map((s, idx) => ({ StepNumber: idx + 1, Description: s.trim() }));
   formData.append('IngredientsJson', JSON.stringify(mappedIngredients));
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
