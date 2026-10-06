@@ -49,6 +49,12 @@ export const authService = {
     return response.data;
   },
 
+  // Change the password of an account that already has a local password
+  changePassword: async (data) => {
+    const response = await axiosInstance.post('/auth/change-password', data);
+    return response.data;
+  },
+
   // FN03: Đăng xuất
   logout: async () => {
     try {
@@ -91,6 +97,24 @@ export const authService = {
   // Confirm Unlink Google Account
   confirmUnlinkGoogle: async (data) => {
     const response = await axiosInstance.post('/auth/google/unlink/confirm', data);
+    return response.data;
+  },
+
+  // Change email: request OTP to current email
+  requestEmailChange: async (data) => {
+    const response = await axiosInstance.post('/auth/change-email/request', data);
+    return response.data;
+  },
+
+  // Change email: verify OTP sent to current email
+  verifyCurrentEmailChange: async (data) => {
+    const response = await axiosInstance.post('/auth/change-email/verify-current', data);
+    return response.data;
+  },
+
+  // Change email: verify OTP sent to new email
+  confirmEmailChange: async (data) => {
+    const response = await axiosInstance.post('/auth/change-email/confirm', data);
     return response.data;
   }
 };

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/authService';
 import toast from 'react-hot-toast';
 import HeaderMember from '../../components/layout/HeaderMember';
 
 export default function Security() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   // Section A states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -26,9 +28,19 @@ export default function Security() {
     
     setIsChangingPassword(true);
     try {
-      throw new Error('Change Password feature is not yet supported by the Backend API.');
+      await authService.changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      toast.success('Password changed successfully. Please log in again.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      await logout();
+      navigate('/login', { replace: true });
     } catch (err) {
-      toast.error(err.message || 'Failed to change password.');
+      toast.error(err.response?.data?.error || 'Failed to change password.');
     } finally {
       setIsChangingPassword(false);
     }

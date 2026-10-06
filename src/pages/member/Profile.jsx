@@ -185,7 +185,7 @@ function Profile() {
       setUnlinkMessage(response.message || 'An OTP has been sent to your email.');
       setUnlinkStep(2);
     } catch (err) {
-      if (err.response?.status === 400 && (err.response?.data?.error?.includes('password') || err.response?.data?.error?.includes('tạo mật khẩu') || err.response?.data?.error?.includes('set a password'))) {
+      if ((err.response?.status === 400 || err.response?.status === 409) && (err.response?.data?.error?.includes('password') || err.response?.data?.error?.includes('tạo mật khẩu') || err.response?.data?.error?.includes('set a password'))) {
         toast.error('Bạn cần tạo mật khẩu trước khi hủy liên kết Google.');
         setIsUnlinkModalOpen(false);
         setIsPasswordModalOpen(true);
