@@ -5,7 +5,7 @@ export default function HeaderGuest() {
     <header className="sticky top-0 z-40 h-16 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-6 md:px-10">
       <div className="flex items-center gap-2.5">
         <Link className="flex items-center gap-2.5 text-[#2F5233] hover:opacity-95 transition-opacity shrink-0" to="/">
-          <img src="/logo.png" alt="Vegan Helper Logo" className="h-10" />
+          <img src="/logo.png" alt="Vegan Helper Logo" className="h-[46px] md:h-[54px] w-auto object-contain scale-[1.35] origin-left" />
         </Link>
       </div>
       <nav className="hidden md:flex items-center gap-8 h-16">

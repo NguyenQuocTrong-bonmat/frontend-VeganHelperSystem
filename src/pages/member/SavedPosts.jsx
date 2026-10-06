@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import toast from 'react-hot-toast';
 
-function SavedPosts() {
+function SavedPosts({ isComponent = false }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -57,10 +57,11 @@ function SavedPosts() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
-      <HeaderMember />
+    <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
+      {!isComponent && <HeaderMember />}
       
       {/* PAGE HEADER */}
+      {!isComponent && (
       <div className="w-full bg-gradient-to-br from-[#E9EFE6]/40 to-[#FDFBF6] border-b border-[#DCE3D5]/50">
         <div className="max-w-[1200px] mx-auto px-6 py-12 md:py-16 flex flex-col items-center text-center">
           <div className="relative mb-6">
@@ -79,9 +80,10 @@ function SavedPosts() {
           </p>
         </div>
       </div>
+      )}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-12">
+      <main className={`flex-1 w-full max-w-[1200px] mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'}`}>
         {loading ? (
           <div className="w-full py-20 flex flex-col items-center justify-center text-[#6B6F63] gap-4">
             <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
@@ -164,8 +166,8 @@ function SavedPosts() {
         )}
       </main>
 
-      <AIChatbot />
-      <Footer />
+      {!isComponent && <AIChatbot />}
+      {!isComponent && <Footer />}
     </div>
   );
 }

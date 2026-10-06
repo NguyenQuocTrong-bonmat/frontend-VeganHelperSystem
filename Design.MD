@@ -67,27 +67,27 @@ VEGANHELPER
 │   │   ├── Save
 │   │   └── Comments
 │   │
-│   ├── Saved Recipes
-│   │
 │   └── Public User Profile
 │       └── Published Posts
+│
+├── MY POSTS
+│   ├── My Authored Posts
+│   └── Saved Recipes
+│
+├── WEEKLY MENU
+│   ├── Meal Planner
+│   ├── Health Profile (Health Info & Food Allergies)
+│   └── BMI Dashboard (Current BMI & History)
 │
 ├── MEMBER PROFILE
 │   └── Private Profile / Security
 │
-├── HEALTH
-│   ├── Health Profile
-│   │   ├── Health Information
-│   │   └── Food Allergies
-│   │
-│   └── BMI Dashboard
-│       ├── Current BMI
-│       └── BMI History
-│
 └── VEGAN STORES
+    ├── MapTiler Integration (Outdoor v4 & Geolocation)
     ├── Store Search / Nearby Stores
     └── Store Detail
 ```
+
 
 ## 6. Current Pages & Routes
 
@@ -99,11 +99,10 @@ VEGANHELPER
 | **Create / Edit Post**| `/create-post`, `/edit-post/:id` | Content creation |
 | **Search** | `/search` | Search Posts & People |
 | **Post Detail** | `/posts/:id` | View post content |
-| **Saved Recipes** | `/saved-posts` | List of user's saved posts |
+| **My Posts** | `/my-posts` | Tabbed view for My Posts & Saved Recipes |
+| **Weekly Menu** | `/weekly-menu` | Tabbed view for Menu, Health Profile, and BMI |
 | **Public Profile** | `/users/:username` | View another user's profile |
-| **Health Profile** | `/health` | Edit height/weight, allergies |
-| **BMI Dashboard** | `/health/bmi` | View BMI category, BMI history |
-| **Vegan Stores** | `/vegan-stores` | Discover nearby stores |
+| **Vegan Stores** | `/vegan-stores` | Discover nearby stores (MapTiler Enabled) |
 | **Store Detail** | `/vegan-stores/:id` | View store info (Blocked) |
 
 ## 7. Sprint 1 Function Status
@@ -123,14 +122,14 @@ VEGANHELPER
 | **FN17** | Comments | UI IMPLEMENTED / BACKEND BLOCKED | |
 | **FN18** | Like Post | IMPLEMENTED | Optimistic UI support |
 | **FN19** | Save Post | IMPLEMENTED | |
-| **FN20** | Saved Posts | IMPLEMENTED | |
+| **FN20** | Saved Posts | IMPLEMENTED | Integrated inside My Posts |
 | **FN21** | Public User Profile | IMPLEMENTED | *Protected route due to BE authorization constraints.* |
-| **FN22** | Health Profile | IMPLEMENTED | |
+| **FN22** | Health Profile | IMPLEMENTED | Integrated inside Weekly Menu |
 | **FN23** | Food Allergies | PARTIALLY IMPLEMENTED | *Custom allergies work. No BE master-list.* |
-| **FN24** | Current BMI | IMPLEMENTED | |
-| **FN25** | BMI History | IMPLEMENTED | |
-| **FN26** | Weekly Menu | UI FOUNDATION / BACKEND BLOCKED | Page exists but API is missing. |
-| **FN27** | Find Nearby Stores | UI FOUNDATION / BACKEND BLOCKED | Requests Location cleanly, API missing. |
+| **FN24** | Current BMI | IMPLEMENTED | Integrated inside Weekly Menu |
+| **FN25** | BMI History | IMPLEMENTED | Integrated inside Weekly Menu |
+| **FN26** | Weekly Menu | UI FOUNDATION / BACKEND BLOCKED | Houses Health & BMI tabs. Menu API is missing. |
+| **FN27** | Find Nearby Stores | UI FOUNDATION / BACKEND BLOCKED | MapTiler SDK & Geolocation working. Store API missing. |
 | **FN28** | Search Vegan Stores | UI FOUNDATION / BACKEND BLOCKED | Search UI built, API missing. |
 | **FN29** | Vegan Store Detail | UI FOUNDATION / BACKEND BLOCKED | Skeleton layout built, API missing. |
 

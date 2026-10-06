@@ -4,12 +4,16 @@ import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { deletePost, getMyPosts } from '../../services/postService';
+import { toggleSave } from '../../services/interactionService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
+import SavedPosts from './SavedPosts';
 
 function MyPosts() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  const [activeTab, setActiveTab] = useState('my-posts');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [postToDelete, setPostToDelete] = useState(null);
@@ -80,13 +84,51 @@ function MyPosts() {
           <h1 className="text-4xl md:text-5xl font-dm-serif text-vh-text-primary mb-2">
             My Recipe Garden
           </h1>
-          <p className="text-[16px] font-dm-sans text-vh-text-secondary">
+          <p className="text-[16px] font-dm-sans text-vh-text-secondary mb-8">
             @{user?.username || 'user'} • Manage your culinary creations
           </p>
+          
+          <div className="flex items-center justify-center gap-8 md:gap-12 bg-white/60 backdrop-blur-sm border border-vh-border/60 px-10 py-4 rounded-full shadow-sm">
+            <div className="flex flex-col items-center">
+              <span className="font-dm-serif text-2xl text-vh-text-primary">{posts.length}</span>
+              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Posts</span>
+            </div>
+            <div className="w-px h-10 bg-vh-border"></div>
+            <div className="flex flex-col items-center">
+              <span className="font-dm-serif text-2xl text-vh-text-primary">{user?.followersCount || 0}</span>
+              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Followers</span>
+            </div>
+            <div className="w-px h-10 bg-vh-border"></div>
+            <div className="flex flex-col items-center">
+              <span className="font-dm-serif text-2xl text-vh-text-primary">{user?.followingCount || 0}</span>
+              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Following</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TABS NAVIGATION */}
+      <div className="w-full bg-white border-b border-vh-border sticky top-16 z-30 shadow-sm">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="flex items-center gap-8">
+            <button
+              onClick={() => setActiveTab('my-posts')}
+              className={`h-14 px-2 font-dm-sans font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'my-posts' ? 'border-vh-forest text-vh-forest' : 'border-transparent text-vh-text-secondary hover:text-vh-forest'}`}
+            >
+              My Posts
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`h-14 px-2 font-dm-sans font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'saved' ? 'border-vh-forest text-vh-forest' : 'border-transparent text-vh-text-secondary hover:text-vh-forest'}`}
+            >
+              Saved Recipes
+            </button>
+          </div>
         </div>
       </div>
 
       {/* MAIN CONTENT */}
+      {activeTab === 'my-posts' ? (
       <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-dm-serif text-3xl font-medium text-vh-text-primary">
@@ -185,6 +227,9 @@ function MyPosts() {
           </div>
         )}
       </main>
+      ) : (
+        <SavedPosts isComponent={true} />
+      )}
 
       {/* DELETE MODAL OVERLAY */}
       {postToDelete && (

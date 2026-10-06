@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
+import HealthProfile from './HealthProfile';
+import BmiDashboard from './BmiDashboard';
 
 function WeeklyMenu() {
+  const [activeTab, setActiveTab] = useState('weekly');
   const [selectedDay, setSelectedDay] = useState('Monday');
   
   const days = [
@@ -18,14 +21,41 @@ function WeeklyMenu() {
       <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
         <div className="max-w-6xl mx-auto px-6 py-10 text-center">
           <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-            Weekly Vegan Menu
+            Wellness Dashboard
           </h1>
           <p className="text-[#6B6F63] text-[15px]">
-            Your 7-day personalized plant-based meal plan
+            Manage your meal plans, health profile, and BMI
           </p>
         </div>
       </div>
 
+      {/* TABS NAVIGATION */}
+      <div className="w-full bg-white border-b border-[#DCE3D5] sticky top-16 z-30 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex items-center gap-8">
+            <button
+              onClick={() => setActiveTab('weekly')}
+              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'weekly' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
+            >
+              Weekly Menu
+            </button>
+            <button
+              onClick={() => setActiveTab('health')}
+              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'health' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
+            >
+              Health & Allergies
+            </button>
+            <button
+              onClick={() => setActiveTab('bmi')}
+              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'bmi' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
+            >
+              BMI Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {activeTab === 'weekly' && (
       <main className="flex-grow w-full max-w-6xl mx-auto px-6 py-10 space-y-8">
         
         {/* BLOCKED ALERT */}
@@ -73,6 +103,10 @@ function WeeklyMenu() {
         </div>
         
       </main>
+      )}
+
+      {activeTab === 'health' && <HealthProfile isComponent={true} />}
+      {activeTab === 'bmi' && <BmiDashboard isComponent={true} />}
 
       <AIChatbot />
       <Footer />

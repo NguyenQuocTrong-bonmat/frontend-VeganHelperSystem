@@ -66,11 +66,7 @@ export const authService = {
 
   // FN05: Cập nhật hồ sơ cá nhân (bao gồm avatar)
   updateProfile: async (formData) => {
-    const response = await axiosInstance.put('/users/me', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.put('/users/me', formData);
     return response.data;
   },
 

@@ -113,11 +113,7 @@ export async function createPost(postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.post('/Posts', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.post('/Posts', formData);
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to create post (${err.response?.status})`;
@@ -215,11 +211,7 @@ export async function updatePost(id, postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.put(`/Posts/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.put(`/Posts/${id}`, formData);
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to update post (${err.response?.status})`;

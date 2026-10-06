@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost, getCategories } from '../../services/postService';
 import toast from 'react-hot-toast';
 
 export default function CreatePost() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   // Categories list
   const [categories, setCategories] = useState([]);
@@ -219,11 +220,12 @@ export default function CreatePost() {
               <input
                 type="file"
                 multiple
+                ref={fileInputRef}
                 onChange={(e) => {
                   if (e.target.files && e.target.files.length > 0) {
-                    setMediaFiles(prev => [...prev, ...Array.from(e.target.files)]);
+                    const newFiles = Array.from(e.target.files);
+                    setMediaFiles(prev => [...prev, ...newFiles]);
                   }
-                  e.target.value = null; // allow selecting the same file again if needed
                 }}
                 className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
@@ -231,7 +233,7 @@ export default function CreatePost() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
                   {mediaFiles.map((file, idx) => (
                     <div key={idx} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
-                      {file.type.startsWith('video/') ? (
+                      {file.type?.startsWith('video/') ? (
                         <video 
                           src={URL.createObjectURL(file)} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
@@ -246,14 +248,20 @@ export default function CreatePost() {
                       )}
                       
                       {/* Badge cho video */}
-                      {file.type.startsWith('video/') && (
+                      {file.type?.startsWith('video/') && (
                         <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-control shadow-sm font-medium z-10 pointer-events-none">
                           Video
                         </div>
                       )}
                       <button
                         type="button"
-                        onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
+                        onClick={() => {
+                          const newFiles = mediaFiles.filter((_, i) => i !== idx);
+                          setMediaFiles(newFiles);
+                          if (newFiles.length === 0 && fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
                         className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
                         title="Remove image"
                       >

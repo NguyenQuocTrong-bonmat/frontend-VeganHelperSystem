@@ -6,7 +6,7 @@ import AIChatbot from '../../components/chat/AIChatbot';
 import { getHealthProfile, updateHealthProfile, declareAllergies } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 
-function HealthProfile() {
+function HealthProfile({ isComponent = false }) {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
@@ -129,21 +129,22 @@ function HealthProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
-        <HeaderMember />
-        <div className="flex-grow flex items-center justify-center">
+      <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
+        {!isComponent && <HeaderMember />}
+        <div className="flex-grow flex items-center justify-center min-h-[300px]">
           <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
         </div>
-        <Footer />
+        {!isComponent && <Footer />}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
-      <HeaderMember />
+    <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
+      {!isComponent && <HeaderMember />}
       
       {/* PAGE HEADER */}
+      {!isComponent && (
       <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
         <div className="max-w-4xl mx-auto px-6 py-10 text-center">
           <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
@@ -154,8 +155,9 @@ function HealthProfile() {
           </p>
         </div>
       </div>
+      )}
 
-      <main className="flex-grow w-full max-w-4xl mx-auto px-6 py-12 space-y-12">
+      <main className={`flex-grow w-full max-w-4xl mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'} space-y-12`}>
         
         {/* SECTION 1: HEALTH PROFILE */}
         <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-8 shadow-sm">
@@ -345,8 +347,8 @@ function HealthProfile() {
         
       </main>
 
-      <AIChatbot />
-      <Footer />
+      {!isComponent && <AIChatbot />}
+      {!isComponent && <Footer />}
     </div>
   );
 }

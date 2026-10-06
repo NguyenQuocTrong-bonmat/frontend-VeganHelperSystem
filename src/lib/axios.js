@@ -5,9 +5,6 @@ const axiosInstance = axios.create({
   // Use environment variable for API URL. If not set, use localhost as fallback
   baseURL: process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180/api',
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request Interceptor: Attach JWT token to every request if it exists
