@@ -193,6 +193,10 @@ export async function deletePost(id) {
 export async function updatePost(id, postData) {
   const formData = new FormData();
 
+  for (const mediaId of postData.mediaIdsToRemove || []) {
+    formData.append('MediaIdsToRemove', mediaId);
+  }
+
   formData.append('Title', postData.title);
   formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);

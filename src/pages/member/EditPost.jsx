@@ -130,14 +130,11 @@ export default function EditPost() {
         cookingTimeMins: parseInt(cookingTimeMins, 10) || 0,
         dietType,
         mediaFiles,
+        mediaIdsToRemove: existingMedia.filter(media => removedMediaUrls.includes(media.mediaUrl)).map(media => media.id),
         ingredients: ingredients.filter((i) => i.trim() !== ''),
         steps: steps.filter((s) => s.trim() !== ''),
       };
       
-      if (removedMediaUrls.length > 0) {
-        toast.error('Note: Deleting existing media is simulated. Backend API is missing media ID to perform actual deletion.');
-      }
-
       await updatePost(id, payload);
       toast.success('Recipe updated successfully!');
       navigate('/my-posts');

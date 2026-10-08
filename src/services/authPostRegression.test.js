@@ -3,19 +3,36 @@ import { authService } from './authService';
 import { getMyPosts, createPost, updatePost } from './postService';
 import { clearAuthTokens, getAccessToken, storeAuthTokens } from '../utils/authStorage';
 
+const previousAdapter = axiosInstance.defaults.adapter;
+let requestAdapter;
+
 beforeEach(() => {
   clearAuthTokens();
-  global.fetch = jest.fn();
+  requestAdapter = jest.fn(async config => ({ data: {}, status: 200, statusText: 'OK', headers: {}, config }));
+  axiosInstance.defaults.adapter = requestAdapter;
 });
 
-afterEach(() => jest.restoreAllMocks());
+test('editing post sends multiple media removals and additions together', async () => {
+  const images = [new File(['one'], 'one.jpg', { type: 'image/jpeg' }), new File(['two'], 'two.jpg', { type: 'image/jpeg' })];
+  await updatePost(1, { title: 'Recipe', categoryId: 6, content: 'Content', mediaIdsToRemove: [11, 12], mediaFiles: images });
+  const request = requestAdapter.mock.calls[0][0];
+  expect(request.url).toBe('/Posts/1');
+  expect(request.method).toBe('put');
+  expect(request.data.getAll('MediaIdsToRemove')).toEqual(['11', '12']);
+  expect(request.data.getAll('MediaFilesToAdd').map(file => file.name)).toEqual(['one.jpg', 'two.jpg']);
+});
+
+afterEach(() => {
+  axiosInstance.defaults.adapter = previousAdapter;
+  jest.restoreAllMocks();
+});
 
 test.each([true, false])('My Posts sends the current token with rememberMe=%s', async rememberMe => {
   storeAuthTokens({ accessToken: 'current-user', refreshToken: 'refresh' }, rememberMe);
-  fetch.mockResolvedValue({ ok: true, json: async () => ({ items: [{ id: 7 }], totalCount: 1 }) });
+  requestAdapter.mockImplementation(async config => ({ data: { items: [{ id: 7 }], totalCount: 1 }, status: 200, headers: {}, config }));
   expect((await getMyPosts()).items).toEqual([{ id: 7 }]);
-  expect(fetch.mock.calls[0][1].headers.Authorization).toBe('Bearer current-user');
-  expect(fetch.mock.calls[0][0]).toContain('/api/Posts/my-posts?');
+  expect(requestAdapter.mock.calls[0][0].headers.Authorization).toBe('Bearer current-user');
+  expect(requestAdapter.mock.calls[0][0].url).toContain('/Posts/my-posts?');
 });
 
 test('switching accounts clears old persistent, session and legacy tokens', () => {
@@ -32,9 +49,11 @@ test('switching accounts clears old persistent, session and legacy tokens', () =
 });
 
 test('unauthorized My Posts never returns the public feed', async () => {
-  fetch.mockResolvedValue({ ok: false, status: 401, text: async () => '' });
+  requestAdapter.mockImplementation(async config => {
+    throw Object.assign(new Error('Unauthorized'), { config, response: { status: 401, data: {} } });
+  });
   await expect(getMyPosts()).rejects.toMatchObject({ status: 401 });
-  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(requestAdapter).toHaveBeenCalledTimes(1);
 });
 
 test('invalid login preserves the form error even if an old token exists', async () => {
@@ -54,11 +73,10 @@ test('invalid login preserves the form error even if an old token exists', async
 
 test.each([createPost, data => updatePost(1, data)])('recipe multipart payload carries named ingredients and numbered steps', async save => {
   storeAuthTokens({ accessToken: 'session-user' }, false);
-  fetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) });
   await save({ title: 'Recipe', categoryId: 6, content: 'Content', ingredients: [' Đậu hũ '], steps: [' Rửa nguyên liệu '] });
-  const request = fetch.mock.calls[0][1];
+  const request = requestAdapter.mock.calls[0][0];
   expect(request.headers.Authorization).toBe('Bearer session-user');
-  expect(JSON.parse(request.body.get('IngredientsJson'))).toEqual([{ Name: 'Đậu hũ' }]);
-  expect(JSON.parse(request.body.get('StepsJson'))).toEqual([{ StepNumber: 1, Description: 'Rửa nguyên liệu' }]);
-  expect(request.body.get('DifficultyLevel')).toBe('easy');
+  expect(JSON.parse(request.data.get('IngredientsJson'))).toEqual([{ Name: 'Đậu hũ' }]);
+  expect(JSON.parse(request.data.get('StepsJson'))).toEqual([{ StepNumber: 1, Description: 'Rửa nguyên liệu' }]);
+  expect(request.data.get('DifficultyLevel')).toBe('easy');
 });
