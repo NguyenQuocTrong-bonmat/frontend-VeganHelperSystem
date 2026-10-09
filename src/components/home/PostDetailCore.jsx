@@ -1,10 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories } from '../../services/postService';
-import { toggleLike, toggleSave } from '../../services/interactionService';
+import {
+  createComment,
+  getComments,
+  toggleLike,
+  toggleSave,
+} from '../../services/interactionService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getTimeAgo } from '../../utils/dateUtils';
 import toast from 'react-hot-toast';
+
+const asArray = (value) => {
+  if (Array.isArray(value)) return value;
+  return Array.isArray(value?.items) ? value.items : [];
+};
+
+const countComments = (comments) => comments.reduce(
+  (total, comment) => total + 1 + countComments(comment.replies || []),
+  0,
+);
 
 function PostDetailCore({ isGuest, onAuthRequired }) {
   const { id } = useParams();
@@ -16,29 +31,41 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [categoryName, setCategoryName] = useState('Recipe');
   
-  // Local state for interactions since GET /posts/:id doesn't provide them initially
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
-  
-  const hasFetched = useRef(false);
+  const [isLikeUpdating, setIsLikeUpdating] = useState(false);
+  const [isSaveUpdating, setIsSaveUpdating] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentText, setCommentText] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    setComments([]);
+    setCommentsError('');
+    setCommentsLoading(true);
 
     async function loadPost() {
       try {
         const data = await getPostDetail(id);
+        if (cancelled) return;
         setPost(data);
-        // PostDetailDto doesn't return LikeCount, initialize with 0 or fallback
-        setLikeCount(data.likeCount || 0); 
-        
+        setIsLiked(Boolean(data.isLiked));
+        setIsSaved(Boolean(data.isSaved));
+        setLikeCount(data.likeCount ?? 0);
+
         try {
           const catsData = await getCategories();
-          const cats = Array.isArray(catsData) ? catsData : catsData.items || [];
+          const cats = asArray(catsData);
           const foundCat = cats.find(c => c.id === data.categoryId);
-          if (foundCat) setCategoryName(foundCat.name);
+          if (!cancelled && foundCat) setCategoryName(foundCat.name);
         } catch (catErr) {
           console.warn('Failed to load categories mapping:', catErr);
         }
@@ -46,10 +73,30 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
         setError('Failed to load post details.');
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
+    async function loadComments() {
+      try {
+        // Post Detail is the expanded view, so it can show the full four-level tree.
+        const data = await getComments(id, { maxDepth: 4 });
+        if (!cancelled) setComments(asArray(data));
+      } catch (err) {
+        if (!cancelled) {
+          setCommentsError(err.message || 'Failed to load comments.');
+        }
+      } finally {
+        if (!cancelled) setCommentsLoading(false);
+      }
+    }
+
     loadPost();
+    loadComments();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const handleLike = async () => {
@@ -57,24 +104,28 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
+    if (isLikeUpdating) return;
     
     // Optimistic UI update
     const previousIsLiked = isLiked;
     const previousLikeCount = likeCount;
     
     setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    setLikeCount(prev => Math.max(0, isLiked ? prev - 1 : prev + 1));
+    setIsLikeUpdating(true);
     
     try {
       const response = await toggleLike(id);
       // Update with authoritative response
-      setIsLiked(response.isLiked);
-      setLikeCount(response.likeCount);
+      setIsLiked(Boolean(response.isLiked));
+      setLikeCount(response.likeCount ?? 0);
     } catch (err) {
       // Revert on error
       setIsLiked(previousIsLiked);
       setLikeCount(previousLikeCount);
       toast.error('Failed to update like status');
+    } finally {
+      setIsLikeUpdating(false);
     }
   };
 
@@ -83,32 +134,146 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
+    if (isSaveUpdating) return;
     
     // Optimistic UI update
     const previousIsSaved = isSaved;
     setIsSaved(!isSaved);
+    setIsSaveUpdating(true);
     
     try {
       const response = await toggleSave(id);
       // Update with authoritative response
-      setIsSaved(response.isSaved);
+      setIsSaved(Boolean(response.isSaved));
       if (response.isSaved) {
         toast.success('Recipe saved to your collection');
+      } else {
+        toast.success('Recipe removed from your collection');
       }
     } catch (err) {
       // Revert on error
       setIsSaved(previousIsSaved);
       toast.error('Failed to save recipe');
+    } finally {
+      setIsSaveUpdating(false);
     }
   };
 
-  const handleCommentSubmit = (e) => {
+  const handleCommentSubmit = async (e, parentCommentId = null) => {
     e.preventDefault();
     if (isGuest) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
-    toast.error('Comments API is currently BLOCKED by backend');
+
+    const content = (parentCommentId === null ? commentText : replyText).trim();
+    if (!content) {
+      toast.error('Comment content is required.');
+      return;
+    }
+    if (content.length > 500) {
+      toast.error('Comment must be between 1 and 500 characters.');
+      return;
+    }
+
+    setCommentSubmitting(true);
+    try {
+      const created = await createComment(id, { content, parentCommentId });
+      const status = String(created?.status || '').toLowerCase();
+      if (status === 'hidden') {
+        toast.success('Your comment was submitted for moderation.');
+      } else {
+        toast.success(parentCommentId ? 'Reply posted.' : 'Comment posted.');
+      }
+
+      if (parentCommentId === null) {
+        setCommentText('');
+      } else {
+        setReplyText('');
+        setReplyingTo(null);
+      }
+
+      // A hidden comment is intentionally absent from the public GET response.
+      const refreshed = await getComments(id, { maxDepth: 4 });
+      setComments(asArray(refreshed));
+      setCommentsError('');
+    } catch (err) {
+      toast.error(err.message || 'Failed to post comment.');
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
+  const renderComment = (comment) => {
+    const depth = Number(comment.depth) || 1;
+    const canReply = depth < 4;
+    return (
+      <div key={comment.id} className="space-y-3">
+        <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4" style={{ marginLeft: `${Math.min(depth - 1, 3) * 1.25}rem` }}>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
+              {comment.avatarUrl ? (
+                <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
+              ) : (
+                <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <circle cx="12" cy="7" r="4"></circle>
+                  <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+                </svg>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6F63]">
+                <span className="font-semibold text-[#2B2A25]">{comment.authorName || 'Anonymous'}</span>
+                {comment.isMine && <span className="px-1.5 py-0.5 rounded bg-[#E9EFE6] text-[#2F5233]">You</span>}
+                <span>•</span>
+                <span>{getTimeAgo(comment.createdAt)}</span>
+              </div>
+              <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[#2B2A25]">{comment.content}</p>
+              {canReply && !isGuest && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                    setReplyText('');
+                  }}
+                  className="mt-3 text-xs font-medium text-[#2F5233] hover:text-[#25401F]"
+                >
+                  {replyingTo === comment.id ? 'Cancel reply' : 'Reply'}
+                </button>
+              )}
+              {canReply && isGuest && (
+                <button type="button" onClick={onAuthRequired} className="mt-3 text-xs font-medium text-[#2F5233] hover:text-[#25401F]">
+                  Log in to reply
+                </button>
+              )}
+            </div>
+          </div>
+
+          {replyingTo === comment.id && (
+            <form onSubmit={(event) => handleCommentSubmit(event, comment.id)} className="mt-4 pl-11 space-y-2">
+              <textarea
+                value={replyText}
+                onChange={(event) => setReplyText(event.target.value)}
+                maxLength={500}
+                rows="2"
+                placeholder="Write a reply..."
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none"
+                disabled={commentSubmitting}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-[#6B6F63]">{replyText.length}/500</span>
+                <button type="submit" disabled={commentSubmitting} className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors">
+                  {commentSubmitting ? 'Posting...' : 'Post Reply'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+        {comment.replies?.length > 0 && (
+          <div className="space-y-3">{comment.replies.map(renderComment)}</div>
+        )}
+      </div>
+    );
   };
 
   if (loading) return (
@@ -252,7 +417,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   <span className="px-2 py-0.5 rounded bg-[#2F5233] text-white font-semibold text-xs mt-0.5">
                     Step {step.stepNumber}
                   </span>
-                  <span className="text-sm font-medium text-[#2B2A25]">{step.description}</span>
+                  <span className="text-sm font-medium text-[#2B2A25]">{step.instruction || step.description}</span>
                 </div>
               ))}
             </div>
@@ -266,6 +431,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
             <button 
               onClick={handleLike} 
               type="button" 
+              disabled={isLikeUpdating}
               className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'bg-[#2F5233] border-[#2F5233] text-white' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
               <svg className={`w-5 h-5 ${isLiked ? 'fill-current' : 'fill-none'}`} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -278,6 +444,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
             <button 
               onClick={handleSave} 
               type="button" 
+              disabled={isSaveUpdating}
               className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isSaved ? 'bg-[#F3F6EE] border-[#2F5233] text-[#2F5233]' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
               <svg className={`w-5 h-5 ${isSaved ? 'fill-current' : 'fill-none'}`} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -292,7 +459,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           <div className="flex items-center justify-between border-b border-[#DCE3D5] pb-4">
             <h2 className="font-fraunces font-medium text-2xl text-[#2B2A25] flex items-center gap-2">
               <span>Comments</span>
-              <span className="text-base font-sans font-normal text-[#6B6F63]">(0)</span>
+              <span className="text-base font-sans font-normal text-[#6B6F63]">({countComments(comments)})</span>
             </h2>
             <span className="text-xs text-[#6B6F63]">Community guidelines: Warm & respectful</span>
           </div>
@@ -300,13 +467,18 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           {!isGuest ? (
             <form onSubmit={handleCommentSubmit} className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-5 space-y-3">
               <textarea 
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+                maxLength={500}
                 className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none" 
                 rows="3" 
                 placeholder="Share your thoughts or questions..."
+                disabled={commentSubmitting}
               ></textarea>
-              <div className="flex justify-end">
-                <button type="submit" className="px-5 py-2 bg-[#2F5233] hover:bg-[#25401F] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
-                  Post Comment
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-[#6B6F63]">{commentText.length}/500</span>
+                <button type="submit" disabled={commentSubmitting} className="px-5 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                  {commentSubmitting ? 'Posting...' : 'Post Comment'}
                 </button>
               </div>
             </form>
@@ -326,9 +498,15 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
             </div>
           )}
           
-          <div className="py-8 text-center text-[#6B6F63] italic text-sm">
-            Comments API is currently unavailable (BLOCKED).
-          </div>
+          {commentsLoading ? (
+            <div className="py-8 text-center text-[#6B6F63] italic text-sm">Loading comments...</div>
+          ) : commentsError ? (
+            <div className="py-8 text-center text-[#A63446] text-sm">{commentsError}</div>
+          ) : comments.length === 0 ? (
+            <div className="py-8 text-center text-[#6B6F63] italic text-sm">No comments yet. Start the conversation.</div>
+          ) : (
+            <div className="space-y-4">{comments.map(renderComment)}</div>
+          )}
         </section>
       </article>
     </main>
