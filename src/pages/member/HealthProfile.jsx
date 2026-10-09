@@ -146,7 +146,8 @@ function HealthProfile({ isComponent = false }) {
   };
 
   const addSystemAllergy = (ingredient) => {
-    if (allergyData.systemAllergies.some(a => a.id === ingredient.id)) {
+    const ingredientId = ingredient.id ?? ingredient.Id;
+    if (allergyData.systemAllergies.some(a => (a.id ?? a.Id) === ingredientId)) {
       toast.error('Ingredient already added.');
       return;
     }
@@ -156,7 +157,7 @@ function HealthProfile({ isComponent = false }) {
     }
     setAllergyData(prev => ({
       ...prev,
-      systemAllergies: [...prev.systemAllergies, ingredient]
+      systemAllergies: [...prev.systemAllergies, { ...ingredient, id: ingredientId }]
     }));
   };
 
