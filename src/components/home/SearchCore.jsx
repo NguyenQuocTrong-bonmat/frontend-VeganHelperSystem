@@ -11,7 +11,7 @@ function SearchCore({ isGuest }) {
   const navigate = useNavigate();
   
   const queryKeyword = searchParams.get('q') || '';
-  const queryTab = searchParams.get('tab') || 'recipes'; // 'recipes' or 'people'
+  const queryTab = searchParams.get('tab') || 'all'; // 'all', 'recipes' or 'people'
   
   const [inputValue, setInputValue] = useState(queryKeyword);
   const [activeTab, setActiveTab] = useState(queryTab);
@@ -20,7 +20,8 @@ function SearchCore({ isGuest }) {
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalPostsCount, setTotalPostsCount] = useState(0);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
 
   useEffect(() => {
     setInputValue(queryKeyword);
@@ -31,33 +32,59 @@ function SearchCore({ isGuest }) {
     } else {
       setPosts([]);
       setUsers([]);
-      setTotalCount(0);
+      setTotalPostsCount(0);
+      setTotalUsersCount(0);
     }
   }, [queryKeyword, queryTab]);
 
   const fetchResults = async (keyword, tab) => {
     setLoading(true);
+    let pCount = 0;
+    let uCount = 0;
+    let newPosts = [];
+    let newUsers = [];
+
+    const fetchRecipes = async () => {
+      try {
+        const result = await searchPosts({ keyword, pageIndex: 1, pageSize: 20 });
+        newPosts = result.items || [];
+        pCount = result.totalCount || 0;
+      } catch (error) {
+        if (tab === 'recipes') toast.error("Failed to load recipes.");
+      }
+    };
+
+    const fetchPeople = async () => {
+      if (isGuest) return; // Guests can't search people
+      try {
+        const limit = tab === 'all' ? 4 : 20; 
+        const result = await searchUsers({ keyword, pageIndex: 1, pageSize: limit });
+        newUsers = result.items || [];
+        uCount = result.totalCount || 0;
+      } catch (error) {
+        if (tab === 'people') toast.error("Failed to load people.");
+      }
+    };
+
     try {
       if (tab === 'recipes') {
-        const result = await searchPosts({ keyword, pageIndex: 1, pageSize: 20 });
-        setPosts(result.items || []);
-        setTotalCount(result.totalCount || 0);
+        await fetchRecipes();
       } else if (tab === 'people') {
         if (isGuest) {
           toast.error("Please login to search the community.");
           navigate('/login');
           return;
         }
-        const result = await searchUsers({ keyword, pageIndex: 1, pageSize: 20 });
-        setUsers(result.items || []);
-        setTotalCount(result.totalCount || 0);
+        await fetchPeople();
+      } else if (tab === 'all') {
+        // Independent fetching
+        await Promise.allSettled([fetchRecipes(), fetchPeople()]);
       }
-    } catch (error) {
-      toast.error(error.message || "Failed to search.");
-      if (tab === 'recipes') setPosts([]);
-      if (tab === 'people') setUsers([]);
-      setTotalCount(0);
     } finally {
+      setPosts(newPosts);
+      setUsers(newUsers);
+      setTotalPostsCount(pCount);
+      setTotalUsersCount(uCount);
       setLoading(false);
     }
   };
@@ -87,6 +114,50 @@ function SearchCore({ isGuest }) {
       setSearchParams({ tab: tabName });
     }
   };
+
+  const PostCard = ({ post }) => (
+    <Link key={post.id} to={`/posts/${post.id}${isGuest ? '/guest' : ''}`} className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group">
+      <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 transition-transform group-hover:scale-[1.01]">
+        {post.mediaUrls && post.mediaUrls.length > 0 ? (
+          <img alt={post.title} className="w-full h-full object-cover" src={post.mediaUrls[0]} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[#2F5233] opacity-30">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-[3px] h-3.5 bg-[#2F5233] rounded-full"></span>
+            <span className="text-[13px] font-medium text-[#6B6F63]">{post.categoryName || 'Recipe'}</span>
+          </div>
+          <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-2">
+            {post.title}
+          </h3>
+          <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
+            {post.content}
+          </p>
+        </div>
+        <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-[#2B2A25]">{post.authorName}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Views: <strong className="font-semibold text-[#2B2A25]">{post.viewCount || 0}</strong></span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+
+  const displayCount = activeTab === 'all' 
+    ? totalPostsCount + totalUsersCount 
+    : activeTab === 'recipes' 
+      ? totalPostsCount 
+      : totalUsersCount;
 
   return (
     <main className="flex-1 w-full max-w-[1120px] mx-auto px-6 py-8 md:py-10">
@@ -135,6 +206,13 @@ function SearchCore({ isGuest }) {
 
         <div className="inline-flex p-1 rounded-lg bg-[#F3F6EE] border border-[#DCE3D5] mb-6 gap-1 mt-6">
           <button 
+            onClick={() => switchTab('all')}
+            className={`px-4 py-2 text-sm font-medium rounded cursor-pointer transition-colors ${activeTab === 'all' ? 'bg-[#FDFBF6] text-[#2F5233] border border-[#DCE3D5] shadow-sm' : 'text-[#6B6F63] hover:text-[#2F5233] border border-transparent'}`}
+            type="button"
+          >
+            All
+          </button>
+          <button 
             onClick={() => switchTab('recipes')}
             className={`px-4 py-2 text-sm font-medium rounded cursor-pointer transition-colors ${activeTab === 'recipes' ? 'bg-[#FDFBF6] text-[#2F5233] border border-[#DCE3D5] shadow-sm' : 'text-[#6B6F63] hover:text-[#2F5233] border border-transparent'}`}
             type="button"
@@ -157,7 +235,7 @@ function SearchCore({ isGuest }) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[14px]" id="search-status-bar">
               <div className="flex items-center gap-2 text-[#2B2A25] flex-wrap">
                 <span className="text-[#6B6F63]">Found</span>
-                <span className="font-semibold text-[#2F5233]">{totalCount} results</span>
+                <span className="font-semibold text-[#2F5233]">{displayCount} results</span>
                 <span className="text-[#6B6F63]">for keyword:</span>
                 <span className="font-semibold text-[#2B2A25] px-2 py-0.5 bg-[#E9EFE6] rounded border border-[#DCE3D5]">
                   '{queryKeyword}'
@@ -171,52 +249,70 @@ function SearchCore({ isGuest }) {
               <div className="flex justify-center py-12">
                 <div className="w-8 h-8 border-4 border-[#2F5233] border-t-transparent rounded-full animate-spin"></div>
               </div>
-            ) : totalCount === 0 ? (
-              <div className="text-center py-12 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl">
-                <svg className="w-12 h-12 text-[#DCE3D5] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 className="text-lg font-medium text-[#2B2A25] mb-2">No results found</h3>
-                <p className="text-[#6B6F63]">We couldn't find any {activeTab} matching '{queryKeyword}'.</p>
+            ) : displayCount === 0 && (activeTab !== 'all' || (!isGuest && displayCount === 0) || (isGuest && totalPostsCount === 0)) ? (
+              <div className="text-center py-20 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
+                <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm border border-[#DCE3D5]/50">
+                  {activeTab === 'people' ? '🌱' : activeTab === 'recipes' ? '🌿' : '🍃'}
+                </div>
+                <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
+                  {activeTab === 'all' ? 'No results found' : `No ${activeTab} found`}
+                </h3>
+                <p className="text-[#6B6F63] text-[15px] max-w-md mx-auto">
+                  We couldn't find any {activeTab === 'all' ? 'results' : activeTab} matching '{queryKeyword}'. Try adjusting your search terms.
+                </p>
               </div>
-            ) : (
-              <div className={activeTab === 'people' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'flex flex-col gap-4'}>
-                {activeTab === 'recipes' && posts.map(post => (
-                  <Link key={post.id} to={`/posts/${post.id}${isGuest ? '/guest' : ''}`} className="block bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-5 hover:border-[#2F5233] transition-colors cursor-pointer group">
-                    <div className="relative overflow-hidden w-full md:w-56 h-40 bg-[#E9EFE6] border border-[#DCE3D5] rounded-lg shrink-0 transition-transform group-hover:scale-[1.01]">
-                      {post.mediaUrls && post.mediaUrls.length > 0 ? (
-                        <img alt={post.title} className="w-full h-full object-cover" src={post.mediaUrls[0]} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[#2F5233] opacity-30">
-                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                          </svg>
-                        </div>
+            ) : activeTab === 'all' ? (
+              <div className="flex flex-col gap-12">
+                {!isGuest && (
+                  <div className="flex flex-col gap-5">
+                    <div className="flex items-center justify-between border-b border-[#DCE3D5] pb-3">
+                      <h2 className="text-[22px] font-fraunces font-semibold text-[#2B2A25]">People</h2>
+                      {totalUsersCount > 0 && (
+                        <button onClick={() => switchTab('people')} className="text-sm font-medium text-[#2F5233] hover:text-[#25401F] transition-colors flex items-center gap-1 group">
+                          View all people <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </button>
                       )}
                     </div>
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="w-[3px] h-3.5 bg-[#2F5233] rounded-full"></span>
-                          <span className="text-[13px] font-medium text-[#6B6F63]">{post.categoryName || 'Recipe'}</span>
-                        </div>
-                        <h3 className="font-vietnam text-[18px] md:text-[20px] font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-2">
-                          {post.title}
-                        </h3>
-                        <p className="text-[14px] md:text-[15px] leading-relaxed text-[#6B6F63] line-clamp-2 mb-3">
-                          {post.content}
-                        </p>
+                    {users.length === 0 ? (
+                      <div className="text-center py-10 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[#6B6F63] text-[15px]">
+                        No people found
                       </div>
-                      <div className="pt-3 border-t border-[#DCE3D5] flex items-center justify-between text-[13px] text-[#6B6F63]">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-[#2B2A25]">{post.authorName}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span>Views: <strong className="font-semibold text-[#2B2A25]">{post.viewCount || 0}</strong></span>
-                        </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {users.slice(0, 4).map(user => (
+                          <UserCard key={user.id} user={user} />
+                        ))}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center justify-between border-b border-[#DCE3D5] pb-3">
+                    <h2 className="text-[22px] font-fraunces font-semibold text-[#2B2A25]">Posts</h2>
+                    {totalPostsCount > 0 && (
+                      <button onClick={() => switchTab('recipes')} className="text-sm font-medium text-[#2F5233] hover:text-[#25401F] transition-colors flex items-center gap-1 group">
+                        View all posts <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                      </button>
+                    )}
+                  </div>
+                  {posts.length === 0 ? (
+                    <div className="text-center py-10 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[#6B6F63] text-[15px]">
+                      No posts found
                     </div>
-                  </Link>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {posts.map(post => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className={activeTab === 'people' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'flex flex-col gap-4'}>
+                {activeTab === 'recipes' && posts.map(post => (
+                  <PostCard key={post.id} post={post} />
                 ))}
 
                 {activeTab === 'people' && users.map(user => (

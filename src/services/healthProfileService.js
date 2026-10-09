@@ -84,3 +84,26 @@ export async function getBmiHistory() {
     throw error;
   }
 }
+
+export async function searchIngredients(keyword = '', pageIndex = 1, pageSize = 20) {
+  try {
+    const response = await axiosInstance.get('/HealthProfile/ingredients', {
+      params: {
+        keyword,
+        pageIndex,
+        pageSize
+      }
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `HTTP Error ${err.response?.status}`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    throw error;
+  }
+}

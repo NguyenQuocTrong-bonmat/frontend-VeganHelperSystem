@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import { getHealthProfile, updateHealthProfile, declareAllergies } from '../../services/healthProfileService';
+import { getHealthProfile, updateHealthProfile, declareAllergies, searchIngredients } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 
 function HealthProfile({ isComponent = false }) {
@@ -20,16 +20,20 @@ function HealthProfile({ isComponent = false }) {
     biologicalSex: 'other',
     birthDate: '',
     dietType: 'vegan',
-    activityLevel: 'Moderate'
+    activityLevel: 'moderate'
   });
 
   // Food Allergies State
   const [allergyData, setAllergyData] = useState({
-    allergyIngredientIds: [],
+    systemAllergies: [],
     customAllergies: []
   });
   
   const [customInput, setCustomInput] = useState('');
+  
+  const [ingredientSearch, setIngredientSearch] = useState('');
+  const [ingredientResults, setIngredientResults] = useState([]);
+  const [searchingIngredients, setSearchingIngredients] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -41,12 +45,16 @@ function HealthProfile({ isComponent = false }) {
           biologicalSex: profile.biologicalSex || 'other',
           birthDate: profile.birthDate || '',
           dietType: profile.dietType || 'vegan',
-          activityLevel: profile.activityLevel || 'Moderate'
+          activityLevel: profile.activityLevel || 'moderate'
         });
         
+        const systemAllergies = (profile.allergies || [])
+          .filter(a => !a.isCustom)
+          .map(a => ({ id: a.ingredientId, name: a.name }));
+
         setAllergyData({
-          allergyIngredientIds: profile.allergyIngredientIds || [],
-          customAllergies: [] // API doesn't return customAllergies in GET, so we start empty or fetch elsewhere if added
+          systemAllergies: systemAllergies,
+          customAllergies: profile.customAllergies || []
         });
       } catch (err) {
         console.error('Failed to load health profile:', err);
@@ -65,8 +73,12 @@ function HealthProfile({ isComponent = false }) {
 
   const handleHealthSubmit = async (e) => {
     e.preventDefault();
-    if (healthData.heightCm <= 0 || healthData.weightKg <= 0) {
-      toast.error('Height and Weight must be greater than 0.');
+    if (healthData.heightCm < 100 || healthData.heightCm > 250) {
+      toast.error('Height must be between 100cm and 250cm.');
+      return;
+    }
+    if (healthData.weightKg < 30 || healthData.weightKg > 200) {
+      toast.error('Weight must be between 30kg and 200kg.');
       return;
     }
     
@@ -91,8 +103,16 @@ function HealthProfile({ isComponent = false }) {
   const addCustomAllergy = () => {
     const val = customInput.trim();
     if (!val) return;
+    if (val.length > 100) {
+      toast.error('Custom allergy name cannot exceed 100 characters.');
+      return;
+    }
     if (allergyData.customAllergies.includes(val)) {
       toast.error('Allergy already added.');
+      return;
+    }
+    if (allergyData.customAllergies.length >= 50) {
+      toast.error('Maximum of 50 custom allergies allowed.');
       return;
     }
     setAllergyData(prev => ({
@@ -109,17 +129,53 @@ function HealthProfile({ isComponent = false }) {
     }));
   };
 
+  const handleSearchIngredients = async () => {
+    if (!ingredientSearch.trim()) return;
+    setSearchingIngredients(true);
+    try {
+      const result = await searchIngredients(ingredientSearch.trim(), 1, 20);
+      setIngredientResults(result.items || []);
+      if (result.items?.length === 0) {
+        toast('No ingredients found.', { icon: 'ℹ️' });
+      }
+    } catch (err) {
+      toast.error('Failed to search ingredients.');
+    } finally {
+      setSearchingIngredients(false);
+    }
+  };
+
+  const addSystemAllergy = (ingredient) => {
+    if (allergyData.systemAllergies.some(a => a.id === ingredient.id)) {
+      toast.error('Ingredient already added.');
+      return;
+    }
+    if (allergyData.systemAllergies.length >= 100) {
+      toast.error('Maximum of 100 system allergies allowed.');
+      return;
+    }
+    setAllergyData(prev => ({
+      ...prev,
+      systemAllergies: [...prev.systemAllergies, ingredient]
+    }));
+  };
+
+  const removeSystemAllergy = (id) => {
+    setAllergyData(prev => ({
+      ...prev,
+      systemAllergies: prev.systemAllergies.filter(a => a.id !== id)
+    }));
+  };
+
   const handleAllergiesSubmit = async (e) => {
     e.preventDefault();
     try {
       setSavingAllergies(true);
       await declareAllergies({
-        allergyIngredientIds: allergyData.allergyIngredientIds,
+        allergyIngredientIds: allergyData.systemAllergies.map(a => a.id),
         customAllergies: allergyData.customAllergies
       });
       toast.success('Allergies updated successfully!');
-      // Reset custom list since it's saved (optional UX choice)
-      setAllergyData(prev => ({ ...prev, customAllergies: [] }));
     } catch (err) {
       toast.error(err.message || 'Failed to update allergies.');
     } finally {
@@ -179,7 +235,8 @@ function HealthProfile({ isComponent = false }) {
                   onChange={handleHealthChange}
                   className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
                   placeholder="e.g. 170"
-                  min="1"
+                  min="100"
+                  max="250"
                   step="0.1"
                   required
                 />
@@ -193,7 +250,8 @@ function HealthProfile({ isComponent = false }) {
                   onChange={handleHealthChange}
                   className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
                   placeholder="e.g. 65"
-                  min="1"
+                  min="30"
+                  max="200"
                   step="0.1"
                   required
                 />
@@ -221,6 +279,7 @@ function HealthProfile({ isComponent = false }) {
                   name="birthDate"
                   value={healthData.birthDate}
                   onChange={handleHealthChange}
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
                   required
                 />
@@ -248,11 +307,11 @@ function HealthProfile({ isComponent = false }) {
                   onChange={handleHealthChange}
                   className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
                 >
-                  <option value="Sedentary">Sedentary (Little or no exercise)</option>
-                  <option value="LightlyActive">Lightly Active (Exercise 1-3 days/week)</option>
-                  <option value="Moderate">Moderate (Exercise 3-5 days/week)</option>
-                  <option value="Active">Active (Exercise 6-7 days/week)</option>
-                  <option value="VeryActive">Very Active (Hard exercise every day)</option>
+                  <option value="sedentary">Sedentary (Little or no exercise)</option>
+                  <option value="light">Lightly Active (Exercise 1-3 days/week)</option>
+                  <option value="moderate">Moderate (Exercise 3-5 days/week)</option>
+                  <option value="active">Active (Exercise 6-7 days/week)</option>
+                  <option value="very_active">Very Active (Hard exercise every day)</option>
                 </select>
               </div>
             </div>
@@ -279,14 +338,80 @@ function HealthProfile({ isComponent = false }) {
             <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Food Allergies</h2>
           </div>
 
-          <form onSubmit={handleAllergiesSubmit} className="space-y-6">
-            <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-4 rounded-xl text-sm text-[#A63446]">
-              <span className="font-semibold block mb-1">Backend Missing Feature:</span>
-              System ingredient list search is currently <strong>BLOCKED</strong> due to missing backend endpoints. 
-              You may add custom allergy items manually below.
+          <form onSubmit={handleAllergiesSubmit} className="space-y-8">
+            
+            {/* SYSTEM ALLERGY SELECTOR */}
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-[#2B2A25]">Search System Ingredients</label>
+              <div className="flex gap-3">
+                <input 
+                  type="text" 
+                  value={ingredientSearch}
+                  onChange={(e) => setIngredientSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearchIngredients();
+                    }
+                  }}
+                  className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  placeholder="e.g. Tomato, Milk, Peanut..."
+                />
+                <button 
+                  type="button" 
+                  onClick={handleSearchIngredients}
+                  disabled={searchingIngredients}
+                  className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] disabled:opacity-70 flex items-center gap-2"
+                >
+                  {searchingIngredients && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>}
+                  Search
+                </button>
+              </div>
+
+              {/* Display search results */}
+              {ingredientResults.length > 0 && (
+                <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg max-h-48 overflow-y-auto p-2">
+                  {ingredientResults.map(ing => (
+                    <div key={ing.id} className="flex justify-between items-center p-2 hover:bg-[#E9EFE6] rounded-md transition-colors">
+                      <span className="text-sm text-[#2B2A25]">{ing.name}</span>
+                      <button 
+                        type="button"
+                        onClick={() => addSystemAllergy(ing)}
+                        className="text-xs font-medium text-[#2F5233] bg-[#E9EFE6] px-3 py-1.5 rounded-md hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5]"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Selected System Allergies */}
+              {allergyData.systemAllergies.length > 0 && (
+                <div className="mt-4 p-4 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
+                  <span className="block text-xs font-medium text-[#6B6F63] mb-3 uppercase tracking-wider">Selected System Allergies</span>
+                  <div className="flex flex-wrap gap-2">
+                    {allergyData.systemAllergies.map((allergy) => (
+                      <div key={allergy.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F5233]/10 text-[#2F5233] border border-[#2F5233]/20 rounded-full text-sm font-medium">
+                        {allergy.name}
+                        <button 
+                          type="button" 
+                          onClick={() => removeSystemAllergy(allergy.id)}
+                          className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-3">
+            <div className="border-t border-[#DCE3D5]/50"></div>
+
+            {/* CUSTOM ALLERGY SELECTOR */}
+            <div className="space-y-4">
               <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
               <div className="flex gap-3">
                 <input 
@@ -310,29 +435,29 @@ function HealthProfile({ isComponent = false }) {
                   Add
                 </button>
               </div>
+
+              {allergyData.customAllergies.length > 0 && (
+                <div className="mt-4 p-4 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
+                  <span className="block text-xs font-medium text-[#6B6F63] mb-3 uppercase tracking-wider">Your Custom Allergies</span>
+                  <div className="flex flex-wrap gap-2">
+                    {allergyData.customAllergies.map((allergy, index) => (
+                      <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#A63446]/10 text-[#A63446] border border-[#A63446]/20 rounded-full text-sm font-medium">
+                        {allergy}
+                        <button 
+                          type="button" 
+                          onClick={() => removeCustomAllergy(allergy)}
+                          className="text-[#A63446]/60 hover:text-[#A63446] focus:outline-none"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {allergyData.customAllergies.length > 0 && (
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-[#2B2A25]">Your Custom Allergies</label>
-                <div className="flex flex-wrap gap-2">
-                  {allergyData.customAllergies.map((allergy, index) => (
-                    <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F5233]/10 text-[#2F5233] border border-[#2F5233]/20 rounded-full text-sm font-medium">
-                      {allergy}
-                      <button 
-                        type="button" 
-                        onClick={() => removeCustomAllergy(allergy)}
-                        className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-4 flex justify-end">
+            <div className="pt-6 flex justify-end border-t border-[#DCE3D5]/50">
               <button 
                 type="submit" 
                 disabled={savingAllergies}
@@ -354,3 +479,4 @@ function HealthProfile({ isComponent = false }) {
 }
 
 export default HealthProfile;
+

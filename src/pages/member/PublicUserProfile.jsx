@@ -95,13 +95,18 @@ function PublicUserProfile() {
       
       <main className="flex-grow max-w-[1200px] w-full mx-auto px-6 py-12">
         {/* Profile Header */}
-        <section className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-8 md:p-12 mb-12 relative overflow-hidden flex flex-col items-center text-center">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E9EFE6] to-transparent rounded-full -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#E9EFE6] to-transparent rounded-full translate-y-1/3 -translate-x-1/3 opacity-50 pointer-events-none"></div>
+        <section className="bg-[#FDFBF6] rounded-3xl mb-16 relative overflow-hidden flex flex-col items-center border border-[#DCE3D5]/60 shadow-sm">
+          {/* Subtle organic cover background */}
+          <div className="absolute top-0 left-0 w-full h-40 md:h-48 bg-gradient-to-b from-[#E9EFE6] to-[#FDFBF6] z-0">
+            {/* Decorative SVG pattern */}
+            <svg className="absolute inset-0 w-full h-full text-[#DCE3D5]/30" preserveAspectRatio="none" viewBox="0 0 100 100" fill="none">
+              <path d="M0,0 L100,0 L100,100 Q50,20 0,100 Z" fill="currentColor"/>
+            </svg>
+          </div>
           
-          <div className="relative z-10 w-full flex flex-col items-center">
-            <div className="mb-5 relative">
-              <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-4xl font-semibold">
+          <div className="relative z-10 w-full flex flex-col items-center pt-24 md:pt-28 pb-12 px-6">
+            <div className="mb-5">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#FDFBF6] shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-5xl font-semibold ring-1 ring-[#DCE3D5]">
                 {profile.avatarUrl ? (
                   <img src={getImageUrl(profile.avatarUrl)} alt={profile.displayName} className="w-full h-full object-cover" />
                 ) : (
@@ -110,22 +115,34 @@ function PublicUserProfile() {
               </div>
             </div>
             
-            <h1 className="font-fraunces text-3xl md:text-4xl text-[#2B2A25] font-semibold mb-2">
+            <h1 className="font-fraunces text-3xl md:text-5xl text-[#2B2A25] font-semibold mb-3 text-center tracking-tight">
               {profile.displayName}
             </h1>
-            <p className="text-[#6B6F63] font-medium mb-6">
-              @{profile.username} &middot; Joined {getJoinedDate(profile.joinedAt)}
-            </p>
             
-            <div className="flex items-center gap-8 bg-[#F3F6EE]/50 border border-[#DCE3D5]/50 px-8 py-4 rounded-xl">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-[#6B6F63] font-medium mb-8">
+              {profile.username && (
+                <span>@{profile.username}</span>
+              )}
+              {profile.dietType && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-[#DCE3D5]"></span>
+                  <span className="capitalize px-3 py-1 bg-[#F3F6EE] text-[#2F5233] text-sm rounded-full border border-[#DCE3D5]/50">
+                    {profile.dietType.replace(/_/g, ' ')}
+                  </span>
+                </>
+              )}
+              <span className="w-1 h-1 rounded-full bg-[#DCE3D5]"></span>
+              <span>Joined {getJoinedDate(profile.joinedAt)}</span>
+            </div>
+            
+            <div className="w-full max-w-md border-t border-[#DCE3D5]/50 pt-8 mt-2 flex justify-center gap-16 md:gap-24">
               <div className="flex flex-col items-center">
-                <span className="font-fraunces font-semibold text-2xl text-[#2B2A25]">{profile.publishedPostCount || 0}</span>
-                <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-wide">Posts</span>
+                <span className="font-fraunces font-semibold text-3xl md:text-4xl text-[#2B2A25]">{profile.publishedPostCount || 0}</span>
+                <span className="text-xs md:text-sm text-[#6B6F63] font-medium uppercase tracking-widest mt-1">Published</span>
               </div>
-              <div className="w-px h-10 bg-[#DCE3D5]"></div>
               <div className="flex flex-col items-center">
-                <span className="font-fraunces font-semibold text-2xl text-[#2B2A25]">{profile.receivedLikeCount || 0}</span>
-                <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-wide">Likes</span>
+                <span className="font-fraunces font-semibold text-3xl md:text-4xl text-[#2B2A25]">{profile.receivedLikeCount || 0}</span>
+                <span className="text-xs md:text-sm text-[#6B6F63] font-medium uppercase tracking-widest mt-1">Likes</span>
               </div>
             </div>
           </div>
@@ -133,66 +150,67 @@ function PublicUserProfile() {
 
         {/* User's Posts */}
         <section>
-          <div className="flex items-center justify-between mb-8 border-b border-[#DCE3D5] pb-4">
-            <h2 className="font-fraunces text-2xl text-[#2B2A25] font-semibold">
+          <div className="flex items-center gap-4 mb-10">
+            <h2 className="font-fraunces text-2xl md:text-3xl text-[#2B2A25] font-semibold">
               Published Recipes
             </h2>
-            <span className="text-sm font-medium px-3 py-1 bg-[#E9EFE6] text-[#2F5233] rounded-full">
-              {profile.posts?.length || 0}
-            </span>
+            <div className="flex-1 h-px bg-[#DCE3D5]"></div>
           </div>
           
           {(!profile.posts || profile.posts.length === 0) ? (
-            <div className="py-20 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl">
-              <div className="w-16 h-16 mx-auto mb-4 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-2xl">🌱</div>
-              <p className="text-lg font-medium text-[#2B2A25] mb-1">No posts yet.</p>
-              <p className="text-[#6B6F63]">This user hasn't published any recipes.</p>
+            <div className="py-24 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl flex flex-col items-center shadow-sm">
+              <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-4xl mb-5 shadow-inner border border-[#DCE3D5]/30">
+                🌿
+              </div>
+              <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">No published recipes yet</h3>
+              <p className="text-[#6B6F63] max-w-md mx-auto text-[15px]">This author is still exploring and hasn't published any recipes to the community.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
               {profile.posts.map(post => (
                 <div 
                   key={post.id} 
-                  className="flex flex-col bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl overflow-hidden hover:shadow-lg hover:shadow-[#DCE3D5]/50 transition-all duration-300 group cursor-pointer"
+                  className="flex flex-col bg-transparent group cursor-pointer"
                   onClick={() => navigate(`/posts/${post.id}`)}
                 >
-                  <div className="relative w-full h-56 bg-[#E9EFE6] overflow-hidden">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1">
                     {post.thumbnailUrl ? (
-                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
+                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[#6B6F63] text-sm">No Image</div>
                     )}
-                    <div className="absolute top-3 left-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full border border-white/50 text-[#2F5233] text-xs font-medium shadow-sm">
-                      {post.categoryName || 'Recipe'}
-                    </div>
                   </div>
                   
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 text-xs text-[#6B6F63] mb-3">
+                  <div className="flex flex-col flex-grow px-1">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className="text-[12px] font-semibold text-[#2F5233] uppercase tracking-wider">
+                        {post.categoryName || 'Recipe'}
+                      </span>
+                    </div>
+                    
+                    <h3 className="font-fraunces text-[22px] md:text-[24px] font-semibold text-[#2B2A25] mb-2.5 leading-tight group-hover:text-[#2F5233] transition-colors line-clamp-2">
+                      {post.title}
+                    </h3>
+                    
+                    <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#6B6F63] font-medium mb-5">
                       <span>{getTimeAgo(post.createdAt)}</span>
                       {post.dietType && (
                         <>
-                          <span>&middot;</span>
+                          <span className="w-1 h-1 rounded-full bg-[#DCE3D5]"></span>
                           <span className="capitalize">{post.dietType.replace(/_/g, ' ')}</span>
                         </>
                       )}
                     </div>
                     
-                    <h3 className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    
-                    <div className="pt-4 mt-auto border-t border-[#DCE3D5]/60 flex items-center justify-between text-[13px] text-[#6B6F63]">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                          <strong>{post.viewCount || 0}</strong>
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                          <strong>{post.likeCount || 0}</strong>
-                        </span>
-                      </div>
+                    <div className="mt-auto flex items-center gap-5 text-[14px] text-[#6B6F63]">
+                      <span className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-[#2B2A25]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <strong className="font-semibold text-[#2B2A25]">{post.viewCount || 0}</strong>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-[#2F5233]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <strong className="font-semibold text-[#2B2A25]">{post.likeCount || 0}</strong>
+                      </span>
                     </div>
                   </div>
                 </div>
