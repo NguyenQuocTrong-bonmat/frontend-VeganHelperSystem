@@ -12,9 +12,11 @@ function SearchCore({ isGuest }) {
   
   const queryKeyword = searchParams.get('q') || '';
   const queryTab = searchParams.get('tab') || 'all'; // 'all', 'recipes' or 'people'
+  const queryPage = parseInt(searchParams.get('page')) || 1;
   
   const [inputValue, setInputValue] = useState(queryKeyword);
   const [activeTab, setActiveTab] = useState(queryTab);
+  const [currentPage, setCurrentPage] = useState(queryPage);
   
   // Data states
   const [posts, setPosts] = useState([]);
@@ -22,47 +24,61 @@ function SearchCore({ isGuest }) {
   const [loading, setLoading] = useState(false);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
+  const [totalPostsPages, setTotalPostsPages] = useState(0);
+  const [totalUsersPages, setTotalUsersPages] = useState(0);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     setInputValue(queryKeyword);
     setActiveTab(queryTab);
+    setCurrentPage(queryPage);
+    setApiError(false);
     
     if (queryKeyword.trim()) {
-      fetchResults(queryKeyword, queryTab);
+      fetchResults(queryKeyword, queryTab, queryPage);
     } else {
       setPosts([]);
       setUsers([]);
       setTotalPostsCount(0);
       setTotalUsersCount(0);
+      setTotalPostsPages(0);
+      setTotalUsersPages(0);
     }
-  }, [queryKeyword, queryTab]);
+  }, [queryKeyword, queryTab, queryPage]);
 
-  const fetchResults = async (keyword, tab) => {
+  const fetchResults = async (keyword, tab, page) => {
     setLoading(true);
     let pCount = 0;
+    let pTotalPages = 0;
     let uCount = 0;
+    let uTotalPages = 0;
     let newPosts = [];
     let newUsers = [];
+    let hasError = false;
 
     const fetchRecipes = async () => {
       try {
-        const result = await searchPosts({ keyword, pageIndex: 1, pageSize: 20 });
+        const result = await searchPosts({ keyword, pageIndex: page, pageSize: 10 });
         newPosts = result.items || [];
         pCount = result.totalCount || 0;
+        pTotalPages = result.totalPages || Math.ceil(pCount / 10);
       } catch (error) {
-        if (tab === 'recipes') toast.error("Failed to load recipes.");
+        hasError = true;
+        if (tab === 'recipes' || tab === 'all') toast.error(error.message || "Failed to load recipes.");
       }
     };
 
     const fetchPeople = async () => {
       if (isGuest) return; // Guests can't search people
       try {
-        const limit = tab === 'all' ? 4 : 20; 
-        const result = await searchUsers({ keyword, pageIndex: 1, pageSize: limit });
+        const limit = tab === 'all' ? 4 : 10; 
+        const result = await searchUsers({ keyword, pageIndex: page, pageSize: limit });
         newUsers = result.items || [];
         uCount = result.totalCount || 0;
+        uTotalPages = result.totalPages || Math.ceil(uCount / limit);
       } catch (error) {
-        if (tab === 'people') toast.error("Failed to load people.");
+        hasError = true;
+        if (tab === 'people') toast.error(error.message || "Failed to load people.");
       }
     };
 
@@ -81,10 +97,13 @@ function SearchCore({ isGuest }) {
         await Promise.allSettled([fetchRecipes(), fetchPeople()]);
       }
     } finally {
+      if (hasError) setApiError(true);
       setPosts(newPosts);
       setUsers(newUsers);
       setTotalPostsCount(pCount);
       setTotalUsersCount(uCount);
+      setTotalPostsPages(pTotalPages);
+      setTotalUsersPages(uTotalPages);
       setLoading(false);
     }
   };
@@ -93,12 +112,12 @@ function SearchCore({ isGuest }) {
     if (e) e.preventDefault();
     if (!inputValue.trim()) return;
     
-    setSearchParams({ q: inputValue.trim(), tab: activeTab });
+    setSearchParams({ q: inputValue.trim(), tab: activeTab, page: 1 });
   };
 
   const clearSearch = () => {
     setInputValue('');
-    setSearchParams({ tab: activeTab });
+    setSearchParams({ tab: activeTab, page: 1 });
   };
 
   const switchTab = (tabName) => {
@@ -109,10 +128,16 @@ function SearchCore({ isGuest }) {
     }
     setActiveTab(tabName);
     if (queryKeyword.trim()) {
-      setSearchParams({ q: queryKeyword.trim(), tab: tabName });
+      setSearchParams({ q: queryKeyword.trim(), tab: tabName, page: 1 });
     } else {
-      setSearchParams({ tab: tabName });
+      setSearchParams({ tab: tabName, page: 1 });
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    const maxPages = activeTab === 'recipes' ? totalPostsPages : totalUsersPages;
+    if (newPage < 1 || newPage > maxPages) return;
+    setSearchParams({ q: queryKeyword, tab: activeTab, page: newPage });
   };
 
   const PostCard = ({ post }) => (
@@ -249,6 +274,21 @@ function SearchCore({ isGuest }) {
               <div className="flex justify-center py-12">
                 <div className="w-8 h-8 border-4 border-[#2F5233] border-t-transparent rounded-full animate-spin"></div>
               </div>
+            ) : apiError ? (
+              <div className="text-center py-20 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
+                <div className="w-20 h-20 bg-[#FEE2E2] text-[#DC2626] rounded-full flex items-center justify-center mb-5 shadow-sm border border-[#FCA5A5]">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
+                  Search Failed
+                </h3>
+                <p className="text-[#6B6F63] text-[15px] max-w-md mx-auto mb-6">
+                  There was a problem communicating with the server. Please check your keywords (e.g., minimum length of 2 characters) and try again.
+                </p>
+                <button onClick={() => fetchResults(queryKeyword, queryTab, queryPage)} className="px-6 py-2.5 bg-[#2F5233] hover:bg-[#25401F] text-white font-medium rounded-lg transition-colors shadow-sm">
+                  Try Again
+                </button>
+              </div>
             ) : displayCount === 0 && (activeTab !== 'all' || (!isGuest && displayCount === 0) || (isGuest && totalPostsCount === 0)) ? (
               <div className="text-center py-20 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
                 <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm border border-[#DCE3D5]/50">
@@ -310,14 +350,39 @@ function SearchCore({ isGuest }) {
                 </div>
               </div>
             ) : (
-              <div className={activeTab === 'people' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'flex flex-col gap-4'}>
-                {activeTab === 'recipes' && posts.map(post => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+              <div className="flex flex-col gap-8">
+                <div className={activeTab === 'people' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'flex flex-col gap-4'}>
+                  {activeTab === 'recipes' && posts.map(post => (
+                    <PostCard key={post.id} post={post} />
+                  ))}
 
-                {activeTab === 'people' && users.map(user => (
-                  <UserCard key={user.id} user={user} />
-                ))}
+                  {activeTab === 'people' && users.map(user => (
+                    <UserCard key={user.id} user={user} />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {((activeTab === 'recipes' && totalPostsPages > 1) || (activeTab === 'people' && totalUsersPages > 1)) && (
+                  <div className="flex items-center justify-center gap-2 mt-4 pt-6 border-t border-[#DCE3D5]">
+                    <button 
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1 || loading}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:text-[#2B2A25] hover:border-[#2B2A25] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <div className="flex items-center gap-2 px-4 text-[14px] font-medium text-[#2B2A25]">
+                      <span>Page {currentPage} of {activeTab === 'recipes' ? totalPostsPages : totalUsersPages}</span>
+                    </div>
+                    <button 
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= (activeTab === 'recipes' ? totalPostsPages : totalUsersPages) || loading}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:text-[#2B2A25] hover:border-[#2B2A25] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </section>

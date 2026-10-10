@@ -43,7 +43,7 @@ Sprint 1 thiết lập nền tảng cơ bản cho hệ thống:
 
 Sprint 2 mở rộng các tính năng tương tác và khám phá:
 
-*   **Search:** Tìm kiếm bài viết (Recipes) và người dùng (People).
+*   **Search & Pagination:** Tìm kiếm bài viết (Recipes) và người dùng (People) với phân trang Server-side (Server-side Pagination).
 *   **Post Interaction:** Thích (Like), Lưu (Save), và Bình luận (Comment).
 *   **Saved Recipes:** Xem danh sách các bài viết đã lưu.
 *   **Public Profile:** Xem trang cá nhân công khai của người dùng khác.
@@ -52,7 +52,18 @@ Sprint 2 mở rộng các tính năng tương tác và khám phá:
 *   **Weekly Menu:** Lên thực đơn tuần chay (Chờ API).
 *   **Vegan Stores:** Tìm kiếm và xem chi tiết cửa hàng chay lân cận (Chờ API).
 
-## 5. Current Information Architecture
+## 5. Sprint 3 — Admin & System Management
+
+Sprint 3 tập trung vào công cụ quản trị hệ thống và kiểm duyệt nội dung (Admin Console):
+
+*   **Role-Based Access Control:** Phân quyền Admin dựa trên JWT Role claim (đã xử lý Base64URL padding).
+*   **Admin Console Shell:** Giao diện điều khiển chính cho Quản trị viên tại `/admin`.
+*   **Members Management:** Quản lý thành viên, trạng thái tài khoản (UI Only).
+*   **Categories Management:** Quản lý danh mục hệ thống (UI Only).
+*   **Content Moderation:** Kiểm duyệt nội dung (Đang chờ xử lý).
+*   **AI Operations & MLOps:** Theo dõi hệ thống AI (Đang chờ xử lý).
+
+## 6. Current Information Architecture
 
 ```text
 VEGANHELPER
@@ -82,14 +93,20 @@ VEGANHELPER
 ├── MEMBER PROFILE
 │   └── Private Profile / Security
 │
-└── VEGAN STORES
-    ├── MapTiler Integration (Outdoor v4 & Geolocation)
-    ├── Store Search / Nearby Stores
-    └── Store Detail
+├── VEGAN STORES
+│   ├── MapTiler Integration (Outdoor v4 & Geolocation)
+│   ├── Store Search / Nearby Stores
+│   └── Store Detail
+│
+└── ADMIN CONSOLE (Role: Admin)
+    ├── Members Management
+    ├── Categories Management
+    ├── Content Moderation
+    └── AI Operations & MLOps
 ```
 
 
-## 6. Current Pages & Routes
+## 7. Current Pages & Routes
 
 | Page | Route | Purpose |
 | :--- | :--- | :--- |
@@ -104,8 +121,9 @@ VEGANHELPER
 | **Public Profile** | `/users/:username` | View another user's profile |
 | **Vegan Stores** | `/vegan-stores` | Discover nearby stores (MapTiler Enabled) |
 | **Store Detail** | `/vegan-stores/:id` | View store info (Blocked) |
+| **Admin Console** | `/admin` | System management tabs (Admin Only) |
 
-## 7. Sprint 1 Function Status
+## 8. Sprint 1 Function Status
 
 *   **Authentication (Login/Register/Logout):** IMPLEMENTED
 *   **Token Refresh Handling (Axios Interceptors):** IMPLEMENTED
@@ -113,11 +131,11 @@ VEGANHELPER
 *   **Security Page (Password / Google OTP):** IMPLEMENTED
 *   **Guest Home & Member Home:** IMPLEMENTED
 
-## 8. Sprint 2 Function Status
+## 9. Sprint 2 Function Status
 
 | FN Code | Feature | Status | Notes |
 | :--- | :--- | :--- | :--- |
-| **FN09** | Search Posts | IMPLEMENTED | Tab-based UI |
+| **FN09** | Search Posts | IMPLEMENTED | Tab-based UI, Server-side pagination. (Backend API currently filters out 'recipe' type) |
 | **FN10** | Search Users | IMPLEMENTED | Tab-based UI |
 | **FN17** | Comments | UI IMPLEMENTED / BACKEND BLOCKED | |
 | **FN18** | Like Post | IMPLEMENTED | Optimistic UI support |
@@ -133,7 +151,16 @@ VEGANHELPER
 | **FN28** | Search Vegan Stores | UI FOUNDATION / BACKEND BLOCKED | Search UI built, API missing. |
 | **FN29** | Vegan Store Detail | UI FOUNDATION / BACKEND BLOCKED | Skeleton layout built, API missing. |
 
-## 9. Current User Flows
+## 10. Sprint 3 Function Status
+
+| FN Code | Feature | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| **FN39** | Members Tab | UI IMPLEMENTED | No backend connected. |
+| **FN40** | Categories Tab | UI IMPLEMENTED | No backend connected. |
+| **FN41** | Content Moderation | NOT STARTED | |
+| **FN42** | AI Operations | NOT STARTED | |
+
+## 11. Current User Flows
 
 ### A. SPRINT 1 FLOWS (Core & Auth)
 
@@ -182,7 +209,15 @@ VEGANHELPER
 *Intended Flow:* User → Vegan Stores (`/vegan-stores`) → Search / View Nearby → Select Store → Store Detail (`/vegan-stores/:id`) → Get Directions.
 *Current State:* UI structure exists, but flow stops at Empty/Blocked state due to missing Backend APIs (No Store Data, No Coordinates).
 
-## 10. Navigation Map
+### C. SPRINT 3 FLOWS (Admin Console)
+
+**FLOW S3.1 — Admin Access & Navigation**
+1. Admin User → Login → Parse JWT Role "Admin" (handled in AuthContext)
+2. Admin User → Profile Menu → Admin Console (`/admin`)
+3. Admin Console → Switch between Members, Categories, Content Moderation tabs.
+4. *Non-Admin User* → Menu item hidden. Direct access to `/admin` redirects to Home (`/`).
+
+## 12. Navigation Map
 
 Currently verified navigation relationships:
 *   `Header` → `Home`
@@ -192,24 +227,27 @@ Currently verified navigation relationships:
 *   `Profile Dropdown` → `Health`
 *   `Profile Dropdown` → `BMI Dashboard`
 *   `Vegan Stores` → `Store Detail` (Layout verified)
+*   `Profile Dropdown` → `Admin Console` (Admin Only)
 
-## 11. Page Design Rules
+## 13. Page Design Rules
 
 All new pages must follow the existing VeganHelper visual system.
 *   **General Rules:** Existing cream background, botanical green palette, consistent typography, card language, border radii.
 *   **Health-related Pages:** Calm, clear, information-focused. Avoid excessive decoration and prioritize readability.
 *   **Search/Content Pages:** Discovery-focused, strong recipe imagery, clear author/content hierarchy.
 *   **Vegan Stores Pages:** Local discovery, clear map/list relationship, clear location information.
+*   **Admin Console:** Functional, data-dense, table-oriented, maintaining the global visual aesthetics.
 
-## 12. Loading / Empty / Error / Blocked States
+## 14. Loading / Empty / Error / Blocked States
 
 Every data-driven page must support Loading, Empty, Error, Success, and Backend Blocked states where applicable.
 *   **Public Profile:** User not found, No posts yet.
 *   **Health:** Empty health profile, API error, Saving state.
 *   **BMI:** Insufficient Health Data, No BMI history.
 *   **Vegan Store Detail:** Store not found / API BLOCKED.
+*   **Admin Console:** API Pending / Blocked state for management forms.
 
-## 13. Data Integrity Rules
+## 15. Data Integrity Rules
 
 **NO MOCK DATA FOR BACKEND-DRIVEN FEATURES.**
 
@@ -225,14 +263,16 @@ When backend functionality does not exist, the UI must:
 
 Never simulate successful backend data.
 
-## 14. Backend Dependencies / Blockers
+## 16. Backend Dependencies / Blockers
 
 1.  **Comments:** FN17 backend support is missing.
 2.  **Food Allergy Ingredient Master List:** FN23 can use custom allergies, but dynamic ingredient IDs require a backend ingredient/allergy endpoint.
 3.  **Public Profile Guest Access:** Current backend authorization prevents unauthenticated access to the user controller.
 4.  **Vegan Stores:** Store controller/API is currently missing. FN27/FN28/FN29 cannot be considered fully integrated.
 5.  **Weekly Menu:** Meal planner/menu endpoints are missing.
+6.  **Search Posts (Recipes):** Current backend API hardcodes filtering out recipes (`PostType == "recipe"`).
+7.  **Admin Console:** Management APIs (Members, Categories) are not connected yet.
 
-## 15. Remaining Sprint Scope
+## 17. Remaining Sprint Scope
 
 *(To be updated as the sprint progresses and backend APIs are unblocked).*

@@ -14,10 +14,9 @@ export default function ProtectedRoute({ children, requireAdmin = false }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // NOTE: When backend roles are fully implemented, uncomment this to secure Admin routes
-  // if (requireAdmin && user?.role !== 'Admin') {
-  //   return <Navigate to="/home" replace />;
-  // }
+  if (requireAdmin && user?.role !== 'Admin' && user?.roleName !== 'Admin') {
+    return <Navigate to="/home" replace />;
+  }
 
   return children;
 }
