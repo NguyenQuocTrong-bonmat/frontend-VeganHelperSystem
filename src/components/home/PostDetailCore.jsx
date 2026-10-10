@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories } from '../../services/postService';
 import {
   createComment,
+  updateComment,
+  deleteComment,
+  reportComment,
   getComments,
   toggleLike,
   toggleSave,
@@ -43,6 +46,10 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
+  const [reportingCommentId, setReportingCommentId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +58,8 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     setComments([]);
     setCommentsError('');
     setCommentsLoading(true);
+    setEditingCommentId(null);
+    setEditCommentText('');
 
     async function loadPost() {
       try {
@@ -204,9 +213,103 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     }
   };
 
+  const handleCommentEditSubmit = async (event, commentId) => {
+    event.preventDefault();
+    if (isGuest) {
+      if (onAuthRequired) onAuthRequired();
+      return;
+    }
+
+    const content = editCommentText.trim();
+    if (!content) {
+      toast.error('Comment content is required.');
+      return;
+    }
+    if (content.length > 500) {
+      toast.error('Comment must be between 1 and 500 characters.');
+      return;
+    }
+
+    setCommentActionLoadingId(commentId);
+    try {
+      const updated = await updateComment(id, commentId, content);
+      if (String(updated?.status || '').toLowerCase() === 'hidden') {
+        toast.success('Your edited comment was submitted for moderation.');
+      } else {
+        toast.success('Comment updated.');
+      }
+      setEditingCommentId(null);
+      setEditCommentText('');
+      const refreshed = await getComments(id, { maxDepth: 4 });
+      setComments(asArray(refreshed));
+      setCommentsError('');
+    } catch (err) {
+      toast.error(err.message || 'Failed to update comment.');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
+
+  const handleCommentDelete = async (commentId) => {
+    if (isGuest) {
+      if (onAuthRequired) onAuthRequired();
+      return;
+    }
+    if (!window.confirm('Delete this comment? Replies will remain in the conversation.')) return;
+
+    setCommentActionLoadingId(commentId);
+    try {
+      await deleteComment(id, commentId);
+      toast.success('Comment deleted.');
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditCommentText('');
+      }
+      const refreshed = await getComments(id, { maxDepth: 4 });
+      setComments(asArray(refreshed));
+      setCommentsError('');
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete comment.');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
+
+  const handleCommentReport = async (commentId) => {
+    if (isGuest) {
+      if (onAuthRequired) onAuthRequired();
+      return;
+    }
+
+    const reason = window.prompt('Why are you reporting this comment?')?.trim();
+    if (!reason) return;
+    if (reason.length > 500) {
+      toast.error('Report reason must be between 1 and 500 characters.');
+      return;
+    }
+
+    setReportingCommentId(commentId);
+    try {
+      const result = await reportComment(id, commentId, reason);
+      toast.success(result.message || 'Report submitted for review.');
+      if (result.commentHidden) {
+        const refreshed = await getComments(id, { maxDepth: 4 });
+        setComments(asArray(refreshed));
+        setCommentsError('');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to report comment.');
+    } finally {
+      setReportingCommentId(null);
+    }
+  };
+
   const renderComment = (comment) => {
     const depth = Number(comment.depth) || 1;
     const canReply = depth < 4;
+    const isEditing = editingCommentId === comment.id;
+    const isActionLoading = commentActionLoadingId === comment.id;
+    const isReporting = reportingCommentId === comment.id;
     return (
       <div key={comment.id} className="space-y-3">
         <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4" style={{ marginLeft: `${Math.min(depth - 1, 3) * 1.25}rem` }}>
@@ -228,7 +331,76 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 <span>•</span>
                 <span>{getTimeAgo(comment.createdAt)}</span>
               </div>
-              <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[#2B2A25]">{comment.content}</p>
+              {isEditing ? (
+                <form onSubmit={(event) => handleCommentEditSubmit(event, comment.id)} className="mt-3 space-y-2">
+                  <textarea
+                    value={editCommentText}
+                    onChange={(event) => setEditCommentText(event.target.value)}
+                    maxLength={500}
+                    rows="3"
+                    className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none"
+                    disabled={isActionLoading}
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-[#6B6F63]">{editCommentText.length}/500</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCommentId(null);
+                          setEditCommentText('');
+                        }}
+                        disabled={isActionLoading}
+                        className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233] disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                      <button type="submit" disabled={isActionLoading} className="px-3 py-1.5 bg-[#2F5233] text-white text-xs font-medium rounded-lg disabled:opacity-60">
+                        {isActionLoading ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <p className={`mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed ${comment.isDeleted ? 'italic text-[#6B6F63]' : 'text-[#2B2A25]'}`}>
+                  {comment.content}
+                  {!comment.isDeleted && comment.updatedAt && <span className="ml-2 text-xs text-[#6B6F63]">(edited)</span>}
+                </p>
+              )}
+              {comment.isMine && !comment.isDeleted && !isEditing && (
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCommentId(comment.id);
+                      setEditCommentText(comment.content || '');
+                    }}
+                    disabled={isActionLoading}
+                    className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] disabled:opacity-60"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCommentDelete(comment.id)}
+                    disabled={isActionLoading}
+                    className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                  >
+                    {isActionLoading ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              )}
+              {!comment.isMine && !comment.isDeleted && !isEditing && (
+                <button
+                  type="button"
+                  onClick={() => handleCommentReport(comment.id)}
+                  disabled={isReporting}
+                  className="mt-3 ml-3 text-xs font-medium text-[#6B6F63] hover:text-[#A63446] disabled:opacity-60"
+                >
+                  {isReporting ? 'Reporting...' : 'Report'}
+                </button>
+              )}
               {canReply && !isGuest && (
                 <button
                   type="button"

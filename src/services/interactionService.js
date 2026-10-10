@@ -77,6 +77,66 @@ export async function createComment(postId, { content, parentCommentId = null })
   }
 }
 
+export async function updateComment(postId, commentId, content) {
+  try {
+    const response = await axiosInstance.put(`/posts/${postId}/comments/${commentId}`, {
+      content,
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `Failed to update comment (${err.response?.status || 'network error'})`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message
+        || err.response.data.title
+        || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    throw error;
+  }
+}
+
+export async function deleteComment(postId, commentId) {
+  try {
+    await axiosInstance.delete(`/posts/${postId}/comments/${commentId}`);
+  } catch (err) {
+    let errorMessage = `Failed to delete comment (${err.response?.status || 'network error'})`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message
+        || err.response.data.title
+        || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    throw error;
+  }
+}
+
+export async function reportComment(postId, commentId, reason) {
+  try {
+    const response = await axiosInstance.post(`/posts/${postId}/comments/${commentId}/reports`, {
+      reason,
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `Failed to report comment (${err.response?.status || 'network error'})`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message
+        || err.response.data.title
+        || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    throw error;
+  }
+}
+
 export async function getSavedPosts(params = {}) {
   const { pageIndex = 1, pageSize = 10 } = params;
   const query = new URLSearchParams();
