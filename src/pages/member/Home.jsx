@@ -15,13 +15,21 @@ import heroSalad from '../../assets/images/hero/hero-vietnamese-vegan-food.webp'
 
 function Home() {
 
-  const [posts, setPosts] = useState([]);
+  const [featuredPost, setFeaturedPost] = useState(null);
+  const [exploreRecipes, setExploreRecipes] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  
+
   const [isMounted, setIsMounted] = useState(false);
   const collageRef = useRef(null);
+  const postsPoolRef = useRef([]);
+  const apiPageRef = useRef(1);
+  const totalItemsRef = useRef(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -39,20 +47,128 @@ function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Initial load: Fetch 1 featured post + fixed 3 initial Explore recipes
   useEffect(() => {
-    async function loadFeed() {
+    let isCancelled = false;
+
+    async function loadInitialFeed() {
       setLoading(true);
+      setLoadMoreError(null);
+      postsPoolRef.current = [];
+      apiPageRef.current = 1;
+      totalItemsRef.current = 0;
+
       try {
-        const data = await getPostsFeed({ pageIndex: 1, pageSize: 10, categoryId: selectedCategoryId });
-        setPosts(data.items || []);
+        // Fetch initial batch (pageSize: 6 provides 1 featured + 3 explore cards + buffer)
+        const data = await getPostsFeed({ 
+          pageIndex: 1, 
+          pageSize: 6, 
+          categoryId: selectedCategoryId 
+        });
+        if (isCancelled) return;
+
+        const items = data.items || [];
+        const total = data.totalItems ?? data.totalCount ?? items.length;
+        totalItemsRef.current = total;
+        setTotalCount(total);
+        postsPoolRef.current = [...items];
+
+        if (items.length > 0) {
+          setFeaturedPost(items[0]);
+          // Explore Recipes is strictly fixed at 3 recipes on initial page load
+          const initialGrid = items.slice(1, 4);
+          setExploreRecipes(initialGrid);
+
+          // Total items available for the Explore Recipes section is (total - 1)
+          const totalExplore = Math.max(0, total - 1);
+          setHasMore(initialGrid.length < totalExplore);
+        } else {
+          setFeaturedPost(null);
+          setExploreRecipes([]);
+          setHasMore(false);
+        }
       } catch (err) {
-        console.error('Failed to load feed:', err);
+        if (!isCancelled) {
+          console.error('Failed to load initial feed:', err);
+          setFeaturedPost(null);
+          setExploreRecipes([]);
+          setHasMore(false);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
-    loadFeed();
+
+    loadInitialFeed();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [selectedCategoryId]);
+
+  // Load More: Fetch exactly 6 additional recipe cards per click until all items are loaded
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    setLoadMoreError(null);
+
+    try {
+      const currentExploreCount = exploreRecipes.length;
+      const targetExploreCount = currentExploreCount + 6;
+      const startIndex = featuredPost ? 1 : 0;
+      const targetTotalInPool = startIndex + targetExploreCount;
+
+      // Fetch subsequent API pages if pool doesn't have enough items yet
+      while (
+        postsPoolRef.current.length < targetTotalInPool &&
+        postsPoolRef.current.length < totalItemsRef.current
+      ) {
+        const nextPage = apiPageRef.current + 1;
+        const data = await getPostsFeed({ 
+          pageIndex: nextPage, 
+          pageSize: 6, 
+          categoryId: selectedCategoryId 
+        });
+        apiPageRef.current = nextPage;
+
+        const newItems = data.items || [];
+        if (newItems.length === 0) {
+          break;
+        }
+
+        const existingIds = new Set(postsPoolRef.current.map((p) => p.id));
+        let addedAny = false;
+        for (const item of newItems) {
+          if (!existingIds.has(item.id)) {
+            existingIds.add(item.id);
+            postsPoolRef.current.push(item);
+            addedAny = true;
+          }
+        }
+
+        if (!addedAny) {
+          break;
+        }
+      }
+
+      const nextExplore = postsPoolRef.current.slice(startIndex, startIndex + targetExploreCount);
+      setExploreRecipes(nextExplore);
+
+      const totalExplore = Math.max(0, totalItemsRef.current - startIndex);
+      const noMoreAvailable = 
+        nextExplore.length < targetExploreCount && 
+        nextExplore.length >= (postsPoolRef.current.length - startIndex);
+      setHasMore(nextExplore.length < totalExplore && !noMoreAvailable);
+    } catch (err) {
+      console.error('Failed to load more recipes:', err);
+      setLoadMoreError('Failed to load additional recipes');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     async function loadCategories() {
@@ -163,19 +279,26 @@ function Home() {
             <div className="w-10 h-10 border-4 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
             <p className="font-dm-sans">Harvesting recipes...</p>
           </div>
-        ) : posts.length === 0 ? (
+        ) : !featuredPost && exploreRecipes.length === 0 ? (
           <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card border border-vh-border/50">
             <div className="w-20 h-20 mb-6 bg-vh-mint rounded-full flex items-center justify-center text-4xl">🌱</div>
             <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">The garden is still growing</h3>
             <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md">We couldn't find any recipes matching your current filters. Try exploring other categories.</p>
-            <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-sm font-medium hover:bg-vh-sage transition-colors shadow-sm">
+            <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-sm font-medium hover:bg-vh-sage transition-colors shadow-sm cursor-pointer">
               Clear Filters
             </button>
           </div>
         ) : (
           <>
-            <FeaturedPost post={posts[0]} isGuest={false} />
-            <PostList posts={posts.slice(1)} isGuest={false} />
+            {featuredPost && <FeaturedPost post={featuredPost} isGuest={false} />}
+            <PostList 
+              posts={exploreRecipes} 
+              isGuest={false} 
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              loadMoreError={loadMoreError}
+            />
           </>
         )}
       </main>

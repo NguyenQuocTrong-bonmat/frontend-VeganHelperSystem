@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { searchPosts } from '../../services/postService';
 import { searchUsers } from '../../services/userService';
@@ -11,7 +11,8 @@ function SearchCore({ isGuest }) {
   const navigate = useNavigate();
   
   const queryKeyword = searchParams.get('q') || '';
-  const queryTab = searchParams.get('tab') || 'all'; // 'all', 'recipes' or 'people'
+  let queryTab = searchParams.get('tab') || 'all';
+  if (queryTab === 'recipes') queryTab = 'posts';
   const queryPage = parseInt(searchParams.get('page')) || 1;
   
   const [inputValue, setInputValue] = useState(queryKeyword);
@@ -27,6 +28,7 @@ function SearchCore({ isGuest }) {
   const [totalPostsPages, setTotalPostsPages] = useState(0);
   const [totalUsersPages, setTotalUsersPages] = useState(0);
   const [apiError, setApiError] = useState(false);
+  const latestRequest = useRef(0);
 
   useEffect(() => {
     setInputValue(queryKeyword);
@@ -47,7 +49,17 @@ function SearchCore({ isGuest }) {
   }, [queryKeyword, queryTab, queryPage]);
 
   const fetchResults = async (keyword, tab, page) => {
+    const requestId = ++latestRequest.current;
+    
+    setPosts([]);
+    setUsers([]);
+    setTotalPostsCount(0);
+    setTotalUsersCount(0);
+    setTotalPostsPages(0);
+    setTotalUsersPages(0);
+    setApiError(false);
     setLoading(true);
+
     let pCount = 0;
     let pTotalPages = 0;
     let uCount = 0;
@@ -56,7 +68,7 @@ function SearchCore({ isGuest }) {
     let newUsers = [];
     let hasError = false;
 
-    const fetchRecipes = async () => {
+    const fetchPosts = async () => {
       try {
         const result = await searchPosts({ keyword, pageIndex: page, pageSize: 10 });
         newPosts = result.items || [];
@@ -64,7 +76,7 @@ function SearchCore({ isGuest }) {
         pTotalPages = result.totalPages || Math.ceil(pCount / 10);
       } catch (error) {
         hasError = true;
-        if (tab === 'recipes' || tab === 'all') toast.error(error.message || "Failed to load recipes.");
+        if (tab === 'posts' || tab === 'all') toast.error(error.message || "Failed to load posts.");
       }
     };
 
@@ -83,8 +95,8 @@ function SearchCore({ isGuest }) {
     };
 
     try {
-      if (tab === 'recipes') {
-        await fetchRecipes();
+      if (tab === 'posts') {
+        await fetchPosts();
       } else if (tab === 'people') {
         if (isGuest) {
           toast.error("Please login to search the community.");
@@ -94,17 +106,19 @@ function SearchCore({ isGuest }) {
         await fetchPeople();
       } else if (tab === 'all') {
         // Independent fetching
-        await Promise.allSettled([fetchRecipes(), fetchPeople()]);
+        await Promise.allSettled([fetchPosts(), fetchPeople()]);
       }
     } finally {
-      if (hasError) setApiError(true);
-      setPosts(newPosts);
-      setUsers(newUsers);
-      setTotalPostsCount(pCount);
-      setTotalUsersCount(uCount);
-      setTotalPostsPages(pTotalPages);
-      setTotalUsersPages(uTotalPages);
-      setLoading(false);
+      if (latestRequest.current === requestId) {
+        if (hasError) setApiError(true);
+        setPosts(newPosts);
+        setUsers(newUsers);
+        setTotalPostsCount(pCount);
+        setTotalUsersCount(uCount);
+        setTotalPostsPages(pTotalPages);
+        setTotalUsersPages(uTotalPages);
+        setLoading(false);
+      }
     }
   };
 
@@ -135,7 +149,7 @@ function SearchCore({ isGuest }) {
   };
 
   const handlePageChange = (newPage) => {
-    const maxPages = activeTab === 'recipes' ? totalPostsPages : totalUsersPages;
+    const maxPages = activeTab === 'posts' ? totalPostsPages : totalUsersPages;
     if (newPage < 1 || newPage > maxPages) return;
     setSearchParams({ q: queryKeyword, tab: activeTab, page: newPage });
   };
@@ -180,7 +194,7 @@ function SearchCore({ isGuest }) {
 
   const displayCount = activeTab === 'all' 
     ? totalPostsCount + totalUsersCount 
-    : activeTab === 'recipes' 
+    : activeTab === 'posts' 
       ? totalPostsCount 
       : totalUsersCount;
 
@@ -238,11 +252,11 @@ function SearchCore({ isGuest }) {
             All
           </button>
           <button 
-            onClick={() => switchTab('recipes')}
-            className={`px-4 py-2 text-sm font-medium rounded cursor-pointer transition-colors ${activeTab === 'recipes' ? 'bg-[#FDFBF6] text-[#2F5233] border border-[#DCE3D5] shadow-sm' : 'text-[#6B6F63] hover:text-[#2F5233] border border-transparent'}`}
+            onClick={() => switchTab('posts')}
+            className={`px-4 py-2 text-sm font-medium rounded cursor-pointer transition-colors ${activeTab === 'posts' ? 'bg-[#FDFBF6] text-[#2F5233] border border-[#DCE3D5] shadow-sm' : 'text-[#6B6F63] hover:text-[#2F5233] border border-transparent'}`}
             type="button"
           >
-            Recipes
+            Posts
           </button>
           <button 
             onClick={() => switchTab('people')}
@@ -292,7 +306,7 @@ function SearchCore({ isGuest }) {
             ) : displayCount === 0 && (activeTab !== 'all' || (!isGuest && displayCount === 0) || (isGuest && totalPostsCount === 0)) ? (
               <div className="text-center py-20 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
                 <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm border border-[#DCE3D5]/50">
-                  {activeTab === 'people' ? '🌱' : activeTab === 'recipes' ? '🌿' : '🍃'}
+                  {activeTab === 'people' ? '🌱' : activeTab === 'posts' ? '🌿' : '🍃'}
                 </div>
                 <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
                   {activeTab === 'all' ? 'No results found' : `No ${activeTab} found`}
@@ -331,7 +345,7 @@ function SearchCore({ isGuest }) {
                   <div className="flex items-center justify-between border-b border-[#DCE3D5] pb-3">
                     <h2 className="text-[22px] font-fraunces font-semibold text-[#2B2A25]">Posts</h2>
                     {totalPostsCount > 0 && (
-                      <button onClick={() => switchTab('recipes')} className="text-sm font-medium text-[#2F5233] hover:text-[#25401F] transition-colors flex items-center gap-1 group">
+                      <button onClick={() => switchTab('posts')} className="text-sm font-medium text-[#2F5233] hover:text-[#25401F] transition-colors flex items-center gap-1 group">
                         View all posts <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                       </button>
                     )}
@@ -352,7 +366,7 @@ function SearchCore({ isGuest }) {
             ) : (
               <div className="flex flex-col gap-8">
                 <div className={activeTab === 'people' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'flex flex-col gap-4'}>
-                  {activeTab === 'recipes' && posts.map(post => (
+                  {activeTab === 'posts' && posts.map(post => (
                     <PostCard key={post.id} post={post} />
                   ))}
 
@@ -362,7 +376,7 @@ function SearchCore({ isGuest }) {
                 </div>
 
                 {/* Pagination Controls */}
-                {((activeTab === 'recipes' && totalPostsPages > 1) || (activeTab === 'people' && totalUsersPages > 1)) && (
+                {((activeTab === 'posts' && totalPostsPages > 1) || (activeTab === 'people' && totalUsersPages > 1)) && (
                   <div className="flex items-center justify-center gap-2 mt-4 pt-6 border-t border-[#DCE3D5]">
                     <button 
                       onClick={() => handlePageChange(currentPage - 1)}
@@ -372,11 +386,11 @@ function SearchCore({ isGuest }) {
                       Previous
                     </button>
                     <div className="flex items-center gap-2 px-4 text-[14px] font-medium text-[#2B2A25]">
-                      <span>Page {currentPage} of {activeTab === 'recipes' ? totalPostsPages : totalUsersPages}</span>
+                      <span>Page {currentPage} of {activeTab === 'posts' ? totalPostsPages : totalUsersPages}</span>
                     </div>
                     <button 
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= (activeTab === 'recipes' ? totalPostsPages : totalUsersPages) || loading}
+                      disabled={currentPage >= (activeTab === 'posts' ? totalPostsPages : totalUsersPages) || loading}
                       className="px-4 py-2 text-sm font-medium rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:text-[#2B2A25] hover:border-[#2B2A25] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Next

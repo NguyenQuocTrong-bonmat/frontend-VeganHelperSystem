@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import HealthProfile from './HealthProfile';
-import BmiDashboard from './BmiDashboard';
+import HealthAndWellness from './HealthAndWellness';
 
 function WeeklyMenu() {
   const [activeTab, setActiveTab] = useState('weekly');
@@ -24,32 +23,34 @@ function WeeklyMenu() {
             Wellness Dashboard
           </h1>
           <p className="text-[#6B6F63] text-[15px]">
-            Manage your meal plans, health profile, and BMI
+            Manage your meal plans, health profile, allergies, and BMI metrics
           </p>
         </div>
       </div>
 
-      {/* TABS NAVIGATION */}
+      {/* TABS NAVIGATION — Unified 2-Tab Navigation */}
       <div className="w-full bg-white border-b border-[#DCE3D5] sticky top-16 z-30 shadow-sm">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center gap-8">
             <button
               onClick={() => setActiveTab('weekly')}
-              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'weekly' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
+              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none cursor-pointer ${
+                activeTab === 'weekly' 
+                  ? 'border-[#2F5233] text-[#2F5233]' 
+                  : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'
+              }`}
             >
               Weekly Menu
             </button>
             <button
-              onClick={() => setActiveTab('health')}
-              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'health' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
+              onClick={() => setActiveTab('wellness')}
+              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none cursor-pointer ${
+                activeTab === 'wellness' 
+                  ? 'border-[#2F5233] text-[#2F5233]' 
+                  : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'
+              }`}
             >
-              Health & Allergies
-            </button>
-            <button
-              onClick={() => setActiveTab('bmi')}
-              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'bmi' ? 'border-[#2F5233] text-[#2F5233]' : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'}`}
-            >
-              BMI Dashboard
+              Health & Wellness
             </button>
           </div>
         </div>
@@ -105,8 +106,7 @@ function WeeklyMenu() {
       </main>
       )}
 
-      {activeTab === 'health' && <HealthProfile isComponent={true} />}
-      {activeTab === 'bmi' && <BmiDashboard isComponent={true} />}
+      {activeTab === 'wellness' && <HealthAndWellness isComponent={true} />}
 
       <AIChatbot />
       <Footer />
