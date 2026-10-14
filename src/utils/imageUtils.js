@@ -7,7 +7,7 @@ export const getImageUrl = (url) => {
     }
     
     // Extract base URL from API route (e.g. https://localhost:7180/api -> https://localhost:7180)
-    const apiBase = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7180/api';
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7180/api';
     const hostBase = apiBase.replace(/\/api\/?$/, '');
     
     return `${hostBase}${url.startsWith('/') ? '' : '/'}${url}`;

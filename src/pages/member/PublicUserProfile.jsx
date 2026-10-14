@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getPublicProfile } from '../../services/userService';
 import { getImageUrl } from '../../utils/imageUtils';
+import { isNotFoundError } from '../../utils/errorUtils';
 
 function PublicUserProfile() {
   const { id } = useParams();
@@ -15,24 +16,28 @@ function PublicUserProfile() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchProfile() {
       try {
         setLoading(true);
         const data = await getPublicProfile(id);
+        if (cancelled) return;
         setProfile(data);
         setError(null);
       } catch (err) {
-        if (err.status === 404) {
-          setError('User not found.');
-        } else {
-          setError('Failed to load profile.');
+        if (cancelled) return;
+        if (isNotFoundError(err)) {
+          navigate('/404', { replace: true });
+          return;
         }
+        setError('Failed to load profile.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     fetchProfile();
-  }, [id]);
+    return () => { cancelled = true; };
+  }, [id, navigate]);
 
   const getTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -78,7 +83,7 @@ function PublicUserProfile() {
               <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
             <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">{error || 'User not found.'}</h2>
-            <p className="text-[#6B6F63] mb-6">The profile you are looking for doesn't exist or has been removed.</p>
+            <p className="text-[#6B6F63] mb-6">Please try again, or return home and open the profile again.</p>
             <button onClick={() => navigate('/home')} className="px-6 py-2.5 bg-[#2F5233] text-white rounded-lg font-medium hover:bg-[#25401F] transition-colors">
               Return Home
             </button>

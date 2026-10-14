@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { updatePost, getCategories, getPostDetail } from '../../services/postService';
 import toast from 'react-hot-toast';
+import { isNotFoundError } from '../../utils/errorUtils';
 
 export default function EditPost() {
   const navigate = useNavigate();
@@ -32,9 +33,11 @@ export default function EditPost() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
     async function loadCats() {
       try {
         const data = await getCategories();
+        if (cancelled) return;
         const cats = Array.isArray(data) ? data : data.items || [];
         setCategories(cats);
         if (cats.length > 0) setCategoryId(cats[0].id);
@@ -46,6 +49,7 @@ export default function EditPost() {
     async function loadPost() {
       try {
         const data = await getPostDetail(id);
+        if (cancelled) return;
         setTitle(data.title || '');
         setCategoryId(data.categoryId || '');
         setContent(data.content || '');
@@ -66,6 +70,11 @@ export default function EditPost() {
            setExistingMedia(data.media);
         }
       } catch (err) {
+        if (cancelled) return;
+        if (isNotFoundError(err)) {
+          navigate('/404', { replace: true });
+          return;
+        }
         console.error('Failed to load post details:', err);
         setErrorMessage('Could not load post details. Please try again.');
       }
@@ -74,11 +83,12 @@ export default function EditPost() {
     async function initData() {
       setIsFetching(true);
       await Promise.all([loadCats(), loadPost()]);
-      setIsFetching(false);
+      if (!cancelled) setIsFetching(false);
     }
     
     initData();
-  }, [id]);
+    return () => { cancelled = true; };
+  }, [id, navigate]);
 
   const handleAddIngredient = () => setIngredients([...ingredients, '']);
   const handleIngredientChange = (val, idx) => {

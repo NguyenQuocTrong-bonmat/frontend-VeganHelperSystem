@@ -12,6 +12,7 @@ import {
 } from '../../services/interactionService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getTimeAgo } from '../../utils/dateUtils';
+import { isNotFoundError } from '../../utils/errorUtils';
 import toast from 'react-hot-toast';
 
 const asArray = (value) => {
@@ -79,6 +80,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           console.warn('Failed to load categories mapping:', catErr);
         }
       } catch (err) {
+        if (cancelled) return;
+        if (isNotFoundError(err)) {
+          navigate('/404', { replace: true });
+          return;
+        }
         setError('Failed to load post details.');
         console.error(err);
       } finally {
@@ -106,7 +112,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, navigate]);
 
   const handleLike = async () => {
     if (isGuest) {
@@ -327,6 +333,9 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6F63]">
                 <span className="font-semibold text-[#2B2A25]">{comment.authorName || 'Anonymous'}</span>
+                {post.authorId != null && comment.userId != null && String(comment.userId) === String(post.authorId) && (
+                  <span className="px-1.5 py-0.5 rounded bg-vh-mint text-vh-forest font-medium">Author</span>
+                )}
                 {comment.isMine && <span className="px-1.5 py-0.5 rounded bg-[#E9EFE6] text-[#2F5233]">You</span>}
                 <span>•</span>
                 <span>{getTimeAgo(comment.createdAt)}</span>

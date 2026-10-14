@@ -73,7 +73,7 @@ function FindVeganStores() {
   useEffect(() => {
     if (mapRef.current || !mapContainerRef.current) return;
 
-    const mapKey = process.env.REACT_APP_GOONG_MAPTILES_KEY || '';
+    const mapKey = import.meta.env.VITE_GOONG_MAPTILES_KEY || '';
     if (!mapKey) return;
 
     goongjs.accessToken = mapKey;
@@ -103,7 +103,7 @@ function FindVeganStores() {
       const fetchAddress = async () => {
         try {
           // Try Goong API first
-          const mapKey = process.env.REACT_APP_GOONG_MAPTILES_KEY || '';
+          const mapKey = import.meta.env.VITE_GOONG_MAPTILES_KEY || '';
           if (mapKey) {
             const goongRes = await fetch(`https://rsapi.goong.io/Geocode?latlng=${coordinates.lat},${coordinates.lng}&api_key=${mapKey}`);
             const goongData = await goongRes.json();
@@ -258,11 +258,11 @@ function FindVeganStores() {
         {/* Map Container */}
         <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
-        {!process.env.REACT_APP_GOONG_MAPTILES_KEY && (
+        {!import.meta.env.VITE_GOONG_MAPTILES_KEY && (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-[#E9EFE6]">
             <svg className="w-12 h-12 text-[#A63446] mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             <h3 className="text-xl font-semibold text-[#2B2A25]">Map Configuration Missing</h3>
-            <p className="text-[#6B6F63] text-sm mt-2 max-w-md">Please configure REACT_APP_GOONG_MAPTILES_KEY.</p>
+            <p className="text-[#6B6F63] text-sm mt-2 max-w-md">Please configure VITE_GOONG_MAPTILES_KEY.</p>
           </div>
         )}
 

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import axiosInstance from '../lib/axios';
 import { authService } from './authService';
 import { getMyPosts, createPost, updatePost } from './postService';
@@ -8,7 +9,7 @@ let requestAdapter;
 
 beforeEach(() => {
   clearAuthTokens();
-  requestAdapter = jest.fn(async config => ({ data: {}, status: 200, statusText: 'OK', headers: {}, config }));
+  requestAdapter = vi.fn(async config => ({ data: {}, status: 200, statusText: 'OK', headers: {}, config }));
   axiosInstance.defaults.adapter = requestAdapter;
 });
 
@@ -24,7 +25,7 @@ test('editing post sends multiple media removals and additions together', async 
 
 afterEach(() => {
   axiosInstance.defaults.adapter = previousAdapter;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 test.each([true, false])('My Posts sends the current token with rememberMe=%s', async rememberMe => {

@@ -46,6 +46,7 @@ import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQ
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import { Toaster } from 'react-hot-toast'
+import NotFound from './pages/NotFound.jsx'
 
 function App() {
   return (
@@ -91,6 +92,8 @@ function App() {
         <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
         <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
         <Route path="/admin/video-summarization" element={<ProtectedRoute requireAdmin={true}><AdminVideoSummarizationQueue /></ProtectedRoute>} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AuthProvider>
   )

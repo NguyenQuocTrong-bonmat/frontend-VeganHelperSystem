@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
+import { formatCalendarDate } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
 
 const formatDateInputValue = (date) => {
@@ -378,7 +379,7 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Date of Birth
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">{profile.birthDate ? profile.birthDate.split("T")[0] : "Not provided"}</p>
+                  <p className="text-base font-semibold text-text-charcoal">{formatCalendarDate(profile.birthDate) || "Not provided"}</p>
                 </div>
                 <div className="text-text-stem-gray p-2">
                   <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">

@@ -10,7 +10,21 @@ npm install
 npm run dev
 ```
 
-Build production: `npm run build` (đã test, build qua được không lỗi).
+Dev server: `npm start` hoặc `npm run dev`, tại `http://localhost:3000` (Node.js 22.22.2+ hoặc 24.15+; khuyến nghị Node 24 LTS). Dừng server cũ trước khi chạy; Vite sẽ báo lỗi nếu cổng 3000 đang được dùng.
+
+Cấu hình `.env` hoặc `.env.local` (không commit giá trị riêng):
+
+```dotenv
+VITE_API_BASE_URL=https://localhost:7180/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+VITE_GOONG_MAPTILES_KEY=your-goong-maptiles-key
+```
+
+Các biến `VITE_*` được công khai trong trình duyệt; chỉ đặt cấu hình frontend tại đây, không đặt mật khẩu database, Gemini API key hoặc JWT signing key. Khởi động lại dev server sau khi đổi `.env`. Các máy đang dùng cấu hình CRA cần đổi tiền tố `REACT_APP_` thành `VITE_`.
+
+Build production: `npm run build` (xuất ra `build/`). Xem thử: `npm run preview` (chỉ dùng kiểm tra local). Hosting production cần fallback các URL React Router về `index.html`.
+
+Kiểm thử: `npm test` chạy toàn bộ test một lần bằng Vitest + jsdom; `npm run test:watch` chạy chế độ theo dõi. Bộ test đã chuyển khỏi Jest/CRA; mock sử dụng `vi` từ `vitest`.
 
 ## Cấu trúc
 
@@ -27,7 +41,7 @@ src/
 │                        hero-radius, modal-shadow — gộp từ các <style> rải rác
 │                        trong từng file HTML gốc
 ├── App.jsx             # khai báo route cho toàn bộ 26 trang (react-router-dom)
-└── main.jsx            # entry point
+└── index.jsx            # entry point
 ```
 
 `tailwind.config.js` đã khai báo đủ màu token theo `DESIGN.md`
