@@ -1,0 +1,60 @@
+<svg viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Soft organic background blobs / watercolor feel -->
+  <path d="M-100 200 C300 0 400 800 1200 900 L1440 1100 L-100 1100 Z" fill="#D5D8D1" opacity="0.1" />
+  <circle cx="200" cy="800" r="400" fill="#2F5233" opacity="0.03" filter="blur(40px)" />
+  <circle cx="1200" cy="200" r="300" fill="#2F5233" opacity="0.02" filter="blur(60px)" />
+
+  <!-- Botanical Line Art -->
+  <g stroke="#2F5233" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <!-- Main branch coming from bottom left -->
+    <path d="M-50 1024 Q 150 700 450 300" />
+    <path d="M 220 740 Q 300 500 650 450" />
+    <path d="M 320 540 Q 400 350 700 250" />
+
+    <!-- Monstera / large leaf outlines on main branch -->
+    <path d="M 450 300 C 500 200, 600 250, 580 350 C 550 320, 500 350, 450 300" fill="#2F5233" fill-opacity="0.1" />
+    <path d="M 650 450 C 750 400, 800 500, 700 580 C 680 500, 600 500, 650 450" fill="#2F5233" fill-opacity="0.05" />
+    <path d="M 700 250 C 800 200, 850 300, 800 400 C 750 300, 680 320, 700 250" />
+    
+    <!-- Leaves on bottom left -->
+    <path d="M 100 850 C 50 750, 150 650, 250 700 C 200 720, 150 800, 100 850" fill="#2F5233" fill-opacity="0.15" />
+    <path d="M 350 600 C 300 500, 450 450, 500 550 C 450 520, 400 580, 350 600" />
+
+    <!-- Branch from top right -->
+    <path d="M 1440 100 Q 1100 200 900 450" />
+    <path d="M 1250 150 Q 1000 150 850 250" />
+    
+    <!-- Leaves on top right -->
+    <path d="M 900 450 C 850 500, 750 450, 800 350 C 850 400, 920 380, 900 450" fill="#2F5233" fill-opacity="0.1" />
+    <path d="M 850 250 C 750 250, 700 150, 800 100 C 850 150, 900 200, 850 250" />
+
+    <!-- Secondary botanical (herbs/sage) -->
+    <path d="M 100 200 Q 250 150 400 250" opacity="0.7" />
+    <path d="M 250 180 C 250 150, 300 120, 320 150 C 340 180, 300 200, 250 180" fill="#2F5233" fill-opacity="0.2" />
+    <path d="M 350 230 C 350 200, 400 180, 420 220 C 430 250, 380 260, 350 230" />
+
+    <!-- Abstract culinary/spice dotted trails -->
+    <path d="M 400 200 A 300 300 0 0 1 800 100" stroke-dasharray="4 8" opacity="0.6" />
+    <path d="M 200 300 A 400 400 0 0 0 600 800" stroke-dasharray="2 6" opacity="0.4" />
+    <path d="M 1000 800 A 200 200 0 0 0 1300 600" stroke-dasharray="3 7" opacity="0.5" />
+  </g>
+
+  <!-- Accent dots (seeds/spices) -->
+  <g fill="#2F5233">
+    <circle cx="500" cy="150" r="3" opacity="0.3" />
+    <circle cx="530" cy="120" r="2" opacity="0.2" />
+    <circle cx="480" cy="180" r="4" opacity="0.15" />
+    <circle cx="580" cy="160" r="2" opacity="0.25" />
+
+    <circle cx="300" cy="800" r="3.5" opacity="0.4" />
+    <circle cx="270" cy="850" r="2" opacity="0.2" />
+    <circle cx="350" cy="820" r="2.5" opacity="0.3" />
+
+    <circle cx="950" cy="550" r="3" opacity="0.2" />
+    <circle cx="900" cy="600" r="4" opacity="0.1" />
+    <circle cx="1000" cy="500" r="2" opacity="0.3" />
+    
+    <circle cx="150" cy="350" r="3" opacity="0.25" />
+    <circle cx="120" cy="400" r="1.5" opacity="0.4" />
+  </g>
+</svg>

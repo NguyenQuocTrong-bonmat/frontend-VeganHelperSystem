@@ -1,161 +1,243 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import toast from 'react-hot-toast';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
+import { formatCalendarDate } from '../../utils/dateUtils';
+import HeaderMember from '../../components/layout/HeaderMember';
+
+const formatDateInputValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getLatestValidBirthDate = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return formatDateInputValue(yesterday);
+};
+
+const isValidBirthDate = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split('-').map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+  const isRealDate = parsedDate.getFullYear() === year
+    && parsedDate.getMonth() === month - 1
+    && parsedDate.getDate() === day;
+
+  return isRealDate && value < formatDateInputValue(new Date());
+};
 
 function Profile() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Edit Profile States
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    displayName: '',
+    phoneNumber: '',
+    biologicalSex: 'female',
+    birthDate: ''
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Link/Unlink Google States
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
+  const [unlinkStep, setUnlinkStep] = useState(1);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [unlinkOTP, setUnlinkOTP] = useState('');
+  const [unlinkMessage, setUnlinkMessage] = useState('');
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      const data = await authService.getProfile();
+      setProfile(data.data || data); 
+      
+      const p = data.data || data;
+      setEditForm({
+        displayName: p.displayName || '',
+        phoneNumber: p.phoneNumber || '',
+        biologicalSex: p.biologicalSex || 'female',
+        birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
+      });
+    } catch (err) {
+      toast.error('Failed to load profile.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditChange = (e) => {
+    const { id, value } = e.target;
+    let key = id;
+    if (id === 'modalFullName') key = 'displayName';
+    if (id === 'modalPhone') key = 'phoneNumber';
+    if (id === 'modalSex') key = 'biologicalSex';
+    if (id === 'modalDob') key = 'birthDate';
+
+    setEditForm(prev => ({ ...prev, [key]: value }));
+    setEditErrors(prev => ({ ...prev, [key]: '' }));
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Avatar file must be less than 5MB.');
+        return;
+      }
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+
+    const displayName = editForm.displayName.trim();
+    const errors = {};
+
+    if (displayName.length < 3) {
+      errors.displayName = 'Full name must contain at least 3 characters.';
+    }
+
+    if (editForm.birthDate && !isValidBirthDate(editForm.birthDate)) {
+      errors.birthDate = 'Date of birth must be a valid date before today.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      toast.error('Please correct the highlighted profile fields.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('displayName', displayName);
+      if (editForm.phoneNumber) formData.append('phoneNumber', editForm.phoneNumber);
+      if (editForm.biologicalSex) formData.append('biologicalSex', editForm.biologicalSex);
+      if (editForm.birthDate) formData.append('birthDate', editForm.birthDate);
+      if (avatarFile) formData.append('avatar', avatarFile);
+
+      await authService.updateProfile(formData);
+      toast.success('Profile updated successfully!');
+      setEditErrors({});
+      setIsEditOpen(false);
+      fetchProfile();
+    } catch (err) {
+      toast.error('Failed to update profile.');
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const handleLinkGoogle = async (credentialResponse) => {
+    try {
+      await authService.linkGoogle({ idToken: credentialResponse.credential });
+      toast.success('Google account linked successfully!');
+      fetchProfile();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to link Google account.');
+    }
+  };
+
+  const handleSetPassword = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    try {
+      await authService.setPassword(passwordForm);
+      toast.success('Password set successfully!');
+      setIsPasswordModalOpen(false);
+      setIsUnlinkModalOpen(true);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to set password.');
+    }
+  };
+
+  const handleRequestUnlinkGoogle = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await authService.requestUnlinkGoogle({ currentPassword });
+      setUnlinkMessage(response.message || 'An OTP has been sent to your email.');
+      setUnlinkStep(2);
+    } catch (err) {
+      if ((err.response?.status === 400 || err.response?.status === 409) && (err.response?.data?.error?.includes('password') || err.response?.data?.error?.includes('tạo mật khẩu') || err.response?.data?.error?.includes('set a password'))) {
+        toast.error('Bạn cần tạo mật khẩu trước khi hủy liên kết Google.');
+        setIsUnlinkModalOpen(false);
+        setIsPasswordModalOpen(true);
+      } else {
+        toast.error(err.response?.data?.error || 'Failed to request unlink.');
+      }
+    }
+  };
+
+  const handleConfirmUnlinkGoogle = async (e) => {
+    e.preventDefault();
+    try {
+      await authService.confirmUnlinkGoogle({ otp: unlinkOTP });
+      toast.success('Google account unlinked successfully!');
+      setIsUnlinkModalOpen(false);
+      setUnlinkStep(1);
+      setCurrentPassword('');
+      setUnlinkOTP('');
+      fetchProfile();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to unlink Google account.');
+    }
+  };
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center text-primary-moss">Loading profile...</div>;
+  if (!profile) return <div className="min-h-screen flex items-center justify-center text-accent-beetroot">Error loading profile.</div>;
+
+  const getJoinedText = () => {
+    if (!profile?.createdAt) return 'Joined recently';
+    const date = new Date(profile.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 30) return `Joined ${diffDays === 0 ? 'today' : `${diffDays} days ago`}`;
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `Joined ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+    const diffYears = Math.floor(diffDays / 365);
+    return `Joined ${diffYears} year${diffYears > 1 ? 's' : ''} ago`;
+  };
+
+  const defaultAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80";
+
+  const userAvatar = getImageUrl(profile.avatarUrl) || defaultAvatar;
+  const currentAvatarPreview = avatarPreview || userAvatar;
+
   return (
+
     <>
       {/* BEGIN: MainHeader */}
-      <header className="bg-surface-paper border-b border-border-sage-mist sticky top-0 z-30 transition-colors">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link className="flex items-center gap-2.5 text-text-charcoal hover:opacity-90 transition group" data-purpose="brand-logo" to="/home">
-            <svg className="w-8 h-8 text-primary-moss transform group-hover:rotate-6 transition-transform" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-              <path d="M21 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-            </svg>
-            <span className="font-fraunces text-2xl font-bold tracking-tight text-text-charcoal">
-              Botanical Hearth
-            </span>
-          </Link>
-          <nav aria-label="Main Navigation" className="hidden md:flex items-center space-x-8">
-            <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" to="/home">
-              Home
-            </Link>
-            <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" to="/weekly-menu">
-              Weekly Menu
-            </Link>
-            <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" to="/vegan-stores">
-              Find Vegan Stores
-            </Link>
-            <Link className="text-sm font-medium text-text-stem-gray hover:text-primary-moss transition-colors" to="/my-posts">
-              My Posts
-            </Link>
-          </nav>
-          <div className="flex items-center justify-end gap-6" data-purpose="user-menu-container">
-            <div className="relative" data-purpose="notifications-container">
-              <button aria-expanded="false" aria-haspopup="true" className="relative w-9 h-9 rounded-full border border-border-sage-mist bg-surface-paper flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss focus:outline-none focus:ring-2 focus:ring-primary-moss/20 transition-all" id="notificationBtn" title="Notifications" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-primary-moss ring-2 ring-surface-paper"></span>
-              </button>
-              <div className="hidden absolute right-0 top-12 w-[360px] bg-surface-paper rounded-xl shadow-popover border border-border-sage-mist z-50 origin-top-right transition-all transform ease-out duration-150 overflow-hidden" id="notificationDropdown" role="menu">
-                <div className="px-4 py-3 border-b border-border-sage-mist flex items-center justify-between bg-surface-paper">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-text-charcoal text-sm">
-                      Notifications
-                    </h3>
-                    <span className="px-1.5 py-0.5 text-[11px] font-semibold bg-primary-moss/10 text-primary-moss rounded-full">
-                      2 new
-                    </span>
-                  </div>
-                  <button className="text-xs text-text-stem-gray hover:text-primary-moss transition-colors font-medium" type="button">
-                    Mark all as read
-                  </button>
-                </div>
-                <div className="divide-y divide-border-sage-mist/70 max-h-[380px] overflow-y-auto">
-                  <a className="flex items-start gap-3 p-3.5 bg-herb-white/70 hover:bg-herb-white transition-colors relative group" href="#">
-                    <span className="w-2 h-2 rounded-full bg-primary-moss mt-1.5 flex-shrink-0"></span>
-                    <div className="w-8 h-8 rounded-full bg-primary-moss/10 text-primary-moss flex items-center justify-center flex-shrink-0 font-medium text-xs">
-                      AL
-                    </div>
-                    <div className="flex-1 text-xs space-y-1">
-                      <p className="text-text-charcoal leading-relaxed">
-                        <span className="font-semibold">
-                          Anna Lin
-                        </span>
-                        liked your recipe
-                        <span className="font-medium text-primary-moss">
-                          'Silken Tofu Soup'
-                        </span>
-                      </p>
-                      <p className="text-[11px] text-text-stem-gray">
-                        5m ago
-                      </p>
-                    </div>
-                  </a>
-                  <a className="flex items-start gap-3 p-3.5 bg-herb-white/70 hover:bg-herb-white transition-colors relative group" href="#">
-                    <span className="w-2 h-2 rounded-full bg-primary-moss mt-1.5 flex-shrink-0"></span>
-                    <div className="w-8 h-8 rounded-full bg-accent-beetroot/10 text-accent-beetroot flex items-center justify-center flex-shrink-0 font-medium text-xs">
-                      CD
-                    </div>
-                    <div className="flex-1 text-xs space-y-1">
-                      <p className="text-text-charcoal leading-relaxed">
-                        <span className="font-semibold">
-                          Chef Duy
-                        </span>
-                        commented on your weekly plan
-                      </p>
-                      <p className="text-[11px] text-text-stem-gray">
-                        1h ago
-                      </p>
-                    </div>
-                  </a>
-                  <a className="flex items-start gap-3 p-3.5 bg-surface-paper hover:bg-herb-white transition-colors relative group" href="#">
-                    <span className="w-2 h-2 rounded-full bg-transparent mt-1.5 flex-shrink-0"></span>
-                    <div className="w-8 h-8 rounded-full bg-border-sage-mist/60 text-text-stem-gray flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
-                      </svg>
-                    </div>
-                    <div className="flex-1 text-xs space-y-1">
-                      <p className="text-text-stem-gray leading-relaxed">
-                        Your community post was successfully approved and published.
-                      </p>
-                      <p className="text-[11px] text-text-stem-gray/80">
-                        Yesterday
-                      </p>
-                    </div>
-                  </a>
-                </div>
-                <div className="p-2.5 border-t border-border-sage-mist text-center bg-surface-paper">
-                  <a className="inline-flex items-center justify-center text-xs font-medium text-primary-moss hover:underline" href="#">
-                    View all notifications
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div className="relative">
-              <button aria-expanded="false" aria-haspopup="true" className="w-9 h-9 rounded-full border border-border-sage-mist bg-surface-paper flex items-center justify-center text-text-stem-gray hover:text-primary-moss hover:border-primary-moss focus:outline-none focus:ring-2 focus:ring-primary-moss/20 transition-all" id="profileMenuBtn" type="button">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                  <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-              </button>
-              <div className="hidden absolute right-0 top-12 w-56 bg-surface-paper rounded-xl shadow-popover border border-border-sage-mist py-2 z-40 origin-top-right transition-all transform ease-out duration-150" id="profileDropdown" role="menu">
-                <div className="px-4 py-2 border-b border-border-sage-mist/60">
-                  <p className="text-xs font-medium text-text-stem-gray">
-                    Signed in as
-                  </p>
-                  <p className="text-sm font-semibold text-text-charcoal truncate">
-                    linh.nguyen@botanicalhearth.com
-                  </p>
-                </div>
-                <div className="py-1">
-                  <Link className="flex items-center px-4 py-2.5 text-sm font-medium text-primary-moss bg-herb-white/80 font-semibold" to="/profile" role="menuitem">
-                    <svg className="w-4 h-4 mr-3 text-primary-moss" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    My Profile
-                  </Link>
-                  <Link className="flex items-center px-4 py-2.5 text-sm text-text-charcoal hover:bg-herb-white hover:text-primary-moss transition-colors" to="/admin" role="menuitem">
-                    <svg className="w-4 h-4 mr-3 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    Admin Dashboard
-                  </Link>
-                </div>
-                <div className="border-t border-border-sage-mist my-1"></div>
-                <div className="py-1">
-                  <button className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-accent-beetroot hover:bg-red-50 transition-colors" role="menuitem" type="button">
-                    <svg className="w-4 h-4 mr-3 text-accent-beetroot" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    Log Out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <HeaderMember />
       {/* END: MainHeader */}
       {/* BEGIN: MainContent */}
       <main className="flex-grow py-10 px-4 sm:px-6">
@@ -167,21 +249,19 @@ function Profile() {
               {/* 80px Circular Avatar with Verified Badge */}
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 rounded-full border border-border-sage-mist bg-herb-white/70 flex items-center justify-center text-text-stem-gray">
-                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80" alt="Linh Phuong Nguyen" className="w-full h-full object-cover rounded-full" />
+                  <img src={userAvatar} alt={profile.displayName} className="w-full h-full object-cover rounded-full" />
                 </div>
                 {/* Green verified checkmark badge */}
                 <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary-moss text-white flex items-center justify-center ring-2 ring-surface-paper shadow-sm" title="Verified Member">
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
+                    <path clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fillRule="evenodd"></path>
                   </svg>
                 </span>
               </div>
               {/* Name, Chip Badge, Email, Timestamp */}
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="font-fraunces text-2xl font-bold text-text-charcoal tracking-tight">
-                    Linh Nguyen
-                  </h1>
+                  <h1 className="font-fraunces text-2xl font-bold text-text-charcoal tracking-tight">{profile.displayName}</h1>
                   {/* Subtle Community Member chip */}
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-herb-white text-text-stem-gray border border-border-sage-mist">
                     Community Member
@@ -189,29 +269,27 @@ function Profile() {
                 </div>
                 {/* Email address line */}
                 <div className="flex items-center text-sm text-text-stem-gray gap-2">
-                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
-                  <span className="">
-                    linh.nguyen@botanicalhearth.com
-                  </span>
+                  <span className="">{profile.email}</span>
                 </div>
                 {/* Timestamp line */}
                 <div className="flex items-center text-sm text-text-stem-gray gap-2">
-                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-4 h-4 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                   <span className="">
-                    Joined 4 months ago
+                    {getJoinedText()}
                   </span>
                 </div>
               </div>
             </div>
             {/* Right: Primary Action Button */}
             <div className="flex-shrink-0 self-start md:self-center">
-              <button className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition shadow-sm hover:shadow active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-moss" id="openEditProfileBtn" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" stroke-linecap="round" stroke-linejoin="round"></path>
+              <button onClick={() => setIsEditOpen(true)} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition shadow-sm hover:shadow active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-moss" id="openEditProfileBtn" type="button">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
                 <span className="">
                   Edit Profile
@@ -239,13 +317,11 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Full Name
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">
-                    Linh Phuong Nguyen
-                  </p>
+                  <p className="text-base font-semibold text-text-charcoal">{profile.displayName}</p>
                 </div>
                 <div className="text-text-stem-gray p-2">
-                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+                    <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
               </div>
@@ -255,9 +331,7 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Email
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">
-                    linh.nguyen@botanicalhearth.com
-                  </p>
+                  <p className="text-base font-semibold text-text-charcoal">{profile.email}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {/* Verified Badge */}
@@ -266,8 +340,8 @@ function Profile() {
                       Verified
                     </span>
                   </span>
-                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+                    <path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
               </div>
@@ -277,13 +351,11 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Phone Number
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">
-                    +84 912 345 678
-                  </p>
+                  <p className="text-base font-semibold text-text-charcoal">{profile.phoneNumber || "Not provided"}</p>
                 </div>
                 <div className="text-text-stem-gray p-2">
-                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+                    <path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
               </div>
@@ -293,13 +365,11 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Biological Sex
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">
-                    Female
-                  </p>
+                  <p className="text-base font-semibold text-text-charcoal">{profile.biologicalSex || "Not provided"}</p>
                 </div>
                 <div className="text-text-stem-gray p-2">
-                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+                    <path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
               </div>
@@ -309,19 +379,60 @@ function Profile() {
                   <p className="text-[13px] text-text-stem-gray font-normal">
                     Date of Birth
                   </p>
-                  <p className="text-base font-semibold text-text-charcoal">
-                    14/05/1992
-                  </p>
+                  <p className="text-base font-semibold text-text-charcoal">{formatCalendarDate(profile.birthDate) || "Not provided"}</p>
                 </div>
                 <div className="text-text-stem-gray p-2">
-                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-12 4.879m0 0a3 3 0 104.243 4.242 3 3 0 00-4.243-4.242zm12 0a3 3 0 104.243 4.242 3 3 0 00-4.243-4.242zM3.375 19.5h17.25" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <svg className="w-5 h-5 text-text-stem-gray" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+                    <path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-12 4.879m0 0a3 3 0 104.243 4.242 3 3 0 00-4.243-4.242zm12 0a3 3 0 104.243 4.242 3 3 0 00-4.243-4.242zM3.375 19.5h17.25" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
               </div>
             </div>
+
           </section>
-          {/* END: PersonalInformationCard */}
+          <section className="bg-surface-paper rounded-xl border border-border-sage-mist p-6 sm:p-8 shadow-subtle mt-6">
+            <div className="pb-6 border-b border-border-sage-mist/70 flex justify-between items-end">
+              <div>
+                <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-text-charcoal">Linked Accounts</h2>
+                <p className="text-sm text-text-stem-gray mt-1">Manage your connected login methods</p>
+              </div>
+            </div>
+            <div className="mt-6 space-y-4">
+              <div className="p-4 rounded-lg bg-herb-white/50 border border-border-sage-mist/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[13px] text-text-stem-gray font-normal">Google Account</p>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${(profile?.provider === 'google' || profile?.isGoogleLinked) ? 'bg-badge-green-bg text-badge-green-text border border-badge-green-text/20' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                      {(profile?.provider === 'google' || profile?.isGoogleLinked) ? 'Connected' : 'Not connected'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-text-charcoal">
+                    {(profile?.provider === 'google' || profile?.isGoogleLinked) 
+                      ? 'Your account is linked to Google.' 
+                      : 'Connect your Google account for quicker login'}
+                  </p>
+                </div>
+                <div>
+                  {!(profile?.provider === 'google' || profile?.isGoogleLinked) ? (
+                    <GoogleLogin
+                      onSuccess={handleLinkGoogle}
+                      onError={() => toast.error('Google login failed')}
+                      text="continue_with"
+                      shape="rectangular"
+                    />
+                  ) : (
+                    <div className="text-right">
+                      <button onClick={() => setIsUnlinkModalOpen(true)} className="px-4 py-2 text-sm border-2 border-accent-beetroot text-accent-beetroot rounded-lg hover:bg-accent-beetroot hover:text-white transition-colors font-semibold">
+                        Unlink Google
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+          </section>
+          {/* END: LinkedAccountsCard */}
         </div>
       </main>
       {/* END: MainContent */}
@@ -331,7 +442,7 @@ function Profile() {
           {/* Footer Brand & Mission */}
           <div className="flex items-center space-x-2">
             <span className="font-medium text-text-charcoal">
-              Botanical Hearth
+              Vegan Helper
             </span>
             <span className="text-border-sage-mist">
               •
@@ -384,8 +495,8 @@ function Profile() {
               </div>
             </div>
             <button className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition" id="closeAiChatBtn" type="button">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
             </button>
           </div>
@@ -400,7 +511,7 @@ function Profile() {
               </div>
               <div className="bg-surface-paper border border-border-sage-mist rounded-2xl rounded-tl-sm p-3 shadow-xs text-text-charcoal">
                 <p className="">
-                  Hello Linh! 👋 I'm your Botanical Hearth nutrition guide. How can I assist your plant-based meal planning today?
+                  Hello Linh! 👋 I'm your Vegan Helper nutrition guide. How can I assist your plant-based meal planning today?
                 </p>
               </div>
             </div>
@@ -427,8 +538,8 @@ function Profile() {
             <form className="flex items-center gap-2">
               <input className="flex-1 text-sm bg-herb-white/60 border border-border-sage-mist rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-moss/30 focus:border-primary-moss placeholder:text-text-stem-gray/70" placeholder="Ask AI nutrition assistant..." type="text" />
               <button className="w-9 h-9 rounded-full bg-primary-moss text-white flex items-center justify-center hover:bg-moss-hover transition shadow-sm flex-shrink-0" title="Send" type="submit">
-                <svg className="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                  <path d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg className="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <path d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </button>
             </form>
@@ -444,7 +555,7 @@ function Profile() {
       </div>
       {/* END: ChatbotFloatingComponent */}
       {/* BEGIN: EditProfileModal */}
-      <div className="fixed inset-0 z-50 pointer-events-auto hidden flex items-center justify-center p-4" id="edit-profile-modal-overlay">
+      <div className={`fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 ${isEditOpen ? "" : "hidden"}`} id="edit-profile-modal-overlay">
         {/* Sibling 1: Backdrop */}
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" id="editModalBackdrop"></div>
         {/* Sibling 2: Modal Content Box */}
@@ -459,20 +570,20 @@ function Profile() {
                 Update your account identity and contact details.
               </p>
             </div>
-            <button aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-colors duration-200" id="closeEditProfileBtn" type="button">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+            <button onClick={() => setIsEditOpen(false)} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-colors duration-200" id="closeEditProfileBtn" type="button">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
             </button>
           </div>
           {/* Modal Content */}
-          <form className="mt-5 space-y-4 font-sans" id="editProfileForm">
+          <form onSubmit={handleSaveProfile} className="mt-5 space-y-4 font-sans" id="editProfileForm">
             {/* Avatar Edit */}
             <div className="flex items-center gap-4 pb-2">
               <div className="relative w-16 h-16 rounded-full bg-[#EAEFE5] border border-border-sage-mist flex items-center justify-center text-text-stem-gray flex-shrink-0">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80" alt="Linh Phuong Nguyen" className="w-full h-full object-cover rounded-full" />
+                <img src={currentAvatarPreview} alt="Preview" className="w-full h-full object-cover rounded-full" />
                 <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary-moss text-white flex items-center justify-center ring-2 ring-surface-paper shadow-xs">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path>
                     <path d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"></path>
                     <path d="M18.75 10.5h.008v.008h-.008V10.5z"></path>
@@ -480,7 +591,7 @@ function Profile() {
                 </span>
               </div>
               <div>
-                <button className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-colors duration-200 shadow-2xs" type="button">
+                <button onClick={() => fileInputRef.current.click()} className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-colors duration-200 shadow-2xs" type="button"><input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} accept="image/png, image/jpeg" />
                   Change Photo
                 </button>
                 <p className="text-[11px] text-text-stem-gray mt-1">
@@ -493,7 +604,17 @@ function Profile() {
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalFullName">
                 Full Name
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalFullName" type="text" value="Linh Phuong Nguyen" />
+              <input
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
+                id="modalFullName"
+                type="text"
+                value={editForm.displayName}
+                minLength={3}
+                required
+                aria-invalid={Boolean(editErrors.displayName)}
+                onChange={handleEditChange}
+              />
+              {editErrors.displayName && <p className="mt-1 text-xs text-red-600">{editErrors.displayName}</p>}
             </div>
             {/* Email Address */}
             <div>
@@ -503,19 +624,19 @@ function Profile() {
                 </label>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-badge-green-bg text-badge-green-text text-[11px] font-medium border border-badge-green-text/20">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
+                    <path clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fillRule="evenodd"></path>
                   </svg>
                   Verified
                 </span>
               </div>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalEmail" type="email" value="linh.nguyen@botanicalhearth.com" />
+              <input className="w-full text-sm bg-gray-100 border border-border-sage-mist rounded-lg px-3 py-2 text-text-stem-gray cursor-not-allowed" id="modalEmail" type="email" value={profile.email} readOnly disabled />
             </div>
             {/* Phone Number */}
             <div>
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalPhone">
                 Phone Number
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value="+84 912 345 678" />
+              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value={editForm.phoneNumber} onChange={handleEditChange} />
             </div>
             {/* 2-Column Grid: Sex & DOB */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -523,28 +644,27 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalSex">
                   Biological Sex
                 </label>
-                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex">
-                  <option value="Male">
-                    Male
-                  </option>
-                  <option selected value="Female">
-                    Female
-                  </option>
-                  <option value="Other">
-                    Other
-                  </option>
-                </select>
+                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
                   Date of Birth
                 </label>
-                <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalDob" type="date" value="1992-05-14" />
+                <input
+                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
+                  id="modalDob"
+                  type="date"
+                  value={editForm.birthDate}
+                  max={getLatestValidBirthDate()}
+                  aria-invalid={Boolean(editErrors.birthDate)}
+                  onChange={handleEditChange}
+                />
+                {editErrors.birthDate && <p className="mt-1 text-xs text-red-600">{editErrors.birthDate}</p>}
               </div>
             </div>
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-2">
-              <button className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200" id="cancelEditProfileBtn" type="button">
+              <button onClick={() => setIsEditOpen(false)} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200" id="cancelEditProfileBtn" type="button">
                 Cancel
               </button>
               <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 shadow-sm" id="saveEditProfileBtn" type="submit">
@@ -555,6 +675,68 @@ function Profile() {
         </div>
       </div>
       {/* END: EditProfileModal */}
+
+      {/* Set Password Modal */}
+      <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isPasswordModalOpen ? "" : "hidden"}`}>
+        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => setIsPasswordModalOpen(false)}></div>
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+          <h3 className="font-caslon text-xl font-bold mb-4">Set Local Password</h3>
+          <p className="text-sm text-text-stem-gray mb-4">You need to set a local password before unlinking your Google account.</p>
+          <form onSubmit={handleSetPassword} className="space-y-4">
+            <div>
+              <label className="block text-xs mb-1">New Password</label>
+              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.newPassword} onChange={e => setPasswordForm(p => ({...p, newPassword: e.target.value}))} />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Confirm Password</label>
+              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(p => ({...p, confirmPassword: e.target.value}))} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-sm bg-primary-moss text-white rounded-lg">Save Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Unlink Modal */}
+      <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isUnlinkModalOpen ? "" : "hidden"}`}>
+        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }}></div>
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+          <h3 className="font-caslon text-xl font-bold mb-4">Unlink Google Account</h3>
+          
+          {unlinkStep === 1 ? (
+            <>
+              <p className="text-sm text-text-stem-gray mb-4">Please enter your password to confirm this action.</p>
+              <form onSubmit={handleRequestUnlinkGoogle} className="space-y-4">
+                <div>
+                  <label className="block text-xs mb-1">Current Password</label>
+                  <input type="password" required className="w-full border rounded-lg px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Continue</button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-text-stem-gray mb-4">{unlinkMessage}</p>
+              <form onSubmit={handleConfirmUnlinkGoogle} className="space-y-4">
+                <div>
+                  <label className="block text-xs mb-1">OTP</label>
+                  <input type="text" required className="w-full border rounded-lg px-3 py-2" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Confirm Unlink</button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* BEGIN: InteractiveScripts */}
       {/* TODO: script goc da bi loai bo, can port lai logic bang useState/useEffect */}
       {/* END: InteractiveScripts */}
