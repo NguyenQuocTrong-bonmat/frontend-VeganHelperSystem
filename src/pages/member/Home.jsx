@@ -8,12 +8,15 @@ import PostList from '../../components/home/PostList';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getPostsFeed, getCategories } from '../../services/postService';
 
+import useSavedPosts from '../../hooks/useSavedPosts';
+
 import heroBg from '../../assets/images/hero/hero-background.webp';
 import heroPho from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
 import heroSpringRolls from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
 import heroSalad from '../../assets/images/hero/hero-vietnamese-vegan-food.webp';
 
 function Home() {
+  const saved = useSavedPosts();
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -174,8 +177,8 @@ function Home() {
           </div>
         ) : (
           <>
-            <FeaturedPost post={posts[0]} isGuest={false} />
-            <PostList posts={posts.slice(1)} isGuest={false} />
+            <FeaturedPost post={posts[0]} isGuest={false} saved={saved} />
+            <PostList posts={posts.slice(1)} isGuest={false} saved={saved} />
           </>
         )}
       </main>

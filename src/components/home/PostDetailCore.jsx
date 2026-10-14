@@ -1,7 +1,9 @@
+import useSavedPosts from '../../hooks/useSavedPosts';
+import SaveButton from '../posts/SaveButton';
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories } from '../../services/postService';
-import { toggleLike, toggleSave } from '../../services/interactionService';
+import { toggleLike } from '../../services/interactionService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getTimeAgo } from '../../utils/dateUtils';
 import toast from 'react-hot-toast';
@@ -19,7 +21,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   // Local state for interactions since GET /posts/:id doesn't provide them initially
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [isSaved, setIsSaved] = useState(false);
+  const saved = useSavedPosts(!isGuest);
   
   const hasFetched = useRef(false);
 
@@ -75,30 +77,6 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       setIsLiked(previousIsLiked);
       setLikeCount(previousLikeCount);
       toast.error('Failed to update like status');
-    }
-  };
-
-  const handleSave = async () => {
-    if (isGuest) {
-      if (onAuthRequired) onAuthRequired();
-      return;
-    }
-    
-    // Optimistic UI update
-    const previousIsSaved = isSaved;
-    setIsSaved(!isSaved);
-    
-    try {
-      const response = await toggleSave(id);
-      // Update with authoritative response
-      setIsSaved(response.isSaved);
-      if (response.isSaved) {
-        toast.success('Recipe saved to your collection');
-      }
-    } catch (err) {
-      // Revert on error
-      setIsSaved(previousIsSaved);
-      toast.error('Failed to save recipe');
     }
   };
 
@@ -164,7 +142,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium text-[#2B2A25]">{post.authorName || 'Anonymous'}</span>
+              {post.authorId && !isGuest ? <Link className="font-medium text-[#2B2A25] break-words hover:underline" to={`/users/${post.authorId}`}>{post.authorName || 'Anonymous'}</Link> : <span className="font-medium text-[#2B2A25]">{post.authorName || 'Anonymous'}</span>}
               <span>•</span>
               <span>{getTimeAgo(post.createdAt)}</span>
             </div>
@@ -275,16 +253,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               <span className={`text-xs font-normal ml-0.5 ${isLiked ? 'text-white/80' : 'text-[#6B6F63]'}`}>{likeCount}</span>
             </button>
 
-            <button 
-              onClick={handleSave} 
-              type="button" 
-              className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isSaved ? 'bg-[#F3F6EE] border-[#2F5233] text-[#2F5233]' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
-            >
-              <svg className={`w-5 h-5 ${isSaved ? 'fill-current' : 'fill-none'}`} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
-              </svg>
-              <span>{isSaved ? 'Saved' : 'Save recipe'}</span>
-            </button>
+            {isGuest ? <button type="button" onClick={onAuthRequired} className="px-4 py-2 border rounded-lg">Save recipe</button> : <SaveButton postId={id} saved={saved} />}
           </div>
         </div>
 

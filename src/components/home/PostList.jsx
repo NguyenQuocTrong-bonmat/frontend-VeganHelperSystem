@@ -1,8 +1,9 @@
+import SaveButton from '../posts/SaveButton';
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
 
-export default function PostList({ posts = [], isGuest = false }) {
+export default function PostList({ posts = [], isGuest = false, saved }) {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.05 });
 
   if (!posts || posts.length === 0) return null;
@@ -105,6 +106,7 @@ export default function PostList({ posts = [], isGuest = false }) {
               </div>
             </div>
           </Link>
+          {!isGuest && saved && <div className="mt-3"><SaveButton postId={post.id} saved={saved} /></div>}
           </div>
         ))}
       </div>

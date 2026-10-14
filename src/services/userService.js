@@ -24,6 +24,12 @@ export async function searchUsers(params = {}) {
 }
 
 export async function getPublicProfile(userId) {
+  const value = String(userId);
+  if (!/^[1-9]\d*$/.test(value) || value.length > 19 || (value.length === 19 && value > '9223372036854775807')) {
+    const error = new Error("Invalid user ID.");
+    error.status = 400;
+    throw error;
+  }
   try {
     const response = await axiosInstance.get(`/users/${userId}/profile`);
     return response.data;

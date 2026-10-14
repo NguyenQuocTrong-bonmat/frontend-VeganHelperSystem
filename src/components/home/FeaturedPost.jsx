@@ -1,8 +1,9 @@
+import SaveButton from '../posts/SaveButton';
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
 
-export default function FeaturedPost({ post, isGuest = false }) {
+export default function FeaturedPost({ post, isGuest = false, saved }) {
   const { ref, isVisible } = useScrollReveal();
 
   if (!post) return null;
@@ -98,6 +99,7 @@ export default function FeaturedPost({ post, isGuest = false }) {
           </div>
         </div>
       </Link>
+      {!isGuest && saved && <div className="mt-3"><SaveButton postId={post.id} saved={saved} /></div>}
     </section>
   );
 }
