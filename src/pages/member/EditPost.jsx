@@ -266,10 +266,9 @@ export default function EditPost() {
                 type="file"
                 multiple
                 onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    setMediaFiles(prev => [...prev, ...Array.from(e.target.files)]);
-                  }
-                  e.target.value = null;
+                  const selectedFiles = Array.from(e.target.files || []);
+                  if (selectedFiles.length > 0) setMediaFiles(prev => [...prev, ...selectedFiles]);
+                  e.target.value = '';
                 }}
                 className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />

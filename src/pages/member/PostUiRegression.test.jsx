@@ -11,7 +11,7 @@ import { getPublicProfile } from '../../services/userService';
 import shopService from '../../services/shopService';
 import { authService } from '../../services/authService';
 import PostDetailCore from '../../components/home/PostDetailCore';
-import { getMyPosts, getPostDetail, getCategories } from '../../services/postService';
+import { getMyPosts, getPostDetail, getCategories, updatePost } from '../../services/postService';
 import { getComments } from '../../services/interactionService';
 
 vi.mock('../../services/userService', () => ({ getPublicProfile: vi.fn() }));
@@ -23,7 +23,7 @@ vi.mock('../../components/layout/Footer', () => ({ default: () => null }));
 vi.mock('../../components/chat/AIChatbot', () => ({ default: () => null }));
 vi.mock('./SavedPosts', () => ({ default: () => null }));
 vi.mock('../../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 7, username: 'owner', displayName: 'Owner' } }) }));
-vi.mock('../../services/postService', () => ({ getMyPosts: vi.fn(), getPostDetail: vi.fn(), getCategories: vi.fn(), deletePost: vi.fn() }));
+vi.mock('../../services/postService', () => ({ getMyPosts: vi.fn(), getPostDetail: vi.fn(), getCategories: vi.fn(), updatePost: vi.fn(), deletePost: vi.fn() }));
 vi.mock('../../services/interactionService', () => ({ getComments: vi.fn(), toggleSave: vi.fn(), toggleLike: vi.fn(), createComment: vi.fn(), updateComment: vi.fn(), deleteComment: vi.fn(), reportComment: vi.fn() }));
 
 let container, root;
@@ -32,7 +32,7 @@ beforeEach(() => {
   container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
   getCategories.mockResolvedValue([]);
 });
-afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.clearAllMocks(); });
+afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.clearAllMocks(); vi.unstubAllGlobals(); });
 
 test('My Posts displays actual likes beside views', async () => {
   getMyPosts.mockResolvedValue({ items: [{ id: 11, title: 'Recipe', viewCount: 7, likeCount: 24 }] });
@@ -133,4 +133,43 @@ test('a delayed 404 from a page already left cannot redirect the current page', 
   await act(async () => rejectPost(missing()));
   expect(container.textContent).toContain('Existing home');
   expect(container.textContent).not.toContain('Not found page');
+});
+
+test.each([true, false])('Strict Mode loads a post once for guest=%s, but counts a later visit again', async isGuest => {
+  getPostDetail.mockResolvedValue({ id: 11, authorId: 7, title: 'Recipe', postType: 'article', media: [] });
+  getComments.mockResolvedValue([]);
+  await act(async () => root.render(<React.StrictMode><MemoryRouter initialEntries={['/posts/11']}>
+    <Link to="/posts/11">First</Link><Link to="/posts/12">Second</Link>
+    <Routes><Route path="/posts/:id" element={<PostDetailCore isGuest={isGuest} />} /></Routes>
+  </MemoryRouter></React.StrictMode>));
+  expect(getPostDetail).toHaveBeenCalledTimes(1);
+  await act(async () => container.querySelectorAll('a')[1].click());
+  expect(getPostDetail).toHaveBeenCalledTimes(2);
+  await act(async () => container.querySelectorAll('a')[0].click());
+  expect(getPostDetail).toHaveBeenCalledTimes(3);
+});
+
+test('editing previews and submits multiple newly selected files after the input is reset', async () => {
+  getCategories.mockResolvedValue([{ id: 1, name: 'Recipes' }]);
+  getPostDetail.mockResolvedValue({ id: 11, title: 'Recipe', categoryId: 1, content: 'Cook vegetables', media: [
+    { id: 90, mediaUrl: '/old.jpg', mediaType: 'image' }
+  ] });
+  updatePost.mockResolvedValue({ id: 11 });
+  vi.stubGlobal('URL', class extends URL { static createObjectURL = vi.fn(file => `/preview/${file.name}`); });
+  await act(async () => root.render(<React.StrictMode><MemoryRouter initialEntries={['/posts/edit/11']}>
+    <Routes><Route path="/posts/edit/:id" element={<EditPost />} /><Route path="/my-posts" element={<p>Saved</p>} /></Routes>
+  </MemoryRouter></React.StrictMode>));
+  const input = container.querySelector('input[type="file"]');
+  // A native file input clears its live FileList when its value is reset.
+  let selected = [];
+  Object.defineProperty(input, 'files', { configurable: true, get: () => selected });
+  Object.defineProperty(input, 'value', { configurable: true, get: () => '', set: () => { selected = []; } });
+  const files = [new File(['a'], 'a.jpg', { type: 'image/jpeg' }), new File(['b'], 'b.mp4', { type: 'video/mp4' })];
+  for (const file of files) {
+    await act(async () => { selected = [file]; input.dispatchEvent(new Event('change', { bubbles: true })); });
+  }
+  expect(container.querySelector('img[src="/preview/a.jpg"]')).not.toBeNull();
+  expect(container.querySelector('video[src="/preview/b.mp4"]')).not.toBeNull();
+  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  expect(updatePost).toHaveBeenCalledWith('11', expect.objectContaining({ mediaFiles: files, mediaIdsToRemove: [] }));
 });

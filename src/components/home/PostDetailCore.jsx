@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories } from '../../services/postService';
 import {
@@ -28,6 +28,7 @@ const countComments = (comments) => comments.reduce(
 function PostDetailCore({ isGuest, onAuthRequired }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const detailRequest = useRef(null);
   
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +65,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
     async function loadPost() {
       try {
-        const data = await getPostDetail(id);
+        // Reuse the request during Strict Mode's effect replay, not across later visits.
+        if (detailRequest.current?.id !== id) {
+          detailRequest.current = { id, promise: getPostDetail(id) };
+        }
+        const data = await detailRequest.current.promise;
         if (cancelled) return;
         setPost(data);
         setIsLiked(Boolean(data.isLiked));
