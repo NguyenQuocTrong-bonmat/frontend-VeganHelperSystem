@@ -1,12 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import AuthSessionStatus from './AuthSessionStatus';
 
 export default function ProtectedRoute({ children, requireAdmin = false }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, restoreError } = useAuth();
   const location = useLocation();
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-[#2F5233] font-medium">Loading...</div>;
+  if (isLoading || restoreError) {
+    return <AuthSessionStatus />;
   }
 
   if (!isAuthenticated) {
