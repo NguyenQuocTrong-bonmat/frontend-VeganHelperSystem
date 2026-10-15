@@ -74,6 +74,9 @@ jobs:
     if: vars.AZURE_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check deployment token
         env:
@@ -93,11 +96,22 @@ jobs:
           name: frontend-build
           path: build/
 
+      - name: Get GitHub identity token
+        id: github_identity
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          result-encoding: string
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            return token;
+
       - name: Deploy to Azure Static Web Apps
         id: azure_deploy
         uses: Azure/static-web-apps-deploy@4d27395796ac319302594769cfe812bd207490b1 # Official default branch, verified 2026-10-14
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.github_identity.outputs.result }}
           action: upload
           app_location: build
           api_location: ''

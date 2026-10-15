@@ -221,6 +221,8 @@ Mở Overview, copy **FE URL HTTPS** Azure cấp. Không cần mua domain để 
 
 Static Web App → **Overview → Manage deployment token** → copy token; không chọn Reset nếu chỉ cần lấy token hiện tại. Token có quyền deploy site, nên chỉ nhập trực tiếp vào GitHub secret của đúng repo. [Deployment token](https://learn.microsoft.com/en-us/azure/static-web-apps/deployment-token-management)
 
+Nếu Static Web App có `deploymentAuthPolicy: GitHub`, workflow FE cần gửi thêm GitHub identity token (OIDC), bên cạnh deployment token. Workflow hiện đã cấp `id-token: write` riêng cho job deploy, lấy token bằng `core.getIDToken()` và truyền qua `github_id_token`; không cần tạo thêm GitHub secret cho token này. Kiểm tra ứng dụng Azure liên kết đúng repo FE và branch `main`. Khi cập nhật workflow, đưa bản sửa vào `main` rồi tạo lần chạy mới; rerun một lần chạy cũ vẫn dùng workflow cũ. Nếu chỉ truyền deployment token trong khi ứng dụng yêu cầu GitHub identity, Azure có thể báo `No matching Static Web App was found or the api key was invalid`. Không thể kết luận token đã đúng chỉ vì secret không rỗng. [Chính sách xác thực deploy và mẫu GitHub OIDC](https://learn.microsoft.com/en-us/azure/static-web-apps/build-configuration#security)
+
 Repo **FE** → **Settings → Secrets and variables → Actions → Secrets**:
 
 | Tên secret | Giá trị |
