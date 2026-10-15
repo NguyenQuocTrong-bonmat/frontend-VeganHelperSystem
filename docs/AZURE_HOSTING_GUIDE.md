@@ -11,7 +11,7 @@ Hướng dẫn dành cho hai repo hiện tại và tài khoản Azure for Studen
 | Database | Supabase PostgreSQL hiện tại | CI dùng PostgreSQL local riêng | Không tự migrate/seed |
 | Ảnh/avatar | Cloudflare R2 hiện tại | Test không gọi storage thật | Giữ R2 |
 
-File BE: `.github/workflows/backend.yml`. File FE: `.github/workflows/frontend.yml` và `public/staticwebapp.config.json`.
+File BE: `.github/workflows/backend.yml`. File FE: `.github/workflows/azure-static-web-apps-thankful-tree-0363a2d00.yml` và `public/staticwebapp.config.json`.
 
 BE restore → build Release → unit/integration test → publish → upload artifact. FE `npm ci` → test → build → kiểm tra SPA config → upload artifact. Job deploy chỉ chạy sau CI thành công, trên `main`, khi repository variable `AZURE_DEPLOY_ENABLED` bằng chuỗi `true`. Push vào `developer`/`dev` và PR không deploy.
 
@@ -222,6 +222,8 @@ Mở Overview, copy **FE URL HTTPS** Azure cấp. Không cần mua domain để 
 Static Web App → **Overview → Manage deployment token** → copy token; không chọn Reset nếu chỉ cần lấy token hiện tại. Token có quyền deploy site, nên chỉ nhập trực tiếp vào GitHub secret của đúng repo. [Deployment token](https://learn.microsoft.com/en-us/azure/static-web-apps/deployment-token-management)
 
 Nếu Static Web App có `deploymentAuthPolicy: GitHub`, workflow FE cần gửi thêm GitHub identity token (OIDC), bên cạnh deployment token. Workflow hiện đã cấp `id-token: write` riêng cho job deploy, lấy token bằng `core.getIDToken()` và truyền qua `github_id_token`; không cần tạo thêm GitHub secret cho token này. Kiểm tra ứng dụng Azure liên kết đúng repo FE và branch `main`. Khi cập nhật workflow, đưa bản sửa vào `main` rồi tạo lần chạy mới; rerun một lần chạy cũ vẫn dùng workflow cũ. Nếu chỉ truyền deployment token trong khi ứng dụng yêu cầu GitHub identity, Azure có thể báo `No matching Static Web App was found or the api key was invalid`. Không thể kết luận token đã đúng chỉ vì secret không rỗng. [Chính sách xác thực deploy và mẫu GitHub OIDC](https://learn.microsoft.com/en-us/azure/static-web-apps/build-configuration#security)
+
+Với GitHub OIDC, Azure còn dùng **tên file workflow** để nhận diện Static Web App. Ứng dụng hiện tại có URL `https://thankful-tree-0363a2d00.3.azurestaticapps.net`, nên file phải mang tên `azure-static-web-apps-thankful-tree-0363a2d00.yml`. Giữ nguyên tên này, không đổi thành `frontend.yml`; tên hiển thị trong Actions vẫn là **Frontend CI/CD**. Chỉ giữ một workflow FE để tránh chạy trùng. Đổi tên file phải được merge vào `main` trước khi tạo lần chạy mới; không rerun lần chạy từ file cũ. Đối chiếu link **Edit workflow** ở Azure Overview nếu ứng dụng được thay thế hoặc chuyển sang Static Web App khác.
 
 Repo **FE** → **Settings → Secrets and variables → Actions → Secrets**:
 
