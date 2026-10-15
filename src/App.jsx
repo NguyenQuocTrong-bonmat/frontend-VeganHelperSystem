@@ -45,6 +45,7 @@ import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQ
 
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import GuestRoute from './components/layout/GuestRoute'
 import { Toaster } from 'react-hot-toast'
 import NotFound from './pages/NotFound.jsx'
 
@@ -54,8 +55,8 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* Guest */}
-        <Route path="/" element={<HomeGuest />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<GuestRoute><HomeGuest /></GuestRoute>} />
+        <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/forgot-password" element={<ForgotPasswordResetPassword />} />

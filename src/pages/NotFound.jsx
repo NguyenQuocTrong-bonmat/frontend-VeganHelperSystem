@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/layout/Footer';
 
 export default function NotFound() {
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const heading = useRef(null);
   const home = isAuthenticated ? '/home' : '/';
 
@@ -15,11 +14,6 @@ export default function NotFound() {
     heading.current?.focus();
     return () => { document.title = previousTitle; };
   }, []);
-
-  const goBack = () => {
-    if (window.history.state?.idx > 0) navigate(-1);
-    else navigate(home, { replace: true });
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-vh-cream font-dm-sans text-vh-text-primary">
@@ -49,9 +43,6 @@ export default function NotFound() {
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9" /></svg>
               Back to home
             </Link>
-            <button type="button" onClick={goBack} className="inline-flex min-h-12 items-center justify-center rounded-control border border-vh-border px-6 py-3 text-sm font-semibold text-vh-forest transition-colors hover:bg-vh-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2">
-              Go back
-            </button>
           </div>
         </section>
       </main>

@@ -89,9 +89,6 @@ function MyPosts() {
                 {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
               </div>
             )}
-            <div className="absolute -bottom-2 -right-2 bg-vh-forest text-white w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-sm font-dm-sans font-bold text-sm">
-              {posts.length}
-            </div>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-dm-serif text-vh-text-primary mb-2">

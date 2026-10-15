@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '../services/authService';
 import { getAccessToken, storeAuthTokens, clearAuthTokens } from '../utils/authStorage';
 
@@ -8,6 +8,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [restoreError, setRestoreError] = useState(false);
+  const restoring = useRef(false);
 
   const parseRoleFromToken = (token) => {
     if (!token) return null;
@@ -29,27 +31,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const token = getAccessToken();
-      if (token) {
-        try {
-          // If token exists, fetch user profile to verify and load data
-          const profile = await authService.getProfile();
-          const role = parseRoleFromToken(token);
-          
-          setUser({ ...profile, role });
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error("Auth check failed:", error);
-          clearAuthTokens();
-        }
+  const restoreSession = useCallback(async () => {
+    if (restoring.current) return;
+    restoring.current = true;
+    setIsLoading(true);
+    setRestoreError(false);
+    if (getAccessToken()) {
+      try {
+        const profile = await authService.getProfile();
+        const role = parseRoleFromToken(getAccessToken());
+        setUser({ ...profile, role });
+        setIsAuthenticated(true);
+      } catch (error) {
+        if ([400, 401, 403].includes(error.response?.status)) clearAuthTokens();
+        else setRestoreError(true);
       }
-      setIsLoading(false);
-    };
-
-    initAuth();
+    }
+    restoring.current = false;
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => { restoreSession(); }, [restoreSession]);
 
   const login = async (credentials) => {
     const { rememberMe, ...apiCredentials } = credentials;
@@ -81,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, restoreError, restoreSession, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

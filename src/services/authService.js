@@ -1,5 +1,6 @@
 import axiosInstance from '../lib/axios';
 import { getRefreshToken, clearAuthTokens } from '../utils/authStorage';
+import { disableBrowserPush } from './browserPushService';
 
 export const authService = {
   // FN02: Đăng nhập hệ thống
@@ -58,6 +59,8 @@ export const authService = {
 
   // FN03: Đăng xuất
   logout: async () => {
+    try { await disableBrowserPush(); }
+    catch { console.warn('Browser push cleanup could not be fully confirmed during logout.'); }
     try {
       const refreshToken = getRefreshToken();
       await axiosInstance.post('/auth/logout', { refreshToken });

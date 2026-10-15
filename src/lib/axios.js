@@ -19,6 +19,8 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (config.headers) {
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -55,6 +57,7 @@ axiosInstance.interceptors.response.use(
     }
 
     if (isRefreshing) {
+      originalRequest._retry = true;
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       }).then((token) => {
@@ -77,20 +80,21 @@ axiosInstance.interceptors.response.use(
     }
 
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+      const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 10000 });
       const rememberMe = Boolean(localStorage.getItem('refreshToken'));
       storeAuthTokens(data, rememberMe);
       const newAccessToken = data.accessToken;
 
-      axiosInstance.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       processQueue(null, newAccessToken);
       return axiosInstance(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError);
-      clearAuthTokens();
-      window.location.href = '/login';
+      if ([400, 401, 403].includes(refreshError.response?.status)) {
+        clearAuthTokens();
+        window.location.href = '/login';
+      }
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
