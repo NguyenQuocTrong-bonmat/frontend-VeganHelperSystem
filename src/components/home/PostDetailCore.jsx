@@ -11,9 +11,12 @@ import {
   toggleSave,
 } from '../../services/interactionService';
 import { getImageUrl } from '../../utils/imageUtils';
-import { getTimeAgo } from '../../utils/dateUtils';
+import { getTimeAgo, formatDate, formatDateTime } from '../../utils/dateUtils';
 import { isNotFoundError } from '../../utils/errorUtils';
+import ImageLightbox from '../ui/ImageLightbox';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import UserProfilePreview from './UserProfilePreview';
 
 const asArray = (value) => {
   if (Array.isArray(value)) return value;
@@ -29,11 +32,23 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const detailRequest = useRef(null);
+
+  let authUser = null;
+  let isAdmin = false;
+  try {
+    const auth = useAuth();
+    authUser = auth?.user;
+    isAdmin = String(auth?.user?.role || auth?.user?.roleName || '').toLowerCase() === 'admin';
+  } catch {
+    authUser = null;
+    isAdmin = false;
+  }
   
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('Recipe');
   
   const [isLiked, setIsLiked] = useState(false);
@@ -52,6 +67,26 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [editCommentText, setEditCommentText] = useState('');
   const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
   const [reportingCommentId, setReportingCommentId] = useState(null);
+  const [profilePreview, setProfilePreview] = useState({
+    isOpen: false,
+    userId: null,
+    initialUser: null,
+    triggerEl: null,
+  });
+
+  const handleOpenProfilePreview = (authorData, triggerEl, e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (!authorData?.id) return;
+    setProfilePreview({
+      isOpen: true,
+      userId: authorData.id,
+      initialUser: authorData,
+      triggerEl: triggerEl || null,
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -188,7 +223,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
     const content = (parentCommentId === null ? commentText : replyText).trim();
     if (!content) {
-      toast.error('Comment content is required.');
+      toast.error(parentCommentId ? 'Reply content is required.' : 'Comment content is required.');
       return;
     }
     if (content.length > 500) {
@@ -201,7 +236,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       const created = await createComment(id, { content, parentCommentId });
       const status = String(created?.status || '').toLowerCase();
       if (status === 'hidden') {
-        toast.success('Your comment was submitted for moderation.');
+        toast.success(parentCommentId ? 'Your reply was submitted for moderation review.' : 'Your comment was submitted for moderation review.');
       } else {
         toast.success(parentCommentId ? 'Reply posted.' : 'Comment posted.');
       }
@@ -245,7 +280,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     try {
       const updated = await updateComment(id, commentId, content);
       if (String(updated?.status || '').toLowerCase() === 'hidden') {
-        toast.success('Your edited comment was submitted for moderation.');
+        toast.success('Your edited comment was submitted for moderation review.');
       } else {
         toast.success('Comment updated.');
       }
@@ -261,28 +296,64 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     }
   };
 
-  const handleCommentDelete = async (commentId) => {
+  const handleCommentDelete = async (comment, isOwner) => {
     if (isGuest) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
-    if (!window.confirm('Delete this comment? Replies will remain in the conversation.')) return;
 
-    setCommentActionLoadingId(commentId);
-    try {
-      await deleteComment(id, commentId);
-      toast.success('Comment deleted.');
-      if (editingCommentId === commentId) {
-        setEditingCommentId(null);
-        setEditCommentText('');
+    const commentId = comment.id;
+
+    if (isOwner) {
+      if (!window.confirm('Delete this comment? Replies will remain in the conversation.')) return;
+
+      setCommentActionLoadingId(commentId);
+      try {
+        await deleteComment(id, commentId);
+        toast.success('Comment deleted.');
+        if (editingCommentId === commentId) {
+          setEditingCommentId(null);
+          setEditCommentText('');
+        }
+        const refreshed = await getComments(id, { maxDepth: 4 });
+        setComments(asArray(refreshed));
+        setCommentsError('');
+      } catch (err) {
+        toast.error(err.message || 'Failed to delete comment.');
+      } finally {
+        setCommentActionLoadingId(null);
       }
-      const refreshed = await getComments(id, { maxDepth: 4 });
-      setComments(asArray(refreshed));
-      setCommentsError('');
-    } catch (err) {
-      toast.error(err.message || 'Failed to delete comment.');
-    } finally {
-      setCommentActionLoadingId(null);
+    } else if (isAdmin) {
+      const promptReason = window.prompt('Admin Deletion: Please provide a reason for deleting this comment (required):');
+      if (promptReason === null) return;
+      const reason = promptReason.trim();
+      if (!reason) {
+        toast.error('A reason is required when an administrator deletes a comment.');
+        return;
+      }
+      if (reason.length > 500) {
+        toast.error('Deletion reason must not exceed 500 characters.');
+        return;
+      }
+
+      if (!window.confirm(`Are you sure you want to delete this comment as Administrator?\nReason: ${reason}`)) return;
+
+      setCommentActionLoadingId(commentId);
+      try {
+        await deleteComment(id, commentId, reason);
+        toast.success('Comment deleted by administrator.');
+        if (editingCommentId === commentId) {
+          setEditingCommentId(null);
+          setEditCommentText('');
+        }
+        const refreshed = await getComments(id, { maxDepth: 4 });
+        setComments(asArray(refreshed));
+        setCommentsError('');
+      } catch (err) {
+        toast.error(err.message || 'Failed to delete comment.');
+      } finally {
+        setCommentActionLoadingId(null);
+      }
     }
   };
 
@@ -292,8 +363,13 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       return;
     }
 
-    const reason = window.prompt('Why are you reporting this comment?')?.trim();
-    if (!reason) return;
+    const promptReason = window.prompt('Why are you reporting this comment? (required):');
+    if (promptReason === null) return;
+    const reason = promptReason.trim();
+    if (!reason) {
+      toast.error('A reason is required to report this comment.');
+      return;
+    }
     if (reason.length > 500) {
       toast.error('Report reason must be between 1 and 500 characters.');
       return;
@@ -302,49 +378,153 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     setReportingCommentId(commentId);
     try {
       const result = await reportComment(id, commentId, reason);
-      toast.success(result.message || 'Report submitted for review.');
-      if (result.commentHidden) {
+      toast.success(result?.message || 'Report submitted for review.');
+      if (result?.commentHidden) {
         const refreshed = await getComments(id, { maxDepth: 4 });
         setComments(asArray(refreshed));
         setCommentsError('');
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to report comment.');
+      if (err.status === 409 || err.message?.includes('already reported') || err.message?.includes('Duplicate')) {
+        toast.error('You have already reported this comment.');
+      } else {
+        toast.error(err.message || 'Failed to report comment.');
+      }
     } finally {
       setReportingCommentId(null);
     }
   };
 
   const renderComment = (comment) => {
-    const depth = Number(comment.depth) || 1;
+    const isDeleted = Boolean(comment.isDeleted ?? comment.IsDeleted);
+    const isReplyToDeleted = Boolean(comment.isReplyToDeleted ?? comment.IsReplyToDeleted);
+    const replyToDisplayName = comment.replyToDisplayName ?? comment.ReplyToDisplayName;
+    const content = comment.content ?? comment.Content;
+    const status = String(comment.status ?? comment.Status ?? '').toLowerCase();
+    const depth = Number(comment.depth ?? comment.Depth) || 1;
+    const isMine = Boolean(
+      comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id))
+    );
+    const updatedAt = comment.updatedAt ?? comment.UpdatedAt;
+
+    // A non-deleted comment with status="hidden" must not be exposed publicly
+    if (!isDeleted && status === 'hidden') {
+      return null;
+    }
+
     const canReply = depth < 4;
     const isEditing = editingCommentId === comment.id;
     const isActionLoading = commentActionLoadingId === comment.id;
     const isReporting = reportingCommentId === comment.id;
+    const indentStyle = { marginLeft: `${Math.min(depth - 1, 3) * 1.25}rem` };
+
+    // Tombstone row for deleted comments
+    if (isDeleted) {
+      return (
+        <div key={comment.id} className="space-y-3">
+          <div
+            className="bg-[#F8FAF6] border border-dashed border-[#DCE3D5] rounded-xl px-4 py-3 flex items-center gap-2.5 text-xs text-[#6B6F63] italic"
+            style={indentStyle}
+            data-testid={`comment-tombstone-${comment.id}`}
+          >
+            <svg className="w-4 h-4 text-[#8C9283] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+            <span>{content || 'This comment has been deleted.'}</span>
+          </div>
+          {comment.replies?.length > 0 && (
+            <div className="space-y-3">{comment.replies.map(renderComment)}</div>
+          )}
+        </div>
+      );
+    }
+
+    const commentAuthorId = comment.userId ?? comment.UserId;
+
     return (
       <div key={comment.id} className="space-y-3">
-        <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4" style={{ marginLeft: `${Math.min(depth - 1, 3) * 1.25}rem` }}>
+        <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4" style={indentStyle}>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
-              {comment.avatarUrl ? (
-                <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
-              ) : (
-                <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <circle cx="12" cy="7" r="4"></circle>
-                  <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-                </svg>
-              )}
-            </div>
+            {commentAuthorId ? (
+              <button
+                type="button"
+                onClick={(e) =>
+                  handleOpenProfilePreview(
+                    {
+                      id: commentAuthorId,
+                      displayName: comment.authorName,
+                      avatarUrl: comment.avatarUrl,
+                    },
+                    e.currentTarget,
+                    e
+                  )
+                }
+                className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] hover:border-[#2F5233] flex items-center justify-center overflow-hidden cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                aria-label={`View profile of ${comment.authorName || 'commenter'}`}
+              >
+                {comment.avatarUrl ? (
+                  <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <circle cx="12" cy="7" r="4"></circle>
+                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+                  </svg>
+                )}
+              </button>
+            ) : (
+              <div className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
+                {comment.avatarUrl ? (
+                  <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <circle cx="12" cy="7" r="4"></circle>
+                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+                  </svg>
+                )}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6F63]">
-                <span className="font-semibold text-[#2B2A25]">{comment.authorName || 'Anonymous'}</span>
-                {post.authorId != null && comment.userId != null && String(comment.userId) === String(post.authorId) && (
+                {commentAuthorId ? (
+                  <button
+                    type="button"
+                    onClick={(e) =>
+                      handleOpenProfilePreview(
+                        {
+                          id: commentAuthorId,
+                          displayName: comment.authorName,
+                          avatarUrl: comment.avatarUrl,
+                        },
+                        e.currentTarget,
+                        e
+                      )
+                    }
+                    className="font-semibold text-[#2B2A25] hover:text-[#2F5233] hover:underline cursor-pointer transition-colors text-left focus-visible:outline-none"
+                  >
+                    {comment.authorName || 'Anonymous'}
+                  </button>
+                ) : (
+                  <span className="font-semibold text-[#2B2A25]">{comment.authorName || 'Anonymous'}</span>
+                )}
+                {post.authorId != null && (comment.userId != null || comment.UserId != null) && String(comment.userId ?? comment.UserId) === String(post.authorId) && (
                   <span className="px-1.5 py-0.5 rounded bg-vh-mint text-vh-forest font-medium">Author</span>
                 )}
-                {comment.isMine && <span className="px-1.5 py-0.5 rounded bg-[#E9EFE6] text-[#2F5233]">You</span>}
+                {isMine && <span className="px-1.5 py-0.5 rounded bg-[#E9EFE6] text-[#2F5233] font-medium">You</span>}
                 <span>•</span>
-                <span>{getTimeAgo(comment.createdAt)}</span>
+                <span title={formatDateTime(comment.createdAt)}>{getTimeAgo(comment.createdAt) || formatDate(comment.createdAt)}</span>
+
+                {/* Reply parent reference */}
+                {isReplyToDeleted ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-[#6B6F63] bg-[#E9EFE6]/70 border border-[#DCE3D5]/60 px-2 py-0.5 rounded italic">
+                    Replying to a deleted comment
+                  </span>
+                ) : replyToDisplayName ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-[#2F5233] bg-[#E9EFE6] border border-[#DCE3D5]/60 px-2 py-0.5 rounded font-medium">
+                    Replying to @{replyToDisplayName}
+                  </span>
+                ) : null}
               </div>
+
               {isEditing ? (
                 <form onSubmit={(event) => handleCommentEditSubmit(event, comment.id)} className="mt-3 space-y-2">
                   <textarea
@@ -352,7 +532,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     onChange={(event) => setEditCommentText(event.target.value)}
                     maxLength={500}
                     rows="3"
-                    className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none"
+                    className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[72px]"
                     disabled={isActionLoading}
                     autoFocus
                   />
@@ -370,67 +550,97 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       >
                         Cancel
                       </button>
-                      <button type="submit" disabled={isActionLoading} className="px-3 py-1.5 bg-[#2F5233] text-white text-xs font-medium rounded-lg disabled:opacity-60">
+                      <button type="submit" disabled={isActionLoading || !editCommentText.trim()} className="px-3 py-1.5 bg-[#2F5233] text-white text-xs font-medium rounded-lg disabled:opacity-60">
                         {isActionLoading ? 'Saving...' : 'Save'}
                       </button>
                     </div>
                   </div>
                 </form>
               ) : (
-                <p className={`mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed ${comment.isDeleted ? 'italic text-[#6B6F63]' : 'text-[#2B2A25]'}`}>
-                  {comment.content}
-                  {!comment.isDeleted && comment.updatedAt && <span className="ml-2 text-xs text-[#6B6F63]">(edited)</span>}
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[#2B2A25]">
+                  {content}
+                  {updatedAt && <span className="ml-2 text-xs text-[#6B6F63] italic">(edited)</span>}
                 </p>
               )}
-              {comment.isMine && !comment.isDeleted && !isEditing && (
-                <div className="mt-3 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCommentId(comment.id);
-                      setEditCommentText(comment.content || '');
-                    }}
-                    disabled={isActionLoading}
-                    className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] disabled:opacity-60"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCommentDelete(comment.id)}
-                    disabled={isActionLoading}
-                    className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
-                  >
-                    {isActionLoading ? 'Deleting...' : 'Delete'}
-                  </button>
+
+              {/* Action controls */}
+              {!isEditing && (
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  {canReply && !isGuest && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                        setReplyText('');
+                      }}
+                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F]"
+                    >
+                      {replyingTo === comment.id ? 'Cancel reply' : 'Reply'}
+                    </button>
+                  )}
+                  {canReply && isGuest && (
+                    <button type="button" onClick={onAuthRequired} className="text-xs font-medium text-[#2F5233] hover:text-[#25401F]">
+                      Log in to reply
+                    </button>
+                  )}
+                  {!canReply && (
+                    <span className="text-[11px] text-[#6B6F63]/80 italic">
+                      Maximum reply depth reached
+                    </span>
+                  )}
+
+                  {/* Owner Edit */}
+                  {isMine && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCommentId(comment.id);
+                        setEditCommentText(content || '');
+                      }}
+                      disabled={isActionLoading}
+                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] disabled:opacity-60"
+                    >
+                      Edit
+                    </button>
+                  )}
+
+                  {/* Owner Delete */}
+                  {isMine && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommentDelete(comment, true)}
+                      disabled={isActionLoading}
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                    >
+                      {isActionLoading ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+
+                  {/* Admin Delete (Only for other users' comments) */}
+                  {isAdmin && !isMine && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommentDelete(comment, false)}
+                      disabled={isActionLoading}
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                      title="Delete as Administrator (requires reason)"
+                    >
+                      {isActionLoading ? 'Deleting...' : 'Delete (Admin)'}
+                    </button>
+                  )}
+
+                  {/* Report (Non-owner, non-admin only) */}
+                  {!isMine && !isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommentReport(comment.id)}
+                      disabled={isReporting}
+                      className="text-xs font-medium text-[#6B6F63] hover:text-[#A63446] disabled:opacity-60"
+                    >
+                      {isReporting ? 'Reporting...' : 'Report'}
+                    </button>
+                  )}
                 </div>
-              )}
-              {!comment.isMine && !comment.isDeleted && !isEditing && (
-                <button
-                  type="button"
-                  onClick={() => handleCommentReport(comment.id)}
-                  disabled={isReporting}
-                  className="mt-3 ml-3 text-xs font-medium text-[#6B6F63] hover:text-[#A63446] disabled:opacity-60"
-                >
-                  {isReporting ? 'Reporting...' : 'Report'}
-                </button>
-              )}
-              {canReply && !isGuest && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReplyingTo(replyingTo === comment.id ? null : comment.id);
-                    setReplyText('');
-                  }}
-                  className="mt-3 text-xs font-medium text-[#2F5233] hover:text-[#25401F]"
-                >
-                  {replyingTo === comment.id ? 'Cancel reply' : 'Reply'}
-                </button>
-              )}
-              {canReply && isGuest && (
-                <button type="button" onClick={onAuthRequired} className="mt-3 text-xs font-medium text-[#2F5233] hover:text-[#25401F]">
-                  Log in to reply
-                </button>
               )}
             </div>
           </div>
@@ -442,15 +652,28 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 onChange={(event) => setReplyText(event.target.value)}
                 maxLength={500}
                 rows="2"
-                placeholder="Write a reply..."
-                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none"
+                placeholder={`Reply to ${comment.authorName || 'user'}...`}
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[64px]"
                 disabled={commentSubmitting}
+                autoFocus
               />
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs text-[#6B6F63]">{replyText.length}/500</span>
-                <button type="submit" disabled={commentSubmitting} className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors">
-                  {commentSubmitting ? 'Posting...' : 'Post Reply'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReplyingTo(null);
+                      setReplyText('');
+                    }}
+                    className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233]"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={commentSubmitting || !replyText.trim()} className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors">
+                    {commentSubmitting ? 'Posting...' : 'Post Reply'}
+                  </button>
+                </div>
               </div>
             </form>
           )}
@@ -504,20 +727,57 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
         <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-y border-[#DCE3D5] text-[13px] text-[#6B6F63]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#FDFBF6] border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] overflow-hidden">
-              {post.authorAvatarUrl ? (
-                <img src={getImageUrl(post.authorAvatarUrl)} alt={post.authorName} className="w-full h-full object-cover" />
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              )}
-            </div>
+            {post.authorId ? (
+              <button
+                type="button"
+                onClick={(e) =>
+                  handleOpenProfilePreview(
+                    {
+                      id: post.authorId,
+                      displayName: post.authorName,
+                      avatarUrl: post.authorAvatarUrl,
+                    },
+                    e.currentTarget,
+                    e
+                  )
+                }
+                className="flex items-center gap-3 group/author text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-full p-0.5 -m-0.5"
+                aria-label={`View profile of ${post.authorName || 'author'}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-[#FDFBF6] border border-[#DCE3D5] group-hover/author:border-[#2F5233] flex items-center justify-center text-[#6B6F63] overflow-hidden transition-colors">
+                  {post.authorAvatarUrl ? (
+                    <img src={getImageUrl(post.authorAvatarUrl)} alt={post.authorName} className="w-full h-full object-cover group-hover/author:scale-105 transition-transform" />
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  )}
+                </div>
+                <span className="font-medium text-[#2B2A25] group-hover/author:text-[#2F5233] group-hover/author:underline transition-colors">
+                  {post.authorName || 'Anonymous'}
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#FDFBF6] border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] overflow-hidden">
+                  {post.authorAvatarUrl ? (
+                    <img src={getImageUrl(post.authorAvatarUrl)} alt={post.authorName} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  )}
+                </div>
+                <span className="font-medium text-[#2B2A25]">{post.authorName || 'Anonymous'}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
-              <span className="font-medium text-[#2B2A25]">{post.authorName || 'Anonymous'}</span>
               <span>•</span>
-              <span>{getTimeAgo(post.createdAt)}</span>
+              <time dateTime={post.createdAt} title={formatDateTime(post.createdAt)} className="text-[#6B6F63]">
+                {formatDate(post.createdAt)}
+              </time>
             </div>
           </div>
           <div className="flex items-center gap-5">
@@ -537,7 +797,31 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               {post.media[activeMediaIndex].mediaType === 'video' ? (
                 <video className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.media[activeMediaIndex].mediaUrl)} controls />
               ) : (
-                <img src={getImageUrl(post.media[activeMediaIndex].mediaUrl)} alt="Media" className="absolute inset-0 w-full h-full object-cover" />
+                <div
+                  className="w-full h-full cursor-zoom-in group/img relative"
+                  onClick={() => setIsLightboxOpen(true)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Enlarge image"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsLightboxOpen(true);
+                    }
+                  }}
+                >
+                  <img
+                    src={getImageUrl(post.media[activeMediaIndex].mediaUrl)}
+                    alt={post.title || "Recipe photo"}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover/img:scale-[1.01]"
+                  />
+                  <div className="absolute bottom-4 right-4 z-10 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs text-xs flex items-center gap-1.5 opacity-90 group-hover/img:opacity-100 transition-opacity">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                    </svg>
+                    <span>Enlarge</span>
+                  </div>
+                </div>
               )}
               
               {post.media.length > 1 && (
@@ -656,7 +940,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
                 maxLength={500}
-                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-none" 
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[84px]" 
                 rows="3" 
                 placeholder="Share your thoughts or questions..."
                 disabled={commentSubmitting}
@@ -695,6 +979,26 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           )}
         </section>
       </article>
+
+      <ImageLightbox
+        isOpen={isLightboxOpen}
+        src={post?.media?.[activeMediaIndex]?.mediaType !== 'video' ? getImageUrl(post?.media?.[activeMediaIndex]?.mediaUrl) : null}
+        alt={post?.title || 'Recipe photo'}
+        onClose={() => setIsLightboxOpen(false)}
+      />
+
+      {/* Profile Preview Popover */}
+      {profilePreview.isOpen && (
+        <UserProfilePreview
+          isOpen={profilePreview.isOpen}
+          onClose={() => setProfilePreview({ isOpen: false, userId: null, initialUser: null, triggerEl: null })}
+          userId={profilePreview.userId}
+          initialUser={profilePreview.initialUser}
+          triggerEl={profilePreview.triggerEl}
+          isGuest={isGuest}
+          onAuthRequired={onAuthRequired}
+        />
+      )}
     </main>
   );
 }

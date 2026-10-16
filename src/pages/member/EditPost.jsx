@@ -123,7 +123,7 @@ export default function EditPost() {
       return;
     }
     if (!content.trim()) {
-      setErrorMessage('Please enter recipe description or content.');
+      setErrorMessage('Please enter post content.');
       return;
     }
 
@@ -132,7 +132,6 @@ export default function EditPost() {
 
       const payload = {
         title: title.trim(),
-        postType: 'recipe',
         categoryId: parseInt(categoryId, 10),
         content: content.trim(),
         difficultyLevel,
@@ -146,7 +145,7 @@ export default function EditPost() {
       };
       
       await updatePost(id, payload);
-      toast.success('Recipe updated successfully!');
+      toast.success('Post updated successfully!');
       navigate('/my-posts');
     } catch (err) {
       console.error('Submit post error:', err);
@@ -167,10 +166,10 @@ export default function EditPost() {
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="mb-8 text-center">
           <h1 className="font-dm-serif text-3xl sm:text-4xl text-vh-forest font-normal mb-2">
-            Refine Your Recipe
+            Edit Post
           </h1>
           <p className="text-vh-text-secondary text-sm sm:text-base">
-            Update and perfect your botanical creation.
+            Update and refine your post.
           </p>
         </div>
 
@@ -186,18 +185,18 @@ export default function EditPost() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-vh-text-secondary font-medium">Loading recipe details...</p>
+            <p className="text-vh-text-secondary font-medium">Loading post details...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
           
-          {/* Recipe Information */}
+          {/* Post Information */}
           <section className="space-y-6">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Recipe Information</h2>
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Post Information</h2>
             
             <div>
               <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                Recipe Title <span className="text-vh-error">*</span>
+                Title <span className="text-vh-error">*</span>
               </label>
               <input
                 type="text"
@@ -344,7 +343,7 @@ export default function EditPost() {
 
           {/* Cooking Details */}
           <section className="space-y-6">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details</h2>
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details (Optional)</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-vh-text-primary mb-2">
@@ -389,7 +388,7 @@ export default function EditPost() {
 
           {/* Ingredients */}
           <section className="space-y-4">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Ingredients</h2>
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Ingredients (Optional)</h2>
             <div className="space-y-3">
               {ingredients.map((ing, idx) => (
                 <div key={idx} className="flex gap-3 group items-center">
@@ -399,7 +398,7 @@ export default function EditPost() {
                     value={ing}
                     onChange={(e) => handleIngredientChange(e.target.value, idx)}
                     placeholder="e.g. 2 cups of fresh basil"
-                    className="flex-1 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
                   />
                   {ingredients.length > 1 && (
                     <button
@@ -430,7 +429,7 @@ export default function EditPost() {
 
           {/* Cooking Instructions */}
           <section className="space-y-4">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Instructions</h2>
+            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Step-by-Step Instructions (Optional)</h2>
             <div className="space-y-3">
               {steps.map((st, idx) => (
                 <div key={idx} className="flex gap-3 group items-start">
@@ -440,7 +439,7 @@ export default function EditPost() {
                     value={st}
                     onChange={(e) => handleStepChange(e.target.value, idx)}
                     placeholder="Describe this step..."
-                    className="flex-1 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
                   />
                   {steps.length > 1 && (
                     <button

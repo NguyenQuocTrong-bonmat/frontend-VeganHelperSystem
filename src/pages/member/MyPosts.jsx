@@ -4,10 +4,12 @@ import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { deletePost, getMyPosts, getCategories } from '../../services/postService';
-import { toggleSave } from '../../services/interactionService';
+import { getFollowStatus, getFollowers, getFollowing } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
+import { formatDate } from '../../utils/dateUtils';
 import SavedPosts from './SavedPosts';
+import FollowListModal from '../../components/home/FollowListModal';
 
 function MyPosts() {
   const navigate = useNavigate();
@@ -15,17 +17,129 @@ function MyPosts() {
   
   const [activeTab, setActiveTab] = useState('my-posts');
   const [posts, setPosts] = useState([]);
+  const [totalPostsCount, setTotalPostsCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [postToDelete, setPostToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [categories, setCategories] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Followers & Following state
+  const [followStats, setFollowStats] = useState({
+    followersCount: null,
+    followingCount: null,
+    loading: true,
+  });
+
+  const [followListModal, setFollowListModal] = useState({
+    isOpen: false,
+    initialTab: 'followers',
+  });
+
+  // Load followers and following counts
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+
+    async function loadFollowStats() {
+      try {
+        let status = null;
+        try {
+          if (typeof getFollowStatus === 'function') {
+            status = await getFollowStatus(user.id);
+          }
+        } catch {
+          // getFollowStatus returns 400 for self profile on backend; fall back to count methods
+          status = null;
+        }
+
+        if (!cancelled && status && typeof status.followersCount === 'number') {
+          setFollowStats({
+            followersCount: status.followersCount ?? 0,
+            followingCount: status.followingCount ?? 0,
+            loading: false,
+          });
+          return;
+        }
+
+        // Fetch counts directly from getFollowers and getFollowing pagination endpoints
+        const [followersRes, followingRes] = await Promise.allSettled([
+          getFollowers(user.id, 1, 1),
+          getFollowing(user.id, 1, 1),
+        ]);
+
+        if (!cancelled) {
+          const followersCount = followersRes.status === 'fulfilled'
+            ? (followersRes.value?.totalCount ?? followersRes.value?.totalItems ?? (followersRes.value?.items?.length ?? 0))
+            : (user?.followersCount ?? 0);
+          const followingCount = followingRes.status === 'fulfilled'
+            ? (followingRes.value?.totalCount ?? followingRes.value?.totalItems ?? (followingRes.value?.items?.length ?? 0))
+            : (user?.followingCount ?? 0);
+
+          setFollowStats({
+            followersCount,
+            followingCount,
+            loading: false,
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to load follow status:', err);
+      }
+      if (!cancelled) {
+        setFollowStats({
+          followersCount: user?.followersCount ?? 0,
+          followingCount: user?.followingCount ?? 0,
+          loading: false,
+        });
+      }
+    }
+
+    loadFollowStats();
+    return () => { cancelled = true; };
+  }, [user?.id, user?.followersCount, user?.followingCount]);
+
+  // Synchronize follow counts when follow events occur across the application
+  useEffect(() => {
+    const handleFollowChanged = () => {
+      if (!user?.id) return;
+      Promise.allSettled([
+        getFollowers(user.id, 1, 1),
+        getFollowing(user.id, 1, 1),
+      ]).then(([followersRes, followingRes]) => {
+        const followersCount = followersRes.status === 'fulfilled'
+          ? (followersRes.value?.totalCount ?? followersRes.value?.totalItems ?? (followersRes.value?.items?.length ?? 0))
+          : (user?.followersCount ?? 0);
+        const followingCount = followingRes.status === 'fulfilled'
+          ? (followingRes.value?.totalCount ?? followingRes.value?.totalItems ?? (followingRes.value?.items?.length ?? 0))
+          : (user?.followingCount ?? 0);
+
+        setFollowStats({
+          followersCount,
+          followingCount,
+          loading: false,
+        });
+      }).catch(() => {});
+    };
+
+    window.addEventListener('veganhelper:follow-changed', handleFollowChanged);
+    return () => window.removeEventListener('veganhelper:follow-changed', handleFollowChanged);
+  }, [user?.id, user?.followersCount, user?.followingCount]);
+
+  // Load user's published posts
   useEffect(() => {
     async function loadMyPosts() {
       try {
         const data = await getMyPosts({ pageIndex: 1, pageSize: 50 });
-        setPosts(data.items || []);
+        const items = data.items || (Array.isArray(data) ? data : []);
+        setPosts(items);
+
+        // Authoritative pagination total
+        const serverTotal = typeof data.totalCount === 'number'
+          ? data.totalCount
+          : (typeof data.totalItems === 'number' ? data.totalItems : items.length);
+        setTotalPostsCount(serverTotal);
+
         try {
           const catsData = await getCategories();
           const catsList = Array.isArray(catsData) ? catsData : catsData.items || [];
@@ -45,25 +159,13 @@ function MyPosts() {
     loadMyPosts();
   }, []);
 
-  const getTimeAgo = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 60) return `${diffMins} minutes ago`;
-    const diffHrs = Math.floor(diffMins / 60);
-    if (diffHrs < 24) return `${diffHrs} hours ago`;
-    const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays} days ago`;
-  };
-
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;
     try {
       setIsDeleting(true);
       await deletePost(postToDelete.id);
-      setPosts(posts.filter(p => p.id !== postToDelete.id));
+      setPosts((prev) => prev.filter(p => p.id !== postToDelete.id));
+      setTotalPostsCount((prev) => Math.max(0, (prev ?? posts.length) - 1));
       setPostToDelete(null);
     } catch (err) {
       console.error('Delete error:', err);
@@ -73,204 +175,397 @@ function MyPosts() {
     }
   };
 
+  // Distinct count of published vs draft posts if drafts are present
+  const publishedList = posts.filter(p => !p.isDraft && String(p.status || '').toLowerCase() !== 'draft');
+  const draftList = posts.filter(p => p.isDraft || String(p.status || '').toLowerCase() === 'draft');
+  const displayPostCount = totalPostsCount !== null ? totalPostsCount : posts.length;
+
+  const followersDisplay = followStats.loading && followStats.followersCount === null ? (
+    <span className="inline-block w-6 h-5 bg-vh-mint/60 rounded animate-pulse" />
+  ) : (
+    followStats.followersCount ?? user?.followersCount ?? 0
+  );
+
+  const followingDisplay = followStats.loading && followStats.followingCount === null ? (
+    <span className="inline-block w-6 h-5 bg-vh-mint/60 rounded animate-pulse" />
+  ) : (
+    followStats.followingCount ?? user?.followingCount ?? 0
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-vh-cream">
+    <div className="min-h-screen flex flex-col bg-[#FAF8F0]">
       <HeaderMember />
-      {errorMessage && <p role="alert" className="mx-auto w-full max-w-[1200px] px-6 pt-4 text-red-700">{errorMessage} <Link to="/login" className="underline">Log in</Link></p>}
       
-      {/* PAGE HEADER */}
-      <div className="w-full bg-gradient-to-br from-vh-mint/40 to-vh-cream border-b border-vh-border/50">
-        <div className="max-w-[1200px] mx-auto px-6 py-12 md:py-16 flex flex-col items-center text-center">
-          <div className="relative mb-6">
-            {user?.avatarUrl ? (
-              <img src={getImageUrl(user.avatarUrl)} alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md" />
-            ) : (
-              <div className="w-28 h-28 rounded-full border-4 border-white shadow-md flex items-center justify-center bg-vh-mint text-4xl font-dm-serif text-vh-forest">
-                {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-              </div>
-            )}
+      {errorMessage && (
+        <div className="mx-auto w-full max-w-[1040px] px-6 pt-4">
+          <div role="alert" className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between">
+            <span>{errorMessage}</span>
+            <Link to="/login" className="underline font-semibold ml-2 hover:text-red-900">Log in</Link>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl font-dm-serif text-vh-text-primary mb-2">
-            My Recipe Garden
-          </h1>
-          <p className="text-[16px] font-dm-sans text-vh-text-secondary mb-8">
-            @{user?.username || 'user'} • Manage your culinary creations
-          </p>
-          
-          <div className="flex items-center justify-center gap-8 md:gap-12 bg-white/60 backdrop-blur-sm border border-vh-border/60 px-10 py-4 rounded-full shadow-sm">
-            <div className="flex flex-col items-center">
-              <span className="font-dm-serif text-2xl text-vh-text-primary">{posts.length}</span>
-              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Posts</span>
+        </div>
+      )}
+
+      {/* COMPACT SOCIAL PROFILE HEADER (Instagram & Facebook Inspired) */}
+      <section className="w-full bg-[#FAF8F0] border-b border-[#DCE5D9]">
+        <div className="max-w-[1040px] mx-auto px-6 pt-8 pb-8 md:pt-10 md:pb-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10">
+            {/* Avatar Column */}
+            <div className="shrink-0">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-[#E9EFE6] ring-1 ring-[#DCE5D9] flex items-center justify-center">
+                {user?.avatarUrl ? (
+                  <img
+                    src={getImageUrl(user.avatarUrl)}
+                    alt={user.displayName || 'Avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-fraunces text-4xl sm:text-5xl font-bold text-[#2F5233] bg-[#E9EFE6] select-none">
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="w-px h-10 bg-vh-border"></div>
-            <div className="flex flex-col items-center">
-              <span className="font-dm-serif text-2xl text-vh-text-primary">{user?.followersCount || 0}</span>
-              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Followers</span>
-            </div>
-            <div className="w-px h-10 bg-vh-border"></div>
-            <div className="flex flex-col items-center">
-              <span className="font-dm-serif text-2xl text-vh-text-primary">{user?.followingCount || 0}</span>
-              <span className="text-[11px] font-dm-sans text-vh-text-secondary font-bold uppercase tracking-wider mt-1">Following</span>
+
+            {/* Profile Info Column */}
+            <div className="flex-1 text-center md:text-left min-w-0">
+              {/* Name, Username & Quick Actions Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
+                <div className="flex items-center justify-center md:justify-start gap-2.5 flex-wrap">
+                  <h1 className="font-fraunces text-2xl sm:text-3xl font-semibold text-[#2B2A25] tracking-tight">
+                    {user?.displayName || 'Creator'}
+                  </h1>
+                  {user?.dietType && (
+                    <span className="text-xs font-semibold capitalize px-2.5 py-0.5 rounded-full bg-[#F3F6EE] text-[#2F5233] border border-[#DCE3D5]">
+                      🌱 {user.dietType.replace(/_/g, ' ')}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-center md:justify-start gap-2.5">
+                  <Link
+                    to="/profile"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] text-xs font-semibold font-dm-sans transition-colors shadow-xs cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                    </svg>
+                    <span>Edit Profile</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/posts/create')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white text-xs font-semibold font-dm-sans transition-colors shadow-xs cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span>Write Recipe</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Handle and Bio */}
+              <div className="space-y-1.5 mb-4">
+                <p className="text-sm font-medium text-[#6B6F63]">
+                  @{user?.username || 'user'}
+                </p>
+                <p className="text-sm text-[#4E5246] max-w-xl font-dm-sans leading-relaxed">
+                  {user?.bio || "Culinary garden & plant-based kitchen recipes. Sharing wholesome vegan inspiration with the community."}
+                </p>
+              </div>
+
+              {/* Social Relationship & Content Statistics Row */}
+              <div className="flex items-center justify-center md:justify-start gap-6 sm:gap-8 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-fraunces font-bold text-lg text-[#2B2A25]">
+                    {displayPostCount}
+                  </span>
+                  <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-wider">
+                    Posts
+                  </span>
+                </div>
+
+                <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
+
+                <button
+                  type="button"
+                  onClick={() => setFollowListModal({ isOpen: true, initialTab: 'followers' })}
+                  className="flex items-center gap-1.5 hover:text-[#2F5233] transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5"
+                  title="View your followers"
+                >
+                  <span className="font-fraunces font-bold text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                    {followersDisplay}
+                  </span>
+                  <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
+                    Followers
+                  </span>
+                </button>
+
+                <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
+
+                <button
+                  type="button"
+                  onClick={() => setFollowListModal({ isOpen: true, initialTab: 'following' })}
+                  className="flex items-center gap-1.5 hover:text-[#2F5233] transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5"
+                  title="View who you are following"
+                >
+                  <span className="font-fraunces font-bold text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                    {followingDisplay}
+                  </span>
+                  <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
+                    Following
+                  </span>
+                </button>
+
+                {draftList.length > 0 && (
+                  <>
+                    <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                      {draftList.length} Draft{draftList.length > 1 ? 's' : ''}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* TABS NAVIGATION */}
-      <div className="w-full bg-white border-b border-vh-border sticky top-16 z-30 shadow-sm">
-        <div className="max-w-[1200px] mx-auto px-6">
+      {/* PROFILE NAVIGATION TABS */}
+      <nav className="w-full bg-white border-b border-[#DCE5D9] sticky top-16 z-30 shadow-xs" aria-label="Profile Sections">
+        <div className="max-w-[1040px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <button
+              type="button"
               onClick={() => setActiveTab('my-posts')}
-              className={`h-14 px-2 font-dm-sans font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'my-posts' ? 'border-vh-forest text-vh-forest' : 'border-transparent text-vh-text-secondary hover:text-vh-forest'}`}
+              className={`h-13 px-2 font-dm-sans font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
+                activeTab === 'my-posts'
+                  ? 'border-[#2F5233] text-[#2F5233]'
+                  : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
+              }`}
             >
-              My Posts
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+              <span>Published Recipes</span>
+              <span className="text-xs px-2 py-0.2 rounded-full bg-[#F3F6EE] text-[#2F5233] font-medium border border-[#DCE3D5]">
+                {displayPostCount}
+              </span>
             </button>
+
             <button
+              type="button"
               onClick={() => setActiveTab('saved')}
-              className={`h-14 px-2 font-dm-sans font-medium text-[15px] border-b-2 transition-colors focus:outline-none ${activeTab === 'saved' ? 'border-vh-forest text-vh-forest' : 'border-transparent text-vh-text-secondary hover:text-vh-forest'}`}
+              className={`h-13 px-2 font-dm-sans font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
+                activeTab === 'saved'
+                  ? 'border-[#2F5233] text-[#2F5233]'
+                  : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
+              }`}
             >
-              Saved Recipes
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+              <span>Saved Recipes</span>
+              <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#E9EFE6] text-[#2F5233] font-medium">
+                Private
+              </span>
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN CONTENT AREA */}
       {activeTab === 'my-posts' ? (
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-dm-serif text-3xl font-medium text-vh-text-primary">
-            Published Recipes
-          </h2>
-          <button 
-            onClick={() => navigate('/posts/create')}
-            className="flex items-center gap-2 bg-vh-forest text-white px-5 py-2.5 rounded-full font-dm-sans text-[14px] font-medium hover:bg-vh-sage hover:text-vh-forest transition-colors shadow-sm cursor-pointer"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-            Write Recipe
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="w-full py-20 flex flex-col items-center justify-center text-vh-text-secondary gap-4">
-            <div className="w-10 h-10 border-4 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
-            <p className="font-dm-sans">Loading your garden...</p>
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card-lg border border-vh-border/50">
-            <div className="w-20 h-20 mb-6 bg-vh-mint rounded-full flex items-center justify-center text-4xl">🪴</div>
-            <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">Your garden is empty</h3>
-            <p className="font-dm-sans text-vh-text-secondary mb-8 max-w-md">You haven't shared any recipes or videos yet. Start planting seeds of inspiration for the community.</p>
-            <button 
-              onClick={() => navigate('/posts/create')} 
-              className="px-8 py-3 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage transition-colors shadow-sm"
-            >
-              Create Your First Post
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map(post => (
-              <div 
-                key={post.id} 
-                className="flex flex-col bg-vh-surface border border-vh-border/50 rounded-card-lg overflow-hidden hover:shadow-lg hover:shadow-vh-sage/20 transition-all duration-normal ease-vh group" 
-              >
-                <div 
-                  className="relative w-full h-56 bg-vh-mint overflow-hidden cursor-pointer"
-                  onClick={() => navigate(`/posts/${post.id}`)}
-                >
-                  {post.thumbnailUrl ? (
-                    <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-slow group-hover:scale-[1.05]" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-dm-sans text-vh-text-secondary text-sm">No Image</div>
-                  )}
-                  <div className="absolute top-3 left-3 px-3 py-1 bg-white/70 backdrop-blur-md rounded-full border border-white/50 text-vh-forest font-dm-sans text-xs font-medium shadow-sm">
-                    {categories[post.categoryId] || post.categoryName || post.category?.name || 'Recipe'}
-                  </div>
-                </div>
-                
-                <div className="flex-1 flex flex-col justify-between p-5 bg-gradient-to-b from-vh-surface to-vh-cream/30">
-                  <div onClick={() => navigate(`/posts/${post.id}`)} className="cursor-pointer">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xs font-dm-sans text-vh-text-secondary">
-                        {getTimeAgo(post.createdAt)}
-                      </span>
-                    </div>
-                    <h3 className="font-dm-serif text-xl font-medium text-vh-text-primary mb-2 leading-snug group-hover:text-vh-forest transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-[15px] leading-relaxed font-dm-sans text-vh-text-secondary line-clamp-2 mb-4">
-                      {post.content}
-                    </p>
-                  </div>
-                  
-                  <div className="pt-4 border-t border-vh-border/60 flex items-center justify-between text-[13px] font-dm-sans">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-vh-text-secondary">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        <strong>{post.viewCount || 0}</strong>
-                      </span>
-                      <span className="flex items-center gap-1 text-vh-error" aria-label={`${post.likeCount ?? 0} likes`} title="Likes">
-                        <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
-                        <strong>{post.likeCount ?? 0}</strong>
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); navigate(`/posts/edit/${post.id}`); }} 
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-vh-mint text-vh-forest hover:bg-vh-forest hover:text-white transition-colors border border-vh-border/50" 
-                        title="Edit post"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setPostToDelete({ id: post.id }); }} 
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors border border-red-100" 
-                        title="Delete post"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        <main className="flex-1 w-full max-w-[1040px] mx-auto px-6 py-10">
+          {loading ? (
+            <div className="w-full py-20 flex flex-col items-center justify-center text-[#6B6F63] gap-4">
+              <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
+              <p className="font-dm-sans text-sm">Gathering your garden harvest...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="w-full py-20 px-6 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-[#DCE5D9] shadow-xs">
+              <div className="w-20 h-20 mb-5 bg-[#F3F6EE] rounded-full flex items-center justify-center text-4xl shadow-inner border border-[#DCE3D5]">
+                🪴
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+              <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
+                Your garden is ready to bloom
+              </h2>
+              <p className="font-dm-sans text-[#6B6F63] text-sm mb-7 max-w-md">
+                You haven't published any recipes yet. Share your favorite plant-based creations and nourish the community.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/posts/create')}
+                className="px-6 py-2.5 bg-[#2F5233] hover:bg-[#25401F] text-white rounded-full font-dm-sans text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+              >
+                Create Your First Recipe
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+              {posts.map((post) => (
+                <article
+                  key={post.id}
+                  className="flex flex-col bg-white border border-[#DCE5D9] rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 group"
+                >
+                  {/* Photo Container */}
+                  <div
+                    className="relative w-full aspect-[4/3] bg-[#E9EFE6] overflow-hidden cursor-pointer"
+                    onClick={() => navigate(`/posts/${post.id}`)}
+                  >
+                    {post.thumbnailUrl ? (
+                      <img
+                        src={getImageUrl(post.thumbnailUrl)}
+                        alt={post.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-dm-sans text-[#6B6F63] text-xs">
+                        No Image
+                      </div>
+                    )}
+                    
+                    {/* Category Overlay Tag */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/85 backdrop-blur-xs rounded-full border border-white/60 text-[#2F5233] font-dm-sans text-[11px] font-semibold shadow-xs">
+                      {categories[post.categoryId] || post.categoryName || post.category?.name || 'Recipe'}
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="flex-1 flex flex-col justify-between p-4 sm:p-5">
+                    <div onClick={() => navigate(`/posts/${post.id}`)} className="cursor-pointer">
+                      <div className="flex items-center gap-2 mb-2 text-xs text-[#6B6F63] font-medium">
+                        <time dateTime={post.createdAt}>
+                          {formatDate(post.createdAt)}
+                        </time>
+                      </div>
+
+                      <h3 className="font-fraunces text-lg font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-1">
+                        {post.title}
+                      </h3>
+
+                      <p className="text-xs leading-relaxed font-dm-sans text-[#6B6F63] line-clamp-2 mb-4">
+                        {post.content}
+                      </p>
+                    </div>
+
+                    {/* Footer Stats & Owner Controls */}
+                    <div className="pt-3 border-t border-[#DCE5D9]/70 flex items-center justify-between text-xs font-dm-sans">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-[#6B6F63]" title="Views">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <strong className="font-semibold text-[#2B2A25]">{post.viewCount || 0}</strong>
+                        </span>
+
+                        <span
+                          className="flex items-center gap-1 text-[#D9534F]"
+                          aria-label={`${post.likeCount ?? 0} likes`}
+                          title="Likes"
+                        >
+                          <svg aria-hidden="true" className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                          <strong className="font-semibold text-[#2B2A25]">{post.likeCount ?? 0}</strong>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/posts/edit/${post.id}`);
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#F3F6EE] hover:bg-[#2F5233] text-[#2F5233] hover:text-white transition-colors border border-[#DCE3D5] cursor-pointer"
+                          title="Edit post"
+                          aria-label={`Edit ${post.title}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPostToDelete({ id: post.id, title: post.title });
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors border border-red-100 cursor-pointer"
+                          title="Delete post"
+                          aria-label={`Delete ${post.title}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </main>
       ) : (
         <SavedPosts isComponent={true} />
       )}
 
-      {/* DELETE MODAL OVERLAY */}
+      {/* DELETE CONFIRMATION MODAL OVERLAY */}
       {postToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-vh-text-primary/40 backdrop-blur-sm p-4">
-          <div className="bg-vh-surface border border-vh-border rounded-card p-6 w-full max-w-sm shadow-xl">
-            <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-3">Delete Recipe?</h3>
-            <p className="font-dm-sans text-vh-text-secondary text-[15px] mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
-            <div className="flex gap-3 justify-end">
-              <button 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-recipe-title"
+            className="bg-[#FDFBF6] border border-[#DCE5D9] rounded-2xl p-6 w-full max-w-sm shadow-xl animate-in zoom-in-95"
+          >
+            <h3 id="delete-recipe-title" className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2">
+              Delete Recipe?
+            </h3>
+            <p className="font-dm-sans text-[#6B6F63] text-sm mb-6">
+              Are you sure you want to delete {postToDelete.title ? `"${postToDelete.title}"` : 'this recipe'}? This action cannot be undone.
+            </p>
+            <div className="flex gap-2.5 justify-end">
+              <button
+                type="button"
                 onClick={() => setPostToDelete(null)}
-                className="px-5 py-2 rounded-full font-dm-sans text-[14px] font-medium text-vh-text-secondary hover:bg-vh-mint transition-colors border border-vh-border/50"
+                className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold text-[#6B6F63] hover:bg-[#F3F6EE] transition-colors border border-[#DCE5D9] cursor-pointer"
                 disabled={isDeleting}
               >
                 Cancel
               </button>
-              <button 
+              <button
+                type="button"
                 onClick={handleDeleteConfirm}
-                className="px-5 py-2 rounded-full font-dm-sans text-[14px] font-medium bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm flex items-center justify-center"
+                className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-xs flex items-center justify-center cursor-pointer"
                 disabled={isDeleting}
               >
                 {isDeleting ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                ) : 'Delete'}
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  'Delete'
+                )}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Followers & Following Modal */}
+      {user?.id && (
+        <FollowListModal
+          isOpen={followListModal.isOpen}
+          onClose={() => setFollowListModal({ isOpen: false, initialTab: 'followers' })}
+          userId={user.id}
+          initialTab={followListModal.initialTab}
+          followersCount={followStats.followersCount}
+          followingCount={followStats.followingCount}
+        />
       )}
 
       <AIChatbot />
@@ -280,4 +575,3 @@ function MyPosts() {
 }
 
 export default MyPosts;
-

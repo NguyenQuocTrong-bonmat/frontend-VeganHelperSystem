@@ -98,9 +98,13 @@ export async function updateComment(postId, commentId, content) {
   }
 }
 
-export async function deleteComment(postId, commentId) {
+export async function deleteComment(postId, commentId, reason = null) {
   try {
-    await axiosInstance.delete(`/posts/${postId}/comments/${commentId}`);
+    const config = {};
+    if (reason && typeof reason === 'string' && reason.trim()) {
+      config.data = { reason: reason.trim() };
+    }
+    await axiosInstance.delete(`/posts/${postId}/comments/${commentId}`, config);
   } catch (err) {
     let errorMessage = `Failed to delete comment (${err.response?.status || 'network error'})`;
     if (err.response?.data) {

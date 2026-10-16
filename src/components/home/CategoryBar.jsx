@@ -115,17 +115,20 @@ export default function CategoryBar({ categories = [], selectedCategoryId, onSel
   const rafIdRef = useRef(null);
 
   // Visible slots state updated smoothly via animation frame
-  const [stageWidth, setStageWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [stageWidth, setStageWidth] = useState(1200);
   const [renderedSlots, setRenderedSlots] = useState([]);
   const [nearestItemId, setNearestItemId] = useState(selectedCategoryId);
 
-  // Window resize handler
+  // Window resize handler - measure actual client width to prevent scrollbar overflow
   useEffect(() => {
     const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        setStageWidth(window.innerWidth);
+      if (stageRef.current) {
+        setStageWidth(stageRef.current.clientWidth);
+      } else if (typeof window !== 'undefined') {
+        setStageWidth(document.documentElement.clientWidth || window.innerWidth);
       }
     };
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -286,7 +289,7 @@ export default function CategoryBar({ categories = [], selectedCategoryId, onSel
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="relative mb-24 w-screen left-1/2 -translate-x-1/2 overflow-hidden select-none cursor-grab py-4 touch-pan-y"
+      className="relative mb-16 w-full max-w-full overflow-hidden select-none cursor-grab py-4 touch-pan-y"
       aria-labelledby="immersive-stage-heading"
     >
       {/* Editorial Title & Concept Header */}

@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getHealthProfile, getBmiResult, getBmiHistory } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
+import { formatDate } from '../../utils/dateUtils';
 
 function BmiDashboard({ isComponent = false }) {
   const navigate = useNavigate();
@@ -42,10 +43,6 @@ function BmiDashboard({ isComponent = false }) {
     loadData();
   }, []);
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
 
   const getCategoryColor = (category) => {
     if (!category) return 'text-[#6B6F63]';

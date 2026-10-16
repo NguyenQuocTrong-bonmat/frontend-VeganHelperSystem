@@ -11,6 +11,7 @@ import {
   getBmiHistory 
 } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
+import { formatDate } from '../../utils/dateUtils';
 
 /**
  * HealthAndWellness — Unified view integrating Health Profile, Food Allergies, Current BMI, and BMI History.
@@ -127,12 +128,6 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
     };
   }, []);
 
-  // Format date helper for BMI history
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
 
   // Category color helper
   const getCategoryColor = (category) => {
@@ -462,7 +457,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                           handleSearchIngredients();
                         }
                       }}
-                      className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
                       placeholder="e.g. Tomato, Peanut, Soy..."
                     />
                     <button 
@@ -542,7 +537,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                           addCustomAllergy();
                         }
                       }}
-                      className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
                       placeholder="e.g. Sesame, Celery, Mango..."
                     />
                     <button 

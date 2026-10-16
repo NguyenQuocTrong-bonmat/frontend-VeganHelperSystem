@@ -27,6 +27,8 @@ function FindVeganStores() {
   const mapRef = useRef(null);
   const markersRef = useRef({});
   const userMarkerRef = useRef(null);
+  const hoverPopupRef = useRef(null);
+  const hoveredShopIdRef = useRef(null);
   const searchTimeout = useRef(null);
 
   const loadShops = async (lat, lng) => {
@@ -88,8 +90,18 @@ function FindVeganStores() {
 
     mapRef.current.on('dragend', () => setShowSearchThisArea(true));
     mapRef.current.on('zoomend', () => setShowSearchThisArea(true));
+    mapRef.current.on('movestart', () => {
+      if (hoverPopupRef.current) {
+        hoverPopupRef.current.remove();
+        hoveredShopIdRef.current = null;
+      }
+    });
 
     return () => {
+      if (hoverPopupRef.current) {
+        hoverPopupRef.current.remove();
+        hoverPopupRef.current = null;
+      }
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -212,6 +224,56 @@ function FindVeganStores() {
     );
   };
 
+  const showShopTooltip = useCallback((shop) => {
+    if (!mapRef.current || !shop.latitude || !shop.longitude) return;
+
+    if (!hoverPopupRef.current) {
+      hoverPopupRef.current = new goongjs.Popup({
+        offset: 14,
+        closeButton: false,
+        closeOnClick: false,
+        className: 'store-map-hover-popup'
+      });
+    }
+
+    hoveredShopIdRef.current = shop.shopId;
+
+    const content = document.createElement('div');
+    content.className = 'px-1 py-0.5 text-left font-dm-sans min-w-[120px] max-w-[240px]';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'font-bold text-[13px] text-[#2F5233] leading-snug break-words';
+    nameEl.textContent = shop.name;
+    content.appendChild(nameEl);
+
+    if (shop.address) {
+      const addrEl = document.createElement('div');
+      addrEl.className = 'text-[11px] text-[#6B6F63] mt-0.5 line-clamp-2 leading-tight';
+      addrEl.textContent = shop.address;
+      content.appendChild(addrEl);
+    }
+
+    if (shop.distanceKm !== undefined && shop.distanceKm !== null) {
+      const distEl = document.createElement('div');
+      distEl.className = 'text-[10px] font-semibold text-[#4C8C4A] mt-1';
+      distEl.textContent = `${Number(shop.distanceKm).toFixed(1)} km away`;
+      content.appendChild(distEl);
+    }
+
+    hoverPopupRef.current
+      .setLngLat([shop.longitude, shop.latitude])
+      .setDOMContent(content)
+      .addTo(mapRef.current);
+  }, []);
+
+  const hideShopTooltip = useCallback((shopId) => {
+    if (shopId && hoveredShopIdRef.current !== shopId) return;
+    hoveredShopIdRef.current = null;
+    if (hoverPopupRef.current) {
+      hoverPopupRef.current.remove();
+    }
+  }, []);
+
   // Sync shops to map markers
   useEffect(() => {
     if (!mapRef.current) return;
@@ -223,15 +285,28 @@ function FindVeganStores() {
       if (!shop.latitude || !shop.longitude) return;
 
       const el = document.createElement('div');
-      el.className = 'w-6 h-6 bg-[#A63446] rounded-full border-2 border-white shadow-md cursor-pointer flex items-center justify-center text-white';
+      el.className = 'w-6 h-6 bg-[#A63446] rounded-full border-2 border-white shadow-md cursor-pointer flex items-center justify-center text-white transition-all duration-150 hover:scale-125 hover:shadow-lg';
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', shop.name || 'Vegan Store');
+      el.title = shop.name || 'Vegan Store';
 
       if (selectedShopId === shop.shopId) {
-        el.classList.add('w-8', 'h-8', 'z-10', 'bg-[#2F5233]');
+        el.classList.add('w-8', 'h-8', 'z-10', 'bg-[#2F5233]', 'scale-110');
       }
 
       const marker = new goongjs.Marker({ element: el })
         .setLngLat([shop.longitude, shop.latitude])
         .addTo(mapRef.current);
+
+      el.addEventListener('mouseenter', () => {
+        el.style.zIndex = '999';
+        showShopTooltip(shop);
+      });
+
+      el.addEventListener('mouseleave', () => {
+        el.style.zIndex = selectedShopId === shop.shopId ? '10' : '';
+        hideShopTooltip(shop.shopId);
+      });
 
       marker.getElement().addEventListener('click', () => {
         setSelectedShopId(shop.shopId);
@@ -241,7 +316,7 @@ function FindVeganStores() {
       markersRef.current[shop.shopId] = marker;
     });
 
-  }, [shops, selectedShopId]);
+  }, [shops, selectedShopId, showShopTooltip, hideShopTooltip]);
 
   const handleSelectShop = (shop) => {
     setSelectedShopId(shop.shopId);
@@ -399,7 +474,27 @@ function FindVeganStores() {
               }
 
               return (
-                <div key={shop.shopId} onClick={() => handleSelectShop(shop)} className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm flex flex-col ${isSelected ? 'bg-[#F3F6EE] border-[#2F5233]' : 'bg-white border-[#DCE3D5] hover:border-[#2F5233]'}`}>
+                <div
+                  key={shop.shopId}
+                  onClick={() => handleSelectShop(shop)}
+                  onMouseEnter={() => {
+                    const marker = markersRef.current[shop.shopId];
+                    if (marker) {
+                      marker.getElement().style.zIndex = '999';
+                      marker.getElement().classList.add('scale-125');
+                    }
+                    showShopTooltip(shop);
+                  }}
+                  onMouseLeave={() => {
+                    const marker = markersRef.current[shop.shopId];
+                    if (marker) {
+                      marker.getElement().style.zIndex = selectedShopId === shop.shopId ? '10' : '';
+                      marker.getElement().classList.remove('scale-125');
+                    }
+                    hideShopTooltip(shop.shopId);
+                  }}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm flex flex-col ${isSelected ? 'bg-[#F3F6EE] border-[#2F5233]' : 'bg-white border-[#DCE3D5] hover:border-[#2F5233]'}`}
+                >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-[#2B2A25] line-clamp-1">{shop.name}</h3>
                   </div>

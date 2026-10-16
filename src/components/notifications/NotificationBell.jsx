@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import notificationsApi from '../../services/notificationService';
 import { notificationTarget } from '../../utils/notificationTarget';
+import { formatDateTime } from '../../utils/dateUtils';
 import BrowserPushControl from './BrowserPushControl';
 
 export default function NotificationBell({ userId }) {
@@ -96,7 +97,7 @@ export default function NotificationBell({ userId }) {
     } finally { mutation.current = false; if (alive.current) setBusy(false); }
   }
 
-  const dateLabel = value => new Date(value).toLocaleString('en-GB');
+  const dateLabel = value => formatDateTime(value);
   return <div ref={container} className="relative flex items-center">
     <button type="button" ref={trigger} title="Notifications" aria-label={`Notifications, ${unread} unread`} aria-expanded={open} aria-controls="notification-inbox" onClick={() => {
       setOpen(current => !current); if (!open) { fetchCount(); load(); }

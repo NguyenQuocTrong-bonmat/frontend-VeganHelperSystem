@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import SearchBar from '../../components/home/SearchBar';
-import CategoryBar from '../../components/home/CategoryBar';
 import FeaturedPost from '../../components/home/FeaturedPost';
 import PostList from '../../components/home/PostList';
+import HomeSocialNav from '../../components/home/HomeSocialNav';
+import HomeUtilityRail from '../../components/home/HomeUtilityRail';
+import CategoryFilterRow from '../../components/home/CategoryFilterRow';
+import CreatePostModal from '../../components/home/CreatePostModal';
+import UserProfilePreview from '../../components/home/UserProfilePreview';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getPostsFeed, getCategories } from '../../services/postService';
+import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
 
 import heroBg from '../../assets/images/hero/hero-background.webp';
 import heroPho from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
@@ -14,6 +21,7 @@ import heroSpringRolls from '../../assets/images/hero/hero-vietnamese-vegan-spri
 import heroSalad from '../../assets/images/hero/hero-vietnamese-vegan-food.webp';
 
 function Home() {
+  const { user } = useAuth();
 
   const [featuredPost, setFeaturedPost] = useState(null);
   const [exploreRecipes, setExploreRecipes] = useState([]);
@@ -24,6 +32,45 @@ function Home() {
   const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [feedRefreshKey, setFeedRefreshKey] = useState(0);
+
+  // Social Composer Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [composerInitialType, setComposerInitialType] = useState('recipe');
+  const [composerFocusPhoto, setComposerFocusPhoto] = useState(false);
+  const composerTriggerRef = useRef(null);
+
+  const handleOpenComposer = (type = 'recipe', focusPhoto = false, triggerElement = null) => {
+    setComposerInitialType(type);
+    setComposerFocusPhoto(focusPhoto);
+    if (triggerElement) {
+      composerTriggerRef.current = triggerElement;
+    }
+    setIsCreateModalOpen(true);
+  };
+
+  // Profile Preview Popover state for entire Community Feed
+  const [profilePreviewState, setProfilePreviewState] = useState({
+    isOpen: false,
+    user: null,
+    triggerEl: null,
+  });
+
+  const handleOpenProfilePreview = useCallback((user, triggerEl) => {
+    setProfilePreviewState({
+      isOpen: true,
+      user,
+      triggerEl,
+    });
+  }, []);
+
+  const handleCloseProfilePreview = useCallback(() => {
+    setProfilePreviewState({
+      isOpen: false,
+      user: null,
+      triggerEl: null,
+    });
+  }, []);
 
   const [isMounted, setIsMounted] = useState(false);
   const collageRef = useRef(null);
@@ -47,7 +94,7 @@ function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Initial load: Fetch 1 featured post + fixed 3 initial Explore recipes
+  // Initial load: Fetch 1 featured post + fixed initial Explore recipes
   useEffect(() => {
     let isCancelled = false;
 
@@ -59,7 +106,6 @@ function Home() {
       totalItemsRef.current = 0;
 
       try {
-        // Fetch initial batch (pageSize: 6 provides 1 featured + 3 explore cards + buffer)
         const data = await getPostsFeed({ 
           pageIndex: 1, 
           pageSize: 6, 
@@ -75,11 +121,9 @@ function Home() {
 
         if (items.length > 0) {
           setFeaturedPost(items[0]);
-          // Explore Recipes is strictly fixed at 3 recipes on initial page load
           const initialGrid = items.slice(1, 4);
           setExploreRecipes(initialGrid);
 
-          // Total items available for the Explore Recipes section is (total - 1)
           const totalExplore = Math.max(0, total - 1);
           setHasMore(initialGrid.length < totalExplore);
         } else {
@@ -106,7 +150,7 @@ function Home() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, feedRefreshKey]);
 
   // Load More: Fetch exactly 6 additional recipe cards per click until all items are loaded
   const handleLoadMore = async () => {
@@ -121,7 +165,6 @@ function Home() {
       const startIndex = featuredPost ? 1 : 0;
       const targetTotalInPool = startIndex + targetExploreCount;
 
-      // Fetch subsequent API pages if pool doesn't have enough items yet
       while (
         postsPoolRef.current.length < targetTotalInPool &&
         postsPoolRef.current.length < totalItemsRef.current
@@ -183,11 +226,11 @@ function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-vh-cream">
+    <div className="min-h-screen flex flex-col bg-vh-cream overflow-x-clip">
       <HeaderMember />
       
       {/* IMMERSIVE HERO */}
-      <div className="relative w-full min-h-[650px] h-auto lg:h-[700px] py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-12 bg-vh-cream">
+      <div className="relative w-full min-h-[650px] h-auto lg:h-[700px] py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-8 md:mb-10 bg-vh-cream">
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -219,7 +262,14 @@ function Home() {
             </div>
             
             <button 
-              onClick={() => window.scrollTo({ top: window.innerHeight - 100, behavior: 'smooth' })}
+              onClick={() => {
+                const targetEl = document.getElementById('social-feed');
+                if (targetEl) {
+                  targetEl.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  window.scrollTo({ top: window.innerHeight - 100, behavior: 'smooth' });
+                }
+              }}
               style={{ transitionDelay: isMounted ? '400ms' : '0ms' }}
               className={`mt-2 px-8 py-3.5 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-500 shadow-sm flex items-center gap-2 transform ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
@@ -270,38 +320,179 @@ function Home() {
         </div>
       </div>
 
-      {/* MAIN CONTENT CONTAINER */}
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 pb-16">
-        <CategoryBar categories={categories} selectedCategoryId={selectedCategoryId} onSelectCategory={setSelectedCategoryId} />
-        
-        {loading ? (
-          <div className="w-full py-20 flex flex-col items-center justify-center text-vh-text-secondary gap-4">
-            <div className="w-10 h-10 border-4 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
-            <p className="font-dm-sans">Harvesting recipes...</p>
-          </div>
-        ) : !featuredPost && exploreRecipes.length === 0 ? (
-          <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card border border-vh-border/50">
-            <div className="w-20 h-20 mb-6 bg-vh-mint rounded-full flex items-center justify-center text-4xl">🌱</div>
-            <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">The garden is still growing</h3>
-            <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md">We couldn't find any recipes matching your current filters. Try exploring other categories.</p>
-            <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-sm font-medium hover:bg-vh-sage transition-colors shadow-sm cursor-pointer">
-              Clear Filters
-            </button>
-          </div>
-        ) : (
-          <>
-            {featuredPost && <FeaturedPost post={featuredPost} isGuest={false} />}
-            <PostList 
-              posts={exploreRecipes} 
-              isGuest={false} 
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-              loadMoreError={loadMoreError}
+      {/* THREE-COLUMN SOCIAL CONTENT AREA */}
+      <main id="social-feed" className="flex-1 w-full max-w-[1640px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pb-20">
+        <div className="flex flex-col lg:flex-row items-start justify-center gap-6 xl:gap-7 w-full">
+          {/* Left Utility Rail (Navigation) */}
+          <HomeSocialNav
+            isGuest={false}
+            onOpenComposer={(type) => handleOpenComposer(type, false, null)}
+          />
+
+          {/* Main Content Column */}
+          <section aria-label="Community Feed" className="flex-1 min-w-0 max-w-[840px] w-full space-y-6">
+            {/* Quick-Post Composer Widget */}
+            <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 sm:p-5 md:p-6 shadow-sm text-left">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-vh-mint border border-vh-border flex items-center justify-center shrink-0 overflow-hidden">
+                  {user?.avatarUrl ? (
+                    <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-semibold text-base text-vh-forest">
+                      {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
+                  aria-label="Create a post"
+                  className="flex-1 px-5 py-3 sm:py-3.5 bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 rounded-full text-xs sm:text-sm font-dm-sans text-vh-text-secondary transition-all text-left truncate cursor-pointer shadow-2xs focus-ring-vh"
+                >
+                  What are you sharing today, {user?.displayName || 'friend'}?
+                </button>
+              </div>
+              <div className="mt-4 pt-3.5 border-t border-vh-border/40 flex items-center justify-around text-xs sm:text-sm font-dm-sans text-vh-text-secondary">
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
+                  aria-label="Create Post"
+                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
+                >
+                  <span className="text-base">📝</span>
+                  <span>Create Post</span>
+                </button>
+                <span className="text-vh-border">•</span>
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenComposer('post', true, e.currentTarget)}
+                  aria-label="Photo / Video"
+                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
+                >
+                  <span className="text-base">📷</span>
+                  <span>Photo / Video</span>
+                </button>
+                <span className="text-vh-border">•</span>
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
+                  aria-label="Recipe Details"
+                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
+                >
+                  <span className="text-base">🍲</span>
+                  <span>Recipe Details</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Fully Usable Category Filter Row */}
+            <CategoryFilterRow
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={setSelectedCategoryId}
             />
-          </>
-        )}
+
+            {/* Feed State Display */}
+            {loading ? (
+              <div className="w-full py-16 flex flex-col items-center justify-center text-vh-text-secondary gap-3 bg-vh-surface/50 rounded-card border border-vh-border/40">
+                <div className="w-9 h-9 border-3 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
+                <p className="font-dm-sans text-sm">Harvesting delicious recipes...</p>
+              </div>
+            ) : !featuredPost && exploreRecipes.length === 0 ? (
+              <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card border border-vh-border/50 p-6">
+                <div className="w-16 h-16 mb-4 bg-vh-mint rounded-full flex items-center justify-center text-3xl">🌱</div>
+                <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">The garden is still growing</h3>
+                <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md text-sm">We couldn't find any recipes matching your current filters. Try exploring other categories.</p>
+                <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage transition-colors shadow-sm cursor-pointer">
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {featuredPost && (
+                  <FeaturedPost 
+                    post={featuredPost} 
+                    isGuest={false} 
+                    onOpenProfilePreview={handleOpenProfilePreview}
+                  />
+                )}
+                <PostList 
+                  posts={exploreRecipes} 
+                  isGuest={false} 
+                  onLoadMore={handleLoadMore}
+                  hasMore={hasMore}
+                  loadingMore={loadingMore}
+                  loadMoreError={loadMoreError}
+                  onOpenProfilePreview={handleOpenProfilePreview}
+                />
+              </div>
+            )}
+
+            {/* Mobile / Tablet Utility Shortcuts (shown on < xl screens) */}
+            <div className="block xl:hidden pt-6 border-t border-vh-border/60">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 shadow-sm text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-base">📅</span>
+                    <span className="font-dm-serif text-sm font-semibold text-vh-text-primary">Weekly Planner</span>
+                  </div>
+                  <p className="text-xs font-dm-sans text-vh-text-secondary mb-3">Plan your 7-day plant-based meals.</p>
+                  <Link to="/weekly-menu" className="text-xs font-semibold font-dm-sans text-vh-forest hover:text-vh-sage">
+                    Open Weekly Menu &rarr;
+                  </Link>
+                </div>
+                <div className="bg-gradient-to-br from-vh-surface to-vh-mint/25 border border-vh-border/70 rounded-card p-4 shadow-sm text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-base">✨</span>
+                    <span className="font-dm-serif text-sm font-semibold text-vh-text-primary">Plant-Based Assistant</span>
+                  </div>
+                  <p className="text-xs font-dm-sans text-vh-text-secondary mb-3">Need quick substitutions or high-protein ideas?</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const fab = document.getElementById('chat-fab') || document.querySelector('[aria-label*="AI"]') || document.querySelector('button[title*="AI"]');
+                      if (fab) fab.click();
+                    }}
+                    className="text-xs font-semibold font-dm-sans text-vh-forest hover:text-vh-sage cursor-pointer"
+                  >
+                    Ask AI Assistant &rarr;
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Right Utility Rail */}
+          <HomeUtilityRail
+            isGuest={false}
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            onSelectCategory={setSelectedCategoryId}
+          />
+        </div>
       </main>
+
+      {/* Social Post Composer Modal */}
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        initialPostType={composerInitialType}
+        focusPhoto={composerFocusPhoto}
+        onPostCreated={() => {
+          setFeedRefreshKey((prev) => prev + 1);
+        }}
+        triggerRef={composerTriggerRef}
+      />
+
+      {/* Shared Community Feed User Profile Preview */}
+      <UserProfilePreview
+        isOpen={profilePreviewState.isOpen}
+        onClose={handleCloseProfilePreview}
+        userId={profilePreviewState.user?.id}
+        initialUser={profilePreviewState.user}
+        triggerEl={profilePreviewState.triggerEl}
+        isGuest={false}
+      />
 
       <AIChatbot />
       <Footer />

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { generateMealPlan, getMealPlan, listMealPlans } from '../../services/mealPlanService';
+import { formatDate } from '../../utils/dateUtils';
 
 const number = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
-const dateLabel = value => value ? new Date(`${value}T00:00:00Z`).toLocaleDateString('en-GB', {
-  day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC',
-}) : 'Unknown date';
+const dateLabel = value => value ? formatDate(value) : 'Unknown date';
 const rangeLabel = plan => `${dateLabel(plan.startDate)} – ${dateLabel(plan.endDate)} · #${plan.id}`;
-const control = 'rounded-lg border border-[#DCE3D5] bg-white px-3 py-2.5 text-[#2B2A25] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50';
+const control = 'rounded-lg border border-[#DCE3D5] bg-white px-3 py-2.5 text-[#2B2A25] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 min-w-0';
 const utcToday = () => new Date().toISOString().slice(0, 10);
 
 export default function WeeklyMealPlanner({ onEditProfile }) {
@@ -78,6 +77,22 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
     }
   }
 
+  const datePickerRef = useRef(null);
+
+  const openDatePicker = () => {
+    if (datePickerRef.current) {
+      if (typeof datePickerRef.current.showPicker === 'function') {
+        try {
+          datePickerRef.current.showPicker();
+        } catch {
+          datePickerRef.current.focus();
+        }
+      } else {
+        datePickerRef.current.focus();
+      }
+    }
+  };
+
   const busy = generating || opening;
   const selectedDay = plan?.menu?.days?.find(day => day.dayIndex === dayIndex);
   const choices = plan && !saved.items.some(item => item.id === plan.id) ? [plan, ...saved.items] : saved.items;
@@ -98,7 +113,51 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
         <form onSubmit={generate} className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="meal-plan-start" className="text-sm font-medium text-[#2B2A25]">Start date</label>
-            <input id="meal-plan-start" type="date" value={startDate} onChange={event => setStartDate(event.target.value)} min={today} max={nextYear.toISOString().slice(0, 10)} required disabled={busy} className={control} aria-describedby="generation-help" />
+            <div className="relative inline-flex items-center">
+              <input
+                type="text"
+                readOnly
+                value={formatDate(startDate)}
+                onClick={openDatePicker}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openDatePicker();
+                  }
+                }}
+                disabled={busy}
+                className={`${control} pr-10 cursor-pointer select-none`}
+                aria-label="Start date"
+                aria-describedby="generation-help"
+              />
+              <button
+                type="button"
+                onClick={openDatePicker}
+                disabled={busy}
+                className="absolute right-2.5 p-1 text-[#6B6F63] hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded cursor-pointer"
+                title="Choose date"
+                aria-label="Choose date"
+                tabIndex={-1}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <input
+                ref={datePickerRef}
+                id="meal-plan-start"
+                type="date"
+                value={startDate}
+                onChange={event => setStartDate(event.target.value)}
+                min={today}
+                max={nextYear.toISOString().slice(0, 10)}
+                required
+                disabled={busy}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="absolute inset-0 opacity-0 pointer-events-none w-full h-full"
+              />
+            </div>
           </div>
           <button type="submit" disabled={busy || loading} className="rounded-lg border border-[#2F5233] bg-[#2F5233] px-4 py-2.5 text-white font-semibold hover:bg-[#244229] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 disabled:cursor-wait">
             {generating ? 'Creating your menu…' : 'Create weekly menu'}
