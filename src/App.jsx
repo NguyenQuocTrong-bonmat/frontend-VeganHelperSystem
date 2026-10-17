@@ -33,6 +33,7 @@ import CreatePost from './pages/member/CreatePost.jsx'
 import EditPost from './pages/member/EditPost.jsx'
 
 // Admin pages
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminConsole from './pages/admin/AdminConsole.jsx'
 import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
 import AdminContentManagement from './pages/admin/AdminContentManagement.jsx'
@@ -85,7 +86,7 @@ function App() {
         <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
         <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
         {/* Admin */}
-        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminConsole /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
         <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
