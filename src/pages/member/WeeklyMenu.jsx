@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import HealthAndWellness from './HealthAndWellness';
 import WeeklyMealPlanner from '../../components/meal-planning/WeeklyMealPlanner';
+import MealPlanBillingPanel from '../../components/meal-planning/MealPlanBillingPanel';
+import { useLocation } from 'react-router-dom';
 
 function WeeklyMenu() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('weekly');
+  const [mealPlanAccess, setMealPlanAccess] = useState(undefined);
+
+  useEffect(() => {
+    if (location.hash !== '#meal-plan-packages') return undefined;
+    const frame = requestAnimationFrame(() => {
+      const target = document.getElementById('meal-plan-packages');
+      if (!target) return;
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash]);
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
       <HeaderMember />
@@ -56,8 +71,12 @@ function WeeklyMenu() {
       </div>
 
       <main hidden={activeTab !== 'weekly'} className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        
-        <WeeklyMealPlanner onEditProfile={() => setActiveTab('wellness')} />
+        <MealPlanBillingPanel access={mealPlanAccess} onAccessChange={setMealPlanAccess} />
+        <WeeklyMealPlanner
+          access={mealPlanAccess}
+          onAccessChange={setMealPlanAccess}
+          onEditProfile={() => setActiveTab('wellness')}
+        />
       </main>
 
       {activeTab === 'wellness' && <HealthAndWellness isComponent={true} />}

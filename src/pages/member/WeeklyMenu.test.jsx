@@ -26,14 +26,25 @@ const plan = (id = 8) => ({
 });
 const page = (items = [], pageIndex = 1, totalPages = 1) => ({ items, pageIndex, totalPages, totalItems: items.length });
 const failure = (status, data) => Object.assign(new Error('Request failed'), { response: { status, data } });
-let container, root, adapter, route, originalAdapter;
+let container, root, adapter, route, originalAdapter, paymentAccess;
 
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
   originalAdapter = axios.defaults.adapter;
   route = async () => page();
-  adapter = vi.fn(async config => ({ data: await route(config), status: 200, statusText: 'OK', headers: {}, config }));
+  paymentAccess = { status: 'active', canGenerate: true, canViewExistingPlans: true, canViewTrialPlans: true, expiresAt: '2027-01-01T00:00:00Z', trialGenerationsRemaining: 3 };
+  adapter = vi.fn(async config => {
+    let data;
+    if (config.url === '/meal-plan-payments/access') {
+      data = paymentAccess;
+    } else if (config.url === '/meal-plan-payments/packages') {
+      data = [{ code: 'one-month', name: 'One month', durationMonths: 1, amountVnd: 100000 }];
+    } else {
+      data = await route(config);
+    }
+    return { data, status: 200, statusText: 'OK', headers: {}, config };
+  });
   axios.defaults.adapter = adapter;
   storeAuthTokens({ accessToken: 'session-member' }, false);
 });
@@ -52,8 +63,9 @@ test.each([false, true])('loads saved plans with rememberMe=%s and displays real
   storeAuthTokens({ accessToken: 'session-member' }, rememberMe);
   route = async () => page([plan()]);
   await render();
-  expect(adapter.mock.calls[0][0]).toMatchObject({ url: '/MealPlans', params: { pageIndex: 1, pageSize: 10 } });
-  expect(adapter.mock.calls[0][0].headers.Authorization).toBe('Bearer session-member');
+  const listRequest = adapter.mock.calls.map(([config]) => config).find(config => config.url === '/MealPlans');
+  expect(listRequest).toMatchObject({ url: '/MealPlans', params: { pageIndex: 1, pageSize: 10 } });
+  expect(listRequest.headers.Authorization).toBe('Bearer session-member');
   expect(container.textContent).not.toContain('API Integration BLOCKED');
   expect(container.textContent).toContain('breakfast dish 8-1');
   expect(container.textContent).toContain('2,100');
@@ -64,6 +76,18 @@ test.each([false, true])('loads saved plans with rememberMe=%s and displays real
   await click(button('Thursday'));
   expect(container.textContent).toContain('breakfast dish 8-2');
   expect(container.textContent).not.toContain('breakfast dish 8-1');
+});
+
+test('uses backend access to block another generation after the three free trials are used', async () => {
+  paymentAccess = { status: 'none', canGenerate: false, canViewExistingPlans: true, canViewTrialPlans: true, trialGenerationsRemaining: 0 };
+  route = async () => page([plan()]);
+  await render();
+
+  expect(button('Create weekly menu').disabled).toBe(true);
+  expect(container.textContent).toContain('Your 3 free weekly-menu generations have been used');
+  expect(container.textContent).toContain('One month');
+  expect(container.textContent).toMatch(/100[.,]000/);
+  expect(adapter.mock.calls.some(([config]) => config.url === '/MealPlans/generate')).toBe(false);
 });
 
 test('generates and displays the persisted response, posting only the selected start date', async () => {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { generateMealPlan, getMealPlan, listMealPlans } from '../../services/mealPlanService';
+import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
 import { formatDate } from '../../utils/dateUtils';
 
 const number = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -8,7 +9,7 @@ const rangeLabel = plan => `${dateLabel(plan.startDate)} – ${dateLabel(plan.en
 const control = 'rounded-lg border border-[#DCE3D5] bg-white px-3 py-2.5 text-[#2B2A25] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 min-w-0';
 const utcToday = () => new Date().toISOString().slice(0, 10);
 
-export default function WeeklyMealPlanner({ onEditProfile }) {
+export default function WeeklyMealPlanner({ onEditProfile, access, onAccessChange }) {
   const [startDate, setStartDate] = useState(utcToday);
   const [pageIndex, setPageIndex] = useState(1);
   const [refresh, setRefresh] = useState(0);
@@ -33,6 +34,16 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setListError('');
+
+    if (access === undefined) return () => controller.abort();
+
+    if (access && !access.canViewExistingPlans && !access.canViewTrialPlans) {
+      setSaved({ items: [], totalPages: 0 });
+      setPlan(null);
+      setLoading(false);
+      return () => controller.abort();
+    }
+
     listMealPlans(pageIndex, controller.signal).then(data => {
       if (controller.signal.aborted) return;
       setSaved(data);
@@ -41,7 +52,7 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
       if (!controller.signal.aborted) setListError(failure.message);
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [pageIndex, refresh]);
+  }, [access, pageIndex, refresh]);
 
   async function openPlan(id) {
     detailRequest.current?.abort();
@@ -61,6 +72,10 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
   async function generate(event) {
     event.preventDefault();
     if (submitting.current || opening) return;
+    if (access?.canGenerate === false) {
+      setError('Your free meal-plan generations have been used. Choose a package above to create more plans.');
+      return;
+    }
     submitting.current = true;
     setGenerating(true); setError(''); setSuccess('');
     try {
@@ -69,8 +84,16 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
       setPlan(result); setDayIndex(1);
       setSuccess('Your weekly menu has been created and saved.');
       setPageIndex(1); setRefresh(value => value + 1);
+      getMealPlanAccess().then(nextAccess => {
+        if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
+      }).catch(() => {});
     } catch (failure) {
       if (mounted.current) setError(failure.message);
+      if (failure.status === 402 || failure.code === 'MEAL_PLAN_TRIAL_LIMIT_REACHED') {
+        getMealPlanAccess().then(nextAccess => {
+          if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
+        }).catch(() => {});
+      }
     } finally {
       submitting.current = false;
       if (mounted.current) setGenerating(false);
@@ -159,7 +182,7 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
               />
             </div>
           </div>
-          <button type="submit" disabled={busy || loading} className="rounded-lg border border-[#2F5233] bg-[#2F5233] px-4 py-2.5 text-white font-semibold hover:bg-[#244229] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 disabled:cursor-wait">
+          <button type="submit" disabled={busy || loading || access?.canGenerate === false} className="rounded-lg border border-[#2F5233] bg-[#2F5233] px-4 py-2.5 text-white font-semibold hover:bg-[#244229] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 disabled:cursor-wait">
             {generating ? 'Creating your menu…' : 'Create weekly menu'}
           </button>
         </form>
@@ -168,7 +191,13 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
         <p role="status" className="text-sm text-[#2F5233]">{generating ? 'Creating and saving your weekly menu. Please wait…' : opening ? 'Opening saved menu…' : success}</p>
       </section>
 
-      <section aria-label="Saved meal plans" className="space-y-3">
+      {access?.canGenerate === false && <p role="status" className="-mt-5 rounded-xl border border-[#D6B66A]/50 bg-[#FBF7E9] p-4 text-sm leading-6 text-[#5F512C]">
+        Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.
+      </p>}
+
+      {access && !access.canViewExistingPlans && !access.canViewTrialPlans ? <div className="rounded-2xl border border-[#DCE3D5] bg-white p-6 text-sm leading-6 text-[#59665A]">
+        No saved meal plans are available to view yet. Create a plan with your free trial or activate a package to unlock saved plans.
+      </div> : <section aria-label="Saved meal plans" className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-end gap-3">
           <div className="flex-1 min-w-0 space-y-2">
             <label htmlFor="saved-meal-plan" className="block text-sm font-semibold text-[#2B2A25]">Saved plans</label>
@@ -186,9 +215,9 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
           <span>Page {pageIndex} of {saved.totalPages}</span>
           <button type="button" className={control} disabled={busy || loading || pageIndex >= saved.totalPages} onClick={() => setPageIndex(value => value + 1)}>Next</button>
         </div>}
-      </section>
+      </section>}
 
-      {!plan && !loading && !listError && <div className="rounded-2xl border border-[#DCE3D5] bg-white p-8 text-center">
+      {!plan && !loading && !listError && (!access || access.canViewExistingPlans || access.canViewTrialPlans) && <div className="rounded-2xl border border-[#DCE3D5] bg-white p-8 text-center">
         <h2 className="font-fraunces text-2xl text-[#2B2A25]">No weekly menu available.</h2>
         <p className="mt-2 text-[#6B6F63]">Review your health profile and allergies, then choose a start date to create your first menu.</p>
       </div>}

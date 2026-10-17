@@ -9,9 +9,9 @@ async function request(operation) {
     const details = Array.isArray(data?.errors)
       ? data.errors.map(error => error.Error ?? error.error)
       : Object.values(data?.errors ?? {}).flat();
-    const message = details.filter(Boolean).join(' ') || data?.message || data?.title
+    const message = details.filter(Boolean).join(' ') || data?.message || data?.error || data?.detail || data?.title
       || 'Could not connect to the server. If you were creating a plan, reload saved plans before trying again: it may already have been saved.';
-    throw Object.assign(new Error(message, { cause }), { status: cause.response?.status });
+    throw Object.assign(new Error(message, { cause }), { status: cause.response?.status, code: data?.errorCode ?? data?.code });
   }
 }
 
