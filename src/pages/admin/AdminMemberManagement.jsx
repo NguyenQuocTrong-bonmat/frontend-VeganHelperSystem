@@ -1,766 +1,988 @@
-import { Link } from 'react-router-dom'
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import AdminLayout from '../../components/admin/AdminLayout';
+import { getImageUrl } from '../../utils/imageUtils';
 
-function AdminMemberManagement() {
+export default function AdminMemberManagement() {
+  // Initial clean dataset representing platform members until live backend API connection
+  const [members, setMembers] = useState([
+    {
+      id: 1,
+      displayName: 'Mai Linh',
+      username: 'mailinh_chef',
+      email: 'mailinh.vegan@example.com',
+      phone: '+84 912 345 678',
+      role: 'Chef',
+      status: 'Active',
+      joinedDate: '15/05/2026',
+      avatarUrl: null,
+      bio: 'Plant-based chef passionate about traditional Vietnamese fermented dishes.',
+      postsCount: 24,
+      reportsCount: 0,
+    },
+    {
+      id: 2,
+      displayName: 'Hoàng Thu Thảo',
+      username: 'thuthaoveg',
+      email: 'thuthao.h@example.com',
+      phone: '+84 983 221 445',
+      role: 'Member',
+      status: 'Active',
+      joinedDate: '02/06/2026',
+      avatarUrl: null,
+      bio: 'Vegan food enthusiast and daily home cook sharing quick lunch recipes.',
+      postsCount: 8,
+      reportsCount: 0,
+    },
+    {
+      id: 3,
+      displayName: 'Chef Duy',
+      username: 'chefduy_culinary',
+      email: 'duy.culinary@botanical.vn',
+      phone: '+84 905 889 123',
+      role: 'Chef',
+      status: 'Active',
+      joinedDate: '20/04/2026',
+      avatarUrl: null,
+      bio: 'Executive plant-based culinary advisor at Botanical Hearth.',
+      postsCount: 42,
+      reportsCount: 0,
+    },
+    {
+      id: 4,
+      displayName: 'Phạm Văn Minh',
+      username: 'minh_pv',
+      email: 'minh.pv91@example.com',
+      phone: '+84 977 114 990',
+      role: 'Member',
+      status: 'Banned',
+      joinedDate: '11/01/2026',
+      avatarUrl: null,
+      bio: 'Account restricted due to community guidelines violation.',
+      postsCount: 2,
+      reportsCount: 5,
+      banReason: 'Spamming external affiliate links and unverified dietary claims.',
+      banDuration: 'Permanent',
+    },
+    {
+      id: 5,
+      displayName: 'Lê Ngọc Mai',
+      username: 'ngocmai_green',
+      email: 'ngocmai.nutrition@example.com',
+      phone: '+84 934 556 778',
+      role: 'Member',
+      status: 'Active',
+      joinedDate: '18/07/2026',
+      avatarUrl: null,
+      bio: 'Holistic wellness advocate studying plant nutrition & macronutrient balance.',
+      postsCount: 15,
+      reportsCount: 0,
+    },
+    {
+      id: 6,
+      displayName: 'Trần Hà',
+      username: 'tran_ha_plant',
+      email: 'tran.ha@example.org',
+      phone: '+84 918 998 877',
+      role: 'Member',
+      status: 'Active',
+      joinedDate: '29/08/2026',
+      avatarUrl: null,
+      bio: 'Community member exploring cruelty-free meal prep and vegan baking.',
+      postsCount: 6,
+      reportsCount: 0,
+    },
+    {
+      id: 7,
+      displayName: 'Nguyễn Quốc Trọng',
+      username: 'admin_trong',
+      email: 'admin.trong@veganhelper.vn',
+      phone: '+84 901 000 999',
+      role: 'Admin',
+      status: 'Active',
+      joinedDate: '01/01/2026',
+      avatarUrl: null,
+      bio: 'System Administrator & Content Operations Lead.',
+      postsCount: 30,
+      reportsCount: 0,
+    },
+  ]);
+
+  // Filters & Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All'); // All | Active | Banned
+  const [roleFilter, setRoleFilter] = useState('All'); // All | Member | Chef | Admin
+  const [sortBy, setSortBy] = useState('newest'); // newest | oldest | name
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+
+  // Modals state
+  const [banModal, setBanModal] = useState({
+    isOpen: false,
+    member: null,
+    reason: '',
+    duration: '30 Days',
+  });
+
+  const [unbanModal, setUnbanModal] = useState({
+    isOpen: false,
+    member: null,
+    notes: '',
+  });
+
+  const [detailModal, setDetailModal] = useState({
+    isOpen: false,
+    member: null,
+  });
+
+  // Notification Toast State
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3500);
+  };
+
+  // Filter & Search Logic
+  const filteredMembers = useMemo(() => {
+    return members
+      .filter((m) => {
+        // Search query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const matchName = m.displayName.toLowerCase().includes(q);
+          const matchUser = m.username.toLowerCase().includes(q);
+          const matchEmail = m.email.toLowerCase().includes(q);
+          if (!matchName && !matchUser && !matchEmail) return false;
+        }
+
+        // Status filter
+        if (statusFilter !== 'All' && m.status !== statusFilter) {
+          return false;
+        }
+
+        // Role filter
+        if (roleFilter !== 'All' && m.role !== roleFilter) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name') {
+          return a.displayName.localeCompare(b.displayName);
+        }
+        if (sortBy === 'oldest') {
+          return a.id - b.id;
+        }
+        // default: newest
+        return b.id - a.id;
+      });
+  }, [members, searchQuery, statusFilter, roleFilter, sortBy]);
+
+  // Pagination calculation
+  const totalItems = filteredMembers.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const paginatedMembers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredMembers.slice(start, start + pageSize);
+  }, [filteredMembers, currentPage, pageSize]);
+
+  // Reset pagination when filter changes
+  const handleFilterChange = (setter, value) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('All');
+    setRoleFilter('All');
+    setSortBy('newest');
+    setCurrentPage(1);
+  };
+
+  // Ban confirmation
+  const handleConfirmBan = (e) => {
+    e.preventDefault();
+    if (!banModal.member) return;
+    if (!banModal.reason.trim()) {
+      showToast('Please specify a reason for banning this account.', 'error');
+      return;
+    }
+
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === banModal.member.id
+          ? {
+              ...m,
+              status: 'Banned',
+              banReason: banModal.reason,
+              banDuration: banModal.duration,
+            }
+          : m
+      )
+    );
+
+    showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
+    setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
+  };
+
+  // Unban confirmation
+  const handleConfirmUnban = (e) => {
+    e.preventDefault();
+    if (!unbanModal.member) return;
+
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === unbanModal.member.id
+          ? {
+              ...m,
+              status: 'Active',
+              banReason: undefined,
+              banDuration: undefined,
+            }
+          : m
+      )
+    );
+
+    showToast(`Account @${unbanModal.member.username} has been restored to active status.`, 'success');
+    setUnbanModal({ isOpen: false, member: null, notes: '' });
+  };
+
+  // Calculated Stats
+  const stats = useMemo(() => {
+    const total = members.length;
+    const active = members.filter((m) => m.status === 'Active').length;
+    const banned = members.filter((m) => m.status === 'Banned').length;
+    const chefs = members.filter((m) => m.role === 'Chef').length;
+    return { total, active, banned, chefs };
+  }, [members]);
+
   return (
-    <>
-      {/* Mobile Backdrop Overlay */}
-      <div id="mobileBackdrop" className="fixed inset-0 bg-black/40 z-40 lg:hidden hidden transition-opacity duration-300 backdrop-blur-sm"></div>
-      {/* Outer Dashboard Flex Frame */}
-      <div className="flex-1 flex h-screen w-screen overflow-hidden">
-        {/* ========================================================================= */}
-        {/* 1. LEFT SIDEBAR (NAVIGATION) */}
-        {/* ========================================================================= */}
-        <aside id="sidebar" className="w-72 bg-[#FDFBF6] border-r border-[#DCE3D5] flex flex-col z-50 fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 select-none">
-          {/* Platform Branding & Logo */}
-          <div className="h-16 flex items-center justify-between px-5 border-b border-[#DCE3D5] shrink-0">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-10 h-10 rounded-lg bg-[#2F5233] flex items-center justify-center text-white shrink-0 border border-[#DCE3D5]">
-                {/* Organic Leaf / Sprout Icon */}
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-                  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-                </svg>
-              </div>
-              <div className="logo-text leading-tight truncate">
-                <h1 className="font-['Libre_Caslon_Text',serif] font-bold text-lg text-[#2F5233] tracking-tight truncate">
-                  Vegan Helper
-                </h1>
-                <p className="text-[11px] font-semibold text-[#4C8C4A] tracking-wider">
-                  Vegan admin core
-                </p>
-              </div>
-            </div>
-            {/* Desktop Collapse / Expand Toggle Button */}
-            <button id="desktopSidebarCollapseBtn" title="Collapse Sidebar" className="hidden lg:flex p-1.5 rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] transition-colors border border-transparent hover:border-[#DCE3D5]">
-              <svg id="collapseIcon" className="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-              </svg>
-            </button>
-            {/* Mobile Close Button */}
-            <button className="lg:hidden p-1.5 rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE]">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Toast Feedback */}
+        {toast.show && (
+          <div
+            role="status"
+            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${
+              toast.type === 'error'
+                ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
+                : 'bg-[#2F5233] text-white border-[#25401F]'
+            }`}
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {toast.type === 'error' ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              )}
+            </svg>
+            <span>{toast.message}</span>
           </div>
-          {/* Navigation Accordion Scroll Area */}
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-            {/* GROUP 1: OVERVIEW */}
-            <div className="nav-group">
-              <div className="group-header flex items-center justify-between px-3 mb-1.5 cursor-pointer text-[#6B6F63] hover:text-[#2B2A25]">
-                <span className="group-title font-['Libre_Caslon_Text',serif] text-xs font-bold tracking-wide text-[#6B6F63]">
-                  Overview
-                </span>
-                <svg id="arrow-overview" className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-              <div id="acc-overview" className="accordion-content expanded space-y-1">
-                <Link to="/admin" className="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <svg className="w-5 h-5 text-[#6B6F63] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                  </svg>
-                  <span className="nav-text truncate">
-                    Dashboard (Home)
-                  </span>
-                </Link>
-              </div>
-            </div>
-            {/* GROUP 2: CORE SYSTEM */}
-            <div className="nav-group">
-              <div className="group-header flex items-center justify-between px-3 mb-1.5 cursor-pointer text-[#6B6F63] hover:text-[#2B2A25]">
-                <span className="group-title font-['Libre_Caslon_Text',serif] text-xs font-bold tracking-wide text-[#6B6F63]">
-                  Core system
-                </span>
-                <svg id="arrow-core" className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-              <div id="acc-core" className="accordion-content expanded space-y-1">
-                <Link to="/admin/members" className="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-[#2F5233] hover:bg-[#25401F] transition-all">
-                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                  </svg>
-                  <span className="nav-text truncate font-semibold">
-                    Member Management
-                  </span>
-                </Link>
-                <Link to="/admin/categories" className="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <svg className="w-5 h-5 text-[#6B6F63] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                  </svg>
-                  <span className="nav-text truncate">
-                    Category Management
-                  </span>
-                </Link>
-              </div>
-            </div>
-            {/* GROUP 3: CONTENT MODERATION */}
-            <div className="nav-group">
-              <div className="group-header flex items-center justify-between px-3 mb-1.5 cursor-pointer text-[#6B6F63] hover:text-[#2B2A25]">
-                <span className="group-title font-['Libre_Caslon_Text',serif] text-xs font-bold tracking-wide text-[#6B6F63]">
-                  Content moderation
-                </span>
-                <svg id="arrow-moderation" className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-              <div id="acc-moderation" className="accordion-content expanded space-y-1">
-                <Link to="/admin/content" className="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <svg className="w-5 h-5 text-[#6B6F63] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <span className="nav-text truncate">
-                      Manual Moderation
-                    </span>
-                  </div>
-                  <span className="nav-badge text-[11px] font-semibold bg-[#F3F6EE] text-[#6B6F63] border border-[#DCE3D5] px-2 py-0.5 rounded-lg">
-                    12
-                  </span>
-                </Link>
-                <Link to="/admin/ai-moderation" className="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <svg className="w-5 h-5 text-[#B8791A] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    <span className="nav-text truncate">
-                      AI Flagged Queue
-                    </span>
-                  </div>
-                  <span className="nav-badge text-[11px] font-semibold bg-[#ffdad6] text-[#ba1a1a] border border-[#DCE3D5] px-2 py-0.5 rounded-lg">
-                    5
-                  </span>
-                </Link>
-              </div>
-            </div>
-            {/* GROUP 4: AI OPERATIONS & MLOPS */}
-            <div className="nav-group">
-              <div className="group-header flex items-center justify-between px-3 mb-1.5 cursor-pointer text-[#6B6F63] hover:text-[#2B2A25]">
-                <span className="group-title font-['Libre_Caslon_Text',serif] text-xs font-bold tracking-wide text-[#6B6F63]">
-                  AI operations & MLOps
-                </span>
-                <svg id="arrow-ai" className="nav-arrow w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-              <div id="acc-ai" className="accordion-content expanded space-y-1">
-                <Link to="/admin/ai-monitoring" className="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <svg className="w-5 h-5 text-[#4C8C4A] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                  </svg>
-                  <span className="nav-text truncate">
-                    AI Model Monitoring
-                  </span>
-                </Link>
-                <Link to="/admin/meal-planner-config" className="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <svg className="w-5 h-5 text-[#6B6F63] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                  </svg>
-                  <span className="nav-text truncate">
-                    Meal Planner Config
-                  </span>
-                </Link>
-                <Link to="/admin/video-summarization" className="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors group">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <svg className="w-5 h-5 text-[#6B6F63] group-hover:text-[#2F5233] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                    <span className="nav-text truncate">
-                      Video Summarize Jobs
-                    </span>
-                  </div>
-                  <span className="nav-badge text-[11px] font-semibold bg-[#c4edc3] text-[#0f2a0b] border border-[#DCE3D5] px-2 py-0.5 rounded-lg">
-                    Active
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </div>
-          {/* Sidebar Footer: System Status Pill */}
-          <div className="p-3 border-t border-[#DCE3D5] shrink-0">
-            <div className="bg-[#F3F6EE] p-2.5 rounded-lg border border-[#DCE3D5] flex items-center justify-between">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4C8C4A] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4C8C4A]"></span>
-                </span>
-                <span className="nav-text text-xs text-[#6B6F63] font-medium truncate">
-                  LLM & Vector API Online
-                </span>
-              </div>
-              <span className="nav-badge text-[10px] text-[#2F5233] font-bold bg-[#EAF0E9] border border-[#DCE3D5] px-1.5 py-0.5 rounded-lg">
-                v2.4
+        )}
+
+        {/* 1. Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25] tracking-tight">
+                Member Management
+              </h1>
+              <span className="text-xs font-bold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] px-2.5 py-0.5 rounded-full">
+                FN38 & FN39
               </span>
             </div>
+            <p className="text-sm text-[#6B6F63] mt-1">
+              Search, filter, inspect profiles, and manage member account statuses across the platform.
+            </p>
           </div>
-        </aside>
-        {/* ========================================================================= */}
-        {/* 2. MAIN CONTENT WRAPPER WITH STICKY HEADER */}
-        {/* ========================================================================= */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F3F6EE]">
-          {/* TOP STICKY HEADER (NAVBAR) */}
-          <header className="sticky top-0 z-30 bg-[#FDFBF6] border-b border-[#DCE3D5] h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
-            {/* Left: Mobile Menu Toggle & Global Search Bar */}
-            <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-xl">
-              {/* Hamburger Button (Mobile) */}
-              <button className="lg:hidden p-2 rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] transition-colors border border-transparent hover:border-[#DCE3D5]" title="Open Navigation Menu">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={handleClearFilters}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] transition-colors"
+            >
+              <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Reset Filters</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2. Top Summary KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Total Members */}
+          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#6B6F63]">Total Members</span>
+              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-              </button>
-              {/* Global Search Input */}
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6B6F63]">
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.total}</span>
+              <span className="text-[11px] text-[#6B6F63]">Registered accounts</span>
+            </div>
+          </div>
+
+          {/* Card 2: Active Accounts */}
+          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#6B6F63]">Active Accounts</span>
+              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2F5233]">{stats.active}</span>
+              <span className="text-[11px] text-[#4C8C4A] font-semibold">Good standing</span>
+            </div>
+          </div>
+
+          {/* Card 3: Suspended / Banned */}
+          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#6B6F63]">Suspended / Banned</span>
+              <div className="w-7 h-7 rounded-lg bg-[#FBEAE7] flex items-center justify-center text-[#A63446]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#A63446]">{stats.banned}</span>
+              <span className="text-[11px] text-[#A63446] font-medium">Access revoked</span>
+            </div>
+          </div>
+
+          {/* Card 4: Verified Chefs */}
+          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#6B6F63]">Verified Chefs</span>
+              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.chefs}</span>
+              <span className="text-[11px] text-[#6B6F63]">Recipe creators</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Search & Filtering Controls Toolbar */}
+        <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 shadow-xs space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-lg">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6B6F63]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name, email, or @username..."
+                value={searchQuery}
+                onChange={(e) => handleFilterChange(setSearchQuery, e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:ring-1 focus:ring-[#2F5233] outline-none transition-all placeholder-[#8A9080] text-[#2B2A25]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => handleFilterChange(setSearchQuery, '')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25]"
+                >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                </div>
-                <input type="text" placeholder="Search members, recipes, categories, or AI logs... (Press '/' to focus)" className="w-full pl-10 pr-4 py-2 text-sm bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg focus:bg-[#FDFBF6] focus:border-[#2F5233] focus:ring-1 focus:ring-[#2F5233] outline-none transition-all placeholder-[#6B6F63] text-[#2B2A25]" />
-                <div className="hidden sm:flex absolute inset-y-0 right-0 pr-2.5 items-center pointer-events-none">
-                  <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-[#6B6F63] bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg">
-                    /
-                  </kbd>
-                </div>
-              </div>
-            </div>
-            {/* Right: Actions, Notifications & Admin Profile Dropdown */}
-            <div className="flex items-center gap-2 sm:gap-4 ml-4">
-              {/* Quick Shortcut to Public Platform */}
-              <Link to="/home" title="View Public Platform" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] hover:bg-[#2F5233] hover:text-white rounded-lg transition-colors">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-                <span className="">
-                  Live Site
-                </span>
-              </Link>
-              {/* Notification Bell with Indicator Badge */}
-              <div className="relative">
-                <button id="notificationBtn" className="relative p-2 rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] transition-colors border border-transparent hover:border-[#DCE3D5]" title="Notifications">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                  </svg>
-                  {/* Indicator Badge */}
-                  <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C1432E] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C1432E] border-2 border-[#FDFBF6]"></span>
-                  </span>
-                </button>
-                {/* Notifications Dropdown Flyout with allowable subtle shadow */}
-                <div id="notificationMenu" className="hidden absolute right-0 mt-2 w-80 bg-[#FDFBF6] rounded-xl shadow-[0_2px_12px_rgba(43,42,37,0.12)] border border-[#DCE3D5] py-2 z-50">
-                  <div className="px-4 py-2 border-b border-[#DCE3D5] flex items-center justify-between">
-                    <span className="text-xs font-bold font-['Libre_Caslon_Text',serif] text-[#2B2A25]">
-                      Notifications
-                    </span>
-                    <span className="text-[10px] font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] px-2 py-0.5 rounded-lg">
-                      3 unread
-                    </span>
-                  </div>
-                  <div className="divide-y divide-[#DCE3D5] max-h-64 overflow-y-auto">
-                    <div className="px-4 py-3 hover:bg-[#F3F6EE] cursor-pointer transition-colors">
-                      <p className="text-xs font-semibold text-[#2B2A25]">
-                        5 recipes queued for AI inspection
-                      </p>
-                      <p className="text-[11px] text-[#6B6F63] mt-0.5">
-                        Vegetable broth moderation rule triggered
-                      </p>
-                      <span className="text-[10px] text-[#6B6F63] mt-1 block">
-                        5 mins ago
-                      </span>
-                    </div>
-                    <div className="px-4 py-3 hover:bg-[#F3F6EE] cursor-pointer transition-colors">
-                      <p className="text-xs font-semibold text-[#2B2A25]">
-                        New chef member registered
-                      </p>
-                      <p className="text-[11px] text-[#6B6F63] mt-0.5">
-                        Chef Nguyen applied for verified creator
-                      </p>
-                      <span className="text-[10px] text-[#6B6F63] mt-1 block">
-                        35 mins ago
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2 border-t border-[#DCE3D5] text-center">
-                    <a href="#all-notifications" className="text-xs text-[#2F5233] hover:underline font-medium">
-                      View all notifications
-                    </a>
-                  </div>
-                </div>
-              </div>
-              {/* Vertical Divider */}
-              <div className="h-6 w-px bg-[#DCE3D5]"></div>
-              {/* Admin Profile Section with Dropdown */}
-              <div className="relative">
-                <button id="profileBtn" className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-[#F3F6EE] transition-colors border border-transparent hover:border-[#DCE3D5]">
-                  <div className="w-8 h-8 rounded-full bg-[#2F5233] text-white flex items-center justify-center font-bold text-xs border border-[#DCE3D5]">
-                    AD
-                  </div>
-                  <div className="hidden sm:block text-left leading-tight">
-                    <p className="text-xs font-semibold text-[#2B2A25]">
-                      Administrator
-                    </p>
-                    <p className="text-[10px] text-[#6B6F63]">
-                      Super Admin
-                    </p>
-                  </div>
-                  <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-                {/* Admin Dropdown Menu with allowable subtle shadow */}
-                <div id="profileMenu" className="hidden absolute right-0 mt-2 w-52 bg-[#FDFBF6] rounded-xl shadow-[0_2px_12px_rgba(43,42,37,0.12)] border border-[#DCE3D5] py-1.5 z-50">
-                  <div className="px-4 py-2 border-b border-[#DCE3D5] sm:hidden">
-                    <p className="text-xs font-semibold text-[#2B2A25]">
-                      Administrator
-                    </p>
-                    <p className="text-[10px] text-[#6B6F63]">
-                      admin@bepchay.vn
-                    </p>
-                  </div>
-                  <a href="#admin-settings" className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors">
-                    <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    <span className="">
-                      Admin Profile
-                    </span>
-                  </a>
-                  <a href="#security" className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2B2A25] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors">
-                    <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
-                    <span className="">
-                      Security & Keys
-                    </span>
-                  </a>
-                  <div className="h-px bg-[#DCE3D5] my-1"></div>
-                  <Link to="/" className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#ba1a1a] hover:bg-[#ffdad6]/40 transition-colors">
-                    <svg className="w-4 h-4 text-[#ba1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    <span className="">
-                      Log Out
-                    </span>
-                  </Link>
-                </div>
+              )}
+            </div>
+
+            {/* Filter Pills & Dropdowns */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Status Segmented Buttons */}
+              <div className="flex items-center bg-[#F4F6F1] p-1 rounded-xl border border-[#DCE3D5]">
+                {['All', 'Active', 'Banned'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleFilterChange(setStatusFilter, status)}
+                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all ${
+                      statusFilter === status
+                        ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                        : 'text-[#6B6F63] hover:text-[#2B2A25]'
+                    }`}
+                  >
+                    {status === 'All' ? 'All Status' : status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Role Select Dropdown */}
+              <div className="relative">
+                <select
+                  value={roleFilter}
+                  onChange={(e) => handleFilterChange(setRoleFilter, e.target.value)}
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                >
+                  <option value="All">All Roles</option>
+                  <option value="Member">Members</option>
+                  <option value="Chef">Chefs</option>
+                  <option value="Admin">Admins</option>
+                </select>
+              </div>
+
+              {/* Sort By Dropdown */}
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                >
+                  <option value="newest">Sort: Newest</option>
+                  <option value="oldest">Sort: Oldest</option>
+                  <option value="name">Sort: Name (A-Z)</option>
+                </select>
               </div>
             </div>
-          </header>
-          {/* ========================================================================= */}
-          {/* 3. MAIN CONTENT AREA (RESPONSIVE CONTAINER) */}
-          {/* ========================================================================= */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            {/* Outer Responsive Container */}
-            <div className="max-w-7xl mx-auto h-full flex flex-col">
-              {/* Breadcrumbs Bar Placeholder */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 text-xs text-[#6B6F63]">
-                  <span className="">
-                    Admin Console
-                  </span>
-                  <span className="">
-                    /
-                  </span>
-                  <span className="font-medium text-[#2B2A25]">
-                    Core system
-                  </span>
-                  <span className="">
-                    /
-                  </span>
-                  <span className="text-[#2F5233] font-semibold">
-                    Member Management
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#6B6F63] hidden sm:inline">
-                    Current Environment:
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4C8C4A]"></span>
-                    Production
-                  </span>
-                </div>
-              </div>
-              {/* Central Canvas Container with Skeleton Placeholder (rounded-xl, border-[#DCE3D5], zero shadow, surface-paper) */}
-              <div className="space-y-6 flex-1 flex flex-col">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold font-['Libre_Caslon_Text',serif] text-[#2B2A25] tracking-tight">
-                      Member Management
-                    </h2>
-                    <p className="text-sm text-[#6B6F63] mt-1 font-['Be_Vietnam_Pro',sans-serif]">
-                      Monitor user accounts, role permissions, and active statuses across the platform.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">
-                      Total:
-                      <strong className="font-bold text-[#0f2a0b]">
-                        1,420
-                      </strong>
-                      members
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="relative flex-1 max-w-md">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6B6F63]">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                      </svg>
-                    </div>
-                    <input type="text" placeholder="Find users by name or email..." className="w-full pl-10 pr-4 py-2 text-sm bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg focus:border-[#2F5233] outline-none transition-colors placeholder-[#6B6F63] text-[#2B2A25]" />
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-[#FDFBF6] border border-[#DCE3D5] p-1 rounded-lg self-start sm:self-auto">
-                    <button className="px-3 py-1 text-xs font-semibold rounded-lg bg-[#2F5233] text-white transition-colors">
-                      All (1,420)
-                    </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] transition-colors">
-                      Active (1,388)
-                    </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] transition-colors">
-                      Suspended (32)
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-[#FDFBF6] rounded-xl border border-[#DCE3D5] p-6 flex flex-col flex-1">
-                  <div className="overflow-x-auto flex-1">
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead className="border-b border-[#DCE3D5] text-[11px] font-semibold text-[#6B6F63] tracking-wide">
-                        <tr>
-                          <th className="pb-3 px-3 font-semibold">
-                            User
-                          </th>
-                          <th className="pb-3 px-3 font-semibold">
-                            Email
-                          </th>
-                          <th className="pb-3 px-3 font-semibold">
-                            Joined Date
-                          </th>
-                          <th className="pb-3 px-3 font-semibold">
-                            Status
-                          </th>
-                          <th className="pb-3 px-3 font-semibold text-right">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#DCE3D5] text-[#2B2A25]">
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#c4edc3] text-[#0f2a0b] font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                ML
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Mai Linh
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @mailinh_chef • Verified Cook
-                                </p>
-                              </div>
+          </div>
+
+          {/* Active filter counter notice */}
+          <div className="flex items-center justify-between text-xs text-[#6B6F63] pt-2 border-t border-[#EAF0E9]">
+            <div>
+              Showing <span className="font-bold text-[#2B2A25]">{filteredMembers.length}</span> of{' '}
+              <span className="font-bold text-[#2B2A25]">{members.length}</span> members
+            </div>
+            {(searchQuery || statusFilter !== 'All' || roleFilter !== 'All') && (
+              <button
+                onClick={handleClearFilters}
+                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F]"
+              >
+                Clear all active filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Members Table Card */}
+        <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
+                  <th className="py-3.5 px-4 font-semibold">Member</th>
+                  <th className="py-3.5 px-4 font-semibold">Contact & Email</th>
+                  <th className="py-3.5 px-4 font-semibold">Role</th>
+                  <th className="py-3.5 px-4 font-semibold">Status</th>
+                  <th className="py-3.5 px-4 font-semibold">Joined Date</th>
+                  <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
+                {paginatedMembers.length > 0 ? (
+                  paginatedMembers.map((member) => {
+                    const initials = member.displayName
+                      .split(' ')
+                      .map((w) => w[0])
+                      .join('')
+                      .substring(0, 2)
+                      .toUpperCase();
+
+                    const isBanned = member.status === 'Banned';
+
+                    return (
+                      <tr key={member.id} className="hover:bg-[#FAFBF9] transition-colors">
+                        {/* Member Identity Column */}
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-xs bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
+                              {member.avatarUrl ? (
+                                <img
+                                  src={getImageUrl(member.avatarUrl)}
+                                  alt={member.displayName}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span>{initials}</span>
+                              )}
                             </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            mailinh.vegan@example.com
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            15/05/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#EAF0E9] text-[#436746] border border-[#DCE3D5]">
-                              Active
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#C1432E] hover:underline transition-colors">
-                                Ban
-                              </button>
+                            <div className="leading-tight">
+                              <p className="font-semibold text-sm text-[#2B2A25]">{member.displayName}</p>
+                              <p className="text-[11px] text-[#6B6F63] mt-0.5">@{member.username}</p>
                             </div>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#EAF0E9] text-[#2F5233] font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                HT
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Hoàng Thu Thảo
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @thuthaoveg • Community Member
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            thuthao.h@example.com
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            02/06/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#EAF0E9] text-[#436746] border border-[#DCE3D5]">
-                              Active
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#C1432E] hover:underline transition-colors">
-                                Ban
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#2F5233] text-white font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                CD
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Chef Duy
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @chefduy_culinary • Certified Chef
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            duy.culinary@botanical.vn
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            20/04/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#EAF0E9] text-[#436746] border border-[#DCE3D5]">
-                              Active
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#C1432E] hover:underline transition-colors">
-                                Ban
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#ffdad6] text-[#ba1a1a] font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                PM
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Phạm Văn Minh
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @minh_pv • Violations reported
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            minh.pv91@example.com
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            11/01/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#ffdad6] text-[#ba1a1a] border border-[#DCE3D5]">
-                              Banned
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#4C8C4A] hover:underline transition-colors">
+                          </div>
+                        </td>
+
+                        {/* Email & Contact */}
+                        <td className="py-4 px-4 text-[#6B6F63]">
+                          <div>
+                            <p className="font-medium text-[#2B2A25]">{member.email}</p>
+                            <p className="text-[11px] text-[#8A9080]">{member.phone}</p>
+                          </div>
+                        </td>
+
+                        {/* Role Badge */}
+                        <td className="py-4 px-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                              member.role === 'Admin'
+                                ? 'bg-[#F2EDF7] text-[#5B3E7A] border-[#DFD3EB]'
+                                : member.role === 'Chef'
+                                ? 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]'
+                                : 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
+                            }`}
+                          >
+                            {member.role}
+                          </span>
+                        </td>
+
+                        {/* Status Badge */}
+                        <td className="py-4 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                              isBanned
+                                ? 'bg-[#FBEAE7] text-[#A63446] border-[#F4C2BC]'
+                                : 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isBanned ? 'bg-[#A63446]' : 'bg-[#4C8C4A]'
+                              }`}
+                            />
+                            {member.status}
+                          </span>
+                        </td>
+
+                        {/* Joined Date */}
+                        <td className="py-4 px-4 text-[#6B6F63] font-medium">{member.joinedDate}</td>
+
+                        {/* Actions */}
+                        <td className="py-4 px-4 text-right">
+                          <div className="inline-flex items-center gap-2">
+                            {/* Inspect Details Button */}
+                            <button
+                              onClick={() => setDetailModal({ isOpen: true, member })}
+                              className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all"
+                              title="Inspect Member Profile"
+                            >
+                              Details
+                            </button>
+
+                            {/* Ban or Unban Button */}
+                            {isBanned ? (
+                              <button
+                                onClick={() => setUnbanModal({ isOpen: true, member, notes: '' })}
+                                className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-white border border-[#DCE3D5] rounded-lg hover:border-[#2F5233] transition-all"
+                                title="Restore User Account"
+                              >
                                 Unban
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#EAF0E9] text-[#2F5233] font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                LM
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Lê Ngọc Mai
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @ngocmai_green • Nutritionist
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            ngocmai.nutrition@example.com
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            18/07/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#EAF0E9] text-[#436746] border border-[#DCE3D5]">
-                              Active
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#C1432E] hover:underline transition-colors">
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  setBanModal({
+                                    isOpen: true,
+                                    member,
+                                    reason: '',
+                                    duration: '30 Days',
+                                  })
+                                }
+                                disabled={member.role === 'Admin'}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                                  member.role === 'Admin'
+                                    ? 'opacity-40 cursor-not-allowed text-[#8A9080] border border-[#EAF0E9]'
+                                    : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white'
+                                }`}
+                                title={
+                                  member.role === 'Admin'
+                                    ? 'Admin accounts cannot be banned'
+                                    : 'Suspend Member Account (FN39)'
+                                }
+                              >
                                 Ban
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#F3F6EE]/60 transition-colors">
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#c4edc3] text-[#0f2a0b] font-bold text-xs flex items-center justify-center border border-[#DCE3D5] shrink-0">
-                                TH
-                              </div>
-                              <div>
-                                <p className="font-medium text-[#2B2A25] text-sm leading-tight">
-                                  Tran Ha
-                                </p>
-                                <p className="text-xs text-[#6B6F63]">
-                                  @tran_ha_plant • Community Member
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            tran.ha@example.org
-                          </td>
-                          <td className="py-3.5 px-3 text-xs text-[#6B6F63]">
-                            29/08/2024
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[#EAF0E9] text-[#436746] border border-[#DCE3D5]">
-                              Active
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-3 text-xs font-medium">
-                              <Link to="/my-posts" className="text-[#6B6F63] hover:text-[#2F5233] transition-colors">
-                                View Posts
-                              </Link>
-                              <span className="text-[#DCE3D5]">
-                                |
-                              </span>
-                              <button className="text-[#C1432E] hover:underline transition-colors">
-                                Ban
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center text-[#6B6F63]">
+                      <div className="flex flex-col items-center justify-center">
+                        <svg className="w-10 h-10 text-[#A8BDA2] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="font-semibold text-sm text-[#2B2A25]">No members found</p>
+                        <p className="text-xs text-[#8A9080] mt-0.5">Try searching with a different name or clear active filters.</p>
+                        <button
+                          onClick={handleClearFilters}
+                          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full hover:bg-[#2F5233] hover:text-white transition-all"
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer: Pagination */}
+          <div className="px-6 py-4 border-t border-[#DCE3D5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B6F63]">
+            <div>
+              Showing{' '}
+              <span className="font-semibold text-[#2B2A25]">
+                {filteredMembers.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}
+              </span>{' '}
+              to{' '}
+              <span className="font-semibold text-[#2B2A25]">
+                {Math.min(currentPage * pageSize, filteredMembers.length)}
+              </span>{' '}
+              of <span className="font-semibold text-[#2B2A25]">{filteredMembers.length}</span> results
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const pageNum = idx + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-[#2F5233] text-white shadow-xs'
+                        : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* MODAL 1: BAN MEMBER (FN39: Ban with Reason & Duration)       */}
+        {/* ============================================================ */}
+        {banModal.isOpen && banModal.member && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden">
+              <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#FBEAE7] text-[#A63446] flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-[#DCE3D5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B6F63]">
-                    <div className="">
-                      Showing
-                      <span className="font-semibold text-[#2B2A25]">
-                        1 - 6
-                      </span>
-                      of
-                      <span className="font-semibold text-[#2B2A25]">
-                        1,420
-                      </span>
-                      members
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:bg-[#F3F6EE] hover:text-[#2B2A25] transition-colors">
-                        Previous
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg bg-[#2F5233] text-white font-semibold transition-colors">
-                        1
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:bg-[#F3F6EE] hover:text-[#2B2A25] transition-colors">
-                        2
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:bg-[#F3F6EE] hover:text-[#2B2A25] transition-colors">
-                        3
-                      </button>
-                      <span className="px-1 text-[#6B6F63]">
-                        ...
-                      </span>
-                      <button className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:bg-[#F3F6EE] hover:text-[#2F5233] transition-colors">
-                        237
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#FDFBF6] text-[#6B6F63] hover:bg-[#F3F6EE] hover:text-[#2B2A25] transition-colors">
-                        Next
-                      </button>
-                    </div>
+                  <div>
+                    <h3 className="font-bold text-base text-[#2B2A25]">Suspend User Account</h3>
+                    <p className="text-xs text-[#6B6F63]">FN39 — Account Restriction & Token Revoke</p>
                   </div>
+                </div>
+                <button
+                  onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
+                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleConfirmBan} className="mt-4 space-y-4">
+                {/* Target User Summary */}
+                <div className="bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-xs text-[#2B2A25]">{banModal.member.displayName}</p>
+                    <p className="text-[11px] text-[#6B6F63]">@{banModal.member.username} • {banModal.member.email}</p>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#A63446] bg-[#FBEAE7] px-2 py-0.5 rounded-full border border-[#F4C2BC]">
+                    Target
+                  </span>
+                </div>
+
+                {/* Duration select */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2A25] mb-1.5">
+                    Ban Duration
+                  </label>
+                  <select
+                    value={banModal.duration}
+                    onChange={(e) => setBanModal((prev) => ({ ...prev, duration: e.target.value }))}
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233]"
+                  >
+                    <option value="7 Days">7 Days (Temporary Warning)</option>
+                    <option value="30 Days">30 Days (Standard Moderation)</option>
+                    <option value="90 Days">90 Days (Repeated Violations)</option>
+                    <option value="Permanent">Permanent (Account Deactivated)</option>
+                  </select>
+                </div>
+
+                {/* Reason input */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2A25] mb-1.5">
+                    Reason for Suspension <span className="text-[#A63446]">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Specify why this account is being banned (e.g., Harassment, Unverified medical claims, commercial spam)..."
+                    value={banModal.reason}
+                    onChange={(e) => setBanModal((prev) => ({ ...prev, reason: e.target.value }))}
+                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] placeholder-[#8A9080]"
+                  />
+                </div>
+
+                {/* Warning note */}
+                <p className="text-[11px] text-[#8A9080] leading-relaxed">
+                  Notice: Confirming will revoke all active JWT access and refresh tokens immediately. The member will not be able to log in until the ban expires or is manually lifted.
+                </p>
+
+                {/* Action buttons */}
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] transition-colors"
+                  >
+                    Confirm & Revoke Access
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* MODAL 2: UNBAN MEMBER                                        */}
+        {/* ============================================================ */}
+        {unbanModal.isOpen && unbanModal.member && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden">
+              <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#EAF0E9] text-[#2F5233] flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-[#2B2A25]">Restore Account Access</h3>
+                    <p className="text-xs text-[#6B6F63]">Re-enable account login and member features</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setUnbanModal({ isOpen: false, member: null, notes: '' })}
+                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleConfirmUnban} className="mt-4 space-y-4">
+                <div className="bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl p-3">
+                  <p className="font-semibold text-xs text-[#2B2A25]">{unbanModal.member.displayName}</p>
+                  <p className="text-[11px] text-[#6B6F63]">@{unbanModal.member.username} • {unbanModal.member.email}</p>
+                  {unbanModal.member.banReason && (
+                    <div className="mt-2 text-[11px] text-[#A63446] bg-[#FBEAE7] p-2 rounded-lg border border-[#F4C2BC]">
+                      Previous Ban Reason: {unbanModal.member.banReason}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2A25] mb-1.5">
+                    Admin Audit Notes (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Appeal approved, probation completed..."
+                    value={unbanModal.notes}
+                    onChange={(e) => setUnbanModal((prev) => ({ ...prev, notes: e.target.value }))}
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setUnbanModal({ isOpen: false, member: null, notes: '' })}
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-xl shadow-xs hover:bg-[#25401F] transition-colors"
+                  >
+                    Restore Account
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* MODAL 3: MEMBER DETAIL OVERVIEW                              */}
+        {/* ============================================================ */}
+        {detailModal.isOpen && detailModal.member && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-lg w-full shadow-2xl p-6 overflow-hidden">
+              <div className="flex items-start justify-between pb-4 border-b border-[#DCE3D5]">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-sm bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
+                    {detailModal.member.avatarUrl ? (
+                      <img
+                        src={getImageUrl(detailModal.member.avatarUrl)}
+                        alt={detailModal.member.displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>
+                        {detailModal.member.displayName
+                          .split(' ')
+                          .map((w) => w[0])
+                          .join('')
+                          .substring(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-[#2B2A25]">{detailModal.member.displayName}</h3>
+                    <p className="text-xs text-[#6B6F63]">@{detailModal.member.username}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDetailModal({ isOpen: false, member: null })}
+                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4 text-xs">
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-3 bg-white p-3.5 rounded-2xl border border-[#DCE3D5]">
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Email Address</span>
+                    <span className="font-medium text-[#2B2A25] truncate block mt-0.5">{detailModal.member.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Phone Number</span>
+                    <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.phone}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Platform Role</span>
+                    <span className="font-semibold text-[#2F5233] block mt-0.5">{detailModal.member.role}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Account Status</span>
+                    <span
+                      className={`font-semibold block mt-0.5 ${
+                        detailModal.member.status === 'Banned' ? 'text-[#A63446]' : 'text-[#4C8C4A]'
+                      }`}
+                    >
+                      {detailModal.member.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Registration Date</span>
+                    <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.joinedDate}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Published Recipes / Posts</span>
+                    <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.postsCount} posts</span>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <span className="font-semibold text-[#2B2A25] block mb-1">Personal Bio</span>
+                  <p className="text-[#6B6F63] bg-[#FAFBF9] p-3 rounded-xl border border-[#DCE3D5] leading-relaxed">
+                    {detailModal.member.bio || 'No profile biography provided.'}
+                  </p>
+                </div>
+
+                {/* Ban info if banned */}
+                {detailModal.member.status === 'Banned' && (
+                  <div className="bg-[#FBEAE7] border border-[#F4C2BC] rounded-xl p-3 text-[#A63446]">
+                    <span className="font-bold block mb-0.5">Suspension Information:</span>
+                    <p className="text-[11px] leading-relaxed">
+                      Duration: {detailModal.member.banDuration || 'Permanent'}
+                      <br />
+                      Reason: {detailModal.member.banReason || 'Rule violation'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer action */}
+                <div className="flex items-center justify-between pt-3 border-t border-[#DCE3D5]">
+                  <Link
+                    to="/my-posts"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F5233] hover:underline"
+                  >
+                    <span>View Public Posts</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </Link>
+
+                  <button
+                    onClick={() => setDetailModal({ isOpen: false, member: null })}
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9]"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
-              {/* Bottom Status Footer */}
-              <footer className="mt-6 text-center sm:text-left text-xs text-[#6B6F63] flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span className="">
-                  © 2025 Vegan Helper • Vegan Cooking & Nutrition Platform
-                </span>
-                <div className="flex items-center gap-4">
-                  <a href="#docs" className="hover:text-[#2F5233] transition-colors">
-                    Admin Guidelines
-                  </a>
-                  <a href="#api" className="hover:text-[#2F5233] transition-colors">
-                    MLOps Status
-                  </a>
-                  <a href="#support" className="hover:text-[#2F5233] transition-colors">
-                    Tech Support
-                  </a>
-                </div>
-              </footer>
             </div>
-          </main>
-        </div>
+          </div>
+        )}
       </div>
-      {/* ========================================================================= */}
-      {/* TECHNICAL JAVASCRIPT: ACCORDION, COLLAPSE & MOBILE CONTROLS */}
-      {/* ========================================================================= */}
-      {/* TODO: script goc da bi loai bo, can port lai logic bang useState/useEffect */}
-    </>
+    </AdminLayout>
   );
 }
-
-export default AdminMemberManagement;
