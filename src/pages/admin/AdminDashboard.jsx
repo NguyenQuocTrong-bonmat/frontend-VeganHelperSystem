@@ -17,6 +17,13 @@ export default function AdminDashboard() {
     { label: 'JUN', height: '70%', value: '3.5k', isHighlight: false },
   ];
 
+  // Top 3 categories with highest post counts
+  const topCategories = [
+    { name: 'Món Kho & Hầm', count: '1,240', percentage: 45, color: 'bg-[#2F5233]', icon: '🍲' },
+    { name: 'Bún & Phở Chay', count: '890', percentage: 32, color: 'bg-[#4C8C4A]', icon: '🍜' },
+    { name: 'Món Cuốn & Khai Vị', count: '620', percentage: 23, color: 'bg-[#A8BDA2]', icon: '🥗' },
+  ];
+
   // Recent activity / audit logs matching the table in reference image
   const recentEvents = [
     {
@@ -343,7 +350,58 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Card 2: Amount of Flagged Content */}
+            {/* Card 2: Top Categories Overview (Highest Post Counts) */}
+            <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-sm text-[#2B2A25]">Top Categories</h3>
+                    <p className="text-xs text-[#6B6F63]">Most popular recipe classifications</p>
+                  </div>
+                  <Link
+                    to="/admin/categories"
+                    className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
+                    title="View All Categories"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
+                    </svg>
+                  </Link>
+                </div>
+
+                {/* Stacked Proportional Bar */}
+                <div className="mt-4 flex h-2.5 w-full rounded-full overflow-hidden bg-[#EAF0E9] p-0.5 gap-0.5">
+                  <div style={{ width: '45%' }} className="bg-[#2F5233] rounded-l-full h-full" title="Món Kho & Hầm: 45%" />
+                  <div style={{ width: '32%' }} className="bg-[#4C8C4A] h-full" title="Bún & Phở Chay: 32%" />
+                  <div style={{ width: '23%' }} className="bg-[#A8BDA2] rounded-r-full h-full" title="Món Cuốn & Khai Vị: 23%" />
+                </div>
+
+                {/* Category List with Individual Progress Bars */}
+                <div className="space-y-3 mt-4">
+                  {topCategories.map((cat) => (
+                    <div key={cat.name} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-[#2B2A25] flex items-center gap-1.5">
+                          <span>{cat.icon}</span>
+                          <span>{cat.name}</span>
+                        </span>
+                        <span className="text-[#6B6F63] text-[11px]">
+                          <span className="font-bold text-[#2B2A25]">{cat.count}</span> posts ({cat.percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-[#EAF0E9] rounded-full overflow-hidden">
+                        <div
+                          style={{ width: `${cat.percentage}%` }}
+                          className={`h-full rounded-full ${cat.color}`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Amount of Flagged Content (Moved to bottom) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs flex flex-col justify-between">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
@@ -360,6 +418,7 @@ export default function AdminDashboard() {
                 <Link
                   to="/admin/content"
                   className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
+                  title="View Flagged Content"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
@@ -372,46 +431,6 @@ export default function AdminDashboard() {
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#FBEAE7] text-[#A63446] border border-[#F5C2BC]">
                   Action Needed
                 </span>
-              </div>
-            </div>
-
-            {/* Card 3: Core Contributors & Team (Avatar Stack) */}
-            <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs flex flex-col justify-between">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm text-[#2B2A25]">Active Team & Chefs</h3>
-                  <p className="text-xs text-[#6B6F63]">Recent platform contributors</p>
-                </div>
-                <Link
-                  to="/admin/members"
-                  className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
-                </Link>
-              </div>
-
-              {/* Avatar Stack with +2 green bubble matching reference */}
-              <div className="flex items-center gap-2 mt-4">
-                <div className="flex -space-x-2.5 overflow-hidden">
-                  <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white bg-[#FDE68A] text-[#92400E] flex items-center justify-center font-bold text-xs shadow-xs">
-                    CD
-                  </div>
-                  <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white bg-[#FECDD3] text-[#9F1239] flex items-center justify-center font-bold text-xs shadow-xs">
-                    LN
-                  </div>
-                  <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white bg-[#BAE6FD] text-[#075985] flex items-center justify-center font-bold text-xs shadow-xs">
-                    TH
-                  </div>
-                  <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white bg-[#DDD6FE] text-[#5B21B6] flex items-center justify-center font-bold text-xs shadow-xs">
-                    MT
-                  </div>
-                </div>
-
-                <div className="h-10 w-10 rounded-full bg-[#2F5233] text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                  +12
-                </div>
               </div>
             </div>
           </div>
