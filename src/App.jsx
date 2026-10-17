@@ -39,6 +39,7 @@ import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview
 import AdminContentManagement from './pages/admin/AdminContentManagement.jsx'
 import AdminMemberManagement from './pages/admin/AdminMemberManagement.jsx'
 import AdminCategoryManagement from './pages/admin/AdminCategoryManagement.jsx'
+import AdminAuditLogs from './pages/admin/AdminAuditLogs.jsx'
 import AdminMealPlannerConfiguration from './pages/admin/AdminMealPlannerConfiguration.jsx'
 import AdminAiModerationQueue from './pages/admin/AdminAiModerationQueue.jsx'
 import AdminAiModelMonitoring from './pages/admin/AdminAiModelMonitoring.jsx'
@@ -90,6 +91,7 @@ function App() {
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
         <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
+        <Route path="/admin/audit-logs" element={<ProtectedRoute requireAdmin={true}><AdminAuditLogs /></ProtectedRoute>} />
         <Route path="/admin/meal-planner-config" element={<ProtectedRoute requireAdmin={true}><AdminMealPlannerConfiguration /></ProtectedRoute>} />
         <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
         <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
