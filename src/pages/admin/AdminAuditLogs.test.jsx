@@ -68,16 +68,18 @@ describe('AdminAuditLogs', () => {
 
     // Check KPI cards
     expect(container.textContent).toContain('Total Log Records');
-    expect(container.textContent).toContain('Moderation Actions');
-    expect(container.textContent).toContain('Security Events');
-    expect(container.textContent).toContain('Warnings & Alerts');
+    expect(container.textContent).toContain('Active Admins');
+    expect(container.textContent).toContain('Target Resource Types');
+    expect(container.textContent).toContain('Client IP Addresses');
 
     // Check table headers
     expect(container.textContent).toContain('Timestamp');
-    expect(container.textContent).toContain('Actor / Admin');
-    expect(container.textContent).toContain('Action & Category');
+    expect(container.textContent).toContain('ID');
+    expect(container.textContent).toContain('Admin');
+    expect(container.textContent).toContain('Action');
     expect(container.textContent).toContain('Target Entity');
-    expect(container.textContent).toContain('Severity');
+    expect(container.textContent).toContain('Client IP');
+    expect(container.textContent).toContain('Trace ID');
   });
 
   it('filters audit logs when user types into search input', async () => {
@@ -86,39 +88,39 @@ describe('AdminAuditLogs', () => {
     const searchInput = container.querySelector('input[type="text"]');
     expect(searchInput).not.toBeNull();
 
-    // Type a specific actor or target
+    // Type a specific action or target
     await act(async () => {
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
         'value'
       ).set;
-      nativeInputValueSetter.call(searchInput, 'toxic_user99');
+      nativeInputValueSetter.call(searchInput, 'member.ban');
       searchInput.dispatchEvent(new Event('input', { bubbles: true }));
       searchInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
     // Should display only the matching log
-    expect(container.textContent).toContain('@toxic_user99');
-    expect(container.textContent).toContain('MEMBER_SUSPENDED');
-    expect(container.textContent).not.toContain('Bánh Mì Sốt Bơ Sữa Truyền Thống');
+    expect(container.textContent).toContain('member.ban');
+    expect(container.textContent).toContain('#892');
+    expect(container.textContent).not.toContain('category.create');
   });
 
-  it('filters audit logs by category selection', async () => {
+  it('filters audit logs by target type selection', async () => {
     await renderComponent();
 
     const selects = container.querySelectorAll('select');
-    const categorySelect = selects[0]; // first select is Category
-    expect(categorySelect).not.toBeNull();
+    const targetTypeSelect = selects[0]; // first select is Target Type
+    expect(targetTypeSelect).not.toBeNull();
 
     await act(async () => {
-      categorySelect.value = 'Security';
-      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+      targetTypeSelect.value = 'member';
+      targetTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    // Should only contain Security events
-    expect(container.textContent).toContain('LOGIN_FAILED_BRUTEFORCE');
-    expect(container.textContent).toContain('ADMIN_LOGIN_SUCCESS');
-    expect(container.textContent).not.toContain('RECIPE_APPROVED');
+    // Should only contain member target events
+    expect(container.textContent).toContain('member.ban');
+    expect(container.textContent).toContain('member.unban');
+    expect(container.textContent).not.toContain('category.create');
   });
 
   it('opens and closes event detail inspection modal', async () => {

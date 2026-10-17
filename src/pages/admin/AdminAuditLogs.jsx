@@ -1,296 +1,88 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { getAdminAuditLogs } from '../../services/adminService';
+import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
 
-// Mock initial audit events (fallback when /api/admin/audit-logs is not yet online)
-const INITIAL_AUDIT_LOGS = [
+// Fallback audit events strictly matching backend AdminAuditLogDto (used when backend is offline)
+const FALLBACK_AUDIT_LOGS = [
   {
-    id: 'LOG-10824',
-    timestamp: '2026-10-17T14:45:12Z',
-    actor: {
-      name: 'Nguyễn Quản Trị',
-      email: 'admin@veganhelper.com',
-      role: 'Super Admin',
-      ip: '113.161.42.18',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0',
-    },
-    action: 'MEMBER_SUSPENDED',
-    category: 'Member Mgmt',
-    target: {
-      type: 'Member',
-      id: 'USR-892',
-      name: '@toxic_user99',
-    },
-    severity: 'warning',
-    notes: 'Suspended account for 30 days due to repeated community guidelines harassment violations.',
-    changes: {
-      before: { status: 'Active', strikeCount: 2 },
-      after: { status: 'Banned', banDuration: '30 Days', banReason: 'Harassment & Abusive language' },
-    },
+    id: 10824,
+    adminId: 1,
+    action: 'member.ban',
+    targetType: 'member',
+    targetId: '892',
+    ipAddress: '113.161.42.18',
+    traceId: '0HN9V80F12A1',
+    createdAt: '2026-10-17T14:45:12Z',
   },
   {
-    id: 'LOG-10823',
-    timestamp: '2026-10-17T14:12:05Z',
-    actor: {
-      name: 'Trần Kiểm Duyệt',
-      email: 'mod.tran@veganhelper.com',
-      role: 'Moderator',
-      ip: '14.162.188.75',
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1',
-    },
-    action: 'RECIPE_APPROVED',
-    category: 'Moderation',
-    target: {
-      type: 'Recipe',
-      id: 'RCP-401',
-      name: 'Nấm Đùi Gà Kho Tiêu Chay',
-    },
-    severity: 'info',
-    notes: 'Approved recipe submission after verifying vegan ingredient compliance.',
-    changes: {
-      before: { status: 'Pending' },
-      after: { status: 'Published', approvedBy: 'mod.tran@veganhelper.com' },
-    },
+    id: 10823,
+    adminId: 2,
+    action: 'moderation.approve',
+    targetType: 'post',
+    targetId: '401',
+    ipAddress: '14.162.188.75',
+    traceId: '0HN9V80F12A2',
+    createdAt: '2026-10-17T14:12:05Z',
   },
   {
-    id: 'LOG-10822',
-    timestamp: '2026-10-17T13:50:33Z',
-    actor: {
-      name: 'System Bot',
-      email: 'security-bot@internal.local',
-      role: 'System',
-      ip: '127.0.0.1',
-      userAgent: 'InternalDaemon/2.4 (SecurityWatch)',
-    },
-    action: 'LOGIN_FAILED_BRUTEFORCE',
-    category: 'Security',
-    target: {
-      type: 'IP Address',
-      id: '45.132.88.19',
-      name: '45.132.88.19',
-    },
-    severity: 'critical',
-    notes: 'Rate limit tripped: 5 failed administrative login attempts within 60 seconds. IP temporarily blacklisted.',
-    changes: {
-      before: { failureCount: 4, blocked: false },
-      after: { failureCount: 5, blocked: true, cooldownMinutes: 15 },
-    },
+    id: 10822,
+    adminId: 1,
+    action: 'auth.login_failed',
+    targetType: 'auth_attempt',
+    targetId: '45.132.88.19',
+    ipAddress: '45.132.88.19',
+    traceId: '0HN9V80F12A3',
+    createdAt: '2026-10-17T13:50:33Z',
   },
   {
-    id: 'LOG-10821',
-    timestamp: '2026-10-17T12:30:19Z',
-    actor: {
-      name: 'Nguyễn Quản Trị',
-      email: 'admin@veganhelper.com',
-      role: 'Super Admin',
-      ip: '113.161.42.18',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0',
-    },
-    action: 'CATEGORY_CREATED',
-    category: 'Category',
-    target: {
-      type: 'Category',
-      id: 'CAT-108',
-      name: 'Món Canh Thanh Đạm',
-    },
-    severity: 'info',
-    notes: 'Created new culinary category taxonomy with slug "mon-canh-thanh-dam".',
-    changes: {
-      before: null,
-      after: { name: 'Món Canh Thanh Đạm', slug: 'mon-canh-thanh-dam', color: '#2F5233' },
-    },
+    id: 10821,
+    adminId: 1,
+    action: 'category.create',
+    targetType: 'category',
+    targetId: '108',
+    ipAddress: '113.161.42.18',
+    traceId: '0HN9V80F12A4',
+    createdAt: '2026-10-17T12:30:19Z',
   },
   {
-    id: 'LOG-10820',
-    timestamp: '2026-10-17T11:15:40Z',
-    actor: {
-      name: 'Trần Kiểm Duyệt',
-      email: 'mod.tran@veganhelper.com',
-      role: 'Moderator',
-      ip: '14.162.188.75',
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1',
-    },
-    action: 'RECIPE_REJECTED',
-    category: 'Moderation',
-    target: {
-      type: 'Recipe',
-      id: 'RCP-398',
-      name: 'Bánh Mì Sốt Bơ Sữa Truyền Thống',
-    },
-    severity: 'warning',
-    notes: 'Rejected recipe submission: Detected non-vegan dairy ingredient (dairy butter) in ingredient checklist.',
-    changes: {
-      before: { status: 'Pending' },
-      after: { status: 'Rejected', rejectionReason: 'Violation: Non-Vegan Ingredient. Contains dairy butter.' },
-    },
+    id: 10820,
+    adminId: 2,
+    action: 'moderation.reject',
+    targetType: 'post',
+    targetId: '398',
+    ipAddress: '14.162.188.75',
+    traceId: '0HN9V80F12A5',
+    createdAt: '2026-10-17T11:15:40Z',
   },
   {
-    id: 'LOG-10819',
-    timestamp: '2026-10-17T10:05:22Z',
-    actor: {
-      name: 'Lê Quản Lý',
-      email: 'le.manager@veganhelper.com',
-      role: 'Admin',
-      ip: '27.72.102.44',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/128.0',
-    },
-    action: 'MEMBER_ROLE_UPDATED',
-    category: 'Member Mgmt',
-    target: {
-      type: 'Member',
-      id: 'USR-312',
-      name: '@chef_hoang_mai',
-    },
-    severity: 'info',
-    notes: 'Promoted user to Verified Culinary Chef status after culinary certification review.',
-    changes: {
-      before: { role: 'Member', isVerifiedChef: false },
-      after: { role: 'Chef', isVerifiedChef: true },
-    },
+    id: 10819,
+    adminId: 1,
+    action: 'member.unban',
+    targetType: 'member',
+    targetId: '615',
+    ipAddress: '113.161.42.18',
+    traceId: '0HN9V80F12A6',
+    createdAt: '2026-10-17T10:05:22Z',
   },
   {
-    id: 'LOG-10818',
-    timestamp: '2026-10-17T09:20:11Z',
-    actor: {
-      name: 'Nguyễn Quản Trị',
-      email: 'admin@veganhelper.com',
-      role: 'Super Admin',
-      ip: '113.161.42.18',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0',
-    },
-    action: 'SYSTEM_SETTINGS_UPDATED',
-    category: 'System',
-    target: {
-      type: 'SystemConfig',
-      id: 'CFG-GLOBAL',
-      name: 'Platform Feature Flags',
-    },
-    severity: 'info',
-    notes: 'Enabled AI image recognition auto-tagging preview feature in production.',
-    changes: {
-      before: { enableAiTaggingPreview: false },
-      after: { enableAiTaggingPreview: true },
-    },
+    id: 10818,
+    adminId: 1,
+    action: 'audit.list',
+    targetType: 'audit_log',
+    targetId: null,
+    ipAddress: '113.161.42.18',
+    traceId: '0HN9V80F12A7',
+    createdAt: '2026-10-17T09:20:11Z',
   },
   {
-    id: 'LOG-10817',
-    timestamp: '2026-10-17T08:45:00Z',
-    actor: {
-      name: 'Nguyễn Quản Trị',
-      email: 'admin@veganhelper.com',
-      role: 'Super Admin',
-      ip: '113.161.42.18',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0',
-    },
-    action: 'ADMIN_LOGIN_SUCCESS',
-    category: 'Security',
-    target: {
-      type: 'Session',
-      id: 'SES-9921',
-      name: 'Admin Console Access',
-    },
-    severity: 'info',
-    notes: '2FA authentication succeeded via Authenticator App OTP.',
-    changes: {
-      before: null,
-      after: { sessionStarted: '2026-10-17T08:45:00Z', authMethod: 'Password + 2FA' },
-    },
-  },
-  {
-    id: 'LOG-10816',
-    timestamp: '2026-10-16T17:33:41Z',
-    actor: {
-      name: 'Trần Kiểm Duyệt',
-      email: 'mod.tran@veganhelper.com',
-      role: 'Moderator',
-      ip: '14.162.188.75',
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1',
-    },
-    action: 'COMMENT_DELETED',
-    category: 'Moderation',
-    target: {
-      type: 'Comment',
-      id: 'CMT-9941',
-      name: 'Comment on #RCP-210',
-    },
-    severity: 'info',
-    notes: 'Removed promotional spam comment linking to non-vegan commercial supplements.',
-    changes: {
-      before: { isDeleted: false },
-      after: { isDeleted: true, deleteReason: 'Commercial Spam' },
-    },
-  },
-  {
-    id: 'LOG-10815',
-    timestamp: '2026-10-16T15:10:02Z',
-    actor: {
-      name: 'Lê Quản Lý',
-      email: 'le.manager@veganhelper.com',
-      role: 'Admin',
-      ip: '27.72.102.44',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/128.0',
-    },
-    action: 'MEMBER_UNBANNED',
-    category: 'Member Mgmt',
-    target: {
-      type: 'Member',
-      id: 'USR-615',
-      name: '@tuan_anh_92',
-    },
-    severity: 'info',
-    notes: 'Lifted temporary account suspension following review of member appeal.',
-    changes: {
-      before: { status: 'Banned' },
-      after: { status: 'Active', unbannedBy: 'le.manager@veganhelper.com' },
-    },
-  },
-  {
-    id: 'LOG-10814',
-    timestamp: '2026-10-16T11:00:25Z',
-    actor: {
-      name: 'System Bot',
-      email: 'backup-agent@internal.local',
-      role: 'System',
-      ip: '127.0.0.1',
-      userAgent: 'OmniBackup/1.2 (SQLite-Snapshot)',
-    },
-    action: 'DATABASE_BACKUP_COMPLETED',
-    category: 'System',
-    target: {
-      type: 'Database',
-      id: 'SNAP-20261016',
-      name: 'Daily Platform Snapshot',
-    },
-    severity: 'info',
-    notes: 'Automated database WAL snapshot completed. Checksum verification passed.',
-    changes: {
-      before: null,
-      after: { sizeMb: 42.8, status: 'VERIFIED' },
-    },
-  },
-  {
-    id: 'LOG-10813',
-    timestamp: '2026-10-16T09:15:30Z',
-    actor: {
-      name: 'System Bot',
-      email: 'security-bot@internal.local',
-      role: 'System',
-      ip: '127.0.0.1',
-      userAgent: 'InternalDaemon/2.4 (SecurityWatch)',
-    },
-    action: 'UNAUTHORIZED_API_ACCESS',
-    category: 'Security',
-    target: {
-      type: 'Endpoint',
-      id: 'API-ADMIN-USERS',
-      name: '/api/admin/users/export',
-    },
-    severity: 'critical',
-    notes: 'Blocked request to administrative export endpoint missing valid Authorization Bearer token.',
-    changes: {
-      before: null,
-      after: { statusCode: 403, ip: '185.220.101.5' },
-    },
+    id: 10817,
+    adminId: 1,
+    action: 'auth.login_success',
+    targetType: 'session',
+    targetId: '9921',
+    ipAddress: '113.161.42.18',
+    traceId: '0HN9V80F12A8',
+    createdAt: '2026-10-17T08:45:00Z',
   },
 ];
 
@@ -300,17 +92,17 @@ export default function AdminAuditLogs() {
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [severityFilter, setSeverityFilter] = useState('All');
+  const [targetTypeFilter, setTargetTypeFilter] = useState('All');
   const [timeFilter, setTimeFilter] = useState('all'); // all | today | 7days | 30days
   const [sortBy, setSortBy] = useState('newest'); // newest | oldest
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
 
-  // Selected event modal
+  // Selected event inspection modal (fetches /api/admin/audit-logs/{id})
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalLoading, setIsModalLoading] = useState(false);
 
   // Toast feedback
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -322,78 +114,31 @@ export default function AdminAuditLogs() {
     }, 3500);
   };
 
-  // Fetch from real backend endpoint with automatic auth token and fallback
+  // Fetch audit logs list from GET /api/admin/audit-logs
   const fetchAuditLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 50 });
+      const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 100 });
       const items = data.items || data;
       if (Array.isArray(items) && items.length > 0) {
-        // Map backend AuditLogDto to UI schema
-        const mappedLogs = items.map((log) => {
-          const act = log.action || '';
-          let category = 'System';
-          let severity = 'info';
-          let actionName = act.toUpperCase();
-
-          if (act.includes('member') || act.includes('user')) {
-            category = 'Member Mgmt';
-            severity = act.includes('ban') ? 'danger' : 'info';
-            actionName = act.includes('ban') ? 'MEMBER_SUSPENDED' : act.includes('unban') ? 'MEMBER_UNBANNED' : 'MEMBER_ROLE_UPDATED';
-          } else if (act.includes('post') || act.includes('moderation') || act.includes('recipe')) {
-            category = 'Recipe Moderation';
-            severity = act.includes('reject') ? 'warning' : 'success';
-            actionName = act.includes('reject') ? 'RECIPE_REJECTED' : 'RECIPE_APPROVED';
-          } else if (act.includes('category')) {
-            category = 'Taxonomy';
-            severity = act.includes('delete') ? 'danger' : 'success';
-            actionName = act.includes('delete') ? 'CATEGORY_DELETED' : 'CATEGORY_CREATED';
-          } else if (act.includes('auth') || act.includes('security') || act.includes('login')) {
-            category = 'Security';
-            severity = act.includes('fail') ? 'danger' : 'info';
-          }
-
-          return {
-            id: `LOG-${log.id}`,
-            timestamp: log.createdAt || new Date().toISOString(),
-            actor: {
-              name: log.adminUsername || `Admin #${log.adminId}`,
-              email: log.adminEmail || `admin_${log.adminId}@veganhelper.vn`,
-              role: 'Administrator',
-              ip: log.ipAddress || '127.0.0.1',
-              userAgent: log.traceId ? `Trace: ${log.traceId}` : 'Chrome/129.0 on Windows NT',
-            },
-            action: actionName,
-            category,
-            target: {
-              type: log.targetType ? (log.targetType.charAt(0).toUpperCase() + log.targetType.slice(1)) : 'Entity',
-              id: log.targetId || '--',
-              name: log.targetType ? `${log.targetType} #${log.targetId || ''}` : 'Target Object',
-            },
-            severity,
-            status: 'Success',
-            details: {
-              summary: `Action: ${log.action} executed on target ${log.targetType || 'entity'} #${log.targetId || ''}`,
-              reason: 'Administrative operation via Admin Console',
-              notes: `Audit trace: ${log.traceId || '--'}`,
-              metadata: {
-                rawAction: log.action,
-                adminId: log.adminId,
-                targetType: log.targetType,
-                targetId: log.targetId,
-                traceId: log.traceId,
-              },
-            },
-          };
-        });
-        setLogs(mappedLogs);
+        setLogs(
+          items.map((log) => ({
+            id: log.id,
+            adminId: log.adminId,
+            action: log.action || '',
+            targetType: log.targetType || 'unknown',
+            targetId: log.targetId ? String(log.targetId) : null,
+            ipAddress: log.ipAddress || null,
+            traceId: log.traceId || '',
+            createdAt: log.createdAt || new Date().toISOString(),
+          }))
+        );
       } else {
         setLogs([]);
       }
     } catch (err) {
-      // Fallback to INITIAL_AUDIT_LOGS seamlessly
       console.warn('Backend /admin/audit-logs unavailable, using fallback feed:', err.message);
-      setLogs(INITIAL_AUDIT_LOGS);
+      setLogs(FALLBACK_AUDIT_LOGS);
     } finally {
       setIsLoading(false);
     }
@@ -403,25 +148,51 @@ export default function AdminAuditLogs() {
     fetchAuditLogs();
   }, [fetchAuditLogs]);
 
+  // Inspect detail handler: calls GET /api/admin/audit-logs/{id}
+  const handleInspect = async (log) => {
+    setSelectedEvent(log);
+    setIsModalLoading(true);
+    try {
+      const detail = await getAdminAuditLogById(log.id);
+      if (detail && detail.id) {
+        setSelectedEvent({
+          id: detail.id,
+          adminId: detail.adminId,
+          action: detail.action || '',
+          targetType: detail.targetType || 'unknown',
+          targetId: detail.targetId ? String(detail.targetId) : null,
+          ipAddress: detail.ipAddress || null,
+          traceId: detail.traceId || '',
+          createdAt: detail.createdAt || log.createdAt,
+        });
+      }
+    } catch (err) {
+      console.warn(`Backend /admin/audit-logs/${log.id} unavailable, showing cached record:`, err.message);
+    } finally {
+      setIsModalLoading(false);
+    }
+  };
+
+  // Extract distinct target types from logs for dropdown filter
+  const availableTargetTypes = useMemo(() => {
+    const types = new Set(logs.map((l) => l.targetType).filter(Boolean));
+    return Array.from(types).sort();
+  }, [logs]);
+
   // Filter & Sort Logic
   const filteredLogs = useMemo(() => {
     const now = new Date();
 
     return logs
       .filter((log) => {
-        // 1. Category Filter
-        if (categoryFilter !== 'All' && log.category !== categoryFilter) {
+        // 1. Target Type Filter
+        if (targetTypeFilter !== 'All' && log.targetType !== targetTypeFilter) {
           return false;
         }
 
-        // 2. Severity Filter
-        if (severityFilter !== 'All' && log.severity !== severityFilter) {
-          return false;
-        }
-
-        // 3. Time Filter
+        // 2. Time Filter
         if (timeFilter !== 'all') {
-          const logDate = new Date(log.timestamp);
+          const logDate = new Date(log.createdAt);
           const diffMs = now - logDate;
           const diffHours = diffMs / (1000 * 60 * 60);
 
@@ -430,18 +201,18 @@ export default function AdminAuditLogs() {
           if (timeFilter === '30days' && diffHours > 24 * 30) return false;
         }
 
-        // 4. Search Query
+        // 3. Search Query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
-          const matchId = log.id.toLowerCase().includes(q);
-          const matchActorName = log.actor?.name?.toLowerCase().includes(q);
-          const matchActorEmail = log.actor?.email?.toLowerCase().includes(q);
-          const matchAction = log.action?.toLowerCase().includes(q);
-          const matchTarget = log.target?.name?.toLowerCase().includes(q);
-          const matchIp = log.actor?.ip?.toLowerCase().includes(q);
-          const matchNotes = log.notes?.toLowerCase().includes(q);
+          const matchId = String(log.id).toLowerCase().includes(q);
+          const matchAdminId = String(log.adminId).toLowerCase().includes(q);
+          const matchAction = log.action.toLowerCase().includes(q);
+          const matchTargetType = log.targetType.toLowerCase().includes(q);
+          const matchTargetId = log.targetId ? log.targetId.toLowerCase().includes(q) : false;
+          const matchIp = log.ipAddress ? log.ipAddress.toLowerCase().includes(q) : false;
+          const matchTraceId = log.traceId ? log.traceId.toLowerCase().includes(q) : false;
 
-          if (!matchId && !matchActorName && !matchActorEmail && !matchAction && !matchTarget && !matchIp && !matchNotes) {
+          if (!matchId && !matchAdminId && !matchAction && !matchTargetType && !matchTargetId && !matchIp && !matchTraceId) {
             return false;
           }
         }
@@ -449,12 +220,12 @@ export default function AdminAuditLogs() {
         return true;
       })
       .sort((a, b) => {
-        const timeA = new Date(a.timestamp).getTime();
-        const timeB = new Date(b.timestamp).getTime();
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
         if (sortBy === 'oldest') return timeA - timeB;
         return timeB - timeA; // default: newest
       });
-  }, [logs, categoryFilter, severityFilter, timeFilter, searchQuery, sortBy]);
+  }, [logs, targetTypeFilter, timeFilter, searchQuery, sortBy]);
 
   // Pagination calculation
   const totalItems = filteredLogs.length;
@@ -464,20 +235,19 @@ export default function AdminAuditLogs() {
     return filteredLogs.slice(start, start + pageSize);
   }, [filteredLogs, currentPage, pageSize]);
 
-  // Overall Statistics
+  // Real statistics derived purely from backend audit schema
   const stats = useMemo(() => {
     const total = logs.length;
-    const moderation = logs.filter((l) => l.category === 'Moderation').length;
-    const security = logs.filter((l) => l.category === 'Security').length;
-    const warnings = logs.filter((l) => l.severity === 'warning' || l.severity === 'critical').length;
-    return { total, moderation, security, warnings };
+    const uniqueAdmins = new Set(logs.map((l) => l.adminId)).size;
+    const uniqueTargetTypes = new Set(logs.map((l) => l.targetType)).size;
+    const uniqueIps = new Set(logs.filter((l) => l.ipAddress).map((l) => l.ipAddress)).size;
+    return { total, uniqueAdmins, uniqueTargetTypes, uniqueIps };
   }, [logs]);
 
   // Handlers
   const handleClearFilters = () => {
     setSearchQuery('');
-    setCategoryFilter('All');
-    setSeverityFilter('All');
+    setTargetTypeFilter('All');
     setTimeFilter('all');
     setSortBy('newest');
     setCurrentPage(1);
@@ -489,37 +259,33 @@ export default function AdminAuditLogs() {
     showToast('Audit log records refreshed.');
   };
 
-  // CSV Export handler
+  // CSV Export handler with real audited columns
   const handleExportCSV = () => {
     try {
-      const headers = ['Event ID', 'Timestamp (ISO)', 'Actor Name', 'Actor Email', 'Role', 'IP Address', 'Category', 'Action', 'Target Type', 'Target Name', 'Severity', 'Notes'];
+      const headers = ['Log ID', 'Created At (ISO)', 'Admin ID', 'Action', 'Target Type', 'Target ID', 'Client IP Address', 'Trace ID'];
       const rows = filteredLogs.map((log) => [
-        `"${log.id}"`,
-        `"${log.timestamp}"`,
-        `"${log.actor?.name || ''}"`,
-        `"${log.actor?.email || ''}"`,
-        `"${log.actor?.role || ''}"`,
-        `"${log.actor?.ip || ''}"`,
-        `"${log.category}"`,
+        log.id,
+        `"${log.createdAt}"`,
+        log.adminId,
         `"${log.action}"`,
-        `"${log.target?.type || ''}"`,
-        `"${(log.target?.name || '').replace(/"/g, '""')}"`,
-        `"${log.severity}"`,
-        `"${(log.notes || '').replace(/"/g, '""')}"`,
+        `"${log.targetType}"`,
+        `"${log.targetId || ''}"`,
+        `"${log.ipAddress || ''}"`,
+        `"${log.traceId || ''}"`,
       ]);
 
-      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+      const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `vegan-helper-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute('download', `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      showToast(`Exported ${filteredLogs.length} audit records to CSV file.`);
+      showToast(`Exported ${filteredLogs.length} audit records to CSV.`);
     } catch (err) {
       console.error('CSV Export Error:', err);
       showToast('Failed to generate CSV export file.', 'error');
@@ -527,57 +293,18 @@ export default function AdminAuditLogs() {
   };
 
   // Copy JSON handler
-  const handleCopyJSON = (event) => {
+  const handleCopyJSON = (data) => {
     try {
-      navigator.clipboard.writeText(JSON.stringify(event, null, 2));
-      showToast('Event payload copied to clipboard.');
+      navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      showToast('Audit event payload copied to clipboard.');
     } catch {
       showToast('Could not copy to clipboard.', 'error');
     }
   };
 
-  // Severity UI helper
-  const getSeverityBadge = (severity) => {
-    switch (severity) {
-      case 'critical':
-        return {
-          bg: 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]',
-          dot: 'bg-[#A63446]',
-          label: 'Critical',
-        };
-      case 'warning':
-        return {
-          bg: 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]',
-          dot: 'bg-[#D97706]',
-          label: 'Warning',
-        };
-      default:
-        return {
-          bg: 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]',
-          dot: 'bg-[#2F5233]',
-          label: 'Info / Success',
-        };
-    }
-  };
-
-  // Category UI helper
-  const getCategoryBadge = (category) => {
-    switch (category) {
-      case 'Moderation':
-        return 'bg-[#EBF5FB] text-[#1B4F72] border-[#AED6F1]';
-      case 'Security':
-        return 'bg-[#FEF5E7] text-[#7D6608] border-[#F9E79F]';
-      case 'Member Mgmt':
-        return 'bg-[#F5EEF8] text-[#512E5F] border-[#D7BDE2]';
-      case 'Category':
-        return 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]';
-      default:
-        return 'bg-[#F4F6F6] text-[#34495E] border-[#D5D8DC]';
-    }
-  };
-
-  // Format date helper
+  // Format date-time helper
   const formatDateTime = (isoString) => {
+    if (!isoString) return { date: '--/--/----', time: '--:--:--' };
     try {
       const d = new Date(isoString);
       const day = String(d.getDate()).padStart(2, '0');
@@ -595,7 +322,16 @@ export default function AdminAuditLogs() {
     }
   };
 
-  const isFiltered = Boolean(searchQuery || categoryFilter !== 'All' || severityFilter !== 'All' || timeFilter !== 'all');
+  // Action badge styling helper based on prefix
+  const getActionBadgeClass = (action) => {
+    if (action.startsWith('member')) return 'bg-[#EBF5FB] text-[#1B4F72] border-[#AED6F1]';
+    if (action.startsWith('category')) return 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]';
+    if (action.startsWith('moderation') || action.startsWith('post')) return 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]';
+    if (action.startsWith('auth') || action.startsWith('security')) return 'bg-[#FBEAE7] text-[#A63446] border-[#F4C2BC]';
+    return 'bg-[#FAFBF9] text-[#4A4E44] border-[#DCE3D5]';
+  };
+
+  const isFiltered = Boolean(searchQuery || targetTypeFilter !== 'All' || timeFilter !== 'all');
 
   return (
     <AdminLayout>
@@ -628,7 +364,7 @@ export default function AdminAuditLogs() {
               Audit Logs
             </h1>
             <p className="text-sm text-[#6B6F63] mt-1">
-              Traceable activity record of administrative actions, moderation decisions, and security events.
+              Traceable activity record of administrative operations and system audit events.
             </p>
           </div>
 
@@ -657,7 +393,7 @@ export default function AdminAuditLogs() {
           </div>
         </div>
 
-        {/* 2. Top Summary KPI Cards */}
+        {/* 2. Top Summary KPI Cards (Derived from real audit fields) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between">
@@ -676,46 +412,46 @@ export default function AdminAuditLogs() {
 
           <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6B6F63]">Moderation Actions</span>
+              <span className="text-xs font-medium text-[#6B6F63]">Active Admins</span>
+              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2F5233]">{stats.uniqueAdmins}</span>
+              <span className="text-[11px] text-[#6B6F63]">Operating accounts</span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#6B6F63]">Target Resource Types</span>
               <div className="w-7 h-7 rounded-lg bg-[#EBF5FB] flex items-center justify-center text-[#1B4F72]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#1B4F72]">{stats.moderation}</span>
-              <span className="text-[11px] text-[#6B6F63]">Content decisions</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#1B4F72]">{stats.uniqueTargetTypes}</span>
+              <span className="text-[11px] text-[#6B6F63]">Distinct entities</span>
             </div>
           </div>
 
           <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6B6F63]">Security Events</span>
-              <div className="w-7 h-7 rounded-lg bg-[#FEF5E7] flex items-center justify-center text-[#7D6608]">
+              <span className="text-xs font-medium text-[#6B6F63]">Client IP Addresses</span>
+              <div className="w-7 h-7 rounded-lg bg-[#FAFBF9] flex items-center justify-center text-[#4A4E44]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#7D6608]">{stats.security}</span>
-              <span className="text-[11px] text-[#6B6F63]">Auth & access checks</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6B6F63]">Warnings & Alerts</span>
-              <div className="w-7 h-7 rounded-lg bg-[#FDF2F2] flex items-center justify-center text-[#A63446]">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#A63446]">{stats.warnings}</span>
-              <span className="text-[11px] text-[#6B6F63]">Action required</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.uniqueIps}</span>
+              <span className="text-[11px] text-[#6B6F63]">Origin locations</span>
             </div>
           </div>
         </div>
@@ -732,7 +468,7 @@ export default function AdminAuditLogs() {
               </div>
               <input
                 type="text"
-                placeholder="Search by ID, admin name, action, target, IP address..."
+                placeholder="Search by ID, action, target type, target ID, admin ID, IP..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -754,43 +490,26 @@ export default function AdminAuditLogs() {
 
             {/* Filter Dropdowns */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {/* Category Filter */}
+              {/* Target Type Filter */}
               <div className="relative">
                 <select
-                  value={categoryFilter}
+                  value={targetTypeFilter}
                   onChange={(e) => {
-                    setCategoryFilter(e.target.value);
+                    setTargetTypeFilter(e.target.value);
                     setCurrentPage(1);
                   }}
                   className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
                 >
-                  <option value="All">All Categories</option>
-                  <option value="Moderation">Moderation</option>
-                  <option value="Member Mgmt">Member Mgmt</option>
-                  <option value="Category">Category Taxonomy</option>
-                  <option value="Security">Security & Auth</option>
-                  <option value="System">System & Config</option>
+                  <option value="All">All Target Types</option>
+                  {availableTargetTypes.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Severity Filter */}
-              <div className="relative">
-                <select
-                  value={severityFilter}
-                  onChange={(e) => {
-                    setSeverityFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
-                >
-                  <option value="All">All Severities</option>
-                  <option value="info">Info / Success</option>
-                  <option value="warning">Warning</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
-
-              {/* Time Range */}
+              {/* Time Range Filter */}
               <div className="relative">
                 <select
                   value={timeFilter}
@@ -821,16 +540,17 @@ export default function AdminAuditLogs() {
             </div>
           </div>
 
-          {/* Active status indicator & Clear filter */}
+          {/* Active Filter Pill Counter */}
           <div className="flex items-center justify-between text-xs text-[#6B6F63] pt-2 border-t border-[#EAF0E9]">
             <div>
               Total audit logs: <span className="font-bold text-[#2B2A25]">{logs.length}</span>
               {isFiltered && (
                 <span className="ml-2 text-[#6B6F63]">
-                  (Showing <span className="font-bold text-[#2B2A25]">{filteredLogs.length}</span> matching)
+                  (Showing <span className="font-bold text-[#2B2A25]">{totalItems}</span> matching)
                 </span>
               )}
             </div>
+
             {isFiltered && (
               <button
                 onClick={handleClearFilters}
@@ -848,114 +568,108 @@ export default function AdminAuditLogs() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-5 font-semibold">Timestamp</th>
-                  <th className="py-3.5 px-4 font-semibold">Actor / Admin</th>
-                  <th className="py-3.5 px-4 font-semibold">Action & Category</th>
+                  <th className="py-3.5 px-4 font-semibold">Timestamp</th>
+                  <th className="py-3.5 px-3 font-semibold">ID</th>
+                  <th className="py-3.5 px-4 font-semibold">Admin</th>
+                  <th className="py-3.5 px-4 font-semibold">Action</th>
                   <th className="py-3.5 px-4 font-semibold">Target Entity</th>
-                  <th className="py-3.5 px-4 font-semibold">Severity</th>
-                  <th className="py-3.5 px-5 font-semibold text-right">Inspection</th>
+                  <th className="py-3.5 px-4 font-semibold">Client IP</th>
+                  <th className="py-3.5 px-4 font-semibold">Trace ID</th>
+                  <th className="py-3.5 px-4 font-semibold text-right">Inspection</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
                 {isLoading ? (
-                  [...Array(6)].map((_, idx) => (
-                    <tr key={idx} className="animate-pulse">
-                      <td className="py-4 px-5 whitespace-nowrap">
-                        <div className="h-4 bg-[#EAF0E9] rounded w-24 mb-1.5" />
+                  Array.from({ length: 6 }).map((_, idx) => (
+                    <tr key={`skel-audit-${idx}`} className="animate-pulse">
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-24 mb-1" />
                         <div className="h-3 bg-[#F4F6F1] rounded w-16" />
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[#EAF0E9] shrink-0" />
-                          <div className="space-y-1">
-                            <div className="h-3.5 bg-[#EAF0E9] rounded w-28" />
-                            <div className="h-2.5 bg-[#F4F6F1] rounded w-36" />
-                          </div>
-                        </div>
+                      <td className="py-4 px-3">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-12" />
                       </td>
                       <td className="py-4 px-4">
-                        <div className="h-4 bg-[#EAF0E9] rounded w-32 mb-1.5" />
-                        <div className="h-3 bg-[#F4F6F1] rounded w-20" />
+                        <div className="h-6 bg-[#EAF0E9] rounded-full w-20" />
                       </td>
                       <td className="py-4 px-4">
-                        <div className="h-4 bg-[#EAF0E9] rounded w-28 mb-1.5" />
-                        <div className="h-3 bg-[#F4F6F1] rounded w-20" />
+                        <div className="h-5 bg-[#EAF0E9] rounded w-28" />
                       </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="h-6 bg-[#EAF0E9] rounded-full w-24" />
+                      <td className="py-4 px-4">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-24" />
                       </td>
-                      <td className="py-4 px-5 text-right whitespace-nowrap">
-                        <div className="h-7 bg-[#EAF0E9] rounded-lg w-20 ml-auto" />
+                      <td className="py-4 px-4">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-24" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-28" />
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="h-7 bg-[#EAF0E9] rounded-lg w-16 ml-auto" />
                       </td>
                     </tr>
                   ))
                 ) : paginatedLogs.length > 0 ? (
                   paginatedLogs.map((log) => {
-                    const formatted = formatDateTime(log.timestamp);
-                    const severity = getSeverityBadge(log.severity);
-                    const categoryClass = getCategoryBadge(log.category);
+                    const formatted = formatDateTime(log.createdAt);
+                    const badgeClass = getActionBadgeClass(log.action);
 
                     return (
                       <tr key={log.id} className="hover:bg-[#FAFBF9] transition-colors">
                         {/* Timestamp */}
-                        <td className="py-4 px-5 whitespace-nowrap">
+                        <td className="py-4 px-4 whitespace-nowrap">
                           <p className="font-mono text-xs font-semibold text-[#2B2A25]">{formatted.date}</p>
                           <p className="font-mono text-[11px] text-[#6B6F63] mt-0.5">{formatted.time}</p>
                         </td>
 
-                        {/* Actor */}
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#EAF0E9] border border-[#DCE3D5] flex items-center justify-center font-bold text-xs text-[#2F5233] shrink-0">
-                              {log.actor?.name?.charAt(0) || 'A'}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <p className="font-semibold text-xs text-[#2B2A25]">{log.actor?.name}</p>
-                                <span className="text-[10px] px-1.5 py-0.2 bg-[#F4F6F1] text-[#6B6F63] rounded border border-[#E0E5DC]">
-                                  {log.actor?.role}
-                                </span>
-                              </div>
-                              <p className="text-[11px] font-mono text-[#6B6F63] mt-0.5">{log.actor?.ip}</p>
-                            </div>
-                          </div>
+                        {/* Event ID */}
+                        <td className="py-4 px-3 whitespace-nowrap font-mono text-xs font-semibold text-[#2F5233]">
+                          #{log.id}
                         </td>
 
-                        {/* Action & Category */}
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${categoryClass}`}>
-                              {log.category}
-                            </span>
-                          </div>
-                          <p className="font-mono text-[11px] font-bold text-[#2B2A25] mt-1 tracking-tight">
-                            {log.action}
-                          </p>
-                        </td>
-
-                        {/* Target Entity */}
-                        <td className="py-4 px-4 max-w-xs">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-medium text-[#6B6F63]">{log.target?.type}:</span>
-                            <span className="text-xs font-semibold text-[#2B2A25] truncate">{log.target?.name}</span>
-                          </div>
-                          <p className="text-[11px] text-[#8A9080] truncate mt-0.5" title={log.notes}>
-                            {log.notes}
-                          </p>
-                        </td>
-
-                        {/* Severity */}
+                        {/* Admin ID */}
                         <td className="py-4 px-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${severity.bg}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${severity.dot}`} />
-                            {severity.label}
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FAFBF9] text-[#2B2A25] border border-[#DCE3D5]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#2F5233]" />
+                            Admin #{log.adminId}
                           </span>
                         </td>
 
+                        {/* Action */}
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md font-mono text-xs font-semibold border ${badgeClass}`}>
+                            {log.action}
+                          </span>
+                        </td>
+
+                        {/* Target Entity */}
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#F4F6F1] text-[#6B6F63] border border-[#E0E5DC]">
+                              {log.targetType}
+                            </span>
+                            {log.targetId && (
+                              <span className="font-mono text-xs font-semibold text-[#2B2A25]">
+                                #{log.targetId}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Client IP Address */}
+                        <td className="py-4 px-4 whitespace-nowrap font-mono text-xs text-[#6B6F63]">
+                          {log.ipAddress || '--'}
+                        </td>
+
+                        {/* Trace ID */}
+                        <td className="py-4 px-4 whitespace-nowrap font-mono text-[11px] text-[#8A9080]" title={log.traceId}>
+                          {log.traceId ? (log.traceId.length > 14 ? `${log.traceId.slice(0, 14)}…` : log.traceId) : '--'}
+                        </td>
+
                         {/* Inspection Actions */}
-                        <td className="py-4 px-5 text-right whitespace-nowrap">
+                        <td className="py-4 px-4 text-right whitespace-nowrap">
                           <button
-                            onClick={() => setSelectedEvent(log)}
+                            onClick={() => handleInspect(log)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-lg hover:bg-[#d8e3d6] transition-colors"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -970,7 +684,7 @@ export default function AdminAuditLogs() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center">
+                    <td colSpan="8" className="py-12 text-center">
                       <div className="max-w-sm mx-auto text-center space-y-3">
                         <div className="w-12 h-12 rounded-full bg-[#FAFBF9] border border-[#DCE3D5] flex items-center justify-center mx-auto text-[#8A9080]">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1042,7 +756,7 @@ export default function AdminAuditLogs() {
           )}
         </div>
 
-        {/* 5. Detailed Event Inspection Modal */}
+        {/* 5. Detailed Event Inspection Modal (Real GET /api/admin/audit-logs/{id} data) */}
         {selectedEvent && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in"
@@ -1053,7 +767,7 @@ export default function AdminAuditLogs() {
               aria-modal="true"
               aria-labelledby="audit-modal-title"
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[28px] border border-[#DCE3D5] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+              className="bg-white rounded-[28px] border border-[#DCE3D5] shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
             >
               {/* Modal Header */}
               <div className="px-6 py-5 border-b border-[#DCE3D5] flex items-center justify-between bg-[#FAFBF9]">
@@ -1067,7 +781,7 @@ export default function AdminAuditLogs() {
                     <h2 id="audit-modal-title" className="text-base font-bold text-[#2B2A25]">
                       Audit Event Details
                     </h2>
-                    <p className="text-xs font-mono text-[#6B6F63]">Event ID: {selectedEvent.id}</p>
+                    <p className="text-xs font-mono text-[#6B6F63]">Log Record ID: #{selectedEvent.id}</p>
                   </div>
                 </div>
 
@@ -1081,103 +795,72 @@ export default function AdminAuditLogs() {
                 </button>
               </div>
 
-              {/* Modal Body */}
+              {/* Modal Body: Only real audited data */}
               <div className="p-6 overflow-y-auto space-y-5 text-xs">
-                {/* Meta Summary Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
-                    <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider">Severity</span>
-                    <p className="mt-1 font-bold text-xs capitalize text-[#2B2A25]">{selectedEvent.severity}</p>
+                {isModalLoading ? (
+                  <div className="py-8 text-center text-[#6B6F63] space-y-2">
+                    <div className="w-8 h-8 border-2 border-[#2F5233] border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p>Fetching full audit record from server...</p>
                   </div>
-                  <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
-                    <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider">Category</span>
-                    <p className="mt-1 font-bold text-xs text-[#2B2A25]">{selectedEvent.category}</p>
-                  </div>
-                  <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
-                    <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider">Client IP</span>
-                    <p className="mt-1 font-mono font-bold text-xs text-[#2B2A25]">{selectedEvent.actor?.ip}</p>
-                  </div>
-                  <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
-                    <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider">Timestamp</span>
-                    <p className="mt-1 font-mono text-[11px] text-[#2B2A25]">{formatDateTime(selectedEvent.timestamp).date} {formatDateTime(selectedEvent.timestamp).time}</p>
-                  </div>
-                </div>
-
-                {/* Actor & Target Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 bg-white rounded-xl border border-[#DCE3D5] space-y-2">
-                    <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Administrator / Actor</span>
-                    <div className="flex items-center gap-3 pt-1">
-                      <div className="w-9 h-9 rounded-full bg-[#EAF0E9] border border-[#DCE3D5] flex items-center justify-center font-bold text-sm text-[#2F5233]">
-                        {selectedEvent.actor?.name?.charAt(0)}
+                ) : (
+                  <>
+                    {/* Key Attributes Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">Admin Operator</span>
+                        <p className="mt-1 font-bold text-xs text-[#2B2A25]">Admin #{selectedEvent.adminId}</p>
                       </div>
-                      <div>
-                        <p className="font-bold text-xs text-[#2B2A25]">{selectedEvent.actor?.name}</p>
-                        <p className="text-[11px] text-[#6B6F63]">{selectedEvent.actor?.email}</p>
-                        <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 bg-[#F4F6F1] rounded text-[#2F5233] border border-[#DCE3D5]">
-                          Role: {selectedEvent.actor?.role}
-                        </span>
+
+                      <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">Audited Action</span>
+                        <p className="mt-1 font-mono font-bold text-xs text-[#2F5233]">{selectedEvent.action}</p>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="p-4 bg-white rounded-xl border border-[#DCE3D5] space-y-2">
-                    <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Target Entity</span>
-                    <div className="pt-1 space-y-1">
-                      <p className="font-bold text-xs text-[#2B2A25]">{selectedEvent.target?.name}</p>
-                      <p className="text-[11px] text-[#6B6F63]">Type: <span className="font-semibold text-[#2B2A25]">{selectedEvent.target?.type}</span></p>
-                      <p className="text-[11px] font-mono text-[#8A9080]">ID: {selectedEvent.target?.id}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Audit Notes */}
-                <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5] space-y-1">
-                  <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Operation Summary & Notes</span>
-                  <p className="text-xs text-[#2B2A25] leading-relaxed pt-1">
-                    {selectedEvent.notes}
-                  </p>
-                </div>
-
-                {/* Changes / Payload Diff if present */}
-                {selectedEvent.changes && (
-                  <div className="p-4 bg-white rounded-xl border border-[#DCE3D5] space-y-2">
-                    <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Entity State Modifications</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="p-3 bg-[#FDFBF6] rounded-lg border border-[#EAF0E9]">
-                        <p className="font-semibold text-[11px] text-[#8A9080] mb-1">State Before:</p>
-                        <pre className="font-mono text-[10px] text-[#6B6F63] overflow-x-auto">
-                          {JSON.stringify(selectedEvent.changes.before, null, 2)}
-                        </pre>
+                      <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">Target Resource</span>
+                        <p className="mt-1 font-bold text-xs text-[#2B2A25]">
+                          {selectedEvent.targetType} {selectedEvent.targetId ? `#${selectedEvent.targetId}` : ''}
+                        </p>
                       </div>
-                      <div className="p-3 bg-[#EAF0E9]/30 rounded-lg border border-[#DCE3D5]">
-                        <p className="font-semibold text-[11px] text-[#2F5233] mb-1">State After:</p>
-                        <pre className="font-mono text-[10px] text-[#2B2A25] overflow-x-auto">
-                          {JSON.stringify(selectedEvent.changes.after, null, 2)}
-                        </pre>
+
+                      <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">Client IP Address</span>
+                        <p className="mt-1 font-mono font-bold text-xs text-[#2B2A25]">{selectedEvent.ipAddress || '--'}</p>
+                      </div>
+
+                      <div className="col-span-2 p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">Created At (Timestamp)</span>
+                        <p className="mt-1 font-mono text-xs text-[#2B2A25]">
+                          {selectedEvent.createdAt} ({formatDateTime(selectedEvent.createdAt).date} {formatDateTime(selectedEvent.createdAt).time})
+                        </p>
+                      </div>
+
+                      <div className="col-span-2 p-3 bg-[#FAFBF9] rounded-xl border border-[#DCE3D5]">
+                        <span className="text-[10px] text-[#6B6F63] font-medium uppercase tracking-wider block">HTTP Trace Identifier</span>
+                        <p className="mt-1 font-mono text-xs text-[#2B2A25] break-all">{selectedEvent.traceId || '--'}</p>
                       </div>
                     </div>
-                  </div>
+
+                    {/* Raw JSON Payload */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Raw Event Payload (API DTO)</span>
+                        <button
+                          onClick={() => handleCopyJSON(selectedEvent)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-md hover:bg-[#d8e3d6] transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <span>Copy JSON</span>
+                        </button>
+                      </div>
+                      <pre className="p-4 bg-[#1E293B] text-[#F1F5F9] rounded-xl font-mono text-[11px] overflow-x-auto max-h-48 leading-relaxed">
+                        {JSON.stringify(selectedEvent, null, 2)}
+                      </pre>
+                    </div>
+                  </>
                 )}
-
-                {/* Raw JSON Payload */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Raw Event Payload</span>
-                    <button
-                      onClick={() => handleCopyJSON(selectedEvent)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-md hover:bg-[#d8e3d6] transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      <span>Copy JSON</span>
-                    </button>
-                  </div>
-                  <pre className="p-4 bg-[#1E293B] text-[#F1F5F9] rounded-xl font-mono text-[11px] overflow-x-auto max-h-48 leading-relaxed">
-                    {JSON.stringify(selectedEvent, null, 2)}
-                  </pre>
-                </div>
               </div>
 
               {/* Modal Footer */}
