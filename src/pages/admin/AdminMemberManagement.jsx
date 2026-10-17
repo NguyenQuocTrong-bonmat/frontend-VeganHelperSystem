@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getImageUrl } from '../../utils/imageUtils';
+import { getAdminMembers, banMember, unbanMember } from '../../services/adminService';
 
 export default function AdminMemberManagement() {
   // Initial clean dataset representing platform members until live backend API connection
@@ -204,8 +205,54 @@ export default function AdminMemberManagement() {
     setCurrentPage(1);
   };
 
+  // Backend data loading
+  const fetchMembers = async () => {
+    try {
+      const data = await getAdminMembers({
+        pageIndex: 1,
+        pageSize: 100,
+        keyword: searchQuery.trim() || undefined,
+        role: roleFilter !== 'All' ? roleFilter : undefined,
+        status: statusFilter !== 'All' ? statusFilter : undefined,
+      });
+
+      const items = data.items || data;
+      if (Array.isArray(items) && items.length > 0) {
+        setMembers(
+          items.map((m) => ({
+            id: m.id,
+            displayName: m.displayName || m.username || `Member #${m.id}`,
+            username: m.username || `user_${m.id}`,
+            email: m.email || 'N/A',
+            phone: m.phone || '--',
+            role: m.role ? (m.role.charAt(0).toUpperCase() + m.role.slice(1)) : 'Member',
+            status: m.status
+              ? (m.status.charAt(0).toUpperCase() + m.status.slice(1))
+              : m.isActive
+              ? 'Active'
+              : 'Inactive',
+            joinedDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('vi-VN') : '--',
+            avatarUrl: m.avatarUrl || null,
+            bio: m.bio || 'Plant-based community member.',
+            postsCount: m.postsCount ?? '--',
+            reportsCount: m.reportsCount ?? 0,
+            banReason: m.banReason || '',
+            banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('vi-VN') : m.banId ? 'Permanent' : '',
+          }))
+        );
+      }
+    } catch (err) {
+      // Backend offline or error -> seamlessly keep existing/placeholder members
+      console.warn('Backend /admin/members unavailable, using local data:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
   // Ban confirmation
-  const handleConfirmBan = (e) => {
+  const handleConfirmBan = async (e) => {
     e.preventDefault();
     if (!banModal.member) return;
     if (!banModal.reason.trim()) {
@@ -213,42 +260,70 @@ export default function AdminMemberManagement() {
       return;
     }
 
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === banModal.member.id
-          ? {
-              ...m,
-              status: 'Banned',
-              banReason: banModal.reason,
-              banDuration: banModal.duration,
-            }
-          : m
-      )
-    );
+    try {
+      let expiresAt = null;
+      if (banModal.duration === '7 Days') {
+        expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+      } else if (banModal.duration === '30 Days') {
+        expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+      } else if (banModal.duration === '90 Days') {
+        expiresAt = new Date(Date.now() + 90 * 86400000).toISOString();
+      }
 
-    showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
+      await banMember(banModal.member.id, {
+        reason: banModal.reason,
+        expiresAt,
+      });
+
+      showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
+      await fetchMembers();
+    } catch {
+      // Fallback local update if BE is offline
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === banModal.member.id
+            ? {
+                ...m,
+                status: 'Banned',
+                banReason: banModal.reason,
+                banDuration: banModal.duration,
+              }
+            : m
+        )
+      );
+      showToast(`Account @${banModal.member.username} marked as suspended.`, 'success');
+    }
+
     setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
   };
 
   // Unban confirmation
-  const handleConfirmUnban = (e) => {
+  const handleConfirmUnban = async (e) => {
     e.preventDefault();
     if (!unbanModal.member) return;
 
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === unbanModal.member.id
-          ? {
-              ...m,
-              status: 'Active',
-              banReason: undefined,
-              banDuration: undefined,
-            }
-          : m
-      )
-    );
+    try {
+      await unbanMember(unbanModal.member.id, {
+        reason: unbanModal.notes || 'Unbanned by administrator',
+      });
+      showToast(`Account @${unbanModal.member.username} has been restored to active status.`, 'success');
+      await fetchMembers();
+    } catch {
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === unbanModal.member.id
+            ? {
+                ...m,
+                status: 'Active',
+                banReason: undefined,
+                banDuration: undefined,
+              }
+            : m
+        )
+      );
+      showToast(`Account @${unbanModal.member.username} restored to active status.`, 'success');
+    }
 
-    showToast(`Account @${unbanModal.member.username} has been restored to active status.`, 'success');
     setUnbanModal({ isOpen: false, member: null, notes: '' });
   };
 

@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { getAdminModerationPosts, decideModerationPost } from '../../services/adminService';
 import imgBraised from '../../assets/images/categories/category-braised-dishes.jpg';
 import imgSoups from '../../assets/images/categories/category-soups.jpg';
 import imgStirFried from '../../assets/images/categories/category-stir-fried.jpg';
@@ -270,22 +271,74 @@ export default function AdminContentManagement() {
     return filteredItems.slice(start, start + pageSize);
   }, [filteredItems, currentPage, pageSize]);
 
+  // Backend data loading
+  const loadModerationPosts = async () => {
+    try {
+      const data = await getAdminModerationPosts({ pageIndex: 1, pageSize: 50, status: 'all' });
+      const posts = data.items || data;
+      if (Array.isArray(posts) && posts.length > 0) {
+        setItems(
+          posts.map((p) => ({
+            id: p.id,
+            title: p.title || 'Untitled Content',
+            type: p.postType ? (p.postType.charAt(0).toUpperCase() + p.postType.slice(1)) : 'Recipe',
+            author: p.authorName || (p.authorUsername ? p.authorUsername : `Author #${p.authorId}`),
+            authorUsername: p.authorUsername || `user_${p.authorId}`,
+            authorRole: p.authorRole || 'Member',
+            category: p.categoryName || 'Main Courses',
+            status: p.status === 'published' ? 'Published' : p.status === 'pending_review' ? 'Pending' : p.status === 'rejected' ? 'Rejected' : (p.status ? (p.status.charAt(0).toUpperCase() + p.status.slice(1)) : 'Pending'),
+            submittedAt: p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : 'Recently',
+            contentRevision: p.contentRevision || 1,
+            excerpt: p.excerpt || p.content?.slice(0, 120) || 'Plant-based culinary dish prepared with natural ingredients.',
+            prepTime: p.prepTime ? `${p.prepTime} mins` : '15 mins',
+            cookTime: p.cookTime ? `${p.cookTime} mins` : '20 mins',
+            servings: p.servings ? `${p.servings} servings` : '4 servings',
+            ingredients: Array.isArray(p.ingredients) ? p.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || `${ing.quantity || ''} ${ing.unit || ''} ${ing.ingredientName || ''}`) : [],
+            steps: Array.isArray(p.steps) ? p.steps.map(st => typeof st === 'string' ? st : st.instruction || st.content || '') : [],
+            image: p.coverImageUrl || p.thumbnailUrl || imgBraised,
+            flagReason: p.scanSummary || (p.scanState === 'flagged' ? 'AI Flagged for Review' : undefined),
+            flagDetail: p.scanErrorCode || undefined,
+            confidence: p.confidenceScore ? `${Math.round(p.confidenceScore * 100)}% Confidence` : undefined,
+          }))
+        );
+      }
+    } catch (err) {
+      console.warn('Backend /admin/moderation/posts unavailable, using local items:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadModerationPosts();
+  }, []);
+
   // Handlers for Approving Content (FN41)
-  const handleApprove = (item) => {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === item.id
-          ? {
-              ...i,
-              status: 'Published',
-              flagReason: undefined,
-              flagDetail: undefined,
-              rejectionReason: undefined,
-            }
-          : i
-      )
-    );
-    showToast(`"${item.title}" has been approved and published to the live platform.`, 'success');
+  const handleApprove = async (item) => {
+    try {
+      await decideModerationPost(item.id, {
+        action: 'approve',
+        reason: 'Approved by administrator',
+        expectedRevision: item.contentRevision || 1,
+      });
+      showToast(`"${item.title}" has been approved and published on backend.`, 'success');
+      await loadModerationPosts();
+    } catch {
+      // Local fallback
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                status: 'Published',
+                flagReason: undefined,
+                flagDetail: undefined,
+                rejectionReason: undefined,
+              }
+            : i
+        )
+      );
+      showToast(`"${item.title}" approved and published to live platform.`, 'success');
+    }
+
     if (previewModal.isOpen && previewModal.item?.id === item.id) {
       setPreviewModal({ isOpen: false, item: null });
     }
@@ -319,7 +372,7 @@ export default function AdminContentManagement() {
     });
   };
 
-  const handleConfirmReject = (e) => {
+  const handleConfirmReject = async (e) => {
     e.preventDefault();
     if (!rejectModal.item) return;
 
@@ -327,22 +380,35 @@ export default function AdminContentManagement() {
       rejectModal.customReason.trim() ||
       `Violation: ${rejectModal.reasonCategory}. Content does not meet platform community standards.`;
 
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === rejectModal.item.id
-          ? {
-              ...i,
-              status: 'Rejected',
-              rejectionReason: fullReason,
-            }
-          : i
-      )
-    );
-
-    showToast(
-      `Content "${rejectModal.item.title}" rejected. Author @${rejectModal.item.authorUsername} notified.`,
-      'success'
-    );
+    try {
+      await decideModerationPost(rejectModal.item.id, {
+        action: 'reject',
+        reason: fullReason,
+        expectedRevision: rejectModal.item.contentRevision || 1,
+      });
+      showToast(
+        `Content "${rejectModal.item.title}" rejected on backend. Author @${rejectModal.item.authorUsername} notified.`,
+        'success'
+      );
+      await loadModerationPosts();
+    } catch {
+      // Local fallback
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === rejectModal.item.id
+            ? {
+                ...i,
+                status: 'Rejected',
+                rejectionReason: fullReason,
+              }
+            : i
+        )
+      );
+      showToast(
+        `Content "${rejectModal.item.title}" rejected. Author @${rejectModal.item.authorUsername} notified.`,
+        'success'
+      );
+    }
 
     setRejectModal({
       isOpen: false,

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { getAdminAuditLogs } from '../../services/adminService';
 
 // Mock initial audit events (fallback when /api/admin/audit-logs is not yet online)
 const INITIAL_AUDIT_LOGS = [
@@ -321,20 +322,76 @@ export default function AdminAuditLogs() {
     }, 3500);
   };
 
-  // Attempt to fetch from real backend endpoint if online
+  // Fetch from real backend endpoint with automatic auth token and fallback
   useEffect(() => {
     let isMounted = true;
     const fetchAuditLogs = async () => {
       try {
-        const response = await fetch('/api/admin/audit-logs');
-        if (response.ok) {
-          const data = await response.json();
-          if (isMounted && Array.isArray(data) && data.length > 0) {
-            setLogs(data);
-          }
+        const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 50 });
+        const items = data.items || data;
+        if (isMounted && Array.isArray(items) && items.length > 0) {
+          // Map backend AuditLogDto to UI schema
+          const mappedLogs = items.map((log) => {
+            const act = log.action || '';
+            let category = 'System';
+            let severity = 'info';
+            let actionName = act.toUpperCase();
+
+            if (act.includes('member') || act.includes('user')) {
+              category = 'Member Mgmt';
+              severity = act.includes('ban') ? 'danger' : 'info';
+              actionName = act.includes('ban') ? 'MEMBER_SUSPENDED' : act.includes('unban') ? 'MEMBER_UNBANNED' : 'MEMBER_ROLE_UPDATED';
+            } else if (act.includes('post') || act.includes('moderation') || act.includes('recipe')) {
+              category = 'Recipe Moderation';
+              severity = act.includes('reject') ? 'warning' : 'success';
+              actionName = act.includes('reject') ? 'RECIPE_REJECTED' : 'RECIPE_APPROVED';
+            } else if (act.includes('category')) {
+              category = 'Taxonomy';
+              severity = act.includes('delete') ? 'danger' : 'success';
+              actionName = act.includes('delete') ? 'CATEGORY_DELETED' : 'CATEGORY_CREATED';
+            } else if (act.includes('auth') || act.includes('security') || act.includes('login')) {
+              category = 'Security';
+              severity = act.includes('fail') ? 'danger' : 'info';
+            }
+
+            return {
+              id: `LOG-${log.id}`,
+              timestamp: log.createdAt || new Date().toISOString(),
+              actor: {
+                name: log.adminUsername || `Admin #${log.adminId}`,
+                email: log.adminEmail || `admin_${log.adminId}@veganhelper.vn`,
+                role: 'Administrator',
+                ip: log.ipAddress || '127.0.0.1',
+                userAgent: log.traceId ? `Trace: ${log.traceId}` : 'Chrome/129.0 on Windows NT',
+              },
+              action: actionName,
+              category,
+              target: {
+                type: log.targetType ? (log.targetType.charAt(0).toUpperCase() + log.targetType.slice(1)) : 'Entity',
+                id: log.targetId || '--',
+                name: log.targetType ? `${log.targetType} #${log.targetId || ''}` : 'Target Object',
+              },
+              severity,
+              status: 'Success',
+              details: {
+                summary: `Action: ${log.action} executed on target ${log.targetType || 'entity'} #${log.targetId || ''}`,
+                reason: 'Administrative operation via Admin Console',
+                notes: `Audit trace: ${log.traceId || '--'}`,
+                metadata: {
+                  rawAction: log.action,
+                  adminId: log.adminId,
+                  targetType: log.targetType,
+                  targetId: log.targetId,
+                  traceId: log.traceId,
+                },
+              },
+            };
+          });
+          setLogs(mappedLogs);
         }
-      } catch {
+      } catch (err) {
         // Fallback to INITIAL_AUDIT_LOGS seamlessly
+        console.warn('Backend /admin/audit-logs unavailable, using local mock feed:', err.message);
       }
     };
 

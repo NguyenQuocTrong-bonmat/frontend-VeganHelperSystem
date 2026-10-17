@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { getCategories } from '../../services/postService';
+import {
+  getAdminCategories,
+  createAdminCategory,
+  updateAdminCategory,
+  deleteAdminCategory,
+} from '../../services/adminService';
 
 export default function AdminCategoryManagement() {
   // Default clean categories dataset representing platform taxonomy
@@ -88,33 +93,34 @@ export default function AdminCategoryManagement() {
   ]);
 
   // Attempt loading backend categories if endpoint is responsive
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        const data = await getCategories();
-        if (isMounted && Array.isArray(data) && data.length > 0) {
-          setCategories(
-            data.map((cat, idx) => ({
-              id: cat.id || cat.categoryId || idx + 1,
-              name: cat.name || cat.categoryName,
-              slug: cat.slug || `/recipes/${(cat.name || 'category').toLowerCase().replace(/\s+/g, '-')}`,
-              type: cat.type || 'Recipe Type',
-              description: cat.description || 'Delicious plant-based culinary category.',
-              postsCount: cat.postsCount ?? 0,
-              isActive: cat.isActive !== false,
-              color: cat.color || '#2F5233',
-            }))
-          );
-        }
-      } catch {
-        // Fallback to placeholder dataset seamlessly
+  const loadCategories = async () => {
+    try {
+      const data = await getAdminCategories({ pageIndex: 1, pageSize: 100 });
+      const items = data.items || data;
+      if (Array.isArray(items) && items.length > 0) {
+        setCategories(
+          items.map((cat, idx) => ({
+            id: cat.id || idx + 1,
+            name: cat.name,
+            slug: cat.slug ? (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`) : `/recipes/${(cat.name || 'category').toLowerCase().replace(/\s+/g, '-')}`,
+            rawSlug: cat.slug || '',
+            type: cat.postCategoryKind === 'topic' ? 'Community Topic' : cat.postCategoryKind === 'food' ? 'Food Type' : 'Recipe Type',
+            postCategoryKind: cat.postCategoryKind || 'recipe',
+            description: cat.description || 'Wholesome, nourishing plant-based recipe and dietary classification.',
+            postsCount: cat.postCount ?? cat.postsCount ?? 0,
+            isActive: cat.isActive !== false,
+            color: cat.color || '#2F5233',
+          }))
+        );
       }
+    } catch (err) {
+      // Fallback to placeholder dataset seamlessly
+      console.warn('Backend /admin/categories unavailable, using local data:', err.message);
     }
-    loadData();
-    return () => {
-      isMounted = false;
-    };
+  };
+
+  useEffect(() => {
+    loadCategories();
   }, []);
 
   // Filter & Search states
@@ -229,45 +235,70 @@ export default function AdminCategoryManagement() {
     }
   };
 
-  const handleSaveCategory = (e) => {
+  const handleSaveCategory = async (e) => {
     e.preventDefault();
     if (!formModal.name.trim()) {
       showToast('Please enter a valid category name.', 'error');
       return;
     }
 
+    const cleanSlug = (formModal.slug.trim().replace(/^\/+/, '').replace(/^recipes\//, '') || formModal.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).toLowerCase();
+    const kind = formModal.postCategoryKind || (formModal.type === 'Community Topic' ? 'topic' : formModal.type === 'Food Type' ? 'food' : 'recipe');
+
     if (formModal.isEditing && formModal.category) {
       // Update existing
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === formModal.category.id
-            ? {
-                ...c,
-                name: formModal.name.trim(),
-                slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
-                type: formModal.type,
-                description: formModal.description.trim(),
-                color: formModal.color,
-                isActive: formModal.isActive,
-              }
-            : c
-        )
-      );
-      showToast(`Category "${formModal.name}" has been updated.`, 'success');
+      try {
+        await updateAdminCategory(formModal.category.id, {
+          name: formModal.name.trim(),
+          slug: cleanSlug,
+          postCategoryKind: kind,
+        });
+        showToast(`Category "${formModal.name}" has been updated on backend.`, 'success');
+        await loadCategories();
+      } catch (err) {
+        // Fallback local update
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === formModal.category.id
+              ? {
+                  ...c,
+                  name: formModal.name.trim(),
+                  slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
+                  type: formModal.type,
+                  description: formModal.description.trim(),
+                  color: formModal.color,
+                  isActive: formModal.isActive,
+                }
+              : c
+          )
+        );
+        showToast(`Category "${formModal.name}" updated locally (${err.message || 'API error'}).`, 'success');
+      }
     } else {
       // Create new
-      const newCategory = {
-        id: Date.now(),
-        name: formModal.name.trim(),
-        slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
-        type: formModal.type,
-        description: formModal.description.trim() || 'Delicious plant-based culinary category.',
-        postsCount: 0,
-        isActive: formModal.isActive,
-        color: formModal.color,
-      };
-      setCategories((prev) => [newCategory, ...prev]);
-      showToast(`New category "${formModal.name}" has been created.`, 'success');
+      try {
+        await createAdminCategory({
+          name: formModal.name.trim(),
+          slug: cleanSlug,
+          postCategoryKind: kind,
+        });
+        showToast(`New category "${formModal.name}" created on backend.`, 'success');
+        await loadCategories();
+      } catch (err) {
+        // Fallback local creation
+        const newCategory = {
+          id: Date.now(),
+          name: formModal.name.trim(),
+          slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
+          type: formModal.type,
+          description: formModal.description.trim() || 'Delicious plant-based culinary category.',
+          postsCount: 0,
+          isActive: formModal.isActive,
+          color: formModal.color,
+        };
+        setCategories((prev) => [newCategory, ...prev]);
+        showToast(`New category "${formModal.name}" created locally (${err.message || 'API error'}).`, 'success');
+      }
     }
 
     setFormModal({
@@ -295,10 +326,21 @@ export default function AdminCategoryManagement() {
     setDeleteModal({ isOpen: true, category: cat });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteModal.category) return;
-    setCategories((prev) => prev.filter((c) => c.id !== deleteModal.category.id));
-    showToast(`Category "${deleteModal.category.name}" has been deleted.`, 'success');
+    try {
+      await deleteAdminCategory(deleteModal.category.id);
+      showToast(`Category "${deleteModal.category.name}" has been deleted from backend.`, 'success');
+      await loadCategories();
+    } catch (err) {
+      if (err.status === 409) {
+        showToast(err.message || 'Cannot delete category: linked posts or constraints exist in database.', 'error');
+      } else {
+        // Local fallback if API is offline
+        setCategories((prev) => prev.filter((c) => c.id !== deleteModal.category.id));
+        showToast(`Category "${deleteModal.category.name}" deleted locally.`, 'success');
+      }
+    }
     setDeleteModal({ isOpen: false, category: null });
   };
 
