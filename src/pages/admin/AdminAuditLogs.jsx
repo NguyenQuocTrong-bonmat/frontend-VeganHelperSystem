@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getAdminAuditLogs } from '../../services/adminService';
 
@@ -295,8 +295,8 @@ const INITIAL_AUDIT_LOGS = [
 ];
 
 export default function AdminAuditLogs() {
-  const [logs, setLogs] = useState(INITIAL_AUDIT_LOGS);
-  const [isLoading, setIsLoading] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -323,83 +323,85 @@ export default function AdminAuditLogs() {
   };
 
   // Fetch from real backend endpoint with automatic auth token and fallback
-  useEffect(() => {
-    let isMounted = true;
-    const fetchAuditLogs = async () => {
-      try {
-        const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 50 });
-        const items = data.items || data;
-        if (isMounted && Array.isArray(items) && items.length > 0) {
-          // Map backend AuditLogDto to UI schema
-          const mappedLogs = items.map((log) => {
-            const act = log.action || '';
-            let category = 'System';
-            let severity = 'info';
-            let actionName = act.toUpperCase();
+  const fetchAuditLogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 50 });
+      const items = data.items || data;
+      if (Array.isArray(items) && items.length > 0) {
+        // Map backend AuditLogDto to UI schema
+        const mappedLogs = items.map((log) => {
+          const act = log.action || '';
+          let category = 'System';
+          let severity = 'info';
+          let actionName = act.toUpperCase();
 
-            if (act.includes('member') || act.includes('user')) {
-              category = 'Member Mgmt';
-              severity = act.includes('ban') ? 'danger' : 'info';
-              actionName = act.includes('ban') ? 'MEMBER_SUSPENDED' : act.includes('unban') ? 'MEMBER_UNBANNED' : 'MEMBER_ROLE_UPDATED';
-            } else if (act.includes('post') || act.includes('moderation') || act.includes('recipe')) {
-              category = 'Recipe Moderation';
-              severity = act.includes('reject') ? 'warning' : 'success';
-              actionName = act.includes('reject') ? 'RECIPE_REJECTED' : 'RECIPE_APPROVED';
-            } else if (act.includes('category')) {
-              category = 'Taxonomy';
-              severity = act.includes('delete') ? 'danger' : 'success';
-              actionName = act.includes('delete') ? 'CATEGORY_DELETED' : 'CATEGORY_CREATED';
-            } else if (act.includes('auth') || act.includes('security') || act.includes('login')) {
-              category = 'Security';
-              severity = act.includes('fail') ? 'danger' : 'info';
-            }
+          if (act.includes('member') || act.includes('user')) {
+            category = 'Member Mgmt';
+            severity = act.includes('ban') ? 'danger' : 'info';
+            actionName = act.includes('ban') ? 'MEMBER_SUSPENDED' : act.includes('unban') ? 'MEMBER_UNBANNED' : 'MEMBER_ROLE_UPDATED';
+          } else if (act.includes('post') || act.includes('moderation') || act.includes('recipe')) {
+            category = 'Recipe Moderation';
+            severity = act.includes('reject') ? 'warning' : 'success';
+            actionName = act.includes('reject') ? 'RECIPE_REJECTED' : 'RECIPE_APPROVED';
+          } else if (act.includes('category')) {
+            category = 'Taxonomy';
+            severity = act.includes('delete') ? 'danger' : 'success';
+            actionName = act.includes('delete') ? 'CATEGORY_DELETED' : 'CATEGORY_CREATED';
+          } else if (act.includes('auth') || act.includes('security') || act.includes('login')) {
+            category = 'Security';
+            severity = act.includes('fail') ? 'danger' : 'info';
+          }
 
-            return {
-              id: `LOG-${log.id}`,
-              timestamp: log.createdAt || new Date().toISOString(),
-              actor: {
-                name: log.adminUsername || `Admin #${log.adminId}`,
-                email: log.adminEmail || `admin_${log.adminId}@veganhelper.vn`,
-                role: 'Administrator',
-                ip: log.ipAddress || '127.0.0.1',
-                userAgent: log.traceId ? `Trace: ${log.traceId}` : 'Chrome/129.0 on Windows NT',
+          return {
+            id: `LOG-${log.id}`,
+            timestamp: log.createdAt || new Date().toISOString(),
+            actor: {
+              name: log.adminUsername || `Admin #${log.adminId}`,
+              email: log.adminEmail || `admin_${log.adminId}@veganhelper.vn`,
+              role: 'Administrator',
+              ip: log.ipAddress || '127.0.0.1',
+              userAgent: log.traceId ? `Trace: ${log.traceId}` : 'Chrome/129.0 on Windows NT',
+            },
+            action: actionName,
+            category,
+            target: {
+              type: log.targetType ? (log.targetType.charAt(0).toUpperCase() + log.targetType.slice(1)) : 'Entity',
+              id: log.targetId || '--',
+              name: log.targetType ? `${log.targetType} #${log.targetId || ''}` : 'Target Object',
+            },
+            severity,
+            status: 'Success',
+            details: {
+              summary: `Action: ${log.action} executed on target ${log.targetType || 'entity'} #${log.targetId || ''}`,
+              reason: 'Administrative operation via Admin Console',
+              notes: `Audit trace: ${log.traceId || '--'}`,
+              metadata: {
+                rawAction: log.action,
+                adminId: log.adminId,
+                targetType: log.targetType,
+                targetId: log.targetId,
+                traceId: log.traceId,
               },
-              action: actionName,
-              category,
-              target: {
-                type: log.targetType ? (log.targetType.charAt(0).toUpperCase() + log.targetType.slice(1)) : 'Entity',
-                id: log.targetId || '--',
-                name: log.targetType ? `${log.targetType} #${log.targetId || ''}` : 'Target Object',
-              },
-              severity,
-              status: 'Success',
-              details: {
-                summary: `Action: ${log.action} executed on target ${log.targetType || 'entity'} #${log.targetId || ''}`,
-                reason: 'Administrative operation via Admin Console',
-                notes: `Audit trace: ${log.traceId || '--'}`,
-                metadata: {
-                  rawAction: log.action,
-                  adminId: log.adminId,
-                  targetType: log.targetType,
-                  targetId: log.targetId,
-                  traceId: log.traceId,
-                },
-              },
-            };
-          });
-          setLogs(mappedLogs);
-        }
-      } catch (err) {
-        // Fallback to INITIAL_AUDIT_LOGS seamlessly
-        console.warn('Backend /admin/audit-logs unavailable, using local mock feed:', err.message);
+            },
+          };
+        });
+        setLogs(mappedLogs);
+      } else {
+        setLogs([]);
       }
-    };
-
-    fetchAuditLogs();
-    return () => {
-      isMounted = false;
-    };
+    } catch (err) {
+      // Fallback to INITIAL_AUDIT_LOGS seamlessly
+      console.warn('Backend /admin/audit-logs unavailable, using fallback feed:', err.message);
+      setLogs(INITIAL_AUDIT_LOGS);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   // Filter & Sort Logic
   const filteredLogs = useMemo(() => {
@@ -483,11 +485,8 @@ export default function AdminAuditLogs() {
   };
 
   const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      showToast('Audit log records refreshed.');
-    }, 400);
+    fetchAuditLogs();
+    showToast('Audit log records refreshed.');
   };
 
   // CSV Export handler
@@ -858,7 +857,39 @@ export default function AdminAuditLogs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                {paginatedLogs.length > 0 ? (
+                {isLoading ? (
+                  [...Array(6)].map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-24 mb-1.5" />
+                        <div className="h-3 bg-[#F4F6F1] rounded w-16" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[#EAF0E9] shrink-0" />
+                          <div className="space-y-1">
+                            <div className="h-3.5 bg-[#EAF0E9] rounded w-28" />
+                            <div className="h-2.5 bg-[#F4F6F1] rounded w-36" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-32 mb-1.5" />
+                        <div className="h-3 bg-[#F4F6F1] rounded w-20" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="h-4 bg-[#EAF0E9] rounded w-28 mb-1.5" />
+                        <div className="h-3 bg-[#F4F6F1] rounded w-20" />
+                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="h-6 bg-[#EAF0E9] rounded-full w-24" />
+                      </td>
+                      <td className="py-4 px-5 text-right whitespace-nowrap">
+                        <div className="h-7 bg-[#EAF0E9] rounded-lg w-20 ml-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : paginatedLogs.length > 0 ? (
                   paginatedLogs.map((log) => {
                     const formatted = formatDateTime(log.timestamp);
                     const severity = getSeverityBadge(log.severity);

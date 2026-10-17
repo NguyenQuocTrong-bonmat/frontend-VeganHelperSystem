@@ -9,176 +9,179 @@ import imgHotPots from '../../assets/images/categories/category-hot-pots.jpg';
 import imgPho from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
 import imgSpringRolls from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
 
+// Fallback clean dataset representing platform moderation items when backend is offline
+const FALLBACK_ITEMS = [
+  {
+    id: 1,
+    title: 'Traditional Claypot Braised Tofu with Lemongrass & Black Pepper',
+    type: 'Recipe',
+    author: 'Mai Linh',
+    authorUsername: 'mailinh_chef',
+    authorRole: 'Chef',
+    category: 'Main Courses',
+    status: 'Pending',
+    submittedAt: '17 Oct, 2026 • 14:20',
+    excerpt: 'A deeply savory, caramelized tofu dish infused with fresh lemongrass, garlic, and cracked black pepper.',
+    prepTime: '15 mins',
+    cookTime: '25 mins',
+    servings: '4 servings',
+    ingredients: [
+      '500g Non-GMO firm tofu (cubed and lightly pan-seared)',
+      '3 stalks fresh lemongrass, finely minced',
+      '2 tbsp premium vegetarian mushroom sauce',
+      '1 tbsp coconut caramel sauce (nước màu dừa)',
+      '1 tsp freshly cracked black pepper',
+      'Fresh red chili & scallions for garnish',
+    ],
+    steps: [
+      'Cut tofu into bite-sized cubes and lightly brown all sides in a skillet.',
+      'Sauté minced lemongrass, garlic, and chili until fragrant and golden.',
+      'In a claypot, simmer mushroom sauce, coconut caramel, and filtered water until bubbling.',
+      'Add pan-seared tofu, reduce heat to low, and simmer for 20 minutes until deeply glazed.',
+      'Top with cracked black pepper and fresh herbs before serving hot with steamed jasmine rice.',
+    ],
+    image: imgBraised,
+  },
+  {
+    id: 2,
+    title: 'Mastering Vegan Phở Broth: Charred Ginger & Botanical Spices',
+    type: 'Video',
+    duration: '12:34',
+    author: 'Chef Duy',
+    authorUsername: 'chefduy_culinary',
+    authorRole: 'Chef',
+    category: 'Soups & Broths',
+    status: 'Flagged',
+    submittedAt: '16 Oct, 2026 • 09:15',
+    excerpt: 'Step-by-step masterclass on slow-charring ginger and star anise for golden vegan phở broth.',
+    flagReason: 'Commercial Sponsor Links',
+    flagDetail: 'AI Scanner detected external Telegram link and unverified sponsored supplements in the recipe video description.',
+    confidence: '94% Confidence',
+    prepTime: '20 mins',
+    cookTime: '2 hours',
+    servings: '6 bowls',
+    ingredients: [
+      '2 charred yellow onions and 1 large piece charred ginger',
+      '4 star anise, 1 black cardamom, 1 cinnamon bark',
+      '1 daikon radish, 1 jicama, 2 carrots, 1 corn cob for natural sweetness',
+      'Dried shiitake mushrooms and roasted coriander seeds',
+    ],
+    steps: [
+      'Char onions and ginger over open flame until fragrant and slightly blackened.',
+      'Toast whole spices in a dry pan until aromatic.',
+      'Simmer root vegetables and toasted spices for 2 hours on low heat.',
+      'Strain clear golden broth, season with rock sugar and sea salt.',
+    ],
+    image: imgPho,
+  },
+  {
+    id: 3,
+    title: 'Crispy Vietnamese Spring Rolls with Sweet & Tangy Dip',
+    type: 'Recipe',
+    author: 'Phạm Văn Minh',
+    authorUsername: 'minh_pv',
+    authorRole: 'Member',
+    category: 'Main Courses',
+    status: 'Flagged',
+    submittedAt: '15 Oct, 2026 • 18:40',
+    excerpt: 'Crispy rice paper rolls stuffed with wood ear mushrooms, glass noodles, and shredded taro root.',
+    flagReason: 'Suspected Non-Vegan Ingredient',
+    flagDetail: '3 community members reported that ingredient list mentions commercial fish sauce instead of vegan fermented pineapple sauce.',
+    confidence: 'Community Reports (3)',
+    prepTime: '30 mins',
+    cookTime: '20 mins',
+    servings: '5 servings',
+    ingredients: [
+      'Rice paper wrappers',
+      '200g taro root, julienned',
+      '50g wood ear mushrooms, soaked and shredded',
+      '100g bean thread glass noodles',
+      'Sweet & sour dipping sauce',
+    ],
+    steps: [
+      'Soak glass noodles and wood ear mushrooms in warm water, drain thoroughly.',
+      'Mix taro, mushrooms, noodles, and seasonings evenly.',
+      'Roll tightly in rice paper sheets and fry in hot vegetable oil until crisp and golden.',
+    ],
+    image: imgSpringRolls,
+  },
+  {
+    id: 4,
+    title: 'Comment on "Healing Lotus Seed & Wild Mushroom Stew"',
+    type: 'Comment',
+    author: 'user_99218',
+    authorUsername: 'user992',
+    authorRole: 'Member',
+    category: 'Discussion',
+    status: 'Flagged',
+    submittedAt: '15 Oct, 2026 • 23:48',
+    excerpt: '“Check my telegram link t.me/crypto_profit for guaranteed 200% returns and herbal supplies!”',
+    flagReason: 'Automated Spam Link Filter',
+    flagDetail: 'Comment contains known commercial crypto phishing pattern.',
+    confidence: '99% Confidence',
+    ingredients: [],
+    steps: [],
+    image: null,
+  },
+  {
+    id: 5,
+    title: 'Wild Forest Mushroom & Lotus Root Herbal Hot Pot',
+    type: 'Recipe',
+    author: 'Hoàng Thu Thảo',
+    authorUsername: 'thuthaoveg',
+    authorRole: 'Member',
+    category: 'Plant-based Hot Pots',
+    status: 'Published',
+    submittedAt: '14 Oct, 2026 • 11:05',
+    excerpt: 'A communal, deeply nourishing hot pot showcasing four varieties of forest mushrooms in herbal dashi.',
+    prepTime: '25 mins',
+    cookTime: '40 mins',
+    servings: '6 servings',
+    ingredients: [
+      '300g fresh King Oyster mushrooms',
+      '200g Shimeji & Enoki mushrooms',
+      '1 fresh lotus root, sliced',
+      'Chinese red dates, goji berries, and sweet corn',
+      'Tofu skin rolls (tàu hũ ky) & fresh chrysanthemum greens',
+    ],
+    steps: [
+      'Prepare the herbal broth with lotus root, corn, red dates, and goji berries.',
+      'Arrange mushrooms, tofu skin, and greens on a large serving platter.',
+      'Bring broth to a gentle rolling boil at the dining table and dip fresh botanicals.',
+    ],
+    image: imgHotPots,
+  },
+  {
+    id: 6,
+    title: 'Pan-Seared King Oyster Mushrooms with Sweet Glaze',
+    type: 'Recipe',
+    author: 'Lê Ngọc Mai',
+    authorUsername: 'ngocmai_green',
+    authorRole: 'Member',
+    category: 'Main Courses',
+    status: 'Rejected',
+    submittedAt: '13 Oct, 2026 • 08:30',
+    excerpt: 'Thick score-cut King Oyster mushrooms pan-seared with sweet honey glaze and sesame oil.',
+    rejectionReason: 'Recipe contains non-vegan ingredient (bee honey). Please substitute with pure organic maple syrup or sugarcane molasses to comply with 100% vegan guidelines.',
+    prepTime: '10 mins',
+    cookTime: '15 mins',
+    servings: '2 servings',
+    ingredients: [
+      '3 large King Oyster mushroom stalks',
+      '1 tbsp soy sauce, 1 tsp sesame oil',
+      '1 tbsp sweetener glaze',
+    ],
+    steps: [
+      'Score mushrooms in a diamond crosshatch pattern.',
+      'Sear in hot pan until golden, baste with glaze until glossy.',
+    ],
+    image: imgStirFried,
+  },
+];
+
 export default function AdminContentManagement() {
-  // Comprehensive content moderation dataset with initial real-world items
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      title: 'Traditional Claypot Braised Tofu with Lemongrass & Black Pepper',
-      type: 'Recipe',
-      author: 'Mai Linh',
-      authorUsername: 'mailinh_chef',
-      authorRole: 'Chef',
-      category: 'Main Courses',
-      status: 'Pending',
-      submittedAt: '17 Oct, 2026 • 14:20',
-      excerpt: 'A deeply savory, caramelized tofu dish infused with fresh lemongrass, garlic, and cracked black pepper.',
-      prepTime: '15 mins',
-      cookTime: '25 mins',
-      servings: '4 servings',
-      ingredients: [
-        '500g Non-GMO firm tofu (cubed and lightly pan-seared)',
-        '3 stalks fresh lemongrass, finely minced',
-        '2 tbsp premium vegetarian mushroom sauce',
-        '1 tbsp coconut caramel sauce (nước màu dừa)',
-        '1 tsp freshly cracked black pepper',
-        'Fresh red chili & scallions for garnish',
-      ],
-      steps: [
-        'Cut tofu into bite-sized cubes and lightly brown all sides in a skillet.',
-        'Sauté minced lemongrass, garlic, and chili until fragrant and golden.',
-        'In a claypot, simmer mushroom sauce, coconut caramel, and filtered water until bubbling.',
-        'Add pan-seared tofu, reduce heat to low, and simmer for 20 minutes until deeply glazed.',
-        'Top with cracked black pepper and fresh herbs before serving hot with steamed jasmine rice.',
-      ],
-      image: imgBraised,
-    },
-    {
-      id: 2,
-      title: 'Mastering Vegan Phở Broth: Charred Ginger & Botanical Spices',
-      type: 'Video',
-      duration: '12:34',
-      author: 'Chef Duy',
-      authorUsername: 'chefduy_culinary',
-      authorRole: 'Chef',
-      category: 'Soups & Broths',
-      status: 'Flagged',
-      submittedAt: '16 Oct, 2026 • 09:15',
-      excerpt: 'Step-by-step masterclass on slow-charring ginger and star anise for golden vegan phở broth.',
-      flagReason: 'Commercial Sponsor Links',
-      flagDetail: 'AI Scanner detected external Telegram link and unverified sponsored supplements in the recipe video description.',
-      confidence: '94% Confidence',
-      prepTime: '20 mins',
-      cookTime: '2 hours',
-      servings: '6 bowls',
-      ingredients: [
-        '2 charred yellow onions and 1 large piece charred ginger',
-        '4 star anise, 1 black cardamom, 1 cinnamon bark',
-        '1 daikon radish, 1 jicama, 2 carrots, 1 corn cob for natural sweetness',
-        'Dried shiitake mushrooms and roasted coriander seeds',
-      ],
-      steps: [
-        'Char onions and ginger over open flame until fragrant and slightly blackened.',
-        'Toast whole spices in a dry pan until aromatic.',
-        'Simmer root vegetables and toasted spices for 2 hours on low heat.',
-        'Strain clear golden broth, season with rock sugar and sea salt.',
-      ],
-      image: imgPho,
-    },
-    {
-      id: 3,
-      title: 'Crispy Vietnamese Spring Rolls with Sweet & Tangy Dip',
-      type: 'Recipe',
-      author: 'Phạm Văn Minh',
-      authorUsername: 'minh_pv',
-      authorRole: 'Member',
-      category: 'Main Courses',
-      status: 'Flagged',
-      submittedAt: '15 Oct, 2026 • 18:40',
-      excerpt: 'Crispy rice paper rolls stuffed with wood ear mushrooms, glass noodles, and shredded taro root.',
-      flagReason: 'Suspected Non-Vegan Ingredient',
-      flagDetail: '3 community members reported that ingredient list mentions commercial fish sauce instead of vegan fermented pineapple sauce.',
-      confidence: 'Community Reports (3)',
-      prepTime: '30 mins',
-      cookTime: '20 mins',
-      servings: '5 servings',
-      ingredients: [
-        'Rice paper wrappers',
-        '200g taro root, julienned',
-        '50g wood ear mushrooms, soaked and shredded',
-        '100g bean thread glass noodles',
-        'Sweet & sour dipping sauce',
-      ],
-      steps: [
-        'Soak glass noodles and wood ear mushrooms in warm water, drain thoroughly.',
-        'Mix taro, mushrooms, noodles, and seasonings evenly.',
-        'Roll tightly in rice paper sheets and fry in hot vegetable oil until crisp and golden.',
-      ],
-      image: imgSpringRolls,
-    },
-    {
-      id: 4,
-      title: 'Comment on "Healing Lotus Seed & Wild Mushroom Stew"',
-      type: 'Comment',
-      author: 'user_99218',
-      authorUsername: 'user992',
-      authorRole: 'Member',
-      category: 'Discussion',
-      status: 'Flagged',
-      submittedAt: '15 Oct, 2026 • 23:48',
-      excerpt: '“Check my telegram link t.me/crypto_profit for guaranteed 200% returns and herbal supplies!”',
-      flagReason: 'Automated Spam Link Filter',
-      flagDetail: 'Comment contains known commercial crypto phishing pattern.',
-      confidence: '99% Confidence',
-      ingredients: [],
-      steps: [],
-      image: null,
-    },
-    {
-      id: 5,
-      title: 'Wild Forest Mushroom & Lotus Root Herbal Hot Pot',
-      type: 'Recipe',
-      author: 'Hoàng Thu Thảo',
-      authorUsername: 'thuthaoveg',
-      authorRole: 'Member',
-      category: 'Plant-based Hot Pots',
-      status: 'Published',
-      submittedAt: '14 Oct, 2026 • 11:05',
-      excerpt: 'A communal, deeply nourishing hot pot showcasing four varieties of forest mushrooms in herbal dashi.',
-      prepTime: '25 mins',
-      cookTime: '40 mins',
-      servings: '6 servings',
-      ingredients: [
-        '300g fresh King Oyster mushrooms',
-        '200g Shimeji & Enoki mushrooms',
-        '1 fresh lotus root, sliced',
-        'Chinese red dates, goji berries, and sweet corn',
-        'Tofu skin rolls (tàu hũ ky) & fresh chrysanthemum greens',
-      ],
-      steps: [
-        'Prepare the herbal broth with lotus root, corn, red dates, and goji berries.',
-        'Arrange mushrooms, tofu skin, and greens on a large serving platter.',
-        'Bring broth to a gentle rolling boil at the dining table and dip fresh botanicals.',
-      ],
-      image: imgHotPots,
-    },
-    {
-      id: 6,
-      title: 'Pan-Seared King Oyster Mushrooms with Sweet Glaze',
-      type: 'Recipe',
-      author: 'Lê Ngọc Mai',
-      authorUsername: 'ngocmai_green',
-      authorRole: 'Member',
-      category: 'Main Courses',
-      status: 'Rejected',
-      submittedAt: '13 Oct, 2026 • 08:30',
-      excerpt: 'Thick score-cut King Oyster mushrooms pan-seared with sweet honey glaze and sesame oil.',
-      rejectionReason: 'Recipe contains non-vegan ingredient (bee honey). Please substitute with pure organic maple syrup or sugarcane molasses to comply with 100% vegan guidelines.',
-      prepTime: '10 mins',
-      cookTime: '15 mins',
-      servings: '2 servings',
-      ingredients: [
-        '3 large King Oyster mushroom stalks',
-        '1 tbsp soy sauce, 1 tsp sesame oil',
-        '1 tbsp sweetener glaze',
-      ],
-      steps: [
-        'Score mushrooms in a diamond crosshatch pattern.',
-        'Sear in hot pan until golden, baste with glaze until glossy.',
-      ],
-      image: imgStirFried,
-    },
-  ]);
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter & Search states
   const [tabFilter, setTabFilter] = useState('All'); // All | Pending | Flagged | Published | Rejected
@@ -273,6 +276,7 @@ export default function AdminContentManagement() {
 
   // Backend data loading
   const loadModerationPosts = async () => {
+    setIsLoading(true);
     try {
       const data = await getAdminModerationPosts({ pageIndex: 1, pageSize: 50, status: 'all' });
       const posts = data.items || data;
@@ -301,9 +305,14 @@ export default function AdminContentManagement() {
             confidence: p.confidenceScore ? `${Math.round(p.confidenceScore * 100)}% Confidence` : undefined,
           }))
         );
+      } else {
+        setItems([]);
       }
     } catch (err) {
-      console.warn('Backend /admin/moderation/posts unavailable, using local items:', err.message);
+      console.warn('Backend /admin/moderation/posts unavailable, using fallback items:', err.message);
+      setItems(FALLBACK_ITEMS);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -667,7 +676,30 @@ export default function AdminContentManagement() {
 
         {/* 4. Moderation Items List */}
         <div className="space-y-4">
-          {paginatedItems.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <div key={`skel-mod-${idx}`} className="bg-white border border-[#DCE3D5] rounded-[24px] p-5 sm:p-6 shadow-xs animate-pulse">
+                <div className="flex flex-col md:flex-row items-start justify-between gap-5">
+                  <div className="flex items-start gap-4 min-w-0 flex-1">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#EAF0E9] shrink-0" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex gap-2">
+                        <div className="w-20 h-5 bg-[#EAF0E9] rounded-full" />
+                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
+                      </div>
+                      <div className="w-3/4 h-5 bg-[#EAF0E9] rounded" />
+                      <div className="w-1/2 h-3.5 bg-[#F3F6EE] rounded" />
+                      <div className="w-full h-10 bg-[#FAFBF9] rounded-xl" />
+                    </div>
+                  </div>
+                  <div className="flex md:flex-col gap-2 shrink-0">
+                    <div className="w-24 h-9 bg-[#EAF0E9] rounded-full" />
+                    <div className="w-24 h-9 bg-[#EAF0E9] rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : paginatedItems.length > 0 ? (
             paginatedItems.map((item) => {
               const isFlagged = item.status === 'Flagged';
               const isPending = item.status === 'Pending';

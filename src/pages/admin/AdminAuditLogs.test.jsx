@@ -15,6 +15,12 @@ vi.mock('../../components/notifications/NotificationBell', () => ({
   default: () => <div data-testid="mock-notification-bell">NotificationBell</div>,
 }));
 
+// Mock adminService to trigger fallback
+vi.mock('../../services/adminService', () => ({
+  getAdminAuditLogs: vi.fn().mockRejectedValue(new Error('Backend offline in test')),
+  getAdminAuditLogById: vi.fn(),
+}));
+
 let container;
 let root;
 
@@ -45,6 +51,9 @@ const renderComponent = async () => {
         <AdminAuditLogs />
       </MemoryRouter>
     );
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 };
 

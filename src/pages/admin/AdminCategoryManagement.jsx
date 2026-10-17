@@ -7,93 +7,97 @@ import {
   deleteAdminCategory,
 } from '../../services/adminService';
 
+// Default clean categories dataset representing platform taxonomy fallback
+const FALLBACK_CATEGORIES = [
+  {
+    id: 1,
+    name: 'Main Courses',
+    slug: '/recipes/main-courses',
+    type: 'Recipe Type',
+    description: 'Wholesome, nourishing plant-based entrées ranging from claypot braised tofu to fragrant stir-fries and wholesome stews.',
+    postsCount: 124,
+    isActive: true,
+    color: '#2F5233',
+  },
+  {
+    id: 2,
+    name: 'Soups & Broths',
+    slug: '/recipes/soups-broths',
+    type: 'Recipe Type',
+    description: 'Plant-based broth foundations, slow-simmered daikon-root broths, and warming herbal culinary soups.',
+    postsCount: 86,
+    isActive: true,
+    color: '#4C8C4A',
+  },
+  {
+    id: 3,
+    name: 'Fermented & Pickles',
+    slug: '/recipes/fermented-pickles',
+    type: 'Recipe Type',
+    description: 'Traditional gut-friendly fermented dishes, vegan kimchi, pickled lotus roots, and artisanal tempeh.',
+    postsCount: 52,
+    isActive: true,
+    color: '#8A6114',
+  },
+  {
+    id: 4,
+    name: 'Salads & Raw Botanicals',
+    slug: '/recipes/salads-botanicals',
+    type: 'Recipe Type',
+    description: 'Crisp seasonal greens, Vietnamese banana blossom salads, herbs, and cold-pressed citrus dressings.',
+    postsCount: 45,
+    isActive: true,
+    color: '#2F5233',
+  },
+  {
+    id: 5,
+    name: 'Nourishing Desserts & Tea',
+    slug: '/recipes/desserts-tea',
+    type: 'Recipe Type',
+    description: 'Naturally sweet sweet-soups (chè), herbal infusions, lotus seed compotes, and rice flours.',
+    postsCount: 38,
+    isActive: true,
+    color: '#4C8C4A',
+  },
+  {
+    id: 6,
+    name: 'Plant-based Hot Pots',
+    slug: '/recipes/hot-pots',
+    type: 'Recipe Type',
+    description: 'Hearty communal hot pots with wild forest mushrooms, lotus roots, and medicinal herbal broth.',
+    postsCount: 40,
+    isActive: true,
+    color: '#8A6114',
+  },
+  {
+    id: 7,
+    name: 'Gluten-Free Botanical',
+    slug: '/recipes/gluten-free',
+    type: 'Diet / Tag',
+    description: 'Specially formulated wheat-free recipes utilizing brown rice, buckwheat, and root starch.',
+    postsCount: 18,
+    isActive: true,
+    color: '#3B5E3C',
+  },
+  {
+    id: 8,
+    name: 'High-Protein Vegan',
+    slug: '/recipes/high-protein',
+    type: 'Diet / Tag',
+    description: 'Nutrient-dense meals packed with non-GMO legumes, hemp seeds, tempeh, and pea protein isolates.',
+    postsCount: 0,
+    isActive: true,
+    color: '#25401F',
+  },
+];
+
 export default function AdminCategoryManagement() {
-  // Default clean categories dataset representing platform taxonomy
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: 'Main Courses',
-      slug: '/recipes/main-courses',
-      type: 'Recipe Type',
-      description: 'Wholesome, nourishing plant-based entrées ranging from claypot braised tofu to fragrant stir-fries and wholesome stews.',
-      postsCount: 124,
-      isActive: true,
-      color: '#2F5233',
-    },
-    {
-      id: 2,
-      name: 'Soups & Broths',
-      slug: '/recipes/soups-broths',
-      type: 'Recipe Type',
-      description: 'Plant-based broth foundations, slow-simmered daikon-root broths, and warming herbal culinary soups.',
-      postsCount: 86,
-      isActive: true,
-      color: '#4C8C4A',
-    },
-    {
-      id: 3,
-      name: 'Fermented & Pickles',
-      slug: '/recipes/fermented-pickles',
-      type: 'Recipe Type',
-      description: 'Traditional gut-friendly fermented dishes, vegan kimchi, pickled lotus roots, and artisanal tempeh.',
-      postsCount: 52,
-      isActive: true,
-      color: '#8A6114',
-    },
-    {
-      id: 4,
-      name: 'Salads & Raw Botanicals',
-      slug: '/recipes/salads-botanicals',
-      type: 'Recipe Type',
-      description: 'Crisp seasonal greens, Vietnamese banana blossom salads, herbs, and cold-pressed citrus dressings.',
-      postsCount: 45,
-      isActive: true,
-      color: '#2F5233',
-    },
-    {
-      id: 5,
-      name: 'Nourishing Desserts & Tea',
-      slug: '/recipes/desserts-tea',
-      type: 'Recipe Type',
-      description: 'Naturally sweet sweet-soups (chè), herbal infusions, lotus seed compotes, and rice flours.',
-      postsCount: 38,
-      isActive: true,
-      color: '#4C8C4A',
-    },
-    {
-      id: 6,
-      name: 'Plant-based Hot Pots',
-      slug: '/recipes/hot-pots',
-      type: 'Recipe Type',
-      description: 'Hearty communal hot pots with wild forest mushrooms, lotus roots, and medicinal herbal broth.',
-      postsCount: 40,
-      isActive: true,
-      color: '#8A6114',
-    },
-    {
-      id: 7,
-      name: 'Gluten-Free Botanical',
-      slug: '/recipes/gluten-free',
-      type: 'Diet / Tag',
-      description: 'Specially formulated wheat-free recipes utilizing brown rice, buckwheat, and root starch.',
-      postsCount: 18,
-      isActive: true,
-      color: '#3B5E3C',
-    },
-    {
-      id: 8,
-      name: 'High-Protein Vegan',
-      slug: '/recipes/high-protein',
-      type: 'Diet / Tag',
-      description: 'Nutrient-dense meals packed with non-GMO legumes, hemp seeds, tempeh, and pea protein isolates.',
-      postsCount: 0,
-      isActive: true,
-      color: '#25401F',
-    },
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Attempt loading backend categories if endpoint is responsive
   const loadCategories = async () => {
+    setIsLoading(true);
     try {
       const data = await getAdminCategories({ pageIndex: 1, pageSize: 100 });
       const items = data.items || data;
@@ -112,10 +116,14 @@ export default function AdminCategoryManagement() {
             color: cat.color || '#2F5233',
           }))
         );
+      } else {
+        setCategories([]);
       }
     } catch (err) {
-      // Fallback to placeholder dataset seamlessly
-      console.warn('Backend /admin/categories unavailable, using local data:', err.message);
+      console.warn('Backend /admin/categories unavailable, using fallback data:', err.message);
+      setCategories(FALLBACK_CATEGORIES);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -483,7 +491,37 @@ export default function AdminCategoryManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                {paginatedCategories.length > 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, idx) => (
+                    <tr key={`skel-cat-${idx}`} className="animate-pulse">
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2.5 h-7 rounded-full bg-[#EAF0E9]" />
+                          <div className="space-y-1.5">
+                            <div className="w-32 h-3.5 bg-[#EAF0E9] rounded" />
+                            <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-20 h-5 bg-[#EAF0E9] rounded-full" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-48 h-3 bg-[#EAF0E9] rounded mb-1" />
+                        <div className="w-36 h-2.5 bg-[#F3F6EE] rounded" />
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <div className="w-12 h-3 bg-[#EAF0E9] rounded mx-auto" />
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <div className="w-14 h-5 bg-[#EAF0E9] rounded-full mx-auto" />
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="w-16 h-6 bg-[#EAF0E9] rounded ml-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : paginatedCategories.length > 0 ? (
                   paginatedCategories.map((cat) => {
                     const hasLinkedPosts = cat.postsCount > 0;
 

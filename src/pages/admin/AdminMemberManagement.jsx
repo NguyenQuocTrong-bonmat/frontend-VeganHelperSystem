@@ -4,110 +4,113 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getAdminMembers, banMember, unbanMember } from '../../services/adminService';
 
+// Fallback clean dataset representing platform members when backend is offline
+const FALLBACK_MEMBERS = [
+  {
+    id: 1,
+    displayName: 'Mai Linh',
+    username: 'mailinh_chef',
+    email: 'mailinh.vegan@example.com',
+    phone: '+84 912 345 678',
+    role: 'Chef',
+    status: 'Active',
+    joinedDate: '15/05/2026',
+    avatarUrl: null,
+    bio: 'Plant-based chef passionate about traditional Vietnamese fermented dishes.',
+    postsCount: 24,
+    reportsCount: 0,
+  },
+  {
+    id: 2,
+    displayName: 'Hoàng Thu Thảo',
+    username: 'thuthaoveg',
+    email: 'thuthao.h@example.com',
+    phone: '+84 983 221 445',
+    role: 'Member',
+    status: 'Active',
+    joinedDate: '02/06/2026',
+    avatarUrl: null,
+    bio: 'Vegan food enthusiast and daily home cook sharing quick lunch recipes.',
+    postsCount: 8,
+    reportsCount: 0,
+  },
+  {
+    id: 3,
+    displayName: 'Chef Duy',
+    username: 'chefduy_culinary',
+    email: 'duy.culinary@botanical.vn',
+    phone: '+84 905 889 123',
+    role: 'Chef',
+    status: 'Active',
+    joinedDate: '20/04/2026',
+    avatarUrl: null,
+    bio: 'Executive plant-based culinary advisor at Botanical Hearth.',
+    postsCount: 42,
+    reportsCount: 0,
+  },
+  {
+    id: 4,
+    displayName: 'Phạm Văn Minh',
+    username: 'minh_pv',
+    email: 'minh.pv91@example.com',
+    phone: '+84 977 114 990',
+    role: 'Member',
+    status: 'Banned',
+    joinedDate: '11/01/2026',
+    avatarUrl: null,
+    bio: 'Account restricted due to community guidelines violation.',
+    postsCount: 2,
+    reportsCount: 5,
+    banReason: 'Spamming external affiliate links and unverified dietary claims.',
+    banDuration: 'Permanent',
+  },
+  {
+    id: 5,
+    displayName: 'Lê Ngọc Mai',
+    username: 'ngocmai_green',
+    email: 'ngocmai.nutrition@example.com',
+    phone: '+84 934 556 778',
+    role: 'Member',
+    status: 'Active',
+    joinedDate: '18/07/2026',
+    avatarUrl: null,
+    bio: 'Holistic wellness advocate studying plant nutrition & macronutrient balance.',
+    postsCount: 15,
+    reportsCount: 0,
+  },
+  {
+    id: 6,
+    displayName: 'Trần Hà',
+    username: 'tran_ha_plant',
+    email: 'tran.ha@example.org',
+    phone: '+84 918 998 877',
+    role: 'Member',
+    status: 'Active',
+    joinedDate: '29/08/2026',
+    avatarUrl: null,
+    bio: 'Community member exploring cruelty-free meal prep and vegan baking.',
+    postsCount: 6,
+    reportsCount: 0,
+  },
+  {
+    id: 7,
+    displayName: 'Nguyễn Quốc Trọng',
+    username: 'admin_trong',
+    email: 'admin.trong@veganhelper.vn',
+    phone: '+84 901 000 999',
+    role: 'Admin',
+    status: 'Active',
+    joinedDate: '01/01/2026',
+    avatarUrl: null,
+    bio: 'System Administrator & Content Operations Lead.',
+    postsCount: 30,
+    reportsCount: 0,
+  },
+];
+
 export default function AdminMemberManagement() {
-  // Initial clean dataset representing platform members until live backend API connection
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      displayName: 'Mai Linh',
-      username: 'mailinh_chef',
-      email: 'mailinh.vegan@example.com',
-      phone: '+84 912 345 678',
-      role: 'Chef',
-      status: 'Active',
-      joinedDate: '15/05/2026',
-      avatarUrl: null,
-      bio: 'Plant-based chef passionate about traditional Vietnamese fermented dishes.',
-      postsCount: 24,
-      reportsCount: 0,
-    },
-    {
-      id: 2,
-      displayName: 'Hoàng Thu Thảo',
-      username: 'thuthaoveg',
-      email: 'thuthao.h@example.com',
-      phone: '+84 983 221 445',
-      role: 'Member',
-      status: 'Active',
-      joinedDate: '02/06/2026',
-      avatarUrl: null,
-      bio: 'Vegan food enthusiast and daily home cook sharing quick lunch recipes.',
-      postsCount: 8,
-      reportsCount: 0,
-    },
-    {
-      id: 3,
-      displayName: 'Chef Duy',
-      username: 'chefduy_culinary',
-      email: 'duy.culinary@botanical.vn',
-      phone: '+84 905 889 123',
-      role: 'Chef',
-      status: 'Active',
-      joinedDate: '20/04/2026',
-      avatarUrl: null,
-      bio: 'Executive plant-based culinary advisor at Botanical Hearth.',
-      postsCount: 42,
-      reportsCount: 0,
-    },
-    {
-      id: 4,
-      displayName: 'Phạm Văn Minh',
-      username: 'minh_pv',
-      email: 'minh.pv91@example.com',
-      phone: '+84 977 114 990',
-      role: 'Member',
-      status: 'Banned',
-      joinedDate: '11/01/2026',
-      avatarUrl: null,
-      bio: 'Account restricted due to community guidelines violation.',
-      postsCount: 2,
-      reportsCount: 5,
-      banReason: 'Spamming external affiliate links and unverified dietary claims.',
-      banDuration: 'Permanent',
-    },
-    {
-      id: 5,
-      displayName: 'Lê Ngọc Mai',
-      username: 'ngocmai_green',
-      email: 'ngocmai.nutrition@example.com',
-      phone: '+84 934 556 778',
-      role: 'Member',
-      status: 'Active',
-      joinedDate: '18/07/2026',
-      avatarUrl: null,
-      bio: 'Holistic wellness advocate studying plant nutrition & macronutrient balance.',
-      postsCount: 15,
-      reportsCount: 0,
-    },
-    {
-      id: 6,
-      displayName: 'Trần Hà',
-      username: 'tran_ha_plant',
-      email: 'tran.ha@example.org',
-      phone: '+84 918 998 877',
-      role: 'Member',
-      status: 'Active',
-      joinedDate: '29/08/2026',
-      avatarUrl: null,
-      bio: 'Community member exploring cruelty-free meal prep and vegan baking.',
-      postsCount: 6,
-      reportsCount: 0,
-    },
-    {
-      id: 7,
-      displayName: 'Nguyễn Quốc Trọng',
-      username: 'admin_trong',
-      email: 'admin.trong@veganhelper.vn',
-      phone: '+84 901 000 999',
-      role: 'Admin',
-      status: 'Active',
-      joinedDate: '01/01/2026',
-      avatarUrl: null,
-      bio: 'System Administrator & Content Operations Lead.',
-      postsCount: 30,
-      reportsCount: 0,
-    },
-  ]);
+  const [members, setMembers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filters & Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -207,6 +210,7 @@ export default function AdminMemberManagement() {
 
   // Backend data loading
   const fetchMembers = async () => {
+    setIsLoading(true);
     try {
       const data = await getAdminMembers({
         pageIndex: 1,
@@ -240,10 +244,14 @@ export default function AdminMemberManagement() {
             banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('vi-VN') : m.banId ? 'Permanent' : '',
           }))
         );
+      } else {
+        setMembers([]);
       }
     } catch (err) {
-      // Backend offline or error -> seamlessly keep existing/placeholder members
-      console.warn('Backend /admin/members unavailable, using local data:', err.message);
+      console.warn('Backend /admin/members unavailable, using fallback data:', err.message);
+      setMembers(FALLBACK_MEMBERS);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -560,7 +568,37 @@ export default function AdminMemberManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                {paginatedMembers.length > 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, idx) => (
+                    <tr key={`skel-member-${idx}`} className="animate-pulse">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#EAF0E9]" />
+                          <div className="space-y-1.5">
+                            <div className="w-28 h-3.5 bg-[#EAF0E9] rounded" />
+                            <div className="w-20 h-2.5 bg-[#F3F6EE] rounded" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-36 h-3 bg-[#EAF0E9] rounded mb-1" />
+                        <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-20 h-3 bg-[#EAF0E9] rounded" />
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="w-14 h-6 bg-[#EAF0E9] rounded ml-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : paginatedMembers.length > 0 ? (
                   paginatedMembers.map((member) => {
                     const initials = member.displayName
                       .split(' ')
