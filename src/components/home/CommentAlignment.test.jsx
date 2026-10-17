@@ -189,10 +189,12 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
     expect(container.querySelector('[data-testid="comment-tombstone-c-2-deleted"]')).not.toBeNull();
     expect(container.textContent).toContain('Surviving Child');
     expect(container.textContent).toContain('I am still here in the thread!');
-    expect(container.textContent).toContain('Replying to a deleted comment');
+    expect(container.textContent).toContain(
+      'The comment that Surviving Child is replying to has been deleted.'
+    );
   });
 
-  it('Case 5: renders "Replying to a deleted comment" when isReplyToDeleted is true', async () => {
+  it('Case 5: names the reply author when its parent comment was deleted', async () => {
     interactionService.getComments.mockResolvedValueOnce([
       {
         id: 'c-1',
@@ -209,7 +211,9 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       root.render(<CommentModal isOpen={true} onClose={() => {}} post={mockPost} />);
     });
 
-    expect(container.textContent).toContain('Replying to a deleted comment');
+    expect(container.textContent).toContain(
+      'The comment that Active User is replying to has been deleted.'
+    );
   });
 
   it('Case 6: does not expose a non-deleted comment with status="hidden" publicly', async () => {

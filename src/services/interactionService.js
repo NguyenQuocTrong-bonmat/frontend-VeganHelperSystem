@@ -1,5 +1,7 @@
 import axiosInstance from '../lib/axios';
 
+export const COMMENT_DELETE_REASON_MAX_LENGTH = 500;
+
 export async function toggleLike(postId) {
   try {
     const response = await axiosInstance.post(`/posts/${postId}/like`);
@@ -99,11 +101,23 @@ export async function updateComment(postId, commentId, content) {
 }
 
 export async function deleteComment(postId, commentId, reason = null) {
+  if (reason != null && typeof reason !== 'string') {
+    const error = new Error('Deletion reason must be text.');
+    error.status = 400;
+    throw error;
+  }
+
+  const normalizedReason = reason?.trim() || '';
+  if (normalizedReason.length > COMMENT_DELETE_REASON_MAX_LENGTH) {
+    const error = new Error(
+      `Deletion reason must not exceed ${COMMENT_DELETE_REASON_MAX_LENGTH} characters.`
+    );
+    error.status = 400;
+    throw error;
+  }
+
   try {
-    const config = {};
-    if (reason && typeof reason === 'string' && reason.trim()) {
-      config.data = { reason: reason.trim() };
-    }
+    const config = normalizedReason ? { data: { reason: normalizedReason } } : {};
     await axiosInstance.delete(`/posts/${postId}/comments/${commentId}`, config);
   } catch (err) {
     let errorMessage = `Failed to delete comment (${err.response?.status || 'network error'})`;

@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { getComments, createComment, updateComment, deleteComment, reportComment } from '../../services/interactionService';
+import {
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  reportComment,
+  COMMENT_DELETE_REASON_MAX_LENGTH,
+} from '../../services/interactionService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate, formatDateTime, getTimeAgo } from '../../utils/dateUtils';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +27,22 @@ function countComments(list = []) {
     }
   }
   return count;
+}
+
+function getCommentDeletionImpact(comment) {
+  const parentCommentId = comment?.parentCommentId ?? comment?.ParentCommentId ?? null;
+  const replies = comment?.replies ?? comment?.Replies;
+  const hasReplies = Array.isArray(replies) && replies.length > 0;
+
+  if (parentCommentId == null && hasReplies) {
+    return 'Deleting this top-level comment hides the text of its entire reply thread. Deleted comments remain as placeholders to preserve the conversation.';
+  }
+
+  if (hasReplies) {
+    return 'Only this reply will be marked deleted. Its replies will remain visible, with this reply shown as a deleted placeholder.';
+  }
+
+  return 'This comment will be marked deleted and shown as a placeholder.';
 }
 
 /**
@@ -249,7 +272,7 @@ export default function CommentModal({
     const commentId = comment.id;
 
     if (isOwner) {
-      if (!window.confirm('Delete this comment? Replies will remain in the conversation.')) return;
+      if (!window.confirm('Delete this comment?\n\n' + getCommentDeletionImpact(comment))) return;
 
       setActionLoadingId(commentId);
       try {
@@ -270,19 +293,32 @@ export default function CommentModal({
         setActionLoadingId(null);
       }
     } else if (isAdmin) {
-      const promptReason = window.prompt('Admin Deletion: Please provide a reason for deleting this comment (required):');
+      const promptReason = window.prompt(
+        'Admin deletion reason (required, maximum '
+          + COMMENT_DELETE_REASON_MAX_LENGTH
+          + ' characters):'
+      );
       if (promptReason === null) return;
       const reason = promptReason.trim();
       if (!reason) {
         toast.error('A reason is required when an administrator deletes a comment.');
         return;
       }
-      if (reason.length > 500) {
-        toast.error('Deletion reason must not exceed 500 characters.');
+      if (reason.length > COMMENT_DELETE_REASON_MAX_LENGTH) {
+        toast.error(
+          'Deletion reason must not exceed '
+            + COMMENT_DELETE_REASON_MAX_LENGTH
+            + ' characters.'
+        );
         return;
       }
 
-      if (!window.confirm(`Are you sure you want to delete this comment as Administrator?\nReason: ${reason}`)) return;
+      const confirmation = [
+        'Delete this comment as administrator?',
+        getCommentDeletionImpact(comment),
+        'Reason: ' + reason,
+      ].join('\n\n');
+      if (!window.confirm(confirmation)) return;
 
       setActionLoadingId(commentId);
       try {
@@ -371,13 +407,10 @@ export default function CommentModal({
       return (
         <div key={comment.id} className="space-y-2.5">
           <div
-            className="bg-vh-surface-warm/40 border border-dashed border-vh-border rounded-xl px-3.5 py-2.5 flex items-center gap-2 text-xs text-vh-text-secondary italic"
+            className="py-1 text-[11px] text-vh-text-secondary italic break-words"
             style={indentStyle}
             data-testid={`comment-tombstone-${comment.id}`}
           >
-            <svg className="w-4 h-4 text-vh-text-secondary/70 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-            </svg>
             <span>{content || 'This comment has been deleted.'}</span>
           </div>
           {comment.replies && comment.replies.length > 0 && (
@@ -427,7 +460,7 @@ export default function CommentModal({
                 {/* Reply parent reference */}
                 {isReplyToDeleted ? (
                   <span className="inline-flex items-center gap-1 text-[11px] text-vh-text-secondary bg-vh-mint/50 border border-vh-border/60 px-2 py-0.5 rounded italic">
-                    Replying to a deleted comment
+                    The comment that {comment.authorName || 'this member'} is replying to has been deleted.
                   </span>
                 ) : replyToDisplayName ? (
                   <span className="inline-flex items-center gap-1 text-[11px] text-vh-forest bg-vh-mint border border-vh-border/60 px-2 py-0.5 rounded font-medium">
