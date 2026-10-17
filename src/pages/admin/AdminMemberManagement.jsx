@@ -9,14 +9,14 @@ const FALLBACK_MEMBERS = [
   {
     id: 1,
     displayName: 'Mai Linh',
-    username: 'mailinh_chef',
+    username: 'mailinh_vegan',
     email: 'mailinh.vegan@example.com',
     phone: '+84 912 345 678',
-    role: 'Chef',
+    role: 'Member',
     status: 'Active',
     joinedDate: '15/05/2026',
     avatarUrl: null,
-    bio: 'Plant-based chef passionate about traditional Vietnamese fermented dishes.',
+    bio: 'Plant-based home cook passionate about traditional Vietnamese fermented dishes.',
     postsCount: 24,
     reportsCount: 0,
   },
@@ -36,15 +36,15 @@ const FALLBACK_MEMBERS = [
   },
   {
     id: 3,
-    displayName: 'Chef Duy',
-    username: 'chefduy_culinary',
+    displayName: 'Hoàng Duy',
+    username: 'duy_culinary',
     email: 'duy.culinary@botanical.vn',
     phone: '+84 905 889 123',
-    role: 'Chef',
+    role: 'Member',
     status: 'Active',
     joinedDate: '20/04/2026',
     avatarUrl: null,
-    bio: 'Executive plant-based culinary advisor at Botanical Hearth.',
+    bio: 'Plant-based culinary enthusiast at Botanical Hearth.',
     postsCount: 42,
     reportsCount: 0,
   },
@@ -115,7 +115,7 @@ export default function AdminMemberManagement() {
   // Filters & Search State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All'); // All | Active | Banned
-  const [roleFilter, setRoleFilter] = useState('All'); // All | Member | Chef | Admin
+  const [roleFilter, setRoleFilter] = useState('All'); // All | Member | Admin
   const [sortBy, setSortBy] = useState('newest'); // newest | oldest | name
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
@@ -340,8 +340,8 @@ export default function AdminMemberManagement() {
     const total = members.length;
     const active = members.filter((m) => m.status === 'Active').length;
     const banned = members.filter((m) => m.status === 'Banned').length;
-    const chefs = members.filter((m) => m.role === 'Chef').length;
-    return { total, active, banned, chefs };
+    const admins = members.filter((m) => m.role === 'Admin').length;
+    return { total, active, banned, admins };
   }, [members]);
 
   return (
@@ -442,19 +442,19 @@ export default function AdminMemberManagement() {
             </div>
           </div>
 
-          {/* Card 4: Verified Chefs */}
+          {/* Card 4: Administrators */}
           <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6B6F63]">Verified Chefs</span>
-              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
+              <span className="text-xs font-medium text-[#6B6F63]">Administrators</span>
+              <div className="w-7 h-7 rounded-lg bg-[#F2EDF7] flex items-center justify-center text-[#5B3E7A]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.chefs}</span>
-              <span className="text-[11px] text-[#6B6F63]">Recipe creators</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.admins}</span>
+              <span className="text-[11px] text-[#6B6F63]">System managers</span>
             </div>
           </div>
         </div>
@@ -516,7 +516,6 @@ export default function AdminMemberManagement() {
                 >
                   <option value="All">All Roles</option>
                   <option value="Member">Members</option>
-                  <option value="Chef">Chefs</option>
                   <option value="Admin">Admins</option>
                 </select>
               </div>
@@ -646,8 +645,6 @@ export default function AdminMemberManagement() {
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                               member.role === 'Admin'
                                 ? 'bg-[#F2EDF7] text-[#5B3E7A] border-[#DFD3EB]'
-                                : member.role === 'Chef'
-                                ? 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]'
                                 : 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
                             }`}
                           >
