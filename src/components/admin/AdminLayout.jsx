@@ -4,9 +4,9 @@ import AdminIconRail from './AdminIconRail';
 
 export default function AdminLayout({ children }) {
   return (
-    <div className="min-h-screen bg-[#E5E9E5] p-3 sm:p-6 lg:p-8 flex flex-col justify-center">
+    <div className="min-h-screen bg-[#F3F6EE] p-3 sm:p-5 lg:p-7 flex flex-col justify-center">
       {/* Outer Rounded Application Shell mirroring reference UI */}
-      <div className="w-full max-w-[1520px] mx-auto bg-white rounded-[32px] shadow-sm border border-[#DCE2DC] flex flex-col min-h-[92vh] overflow-hidden">
+      <div className="w-full max-w-[1520px] mx-auto bg-[#FDFBF6] rounded-[32px] shadow-sm border border-[#DCE3D5] flex flex-col min-h-[92vh] overflow-hidden">
         {/* Top Floating Pill Navbar */}
         <AdminNavbar />
 
