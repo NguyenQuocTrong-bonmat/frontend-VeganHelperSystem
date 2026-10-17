@@ -119,7 +119,6 @@ export default function AdminCategoryManagement() {
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('All'); // All | Recipe Type | Diet / Tag
   const [sortBy, setSortBy] = useState('posts-desc'); // posts-desc | name-asc | newest
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
@@ -165,11 +164,6 @@ export default function AdminCategoryManagement() {
           if (!matchName && !matchSlug && !matchDesc) return false;
         }
 
-        // Type filter
-        if (typeFilter !== 'All' && cat.type !== typeFilter) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
@@ -178,7 +172,7 @@ export default function AdminCategoryManagement() {
         if (sortBy === 'newest') return b.id - a.id;
         return 0;
       });
-  }, [categories, searchQuery, typeFilter, sortBy]);
+  }, [categories, searchQuery, sortBy]);
 
   // Pagination calculation
   const totalItems = filteredCategories.length;
@@ -318,7 +312,6 @@ export default function AdminCategoryManagement() {
 
   const handleClearFilters = () => {
     setSearchQuery('');
-    setTypeFilter('All');
     setSortBy('posts-desc');
     setCurrentPage(1);
   };
@@ -476,29 +469,8 @@ export default function AdminCategoryManagement() {
               )}
             </div>
 
-            {/* Segmented Controls & Sort */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {/* Type Segmented Buttons */}
-              <div className="flex items-center bg-[#F4F6F1] p-1 rounded-xl border border-[#DCE3D5]">
-                {['All', 'Recipe Type', 'Diet / Tag'].map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => {
-                      setTypeFilter(type);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all ${
-                      typeFilter === type
-                        ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
-                        : 'text-[#6B6F63] hover:text-[#2B2A25]'
-                    }`}
-                  >
-                    {type === 'All' ? 'All Types' : type}
-                  </button>
-                ))}
-              </div>
-
-              {/* Sort By Dropdown */}
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="relative">
                 <select
                   value={sortBy}
@@ -519,7 +491,7 @@ export default function AdminCategoryManagement() {
               Showing <span className="font-bold text-[#2B2A25]">{filteredCategories.length}</span> of{' '}
               <span className="font-bold text-[#2B2A25]">{categories.length}</span> categories
             </div>
-            {(searchQuery || typeFilter !== 'All') && (
+            {Boolean(searchQuery) && (
               <button
                 onClick={handleClearFilters}
                 className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F]"
