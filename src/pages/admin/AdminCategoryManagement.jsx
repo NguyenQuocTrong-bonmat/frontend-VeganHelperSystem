@@ -14,80 +14,56 @@ const FALLBACK_CATEGORIES = [
     name: 'Main Courses',
     slug: '/recipes/main-courses',
     type: 'Recipe Type',
-    description: 'Wholesome, nourishing plant-based entrées ranging from claypot braised tofu to fragrant stir-fries and wholesome stews.',
     postsCount: 124,
-    isActive: true,
-    color: '#2F5233',
   },
   {
     id: 2,
     name: 'Soups & Broths',
     slug: '/recipes/soups-broths',
     type: 'Recipe Type',
-    description: 'Plant-based broth foundations, slow-simmered daikon-root broths, and warming herbal culinary soups.',
     postsCount: 86,
-    isActive: true,
-    color: '#4C8C4A',
   },
   {
     id: 3,
     name: 'Fermented & Pickles',
     slug: '/recipes/fermented-pickles',
     type: 'Recipe Type',
-    description: 'Traditional gut-friendly fermented dishes, vegan kimchi, pickled lotus roots, and artisanal tempeh.',
     postsCount: 52,
-    isActive: true,
-    color: '#8A6114',
   },
   {
     id: 4,
     name: 'Salads & Raw Botanicals',
     slug: '/recipes/salads-botanicals',
     type: 'Recipe Type',
-    description: 'Crisp seasonal greens, Vietnamese banana blossom salads, herbs, and cold-pressed citrus dressings.',
     postsCount: 45,
-    isActive: true,
-    color: '#2F5233',
   },
   {
     id: 5,
     name: 'Nourishing Desserts & Tea',
     slug: '/recipes/desserts-tea',
     type: 'Recipe Type',
-    description: 'Naturally sweet sweet-soups (chè), herbal infusions, lotus seed compotes, and rice flours.',
     postsCount: 38,
-    isActive: true,
-    color: '#4C8C4A',
   },
   {
     id: 6,
     name: 'Plant-based Hot Pots',
     slug: '/recipes/hot-pots',
     type: 'Recipe Type',
-    description: 'Hearty communal hot pots with wild forest mushrooms, lotus roots, and medicinal herbal broth.',
     postsCount: 40,
-    isActive: true,
-    color: '#8A6114',
   },
   {
     id: 7,
-    name: 'Gluten-Free Botanical',
-    slug: '/recipes/gluten-free',
-    type: 'Diet / Tag',
-    description: 'Specially formulated wheat-free recipes utilizing brown rice, buckwheat, and root starch.',
+    name: 'Gluten-Free Ingredients',
+    slug: '/recipes/gluten-free-ingredients',
+    type: 'Food Type',
     postsCount: 18,
-    isActive: true,
-    color: '#3B5E3C',
   },
   {
     id: 8,
-    name: 'High-Protein Vegan',
-    slug: '/recipes/high-protein',
-    type: 'Diet / Tag',
-    description: 'Nutrient-dense meals packed with non-GMO legumes, hemp seeds, tempeh, and pea protein isolates.',
-    postsCount: 0,
-    isActive: true,
-    color: '#25401F',
+    name: 'Plant-based Proteins',
+    slug: '/recipes/plant-based-proteins',
+    type: 'Food Type',
+    postsCount: 12,
   },
 ];
 
@@ -108,12 +84,9 @@ export default function AdminCategoryManagement() {
             name: cat.name,
             slug: cat.slug ? (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`) : `/recipes/${(cat.name || 'category').toLowerCase().replace(/\s+/g, '-')}`,
             rawSlug: cat.slug || '',
-            type: cat.postCategoryKind === 'topic' ? 'Community Topic' : cat.postCategoryKind === 'food' ? 'Food Type' : 'Recipe Type',
-            postCategoryKind: cat.postCategoryKind || 'recipe',
-            description: cat.description || 'Wholesome, nourishing plant-based recipe and dietary classification.',
+            type: cat.postCategoryKind === 'food' ? 'Food Type' : 'Recipe Type',
+            postCategoryKind: cat.postCategoryKind || (cat.type === 'Food Type' ? 'food' : 'recipe'),
             postsCount: cat.postCount ?? cat.postsCount ?? 0,
-            isActive: cat.isActive !== false,
-            color: cat.color || '#2F5233',
           }))
         );
       } else {
@@ -145,9 +118,6 @@ export default function AdminCategoryManagement() {
     name: '',
     slug: '',
     type: 'Recipe Type',
-    description: '',
-    color: '#2F5233',
-    isActive: true,
   });
 
   const [deleteModal, setDeleteModal] = useState({
@@ -174,8 +144,7 @@ export default function AdminCategoryManagement() {
           const q = searchQuery.toLowerCase().trim();
           const matchName = cat.name.toLowerCase().includes(q);
           const matchSlug = cat.slug.toLowerCase().includes(q);
-          const matchDesc = cat.description.toLowerCase().includes(q);
-          if (!matchName && !matchSlug && !matchDesc) return false;
+          if (!matchName && !matchSlug) return false;
         }
 
         return true;
@@ -206,9 +175,6 @@ export default function AdminCategoryManagement() {
       name: '',
       slug: '',
       type: 'Recipe Type',
-      description: '',
-      color: '#2F5233',
-      isActive: true,
     });
   };
 
@@ -219,10 +185,7 @@ export default function AdminCategoryManagement() {
       category: cat,
       name: cat.name,
       slug: cat.slug,
-      type: cat.type,
-      description: cat.description,
-      color: cat.color || '#2F5233',
-      isActive: cat.isActive !== false,
+      type: cat.type || (cat.postCategoryKind === 'food' ? 'Food Type' : 'Recipe Type'),
     });
   };
 
@@ -251,7 +214,7 @@ export default function AdminCategoryManagement() {
     }
 
     const cleanSlug = (formModal.slug.trim().replace(/^\/+/, '').replace(/^recipes\//, '') || formModal.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).toLowerCase();
-    const kind = formModal.postCategoryKind || (formModal.type === 'Community Topic' ? 'topic' : formModal.type === 'Food Type' ? 'food' : 'recipe');
+    const kind = formModal.type === 'Food Type' ? 'food' : 'recipe';
 
     if (formModal.isEditing && formModal.category) {
       // Update existing
@@ -273,9 +236,7 @@ export default function AdminCategoryManagement() {
                   name: formModal.name.trim(),
                   slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
                   type: formModal.type,
-                  description: formModal.description.trim(),
-                  color: formModal.color,
-                  isActive: formModal.isActive,
+                  postCategoryKind: kind,
                 }
               : c
           )
@@ -299,10 +260,8 @@ export default function AdminCategoryManagement() {
           name: formModal.name.trim(),
           slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
           type: formModal.type,
-          description: formModal.description.trim() || 'Delicious plant-based culinary category.',
+          postCategoryKind: kind,
           postsCount: 0,
-          isActive: formModal.isActive,
-          color: formModal.color,
         };
         setCategories((prev) => [newCategory, ...prev]);
         showToast(`New category "${formModal.name}" created locally (${err.message || 'API error'}).`, 'success');
@@ -316,9 +275,6 @@ export default function AdminCategoryManagement() {
       name: '',
       slug: '',
       type: 'Recipe Type',
-      description: '',
-      color: '#2F5233',
-      isActive: true,
     });
   };
 
@@ -389,7 +345,7 @@ export default function AdminCategoryManagement() {
               Category Management
             </h1>
             <p className="text-sm text-[#6B6F63] mt-1">
-              Configure and organize taxonomy, dietary tags, and community recipe classifications.
+              Configure and organize recipe types, food types, and community categories.
             </p>
           </div>
 
@@ -418,7 +374,7 @@ export default function AdminCategoryManagement() {
               </div>
               <input
                 type="text"
-                placeholder="Search categories by name, slug, or description..."
+                placeholder="Search categories by name or slug..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -484,9 +440,7 @@ export default function AdminCategoryManagement() {
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
                   <th className="py-3.5 px-5 font-semibold">Category</th>
                   <th className="py-3.5 px-4 font-semibold">Type</th>
-                  <th className="py-3.5 px-4 font-semibold">Description</th>
                   <th className="py-3.5 px-4 font-semibold text-center">Associated Recipes</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Status</th>
                   <th className="py-3.5 px-5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
@@ -495,26 +449,16 @@ export default function AdminCategoryManagement() {
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skel-cat-${idx}`} className="animate-pulse">
                       <td className="py-4 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2.5 h-7 rounded-full bg-[#EAF0E9]" />
-                          <div className="space-y-1.5">
-                            <div className="w-32 h-3.5 bg-[#EAF0E9] rounded" />
-                            <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
-                          </div>
+                        <div className="space-y-1.5">
+                          <div className="w-36 h-3.5 bg-[#EAF0E9] rounded" />
+                          <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="w-20 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="w-48 h-3 bg-[#EAF0E9] rounded mb-1" />
-                        <div className="w-36 h-2.5 bg-[#F3F6EE] rounded" />
-                      </td>
                       <td className="py-4 px-4 text-center">
-                        <div className="w-12 h-3 bg-[#EAF0E9] rounded mx-auto" />
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <div className="w-14 h-5 bg-[#EAF0E9] rounded-full mx-auto" />
+                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full mx-auto" />
                       </td>
                       <td className="py-4 px-5 text-right">
                         <div className="w-16 h-6 bg-[#EAF0E9] rounded ml-auto" />
@@ -529,36 +473,21 @@ export default function AdminCategoryManagement() {
                       <tr key={cat.id} className="hover:bg-[#FAFBF9] transition-colors">
                         {/* Name & Slug */}
                         <td className="py-4 px-5">
-                          <div className="flex items-center gap-3">
-                            <span
-                              style={{ backgroundColor: cat.color || '#2F5233' }}
-                              className="w-2.5 h-7 rounded-full shrink-0"
-                            />
-                            <div>
-                              <p className="font-semibold text-sm text-[#2B2A25]">{cat.name}</p>
-                              <p className="text-[11px] text-[#6B6F63] font-mono mt-0.5">{cat.slug}</p>
-                            </div>
-                          </div>
+                          <p className="font-semibold text-sm text-[#2B2A25]">{cat.name}</p>
+                          <p className="text-[11px] text-[#6B6F63] font-mono mt-0.5">{cat.slug}</p>
                         </td>
 
                         {/* Type Badge */}
                         <td className="py-4 px-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-                              cat.type === 'Recipe Type'
-                                ? 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
-                                : 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]'
+                              cat.type === 'Food Type'
+                                ? 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]'
+                                : 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
                             }`}
                           >
                             {cat.type}
                           </span>
-                        </td>
-
-                        {/* Description */}
-                        <td className="py-4 px-4 max-w-xs sm:max-w-md">
-                          <p className="text-xs text-[#6B6F63] line-clamp-2 leading-relaxed">
-                            {cat.description}
-                          </p>
                         </td>
 
                         {/* Linked Posts count */}
@@ -571,14 +500,6 @@ export default function AdminCategoryManagement() {
                             }`}
                           >
                             {cat.postsCount} posts
-                          </span>
-                        </td>
-
-                        {/* Active status */}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#4C8C4A]" />
-                            Active
                           </span>
                         </td>
 
@@ -627,7 +548,7 @@ export default function AdminCategoryManagement() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-[#6B6F63]">
+                    <td colSpan="4" className="py-12 text-center text-[#6B6F63]">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-10 h-10 text-[#A8BDA2] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -718,8 +639,8 @@ export default function AdminCategoryManagement() {
                     </h3>
                     <p className="text-xs text-[#6B6F63]">
                       {formModal.isEditing
-                        ? 'Update category name, description, and classification'
-                        : 'Add a new recipe type or dietary tag to the platform'}
+                        ? 'Update category name, slug, and type'
+                        : 'Add a new recipe or food category to the platform'}
                     </p>
                   </div>
                 </div>
@@ -767,59 +688,16 @@ export default function AdminCategoryManagement() {
 
                   <div>
                     <label className="block font-semibold text-[#2B2A25] mb-1.5">
-                      Category Classification
+                      Type
                     </label>
                     <select
                       value={formModal.type}
                       onChange={(e) => setFormModal((prev) => ({ ...prev, type: e.target.value }))}
                       className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
                     >
-                      <option value="Recipe Type">Recipe Type (Phân loại món)</option>
-                      <option value="Diet / Tag">Diet / Tag (Thực dưỡng / Chế độ)</option>
+                      <option value="Recipe Type">Recipe Type</option>
+                      <option value="Food Type">Food Type</option>
                     </select>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block font-semibold text-[#2B2A25] mb-1.5">
-                    Description & Dietary Guidance
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Describe the nature of this category, typical ingredients, or culinary context..."
-                    value={formModal.description}
-                    onChange={(e) => setFormModal((prev) => ({ ...prev, description: e.target.value }))}
-                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] placeholder-[#8A9080]"
-                  />
-                </div>
-
-                {/* Accent Color Selection */}
-                <div>
-                  <label className="block font-semibold text-[#2B2A25] mb-1.5">
-                    Accent Color Indicator
-                  </label>
-                  <div className="flex items-center gap-3">
-                    {[
-                      { label: 'Moss', color: '#2F5233' },
-                      { label: 'Leaf', color: '#4C8C4A' },
-                      { label: 'Amber', color: '#8A6114' },
-                      { label: 'Sage', color: '#3B5E3C' },
-                      { label: 'Deep Forest', color: '#25401F' },
-                    ].map((item) => (
-                      <button
-                        type="button"
-                        key={item.color}
-                        onClick={() => setFormModal((prev) => ({ ...prev, color: item.color }))}
-                        className={`w-7 h-7 rounded-full transition-transform ${
-                          formModal.color === item.color
-                            ? 'ring-2 ring-offset-2 ring-[#2F5233] scale-110'
-                            : 'opacity-70 hover:opacity-100'
-                        }`}
-                        style={{ backgroundColor: item.color }}
-                        title={item.label}
-                      />
-                    ))}
                   </div>
                 </div>
 
