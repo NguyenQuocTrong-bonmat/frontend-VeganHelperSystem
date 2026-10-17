@@ -288,14 +288,9 @@ export default function AdminMemberManagement() {
         {/* 1. Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25] tracking-tight">
-                Member Management
-              </h1>
-              <span className="text-xs font-bold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] px-2.5 py-0.5 rounded-full">
-                FN38 & FN39
-              </span>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25] tracking-tight">
+              Member Management
+            </h1>
             <p className="text-sm text-[#6B6F63] mt-1">
               Search, filter, inspect profiles, and manage member account statuses across the platform.
             </p>
@@ -608,7 +603,7 @@ export default function AdminMemberManagement() {
                                 title={
                                   member.role === 'Admin'
                                     ? 'Admin accounts cannot be banned'
-                                    : 'Suspend Member Account (FN39)'
+                                    : 'Suspend Member Account'
                                 }
                               >
                                 Ban
@@ -708,7 +703,7 @@ export default function AdminMemberManagement() {
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-[#2B2A25]">Suspend User Account</h3>
-                    <p className="text-xs text-[#6B6F63]">FN39 — Account Restriction & Token Revoke</p>
+                    <p className="text-xs text-[#6B6F63]">Account Restriction & Token Revocation</p>
                   </div>
                 </div>
                 <button
