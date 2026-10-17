@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../context/AuthContext';
 
@@ -74,10 +73,10 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            {/* Date Range Pill */}
-            <button className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] transition-colors">
-              <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Date Range Selector nicely aligned */}
+          <div className="self-start sm:self-auto">
+            <button className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] transition-colors">
+              <svg className="w-4 h-4 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span>01 Oct, 2026 - 17 Oct, 2026</span>
@@ -85,14 +84,6 @@ export default function AdminDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-
-            {/* Add New Action Button */}
-            <Link
-              to="/admin/categories"
-              className="flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-full shadow-xs hover:bg-[#25401F] transition-all"
-            >
-              <span>+ Add Category</span>
-            </Link>
           </div>
         </div>
 
@@ -114,15 +105,6 @@ export default function AdminDashboard() {
                       <h3 className="font-semibold text-sm text-[#2B2A25]">Community Reach</h3>
                       <p className="text-xs text-[#6B6F63]">Total registered members</p>
                     </div>
-                    <Link
-                      to="/admin/members"
-                      className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                      title="View Members"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                      </svg>
-                    </Link>
                   </div>
 
                   {/* Dark Emerald Credit/Hero Card matching reference with Botanical Moss tone */}
@@ -232,20 +214,9 @@ export default function AdminDashboard() {
 
             {/* Bottom Wide Table: Recent Activity & Audit Log (Spanning Col 1 & 2) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs">
-              <div className="flex items-start justify-between pb-4 border-b border-[#DCE3D5]">
-                <div>
-                  <h3 className="font-semibold text-base text-[#2B2A25]">Audit Trail & Recent Events</h3>
-                  <p className="text-xs text-[#6B6F63]">Recent platform management actions</p>
-                </div>
-                <Link
-                  to="/admin/audit-logs"
-                  className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                  title="View All Audit Logs"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
-                </Link>
+              <div className="pb-4 border-b border-[#DCE3D5]">
+                <h3 className="font-semibold text-base text-[#2B2A25]">Audit Trail & Recent Events</h3>
+                <p className="text-xs text-[#6B6F63]">Recent platform management actions</p>
               </div>
 
               {/* Table */}
@@ -332,20 +303,9 @@ export default function AdminDashboard() {
             {/* Card 2: Top Categories Overview (Highest Post Counts) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-sm text-[#2B2A25]">Top Categories</h3>
-                    <p className="text-xs text-[#6B6F63]">Most popular recipe classifications</p>
-                  </div>
-                  <Link
-                    to="/admin/categories"
-                    className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                    title="View All Categories"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                    </svg>
-                  </Link>
+                <div>
+                  <h3 className="font-semibold text-sm text-[#2B2A25]">Top Categories</h3>
+                  <p className="text-xs text-[#6B6F63]">Most popular recipe classifications</p>
                 </div>
 
                 {/* Stacked Proportional Bar (Placeholder representation) */}
@@ -381,27 +341,16 @@ export default function AdminDashboard() {
 
             {/* Card 3: Amount of Flagged Content (Moved to bottom) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs flex flex-col justify-between">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#FBEAE7] flex items-center justify-center text-[#A63446]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-[#2B2A25]">Flagged Content</h3>
-                    <p className="text-[11px] text-[#6B6F63]">AI & community reports</p>
-                  </div>
-                </div>
-                <Link
-                  to="/admin/content"
-                  className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                  title="View Flagged Content"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#FBEAE7] flex items-center justify-center text-[#A63446]">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                </Link>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-[#2B2A25]">Flagged Content</h3>
+                  <p className="text-[11px] text-[#6B6F63]">AI & community reports</p>
+                </div>
               </div>
 
               <div className="flex items-center justify-between mt-4">
