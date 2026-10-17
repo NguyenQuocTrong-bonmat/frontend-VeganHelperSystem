@@ -67,7 +67,7 @@ export default function AdminIconRail() {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col items-center justify-between py-6 px-3 bg-white border border-[#DCE3D5] rounded-[28px] shadow-xs my-6 ml-6 w-16 shrink-0">
+    <aside className="hidden lg:flex flex-col items-center justify-between py-6 px-3 bg-[#FDFBF6] border-r border-[#DCE3D5] w-[72px] shrink-0 sticky top-[72px] h-[calc(100vh-72px)]">
       {/* Upper Navigation Icons */}
       <div className="flex flex-col items-center gap-3 w-full">
         {topItems.map((item) => {

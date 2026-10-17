@@ -60,7 +60,7 @@ export default function AdminNavbar() {
     .toUpperCase();
 
   return (
-    <nav className="h-18 px-6 sm:px-8 py-3.5 flex items-center justify-between border-b border-[#DCE3D5] bg-[#FDFBF6] rounded-t-[32px]">
+    <nav className="w-full h-[72px] px-6 sm:px-8 py-3.5 flex items-center justify-between border-b border-[#DCE3D5] bg-[#FDFBF6] sticky top-0 z-40">
       {/* 1. Left: Brand Logo & Title matching Home Header */}
       <Link to="/admin" className="flex items-center gap-3 group">
         <img

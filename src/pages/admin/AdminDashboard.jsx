@@ -56,7 +56,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 max-w-[1440px] mx-auto">
+      <div className="space-y-6 w-full max-w-[1600px] mx-auto">
         {/* ============================================================== */}
         {/* 1. TOP HEADER: Greeting + Date Filter + Action Button */}
         {/* ============================================================== */}
