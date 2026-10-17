@@ -197,16 +197,6 @@ export default function AdminDashboard() {
                           Monthly
                         </button>
                       </div>
-
-                      <Link
-                        to="/admin/content"
-                        className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                        title="View Content"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                        </svg>
-                      </Link>
                     </div>
                   </div>
 
@@ -322,14 +312,6 @@ export default function AdminDashboard() {
                     <h3 className="font-semibold text-sm text-[#2B2A25]">Recipe Directory</h3>
                     <p className="text-xs text-[#6B6F63]">Total published database</p>
                   </div>
-                  <Link
-                    to="/admin/content"
-                    className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] transition-colors"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10" />
-                    </svg>
-                  </Link>
                 </div>
 
                 <div className="text-center mt-3">
@@ -338,7 +320,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Smooth Wave Area Chart in Botanical Green */}
-                <div className="mt-4 h-24 w-full relative overflow-hidden flex items-center justify-center">
+                <div className="mt-6 h-28 w-full relative overflow-hidden flex items-center justify-center">
                   <svg viewBox="0 0 300 80" className="w-full h-full" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -358,24 +340,6 @@ export default function AdminDashboard() {
                     />
                   </svg>
                 </div>
-              </div>
-
-              {/* Two Pill Buttons at bottom */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <Link
-                  to="/admin/content"
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#2F5233] text-white text-xs font-semibold rounded-full shadow-xs hover:bg-[#25401F] transition-colors"
-                >
-                  <span>Review Posts</span>
-                  <span>↑</span>
-                </Link>
-                <Link
-                  to="/admin/categories"
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#EAF0E9] text-[#2B2A25] text-xs font-semibold rounded-full hover:bg-[#DCE3D5] transition-colors"
-                >
-                  <span>Categories</span>
-                  <span>↓</span>
-                </Link>
               </div>
             </div>
 

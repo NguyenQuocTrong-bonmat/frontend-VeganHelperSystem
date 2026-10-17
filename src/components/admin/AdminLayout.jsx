@@ -1,6 +1,5 @@
 import React from 'react';
 import AdminNavbar from './AdminNavbar';
-import AdminIconRail from './AdminIconRail';
 
 export default function AdminLayout({ children }) {
   return (
@@ -8,16 +7,10 @@ export default function AdminLayout({ children }) {
       {/* Top Navbar: Full Width */}
       <AdminNavbar />
 
-      {/* Body: Left Docked Rail + Main Dashboard Content */}
-      <div className="flex-1 flex w-full">
-        {/* Left Icon Rail */}
-        <AdminIconRail />
-
-        {/* Main Dashboard Canvas */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
-      </div>
+      {/* Main Content Area */}
+      <main className="flex-1 w-full px-4 sm:px-8 lg:px-12 py-6 sm:py-8">
+        {children}
+      </main>
     </div>
   );
 }
