@@ -7,57 +7,51 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [velocityPeriod, setVelocityPeriod] = useState('Monthly');
 
-  // Velocity bar data matching the design in reference image (rounded bars + striped/solid highlight)
+  // Velocity bar placeholder data
   const barData = [
-    { label: 'JAN', height: '42%', value: '2.1k', isHighlight: false },
-    { label: 'FEB', height: '68%', value: '3.4k', isHighlight: false },
-    { label: 'MAR', height: '54%', value: '2.7k', isHighlight: false },
-    { label: 'APR', height: '92%', value: '4.8k', isHighlight: true, badge: '+17.8%' },
-    { label: 'MAY', height: '62%', value: '3.1k', isHighlight: false },
-    { label: 'JUN', height: '70%', value: '3.5k', isHighlight: false },
+    { label: 'JAN', height: '35%', value: '--' },
+    { label: 'FEB', height: '50%', value: '--' },
+    { label: 'MAR', height: '40%', value: '--' },
+    { label: 'APR', height: '65%', value: '--' },
+    { label: 'MAY', height: '45%', value: '--' },
+    { label: 'JUN', height: '55%', value: '--' },
   ];
 
-  // Top 3 categories with highest post counts
+  // Top 3 categories placeholder (awaiting backend sync)
   const topCategories = [
-    { name: 'Món Kho & Hầm', count: '1,240', percentage: 45, color: 'bg-[#2F5233]', icon: '🍲' },
-    { name: 'Bún & Phở Chay', count: '890', percentage: 32, color: 'bg-[#4C8C4A]', icon: '🍜' },
-    { name: 'Món Cuốn & Khai Vị', count: '620', percentage: 23, color: 'bg-[#A8BDA2]', icon: '🥗' },
+    { name: 'Category 1', count: '--', percentage: 33, color: 'bg-[#2F5233]' },
+    { name: 'Category 2', count: '--', percentage: 33, color: 'bg-[#4C8C4A]' },
+    { name: 'Category 3', count: '--', percentage: 34, color: 'bg-[#A8BDA2]' },
   ];
 
-  // Recent activity / audit logs matching the table in reference image
+  // Audit trail placeholder entries (awaiting /api/admin/audit-logs)
   const recentEvents = [
     {
       id: 1,
-      name: 'Chef Duy Culinary',
-      subtext: '+18.6% engagement',
-      date: '16 Oct 2026',
-      time: '10:30 PM',
-      status: 'Approved',
-      detail: 'Claypot Lemongrass Tofu',
-      iconBg: 'bg-[#FCE7F3] text-[#DB2777]',
-      icon: '🍲',
+      name: 'Audit Event #1',
+      subtext: 'Awaiting log feed',
+      date: '--/--/----',
+      time: '--:--',
+      status: 'Pending',
+      detail: '--',
     },
     {
       id: 2,
-      name: 'AI Moderation Guard',
-      subtext: 'Auto-flagged spam',
-      date: '15 Oct 2026',
-      time: '11:45 PM',
-      status: 'Flagged',
-      detail: 'Comment: @crypto_fast',
-      iconBg: 'bg-[#E0F2FE] text-[#0284C7]',
-      icon: '🛡️',
+      name: 'Audit Event #2',
+      subtext: 'Awaiting log feed',
+      date: '--/--/----',
+      time: '--:--',
+      status: 'Pending',
+      detail: '--',
     },
     {
       id: 3,
-      name: 'Admin Linh Nguyen',
-      subtext: 'Role Governance',
-      date: '14 Oct 2026',
-      time: '10:15 PM',
-      status: 'Successful',
-      detail: 'Verified Chef: Thu Ha',
-      iconBg: 'bg-[#FEF3C7] text-[#D97706]',
-      icon: '⭐',
+      name: 'Audit Event #3',
+      subtext: 'Awaiting log feed',
+      date: '--/--/----',
+      time: '--:--',
+      status: 'Pending',
+      detail: '--',
     },
   ];
 
@@ -137,7 +131,7 @@ export default function AdminDashboard() {
                     <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
 
                     <div className="flex items-center justify-between">
-                      <span className="font-black text-xs tracking-widest text-white/90">VEGAN CORE</span>
+                      <span className="font-black text-xs tracking-widest text-white/90">VEGAN HELPER</span>
                       <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
@@ -145,12 +139,12 @@ export default function AdminDashboard() {
 
                     <div className="mt-4">
                       <p className="text-[11px] text-white/70 uppercase tracking-wider font-medium">Member Directory</p>
-                      <h2 className="text-3xl font-extrabold tracking-tight mt-0.5">14,820</h2>
+                      <h2 className="text-3xl font-extrabold tracking-tight mt-0.5">--</h2>
                     </div>
 
                     <div className="mt-4 flex items-center justify-between text-[11px] text-white/80 font-mono">
-                      <span>•••• 909090</span>
-                      <span>EXP 10/26</span>
+                      <span>STATUS: ONLINE</span>
+                      <span>SYNC: PENDING</span>
                     </div>
                   </div>
                 </div>
@@ -159,10 +153,10 @@ export default function AdminDashboard() {
                 <div className="mt-4 pt-3 border-t border-[#DCE3D5] flex items-center justify-between">
                   <div>
                     <p className="text-[11px] text-[#6B6F63]">Weekly Growth</p>
-                    <p className="text-base font-bold text-[#2B2A25] mt-0.5">+124 Members</p>
+                    <p className="text-base font-bold text-[#2B2A25] mt-0.5">-- Members</p>
                   </div>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">
-                    +12.8%
+                    --%
                   </span>
                 </div>
               </div>
@@ -220,21 +214,11 @@ export default function AdminDashboard() {
                     {/* Bars */}
                     {barData.map((bar) => (
                       <div key={bar.label} className="relative z-10 flex flex-col items-center gap-2 group h-full justify-end flex-1">
-                        {/* Highlighting badge above peak bar */}
-                        {bar.isHighlight && (
-                          <div className="absolute -top-7 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#2F5233] text-white shadow-sm flex items-center gap-0.5 animate-bounce">
-                            <span>{bar.badge}</span>
-                          </div>
-                        )}
-
                         <div className="w-9 sm:w-11 h-full flex flex-col justify-end">
                           <div
                             style={{ height: bar.height }}
-                            className={`w-full rounded-full transition-all duration-300 relative ${
-                              bar.isHighlight
-                                ? 'bg-[#2F5233] shadow-sm'
-                                : 'bg-[#C6D9C8] hover:bg-[#A8BDA2]'
-                            }`}
+                            className="w-full rounded-full bg-[#C6D9C8] hover:bg-[#A8BDA2] transition-all duration-300 relative"
+                            title={`${bar.label}: ${bar.value}`}
                           />
                         </div>
 
@@ -280,25 +264,20 @@ export default function AdminDashboard() {
                     {recentEvents.map((row) => (
                       <tr key={row.id} className="hover:bg-[#FAFBF9] transition-colors">
                         <td className="py-3 px-2">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${row.iconBg}`}>
-                              {row.icon}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-[#2B2A25]">{row.name}</p>
-                              <p className="text-[10px] text-[#6B6F63]">{row.subtext}</p>
-                            </div>
+                          <div>
+                            <p className="font-semibold text-[#2B2A25]">{row.name}</p>
+                            <p className="text-[10px] text-[#6B6F63]">{row.subtext}</p>
                           </div>
                         </td>
-                        <td className="py-3 px-2 font-medium">{row.date}</td>
+                        <td className="py-3 px-2 font-medium text-[#6B6F63]">{row.date}</td>
                         <td className="py-3 px-2 text-[#6B6F63]">{row.time}</td>
                         <td className="py-3 px-2">
-                          <span className="inline-flex items-center gap-1.5 font-medium text-[#2B2A25]">
-                            <span className="w-2 h-2 rounded-full bg-[#4C8C4A]" />
+                          <span className="inline-flex items-center gap-1.5 font-medium text-[#6B6F63]">
+                            <span className="w-2 h-2 rounded-full bg-[#9CA3AF]" />
                             {row.status}
                           </span>
                         </td>
-                        <td className="py-3 px-2 text-right font-semibold text-[#2B2A25]">{row.detail}</td>
+                        <td className="py-3 px-2 text-right font-medium text-[#6B6F63]">{row.detail}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -323,7 +302,7 @@ export default function AdminDashboard() {
 
                 <div className="text-center mt-3">
                   <p className="text-[11px] text-[#6B6F63]">Total Recipes</p>
-                  <h2 className="text-3xl font-extrabold text-[#2B2A25] mt-0.5">3,450</h2>
+                  <h2 className="text-3xl font-extrabold text-[#2B2A25] mt-0.5">--</h2>
                 </div>
 
                 {/* Smooth Wave Area Chart in Botanical Green */}
@@ -369,24 +348,23 @@ export default function AdminDashboard() {
                   </Link>
                 </div>
 
-                {/* Stacked Proportional Bar */}
+                {/* Stacked Proportional Bar (Placeholder representation) */}
                 <div className="mt-4 flex h-2.5 w-full rounded-full overflow-hidden bg-[#EAF0E9] p-0.5 gap-0.5">
-                  <div style={{ width: '45%' }} className="bg-[#2F5233] rounded-l-full h-full" title="Món Kho & Hầm: 45%" />
-                  <div style={{ width: '32%' }} className="bg-[#4C8C4A] h-full" title="Bún & Phở Chay: 32%" />
-                  <div style={{ width: '23%' }} className="bg-[#A8BDA2] rounded-r-full h-full" title="Món Cuốn & Khai Vị: 23%" />
+                  <div style={{ width: '33.3%' }} className="bg-[#2F5233] rounded-l-full h-full" />
+                  <div style={{ width: '33.3%' }} className="bg-[#4C8C4A] h-full" />
+                  <div style={{ width: '33.4%' }} className="bg-[#A8BDA2] rounded-r-full h-full" />
                 </div>
 
-                {/* Category List with Individual Progress Bars */}
+                {/* Category List with Individual Progress Bars (Clean without icons) */}
                 <div className="space-y-3 mt-4">
                   {topCategories.map((cat) => (
                     <div key={cat.name} className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-[#2B2A25] flex items-center gap-1.5">
-                          <span>{cat.icon}</span>
-                          <span>{cat.name}</span>
+                        <span className="font-medium text-[#2B2A25]">
+                          {cat.name}
                         </span>
                         <span className="text-[#6B6F63] text-[11px]">
-                          <span className="font-bold text-[#2B2A25]">{cat.count}</span> posts ({cat.percentage}%)
+                          <span className="font-bold text-[#2B2A25]">{cat.count}</span> posts
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-[#EAF0E9] rounded-full overflow-hidden">
@@ -427,9 +405,9 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex items-center justify-between mt-4">
-                <h2 className="text-3xl font-extrabold text-[#2B2A25]">5 Items</h2>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#FBEAE7] text-[#A63446] border border-[#F5C2BC]">
-                  Action Needed
+                <h2 className="text-3xl font-extrabold text-[#2B2A25]">-- Items</h2>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">
+                  -- Pending
                 </span>
               </div>
             </div>
