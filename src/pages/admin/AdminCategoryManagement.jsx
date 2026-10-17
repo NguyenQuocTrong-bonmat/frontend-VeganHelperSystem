@@ -182,12 +182,6 @@ export default function AdminCategoryManagement() {
     return filteredCategories.slice(start, start + pageSize);
   }, [filteredCategories, currentPage, pageSize]);
 
-  // Overall Statistics
-  const stats = useMemo(() => {
-    return {
-      total: categories.length,
-    };
-  }, [categories]);
 
   // Handlers for Add/Edit Form
   const handleOpenAddModal = () => {
@@ -372,24 +366,6 @@ export default function AdminCategoryManagement() {
           </div>
         </div>
 
-        {/* 2. Top Summary KPI Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6B6F63]">Total Categories</span>
-              <div className="w-7 h-7 rounded-lg bg-[#EAF0E9] flex items-center justify-center text-[#2F5233]">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25]">{stats.total}</span>
-              <span className="text-[11px] text-[#6B6F63]">Active classifications</span>
-            </div>
-          </div>
-        </div>
-
         {/* 3. Toolbar & Controls */}
         <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 shadow-xs space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -441,8 +417,13 @@ export default function AdminCategoryManagement() {
           {/* Active search status */}
           <div className="flex items-center justify-between text-xs text-[#6B6F63] pt-2 border-t border-[#EAF0E9]">
             <div>
-              Showing <span className="font-bold text-[#2B2A25]">{filteredCategories.length}</span> of{' '}
-              <span className="font-bold text-[#2B2A25]">{categories.length}</span> categories
+              Total categories:{' '}
+              <span className="font-bold text-[#2B2A25]">{categories.length}</span>
+              {Boolean(searchQuery) && (
+                <span className="ml-2 text-[#6B6F63]">
+                  (Showing <span className="font-bold text-[#2B2A25]">{filteredCategories.length}</span> matching)
+                </span>
+              )}
             </div>
             {Boolean(searchQuery) && (
               <button
