@@ -512,12 +512,12 @@ export default function AdminMemberManagement() {
             <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[calc(28%-1px)]">Member</th>
-                  <th className="py-3.5 px-4 font-semibold w-[28%]">Contact & Email</th>
-                  <th className="py-3.5 px-4 font-semibold w-[11%]">Role</th>
-                  <th className="py-3.5 px-4 font-semibold w-[13%]">Status</th>
-                  <th className="py-3.5 px-4 font-semibold w-[10%]">Joined Date</th>
-                  <th className="py-3.5 px-4 font-semibold text-left w-[calc(10%+1px)]">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold w-[56%]">Member</th>
+                  <th className="py-3.5 px-4 font-semibold w-[44%]">Contact & Email</th>
+                  <th className="py-3.5 px-3 font-semibold w-[90px]">Role</th>
+                  <th className="py-3.5 px-3 font-semibold w-[105px]">Status</th>
+                  <th className="py-3.5 px-3 font-semibold w-[105px]">Joined Date</th>
+                  <th className="py-3.5 px-2.5 font-semibold text-left w-[138px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -537,17 +537,17 @@ export default function AdminMemberManagement() {
                         <div className="w-36 h-3 bg-[#EAF0E9] rounded mb-1" />
                         <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-3">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-3">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-3">
                         <div className="w-20 h-3 bg-[#EAF0E9] rounded" />
                       </td>
-                      <td className="py-4 px-4 text-left">
-                        <div className="w-14 h-6 bg-[#EAF0E9] rounded" />
+                      <td className="py-4 px-2.5 text-left">
+                        <div className="w-24 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
                   ))
@@ -611,7 +611,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                               member.role === 'Admin'
@@ -624,7 +624,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                               isBanned
@@ -642,17 +642,17 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Joined Date */}
-                        <td className="py-4 px-4 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono">
+                        <td className="py-4 px-3 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono">
                           {member.joinedDate}
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-2.5 text-left whitespace-nowrap overflow-hidden">
                           <div className="inline-flex items-center justify-start gap-1.5">
                             {/* Inspect Details Button */}
                             <button
                               onClick={() => handleOpenDetails(member)}
-                              className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all"
+                              className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all shrink-0"
                               title="Inspect Member Profile"
                             >
                               Details
@@ -662,7 +662,7 @@ export default function AdminMemberManagement() {
                             {isBanned ? (
                               <button
                                 onClick={() => setUnbanModal({ isOpen: true, member, notes: '' })}
-                                className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-white border border-[#DCE3D5] rounded-lg hover:border-[#2F5233] transition-all"
+                                className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-white border border-[#DCE3D5] rounded-lg hover:border-[#2F5233] transition-all shrink-0"
                                 title="Restore User Account"
                               >
                                 Unban
@@ -678,7 +678,7 @@ export default function AdminMemberManagement() {
                                   })
                                 }
                                 disabled={member.role === 'Admin'}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                                className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
                                   member.role === 'Admin'
                                     ? 'opacity-40 cursor-not-allowed text-[#8A9080] border border-[#EAF0E9]'
                                     : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white'
