@@ -2,115 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getImageUrl } from '../../utils/imageUtils';
-import { getAdminMembers, banMember, unbanMember } from '../../services/adminService';
-
-// Fallback clean dataset representing platform members when backend is offline
-const FALLBACK_MEMBERS = [
-  {
-    id: 1,
-    displayName: 'Mai Linh',
-    username: 'mailinh_vegan',
-    email: 'mailinh.vegan@example.com',
-    phone: '+84 912 345 678',
-    role: 'Member',
-    status: 'Active',
-    joinedDate: '15/05/2026',
-    avatarUrl: null,
-    bio: 'Plant-based home cook passionate about traditional Vietnamese fermented dishes.',
-    postsCount: 24,
-    reportsCount: 0,
-  },
-  {
-    id: 2,
-    displayName: 'Hoàng Thu Thảo',
-    username: 'thuthaoveg',
-    email: 'thuthao.h@example.com',
-    phone: '+84 983 221 445',
-    role: 'Member',
-    status: 'Active',
-    joinedDate: '02/06/2026',
-    avatarUrl: null,
-    bio: 'Vegan food enthusiast and daily home cook sharing quick lunch recipes.',
-    postsCount: 8,
-    reportsCount: 0,
-  },
-  {
-    id: 3,
-    displayName: 'Hoàng Duy',
-    username: 'duy_culinary',
-    email: 'duy.culinary@botanical.vn',
-    phone: '+84 905 889 123',
-    role: 'Member',
-    status: 'Active',
-    joinedDate: '20/04/2026',
-    avatarUrl: null,
-    bio: 'Plant-based culinary enthusiast at Botanical Hearth.',
-    postsCount: 42,
-    reportsCount: 0,
-  },
-  {
-    id: 4,
-    displayName: 'Phạm Văn Minh',
-    username: 'minh_pv',
-    email: 'minh.pv91@example.com',
-    phone: '+84 977 114 990',
-    role: 'Member',
-    status: 'Banned',
-    joinedDate: '11/01/2026',
-    avatarUrl: null,
-    bio: 'Account restricted due to community guidelines violation.',
-    postsCount: 2,
-    reportsCount: 5,
-    banReason: 'Spamming external affiliate links and unverified dietary claims.',
-    banDuration: 'Permanent',
-  },
-  {
-    id: 5,
-    displayName: 'Lê Ngọc Mai',
-    username: 'ngocmai_green',
-    email: 'ngocmai.nutrition@example.com',
-    phone: '+84 934 556 778',
-    role: 'Member',
-    status: 'Active',
-    joinedDate: '18/07/2026',
-    avatarUrl: null,
-    bio: 'Holistic wellness advocate studying plant nutrition & macronutrient balance.',
-    postsCount: 15,
-    reportsCount: 0,
-  },
-  {
-    id: 6,
-    displayName: 'Trần Hà',
-    username: 'tran_ha_plant',
-    email: 'tran.ha@example.org',
-    phone: '+84 918 998 877',
-    role: 'Member',
-    status: 'Active',
-    joinedDate: '29/08/2026',
-    avatarUrl: null,
-    bio: 'Community member exploring cruelty-free meal prep and vegan baking.',
-    postsCount: 6,
-    reportsCount: 0,
-  },
-  {
-    id: 7,
-    displayName: 'Nguyễn Quốc Trọng',
-    username: 'admin_trong',
-    email: 'admin.trong@veganhelper.vn',
-    phone: '+84 901 000 999',
-    role: 'Admin',
-    status: 'Active',
-    joinedDate: '01/01/2026',
-    avatarUrl: null,
-    bio: 'System Administrator & Content Operations Lead.',
-    postsCount: 30,
-    reportsCount: 0,
-  },
-];
+import { getAdminMembers, getAdminMemberById, banMember, unbanMember } from '../../services/adminService';
+import { getPaginationPages } from '../../utils/paginationUtils';
 
 export default function AdminMemberManagement() {
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [memberSummary, setMemberSummary] = useState({
+    totalMembers: 0,
+    activeMembers: 0,
+    bannedMembers: 0,
+    administrators: 0,
+  });
 
   // Filters & Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,6 +41,7 @@ export default function AdminMemberManagement() {
   const [detailModal, setDetailModal] = useState({
     isOpen: false,
     member: null,
+    isLoading: false,
   });
 
   // Notification Toast State
@@ -156,15 +61,16 @@ export default function AdminMemberManagement() {
         // Search query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
-          const matchName = m.displayName.toLowerCase().includes(q);
-          const matchUser = m.username.toLowerCase().includes(q);
-          const matchEmail = m.email.toLowerCase().includes(q);
+          const matchName = (m.displayName || '').toLowerCase().includes(q);
+          const matchUser = (m.username || '').toLowerCase().includes(q);
+          const matchEmail = (m.email || '').toLowerCase().includes(q);
           if (!matchName && !matchUser && !matchEmail) return false;
         }
 
         // Status filter
-        if (statusFilter !== 'All' && m.status !== statusFilter) {
-          return false;
+        if (statusFilter !== 'All') {
+          if (statusFilter === 'Active' && m.status !== 'Active') return false;
+          if (statusFilter === 'Banned' && m.status !== 'Banned') return false;
         }
 
         // Role filter
@@ -176,7 +82,7 @@ export default function AdminMemberManagement() {
       })
       .sort((a, b) => {
         if (sortBy === 'name') {
-          return a.displayName.localeCompare(b.displayName);
+          return (a.displayName || '').localeCompare(b.displayName || '');
         }
         if (sortBy === 'oldest') {
           return a.id - b.id;
@@ -208,48 +114,69 @@ export default function AdminMemberManagement() {
     setCurrentPage(1);
   };
 
-  // Backend data loading
+  // Backend data loading (GET /api/admin/members)
   const fetchMembers = async () => {
     setIsLoading(true);
+    setLoadError('');
     try {
       const data = await getAdminMembers({
         pageIndex: 1,
         pageSize: 100,
-        keyword: searchQuery.trim() || undefined,
-        role: roleFilter !== 'All' ? roleFilter : undefined,
-        status: statusFilter !== 'All' ? statusFilter : undefined,
       });
 
       const items = data.items || data;
-      if (Array.isArray(items) && items.length > 0) {
+      if (Array.isArray(items)) {
         setMembers(
-          items.map((m) => ({
-            id: m.id,
-            displayName: m.displayName || m.username || `Member #${m.id}`,
-            username: m.username || `user_${m.id}`,
-            email: m.email || 'N/A',
-            phone: m.phone || '--',
-            role: m.role ? (m.role.charAt(0).toUpperCase() + m.role.slice(1)) : 'Member',
-            status: m.status
-              ? (m.status.charAt(0).toUpperCase() + m.status.slice(1))
-              : m.isActive
-              ? 'Active'
-              : 'Inactive',
-            joinedDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('vi-VN') : '--',
-            avatarUrl: m.avatarUrl || null,
-            bio: m.bio || 'Plant-based community member.',
-            postsCount: m.postsCount ?? '--',
-            reportsCount: m.reportsCount ?? 0,
-            banReason: m.banReason || '',
-            banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('vi-VN') : m.banId ? 'Permanent' : '',
-          }))
+          items.map((m) => {
+            const isBanned = m.status === 'banned' || Boolean(m.banId);
+            let statusLabel = 'Active';
+            if (isBanned) statusLabel = 'Banned';
+            else if (m.status === 'locked' || (m.lockedUntil && new Date(m.lockedUntil) > new Date())) statusLabel = 'Locked';
+            else if (m.status === 'pending_verification' || !m.emailVerifiedAt) statusLabel = 'Pending';
+            else if (m.status === 'inactive' || !m.isActive) statusLabel = 'Inactive';
+            else if (m.status === 'deleted') statusLabel = 'Deleted';
+
+            const roleLabel = (m.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Member';
+
+            return {
+              id: m.id,
+              displayName: m.displayName || m.username || `Member #${m.id}`,
+              username: m.username || `user_${m.id}`,
+              email: m.email || 'N/A',
+              role: roleLabel,
+              status: statusLabel,
+              rawStatus: m.status,
+              isActive: m.isActive,
+              emailVerifiedAt: m.emailVerifiedAt,
+              createdAt: m.createdAt,
+              joinedDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-GB') : '--',
+              lastLoginAt: m.lastLoginAt,
+              lastLoginFormatted: m.lastLoginAt ? new Date(m.lastLoginAt).toLocaleString('en-GB') : 'Never',
+              lockedUntil: m.lockedUntil,
+              avatarUrl: m.avatarUrl || null,
+              banId: m.banId,
+              banReason: m.banReason || '',
+              banExpiresAt: m.banExpiresAt,
+              banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('en-GB') : m.banId ? 'Permanent' : '',
+            };
+          })
         );
+
+        setMemberSummary({
+          totalMembers: data.totalCount ?? items.length,
+          activeMembers: items.filter(
+            (m) => m.status?.toLowerCase() === 'active' || (m.status?.toLowerCase() !== 'banned' && m.status?.toLowerCase() !== 'deleted' && m.isActive)
+          ).length,
+          bannedMembers: items.filter((m) => m.status?.toLowerCase() === 'banned' || m.banId != null).length,
+          administrators: items.filter((m) => (m.role || '').toLowerCase() === 'admin').length,
+        });
       } else {
         setMembers([]);
+        setMemberSummary({ totalMembers: 0, activeMembers: 0, bannedMembers: 0, administrators: 0 });
       }
     } catch (err) {
-      console.warn('Backend /admin/members unavailable, using fallback data:', err.message);
-      setMembers(FALLBACK_MEMBERS);
+      setMembers([]);
+      setLoadError(err.message || 'Members could not be loaded.');
     } finally {
       setIsLoading(false);
     }
@@ -259,7 +186,54 @@ export default function AdminMemberManagement() {
     fetchMembers();
   }, []);
 
-  // Ban confirmation
+  // Inspect detail handler: Calls GET /api/admin/members/{id}
+  const handleOpenDetails = async (member) => {
+    setDetailModal({ isOpen: true, member, isLoading: true });
+    try {
+      const detail = await getAdminMemberById(member.id);
+      if (detail) {
+        setDetailModal({
+          isOpen: true,
+          member: {
+            ...member,
+            ...detail,
+            displayName: detail.displayName || member.displayName,
+            username: detail.username || member.username,
+            email: detail.email || member.email,
+            role: (detail.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Member',
+            status:
+              detail.status === 'banned' || detail.banId
+                ? 'Banned'
+                : detail.status === 'locked' || (detail.lockedUntil && new Date(detail.lockedUntil) > new Date())
+                ? 'Locked'
+                : detail.status
+                ? detail.status.charAt(0).toUpperCase() + detail.status.slice(1)
+                : member.status,
+            banReason: detail.banReason || member.banReason,
+            banExpiresAt: detail.banExpiresAt || member.banExpiresAt,
+            banDuration: detail.banExpiresAt
+              ? new Date(detail.banExpiresAt).toLocaleDateString('en-GB')
+              : detail.banId
+              ? 'Permanent'
+              : member.banDuration,
+            lastLoginFormatted: detail.lastLoginAt
+              ? new Date(detail.lastLoginAt).toLocaleString('en-GB')
+              : member.lastLoginFormatted,
+            emailVerifiedAt: detail.emailVerifiedAt ?? member.emailVerifiedAt,
+            createdAt: detail.createdAt ?? member.createdAt,
+            lockedUntil: detail.lockedUntil ?? member.lockedUntil,
+          },
+          isLoading: false,
+        });
+      } else {
+        setDetailModal((prev) => ({ ...prev, isLoading: false }));
+      }
+    } catch {
+      setDetailModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  // Ban confirmation (POST /api/admin/members/{id}/ban)
   const handleConfirmBan = async (e) => {
     e.preventDefault();
     if (!banModal.member) return;
@@ -279,70 +253,41 @@ export default function AdminMemberManagement() {
       }
 
       await banMember(banModal.member.id, {
-        reason: banModal.reason,
+        reason: banModal.reason.trim(),
         expiresAt,
       });
 
       showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
       await fetchMembers();
-    } catch {
-      // Fallback local update if BE is offline
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.id === banModal.member.id
-            ? {
-                ...m,
-                status: 'Banned',
-                banReason: banModal.reason,
-                banDuration: banModal.duration,
-              }
-            : m
-        )
-      );
-      showToast(`Account @${banModal.member.username} marked as suspended.`, 'success');
+      setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
+    } catch (err) {
+      showToast(err.message || 'The account could not be suspended.', 'error');
     }
-
-    setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
   };
 
-  // Unban confirmation
+  // Unban confirmation (POST /api/admin/members/{id}/unban)
   const handleConfirmUnban = async (e) => {
     e.preventDefault();
     if (!unbanModal.member) return;
 
     try {
       await unbanMember(unbanModal.member.id, {
-        reason: unbanModal.notes || 'Unbanned by administrator',
+        reason: unbanModal.notes?.trim() || 'Unbanned by administrator',
       });
       showToast(`Account @${unbanModal.member.username} has been restored to active status.`, 'success');
       await fetchMembers();
-    } catch {
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.id === unbanModal.member.id
-            ? {
-                ...m,
-                status: 'Active',
-                banReason: undefined,
-                banDuration: undefined,
-              }
-            : m
-        )
-      );
-      showToast(`Account @${unbanModal.member.username} restored to active status.`, 'success');
+      setUnbanModal({ isOpen: false, member: null, notes: '' });
+    } catch (err) {
+      showToast(err.message || 'The account could not be restored.', 'error');
     }
-
-    setUnbanModal({ isOpen: false, member: null, notes: '' });
   };
 
-  // Calculated Stats
-  const stats = useMemo(() => {
-    const total = members.length;
-    const active = members.filter((m) => m.status === 'Active').length;
-    const banned = members.filter((m) => m.status === 'Banned').length;
-    const admins = members.filter((m) => m.role === 'Admin').length;
-    return { total, active, banned, admins };
-  }, [members]);
+  const stats = {
+    total: memberSummary.totalMembers,
+    active: memberSummary.activeMembers,
+    banned: memberSummary.bannedMembers,
+    admins: memberSummary.administrators,
+  };
 
   return (
     <AdminLayout>
@@ -391,6 +336,15 @@ export default function AdminMemberManagement() {
             </button>
           </div>
         </div>
+
+        {loadError && (
+          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#8B2B3A] sm:flex-row sm:items-center sm:justify-between">
+            <span>{loadError}</span>
+            <button type="button" onClick={fetchMembers} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto">
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* 2. Top Summary KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -770,22 +724,19 @@ export default function AdminMemberManagement() {
                 Previous
               </button>
 
-              {Array.from({ length: totalPages }).map((_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-[#2F5233] text-white shadow-xs'
-                        : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+              {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-[#2F5233] text-white shadow-xs'
+                      : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
 
               <button
                 disabled={currentPage >= totalPages}
@@ -1039,16 +990,20 @@ export default function AdminMemberManagement() {
                     <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.joinedDate}</span>
                   </div>
                   <div>
-                    <span className="text-[#8A9080] block text-[11px]">Published Recipes / Posts</span>
+                    <span className="text-[#8A9080] block text-[11px]">Posts</span>
                     <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.postsCount} posts</span>
+                  </div>
+                  <div>
+                    <span className="text-[#8A9080] block text-[11px]">Reports Received</span>
+                    <span className="font-medium text-[#2B2A25] block mt-0.5">{detailModal.member.reportsCount} reports</span>
                   </div>
                 </div>
 
-                {/* Bio */}
+                {/* Diet preference */}
                 <div>
-                  <span className="font-semibold text-[#2B2A25] block mb-1">Personal Bio</span>
+                  <span className="font-semibold text-[#2B2A25] block mb-1">Diet Preference</span>
                   <p className="text-[#6B6F63] bg-[#FAFBF9] p-3 rounded-xl border border-[#DCE3D5] leading-relaxed">
-                    {detailModal.member.bio || 'No profile biography provided.'}
+                    {detailModal.member.bio}
                   </p>
                 </div>
 
@@ -1067,7 +1022,7 @@ export default function AdminMemberManagement() {
                 {/* Footer action */}
                 <div className="flex items-center justify-between pt-3 border-t border-[#DCE3D5]">
                   <Link
-                    to="/my-posts"
+                    to={`/users/${detailModal.member.id}`}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F5233] hover:underline"
                   >
                     <span>View Public Posts</span>

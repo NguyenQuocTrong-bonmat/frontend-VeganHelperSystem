@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
+import { getPaginationPages } from '../../utils/paginationUtils';
 
 // Fallback audit events strictly matching backend AdminAuditLogDto (used when backend is offline)
 const FALLBACK_AUDIT_LOGS = [
@@ -727,22 +728,19 @@ export default function AdminAuditLogs() {
                   Previous
                 </button>
 
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 rounded-lg font-semibold transition-all ${
-                        currentPage === pageNum
-                          ? 'bg-[#2F5233] text-white shadow-xs'
-                          : 'border border-[#DCE3D5] bg-white text-[#2B2A25] hover:bg-[#FAFBF9]'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg font-semibold transition-all ${
+                      currentPage === pageNum
+                        ? 'bg-[#2F5233] text-white shadow-xs'
+                        : 'border border-[#DCE3D5] bg-white text-[#2B2A25] hover:bg-[#FAFBF9]'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
 
                 <button
                   disabled={currentPage >= totalPages}

@@ -6,78 +6,21 @@ import {
   updateAdminCategory,
   deleteAdminCategory,
 } from '../../services/adminService';
-
-// Default clean categories dataset representing platform taxonomy fallback
-const FALLBACK_CATEGORIES = [
-  {
-    id: 1,
-    name: 'Main Courses',
-    slug: '/recipes/main-courses',
-    type: 'Recipe Type',
-    postsCount: 124,
-  },
-  {
-    id: 2,
-    name: 'Soups & Broths',
-    slug: '/recipes/soups-broths',
-    type: 'Recipe Type',
-    postsCount: 86,
-  },
-  {
-    id: 3,
-    name: 'Fermented & Pickles',
-    slug: '/recipes/fermented-pickles',
-    type: 'Recipe Type',
-    postsCount: 52,
-  },
-  {
-    id: 4,
-    name: 'Salads & Raw Botanicals',
-    slug: '/recipes/salads-botanicals',
-    type: 'Recipe Type',
-    postsCount: 45,
-  },
-  {
-    id: 5,
-    name: 'Nourishing Desserts & Tea',
-    slug: '/recipes/desserts-tea',
-    type: 'Recipe Type',
-    postsCount: 38,
-  },
-  {
-    id: 6,
-    name: 'Plant-based Hot Pots',
-    slug: '/recipes/hot-pots',
-    type: 'Recipe Type',
-    postsCount: 40,
-  },
-  {
-    id: 7,
-    name: 'Gluten-Free Ingredients',
-    slug: '/recipes/gluten-free-ingredients',
-    type: 'Food Type',
-    postsCount: 18,
-  },
-  {
-    id: 8,
-    name: 'Plant-based Proteins',
-    slug: '/recipes/plant-based-proteins',
-    type: 'Food Type',
-    postsCount: 12,
-  },
-];
+import { getPaginationPages } from '../../utils/paginationUtils';
 
 export default function AdminCategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Attempt loading backend categories if endpoint is responsive
   const loadCategories = async () => {
     setIsLoading(true);
+    setLoadError('');
     try {
       const data = await getAdminCategories({ pageIndex: 1, pageSize: 100 });
       const items = data.items || data;
-      if (Array.isArray(items) && items.length > 0) {
+      if (Array.isArray(items)) {
         setCategories(
           items.map((cat, idx) => ({
             id: cat.id || idx + 1,
@@ -93,8 +36,8 @@ export default function AdminCategoryManagement() {
         setCategories([]);
       }
     } catch (err) {
-      console.warn('Backend /admin/categories unavailable, using fallback data:', err.message);
-      setCategories(FALLBACK_CATEGORIES);
+      setCategories([]);
+      setLoadError(err.message || 'Categories could not be loaded.');
     } finally {
       setIsLoading(false);
     }
@@ -227,21 +170,8 @@ export default function AdminCategoryManagement() {
         showToast(`Category "${formModal.name}" has been updated on backend.`, 'success');
         await loadCategories();
       } catch (err) {
-        // Fallback local update
-        setCategories((prev) =>
-          prev.map((c) =>
-            c.id === formModal.category.id
-              ? {
-                  ...c,
-                  name: formModal.name.trim(),
-                  slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
-                  type: formModal.type,
-                  postCategoryKind: kind,
-                }
-              : c
-          )
-        );
-        showToast(`Category "${formModal.name}" updated locally (${err.message || 'API error'}).`, 'success');
+        showToast(err.message || 'The category could not be updated.', 'error');
+        return;
       }
     } else {
       // Create new
@@ -254,17 +184,8 @@ export default function AdminCategoryManagement() {
         showToast(`New category "${formModal.name}" created on backend.`, 'success');
         await loadCategories();
       } catch (err) {
-        // Fallback local creation
-        const newCategory = {
-          id: Date.now(),
-          name: formModal.name.trim(),
-          slug: formModal.slug.trim() || `/recipes/${formModal.name.toLowerCase().replace(/\s+/g, '-')}`,
-          type: formModal.type,
-          postCategoryKind: kind,
-          postsCount: 0,
-        };
-        setCategories((prev) => [newCategory, ...prev]);
-        showToast(`New category "${formModal.name}" created locally (${err.message || 'API error'}).`, 'success');
+        showToast(err.message || 'The category could not be created.', 'error');
+        return;
       }
     }
 
@@ -297,13 +218,8 @@ export default function AdminCategoryManagement() {
       showToast(`Category "${deleteModal.category.name}" has been deleted from backend.`, 'success');
       await loadCategories();
     } catch (err) {
-      if (err.status === 409) {
-        showToast(err.message || 'Cannot delete category: linked posts or constraints exist in database.', 'error');
-      } else {
-        // Local fallback if API is offline
-        setCategories((prev) => prev.filter((c) => c.id !== deleteModal.category.id));
-        showToast(`Category "${deleteModal.category.name}" deleted locally.`, 'success');
-      }
+      showToast(err.message || 'The category could not be deleted.', 'error');
+      return;
     }
     setDeleteModal({ isOpen: false, category: null });
   };
@@ -361,6 +277,15 @@ export default function AdminCategoryManagement() {
             </button>
           </div>
         </div>
+
+        {loadError && (
+          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#8B2B3A] sm:flex-row sm:items-center sm:justify-between">
+            <span>{loadError}</span>
+            <button type="button" onClick={loadCategories} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto">
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* 3. Toolbar & Controls */}
         <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 shadow-xs space-y-4">
@@ -592,22 +517,19 @@ export default function AdminCategoryManagement() {
                 Previous
               </button>
 
-              {Array.from({ length: totalPages }).map((_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-[#2F5233] text-white shadow-xs'
-                        : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+              {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-[#2F5233] text-white shadow-xs'
+                      : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
 
               <button
                 disabled={currentPage >= totalPages}
