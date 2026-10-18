@@ -512,12 +512,12 @@ export default function AdminMemberManagement() {
             <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[calc(28%-2px)]">Member</th>
+                  <th className="py-3.5 px-4 font-semibold w-[28%]">Member</th>
                   <th className="py-3.5 px-4 font-semibold w-[28%]">Contact & Email</th>
                   <th className="py-3.5 px-4 font-semibold w-[11%]">Role</th>
                   <th className="py-3.5 px-4 font-semibold w-[13%]">Status</th>
                   <th className="py-3.5 px-4 font-semibold w-[10%]">Joined Date</th>
-                  <th className="py-3.5 px-4 font-semibold text-left w-[calc(10%+2px)]">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold text-left w-[10%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
