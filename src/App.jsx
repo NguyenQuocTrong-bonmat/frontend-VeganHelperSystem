@@ -34,16 +34,10 @@ import EditPost from './pages/member/EditPost.jsx'
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
-import AdminConsole from './pages/admin/AdminConsole.jsx'
-import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
 import AdminContentManagement from './pages/admin/AdminContentManagement.jsx'
 import AdminMemberManagement from './pages/admin/AdminMemberManagement.jsx'
 import AdminCategoryManagement from './pages/admin/AdminCategoryManagement.jsx'
 import AdminAuditLogs from './pages/admin/AdminAuditLogs.jsx'
-import AdminMealPlannerConfiguration from './pages/admin/AdminMealPlannerConfiguration.jsx'
-import AdminAiModerationQueue from './pages/admin/AdminAiModerationQueue.jsx'
-import AdminAiModelMonitoring from './pages/admin/AdminAiModelMonitoring.jsx'
-import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQueue.jsx'
 
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -92,10 +86,6 @@ function App() {
         <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
         <Route path="/admin/audit-logs" element={<ProtectedRoute requireAdmin={true}><AdminAuditLogs /></ProtectedRoute>} />
-        <Route path="/admin/meal-planner-config" element={<ProtectedRoute requireAdmin={true}><AdminMealPlannerConfiguration /></ProtectedRoute>} />
-        <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
-        <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
-        <Route path="/admin/video-summarization" element={<ProtectedRoute requireAdmin={true}><AdminVideoSummarizationQueue /></ProtectedRoute>} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

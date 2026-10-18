@@ -22,5 +22,11 @@ export const getMealPlan = (id, signal) => request(() =>
   axios.get(`/MealPlans/${id}`, { signal }));
 
 // A successful response already contains the persisted plan; do not POST again to save it.
-export const generateMealPlan = startDate => request(() =>
-  axios.post('/MealPlans/generate', { startDate }, { timeout: 30000 }));
+export const generateMealPlan = input => request(() =>
+  axios.post('/MealPlans/generate', typeof input === 'string' ? { startDate: input } : input, { timeout: 30000 }));
+
+export const previewGoal = input => request(() => axios.post('/MealPlans/goal-preview', input));
+export const logMeal = (id, input) => request(() => axios.put(`/MealPlans/${id}/tracking`, input));
+export const updateMealReminders = (id, input) => request(() => axios.put(`/MealPlans/${id}/reminders`, input));
+export const previewMealRevision = (id, input) => request(() => axios.post(`/MealPlans/${id}/revision-preview`, input));
+export const confirmMealRevision = (id, input) => request(() => axios.post(`/MealPlans/${id}/revisions`, input, { timeout: 30000 }));

@@ -67,6 +67,28 @@ export async function getAdminMemberById(id) {
   }
 }
 
+export async function getAdminMemberSummary() {
+  try {
+    const response = await axiosInstance.get('/admin/members/summary');
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
+async function getDashboardData(resource, params, signal) {
+  try {
+    const response = await axiosInstance.get(`/admin/dashboard/${resource}`, { params, signal });
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
+export const getAdminDashboardOverview = (params, signal) => getDashboardData('overview', params, signal);
+export const getAdminDashboardActivity = (params, signal) => getDashboardData('post-activity', params, signal);
+export const getAdminDashboardCategories = (params, signal) => getDashboardData('top-categories', params, signal);
+
 /**
  * Ban a member (FN39)
  * @param {number|string} id
@@ -320,6 +342,15 @@ export async function getAdminPostReports(params = {}) {
   }
 }
 
+export async function getAdminPostReportDetail(id) {
+  try {
+    const response = await axiosInstance.get(`/admin/moderation/reports/${id}`);
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
 /**
  * Decide on post report
  * @param {number|string} id
@@ -331,6 +362,43 @@ export async function decidePostReport(id, data) {
       action: data.action,
       reason: data.reason,
       expectedRevision: data.expectedRevision || 1,
+    });
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
+export async function getAdminCommentReports(params = {}) {
+  const { pageIndex = 1, pageSize = 20, status = 'pending' } = params;
+  const query = new URLSearchParams({
+    PageIndex: String(pageIndex),
+    PageSize: String(pageSize),
+    Status: status,
+  });
+
+  try {
+    const response = await axiosInstance.get(`/admin/moderation/comment-reports?${query.toString()}`);
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
+export async function getAdminCommentReportDetail(id) {
+  try {
+    const response = await axiosInstance.get(`/admin/moderation/comment-reports/${id}`);
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
+export async function decideCommentReport(id, data) {
+  try {
+    const response = await axiosInstance.post(`/admin/moderation/comment-reports/${id}/decision`, {
+      action: data.action,
+      reason: data.reason,
     });
     return response.data;
   } catch (err) {

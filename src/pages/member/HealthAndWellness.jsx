@@ -257,6 +257,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
         customAllergies: allergyData.customAllergies
       });
       toast.success('Allergies updated successfully!');
+      if (onProfileUpdated) onProfileUpdated();
     } catch (err) {
       toast.error(err.message || 'Failed to update allergies.');
     } finally {

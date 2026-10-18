@@ -293,11 +293,13 @@ function Home() {
              </div>
              
              {/* Primary Image - Pho */}
-             <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 0.5), calc(var(--mouse-y, 0px) * 0.5))' }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:top-8 md:left-auto md:right-0 lg:right-8 z-20 transition-transform duration-300 ease-out">
-               <div className="w-[260px] h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
-                  <div className="w-full h-full overflow-hidden rounded-xl shadow-inner">
-                    <img src={heroPho} alt="Vegan Pho" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  </div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:top-8 md:left-auto md:right-0 lg:right-8 z-20">
+               <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 0.5), calc(var(--mouse-y, 0px) * 0.5))' }} className="transition-transform duration-300 ease-out">
+                 <div className="w-[260px] h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
+                    <div className="w-full h-full overflow-hidden rounded-xl shadow-inner">
+                      <img src={heroPho} alt="Vegan Pho" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    </div>
+                 </div>
                </div>
              </div>
              
@@ -322,7 +324,7 @@ function Home() {
 
       {/* THREE-COLUMN SOCIAL CONTENT AREA */}
       <main id="social-feed" className="flex-1 w-full max-w-[1640px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pb-20">
-        <div className="flex flex-col lg:flex-row items-start justify-center gap-6 xl:gap-7 w-full">
+        <div className="flex flex-col min-[900px]:flex-row items-start justify-center gap-6 xl:gap-7 w-full">
           {/* Left Utility Rail (Navigation) */}
           <HomeSocialNav
             isGuest={false}
@@ -428,8 +430,8 @@ function Home() {
               </div>
             )}
 
-            {/* Mobile / Tablet Utility Shortcuts (shown on < xl screens) */}
-            <div className="block xl:hidden pt-6 border-t border-vh-border/60">
+            {/* Mobile / Tablet Utility Shortcuts (shown before the desktop utility rail appears) */}
+            <div className="block min-[900px]:hidden pt-6 border-t border-vh-border/60">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 shadow-sm text-left">
                   <div className="flex items-center gap-2 mb-2">
