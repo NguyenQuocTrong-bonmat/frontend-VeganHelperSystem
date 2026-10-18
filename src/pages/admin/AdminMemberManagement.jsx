@@ -512,12 +512,12 @@ export default function AdminMemberManagement() {
             <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[calc(28%-20px)]">Member</th>
+                  <th className="py-3.5 px-4 font-semibold w-[calc(28%-10px)]">Member</th>
                   <th className="py-3.5 px-4 font-semibold w-[28%]">Contact & Email</th>
                   <th className="py-3.5 px-4 font-semibold w-[11%]">Role</th>
                   <th className="py-3.5 px-4 font-semibold w-[13%]">Status</th>
                   <th className="py-3.5 px-4 font-semibold w-[10%]">Joined Date</th>
-                  <th className="py-3.5 px-4 font-semibold text-right w-[calc(10%+20px)]">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold text-left w-[calc(10%+10px)]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -546,8 +546,8 @@ export default function AdminMemberManagement() {
                       <td className="py-4 px-4">
                         <div className="w-20 h-3 bg-[#EAF0E9] rounded" />
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="w-14 h-6 bg-[#EAF0E9] rounded ml-auto" />
+                      <td className="py-4 px-4 text-left">
+                        <div className="w-14 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
                   ))
@@ -647,8 +647,8 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-4 text-right whitespace-nowrap overflow-hidden">
-                          <div className="inline-flex items-center justify-end gap-1.5">
+                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
+                          <div className="inline-flex items-center justify-start gap-1.5">
                             {/* Inspect Details Button */}
                             <button
                               onClick={() => handleOpenDetails(member)}

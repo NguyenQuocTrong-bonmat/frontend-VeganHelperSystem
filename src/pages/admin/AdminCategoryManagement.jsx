@@ -365,8 +365,8 @@ export default function AdminCategoryManagement() {
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
                   <th className="py-3.5 px-5 font-semibold w-[45%]">Category</th>
                   <th className="py-3.5 px-4 font-semibold w-[20%]">Type</th>
-                  <th className="py-3.5 px-4 font-semibold text-center w-[20%]">Associated Recipes</th>
-                  <th className="py-3.5 px-5 font-semibold text-right w-[15%]">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold text-left w-[20%]">Associated Recipes</th>
+                  <th className="py-3.5 px-5 font-semibold text-left w-[15%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -382,11 +382,11 @@ export default function AdminCategoryManagement() {
                       <td className="py-4 px-4">
                         <div className="w-20 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-4 text-center">
-                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full mx-auto" />
+                      <td className="py-4 px-4 text-left">
+                        <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-5 text-right">
-                        <div className="w-16 h-6 bg-[#EAF0E9] rounded ml-auto" />
+                      <td className="py-4 px-5 text-left">
+                        <div className="w-16 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
                   ))
@@ -417,7 +417,7 @@ export default function AdminCategoryManagement() {
                         </td>
 
                         {/* Linked Posts count */}
-                        <td className="py-4 px-4 text-center whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
                               hasLinkedPosts
@@ -430,8 +430,8 @@ export default function AdminCategoryManagement() {
                         </td>
 
                         {/* Actions (FN40: Lock delete if linked to posts) */}
-                        <td className="py-4 px-5 text-right whitespace-nowrap overflow-hidden">
-                          <div className="inline-flex items-center gap-2">
+                        <td className="py-4 px-5 text-left whitespace-nowrap overflow-hidden">
+                          <div className="inline-flex items-center justify-start gap-2">
                             {/* Edit Button */}
                             <button
                               onClick={() => handleOpenEditModal(cat)}

@@ -576,7 +576,7 @@ export default function AdminAuditLogs() {
                   <th className="py-3.5 px-4 font-semibold w-[15%]">Target Entity</th>
                   <th className="py-3.5 px-4 font-semibold w-[12%]">Client IP</th>
                   <th className="py-3.5 px-4 font-semibold w-[11%]">Trace ID</th>
-                  <th className="py-3.5 px-4 font-semibold text-right w-[10%]">Inspection</th>
+                  <th className="py-3.5 px-4 font-semibold text-left w-[10%]">Inspection</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -605,8 +605,8 @@ export default function AdminAuditLogs() {
                       <td className="py-4 px-4">
                         <div className="h-4 bg-[#EAF0E9] rounded w-28" />
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="h-7 bg-[#EAF0E9] rounded-lg w-16 ml-auto" />
+                      <td className="py-4 px-4 text-left">
+                        <div className="h-7 bg-[#EAF0E9] rounded-lg w-16" />
                       </td>
                     </tr>
                   ))
@@ -668,7 +668,7 @@ export default function AdminAuditLogs() {
                         </td>
 
                         {/* Inspection Actions */}
-                        <td className="py-4 px-4 text-right whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
                           <button
                             onClick={() => handleInspect(log)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-lg hover:bg-[#d8e3d6] transition-colors"

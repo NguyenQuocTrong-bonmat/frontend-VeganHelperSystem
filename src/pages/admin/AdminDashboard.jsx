@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                       <th className="py-3 px-2 font-normal w-[18%]">Date</th>
                       <th className="py-3 px-2 font-normal w-[15%]">Time</th>
                       <th className="py-3 px-2 font-normal w-[17%]">Status</th>
-                      <th className="py-3 px-2 font-normal text-right w-[18%]">Target</th>
+                      <th className="py-3 px-2 font-normal text-left w-[18%]">Target</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
                             <span className="truncate">{row.status}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-2 text-right font-medium text-[#6B6F63] overflow-hidden truncate" title={row.detail}>{row.detail}</td>
+                        <td className="py-3 px-2 text-left font-medium text-[#6B6F63] overflow-hidden truncate" title={row.detail}>{row.detail}</td>
                       </tr>
                     ))}
                   </tbody>
