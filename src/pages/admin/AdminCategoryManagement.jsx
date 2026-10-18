@@ -360,13 +360,13 @@ export default function AdminCategoryManagement() {
         {/* 4. Categories Table */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-5 font-semibold">Category</th>
-                  <th className="py-3.5 px-4 font-semibold">Type</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Associated Recipes</th>
-                  <th className="py-3.5 px-5 font-semibold text-right">Actions</th>
+                  <th className="py-3.5 px-5 font-semibold w-[45%]">Category</th>
+                  <th className="py-3.5 px-4 font-semibold w-[20%]">Type</th>
+                  <th className="py-3.5 px-4 font-semibold text-center w-[20%]">Associated Recipes</th>
+                  <th className="py-3.5 px-5 font-semibold text-right w-[15%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -397,26 +397,27 @@ export default function AdminCategoryManagement() {
                     return (
                       <tr key={cat.id} className="hover:bg-[#FAFBF9] transition-colors">
                         {/* Name & Slug */}
-                        <td className="py-4 px-5">
-                          <p className="font-semibold text-sm text-[#2B2A25]">{cat.name}</p>
-                          <p className="text-[11px] text-[#6B6F63] font-mono mt-0.5">{cat.slug}</p>
+                        <td className="py-4 px-5 overflow-hidden">
+                          <p className="font-semibold text-sm text-[#2B2A25] truncate" title={cat.name}>{cat.name}</p>
+                          <p className="text-[11px] text-[#6B6F63] font-mono mt-0.5 truncate" title={cat.slug}>{cat.slug}</p>
                         </td>
 
                         {/* Type Badge */}
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 overflow-hidden">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border max-w-full truncate ${
                               cat.type === 'Food Type'
                                 ? 'bg-[#FFF8E6] text-[#8A6114] border-[#FCE3B4]'
                                 : 'bg-[#EAF0E9] text-[#2F5233] border-[#DCE3D5]'
                             }`}
+                            title={cat.type}
                           >
-                            {cat.type}
+                            <span className="truncate">{cat.type}</span>
                           </span>
                         </td>
 
                         {/* Linked Posts count */}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <td className="py-4 px-4 text-center whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
                               hasLinkedPosts
@@ -429,7 +430,7 @@ export default function AdminCategoryManagement() {
                         </td>
 
                         {/* Actions (FN40: Lock delete if linked to posts) */}
-                        <td className="py-4 px-5 text-right whitespace-nowrap">
+                        <td className="py-4 px-5 text-right whitespace-nowrap overflow-hidden">
                           <div className="inline-flex items-center gap-2">
                             {/* Edit Button */}
                             <button

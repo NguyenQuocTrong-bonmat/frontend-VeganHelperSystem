@@ -509,15 +509,15 @@ export default function AdminMemberManagement() {
         {/* 4. Members Table Card */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold">Member</th>
-                  <th className="py-3.5 px-4 font-semibold">Contact & Email</th>
-                  <th className="py-3.5 px-4 font-semibold">Role</th>
-                  <th className="py-3.5 px-4 font-semibold">Status</th>
-                  <th className="py-3.5 px-4 font-semibold">Joined Date</th>
-                  <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold w-[28%]">Member</th>
+                  <th className="py-3.5 px-4 font-semibold w-[28%]">Contact & Email</th>
+                  <th className="py-3.5 px-4 font-semibold w-[11%]">Role</th>
+                  <th className="py-3.5 px-4 font-semibold w-[13%]">Status</th>
+                  <th className="py-3.5 px-4 font-semibold w-[10%]">Joined Date</th>
+                  <th className="py-3.5 px-4 font-semibold text-right w-[10%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -525,9 +525,9 @@ export default function AdminMemberManagement() {
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skel-member-${idx}`} className="animate-pulse">
                       <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#EAF0E9]" />
-                          <div className="space-y-1.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-[#EAF0E9] shrink-0" />
+                          <div className="space-y-1.5 flex-1 min-w-0">
                             <div className="w-28 h-3.5 bg-[#EAF0E9] rounded" />
                             <div className="w-20 h-2.5 bg-[#F3F6EE] rounded" />
                           </div>
@@ -565,8 +565,8 @@ export default function AdminMemberManagement() {
                     return (
                       <tr key={member.id} className="hover:bg-[#FAFBF9] transition-colors">
                         {/* Member Identity Column */}
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
+                        <td className="py-4 px-4 overflow-hidden">
+                          <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-xs bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
                               {member.avatarUrl ? (
                                 <img
@@ -578,23 +578,40 @@ export default function AdminMemberManagement() {
                                 <span>{initials}</span>
                               )}
                             </div>
-                            <div className="leading-tight">
-                              <p className="font-semibold text-sm text-[#2B2A25]">{member.displayName}</p>
-                              <p className="text-[11px] text-[#6B6F63] mt-0.5">@{member.username}</p>
+                            <div className="leading-tight min-w-0 flex-1">
+                              <p className="font-semibold text-sm text-[#2B2A25] truncate" title={member.displayName}>
+                                {member.displayName}
+                              </p>
+                              <p className="text-[11px] text-[#6B6F63] mt-0.5 truncate" title={`@${member.username}`}>
+                                @{member.username}
+                              </p>
                             </div>
                           </div>
                         </td>
 
                         {/* Email & Contact */}
-                        <td className="py-4 px-4 text-[#6B6F63]">
-                          <div>
-                            <p className="font-medium text-[#2B2A25]">{member.email}</p>
-                            <p className="text-[11px] text-[#8A9080]">{member.phone}</p>
+                        <td className="py-4 px-4 text-[#6B6F63] overflow-hidden">
+                          <div className="min-w-0">
+                            <p className="font-medium text-[#2B2A25] truncate" title={member.email}>
+                              {member.email}
+                            </p>
+                            <p className="text-[11px] text-[#8A9080] truncate flex items-center gap-1 mt-0.5">
+                              {member.emailVerifiedAt ? (
+                                <span className="text-[#2F5233] font-medium flex items-center gap-0.5 truncate">
+                                  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Verified
+                                </span>
+                              ) : (
+                                <span className="text-[#8A9080]">Unverified</span>
+                              )}
+                            </p>
                           </div>
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                               member.role === 'Admin'
@@ -607,7 +624,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                               isBanned
@@ -625,14 +642,16 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Joined Date */}
-                        <td className="py-4 px-4 text-[#6B6F63] font-medium">{member.joinedDate}</td>
+                        <td className="py-4 px-4 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono">
+                          {member.joinedDate}
+                        </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-4 text-right">
+                        <td className="py-4 px-4 text-right whitespace-nowrap overflow-hidden">
                           <div className="inline-flex items-center gap-2">
                             {/* Inspect Details Button */}
                             <button
-                              onClick={() => setDetailModal({ isOpen: true, member })}
+                              onClick={() => handleOpenDetails(member)}
                               className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all"
                               title="Inspect Member Profile"
                             >
@@ -780,11 +799,11 @@ export default function AdminMemberManagement() {
               <form onSubmit={handleConfirmBan} className="mt-4 space-y-4">
                 {/* Target User Summary */}
                 <div className="bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-xs text-[#2B2A25]">{banModal.member.displayName}</p>
-                    <p className="text-[11px] text-[#6B6F63]">@{banModal.member.username} • {banModal.member.email}</p>
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="font-semibold text-xs text-[#2B2A25] truncate" title={banModal.member.displayName}>{banModal.member.displayName}</p>
+                    <p className="text-[11px] text-[#6B6F63] truncate" title={`@${banModal.member.username} • ${banModal.member.email}`}>@{banModal.member.username} • {banModal.member.email}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-[#A63446] bg-[#FBEAE7] px-2 py-0.5 rounded-full border border-[#F4C2BC]">
+                  <span className="text-[10px] font-bold text-[#A63446] bg-[#FBEAE7] px-2 py-0.5 rounded-full border border-[#F4C2BC] shrink-0">
                     Target
                   </span>
                 </div>
@@ -945,14 +964,14 @@ export default function AdminMemberManagement() {
                       </span>
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-base text-[#2B2A25]">{detailModal.member.displayName}</h3>
-                    <p className="text-xs text-[#6B6F63]">@{detailModal.member.username}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-base text-[#2B2A25] truncate" title={detailModal.member.displayName}>{detailModal.member.displayName}</h3>
+                    <p className="text-xs text-[#6B6F63] truncate" title={`@${detailModal.member.username}`}>@{detailModal.member.username}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setDetailModal({ isOpen: false, member: null })}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                  className="text-[#8A9080] hover:text-[#2B2A25] shrink-0 ml-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -963,9 +982,9 @@ export default function AdminMemberManagement() {
               <div className="mt-4 space-y-4 text-xs">
                 {/* Info Grid */}
                 <div className="grid grid-cols-2 gap-3 bg-white p-3.5 rounded-2xl border border-[#DCE3D5]">
-                  <div>
+                  <div className="min-w-0 overflow-hidden">
                     <span className="text-[#8A9080] block text-[11px]">Email Address</span>
-                    <span className="font-medium text-[#2B2A25] truncate block mt-0.5">{detailModal.member.email}</span>
+                    <span className="font-medium text-[#2B2A25] truncate block mt-0.5" title={detailModal.member.email}>{detailModal.member.email}</span>
                   </div>
                   <div>
                     <span className="text-[#8A9080] block text-[11px]">Phone Number</span>

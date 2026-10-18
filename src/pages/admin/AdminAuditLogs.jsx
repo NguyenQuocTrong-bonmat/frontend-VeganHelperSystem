@@ -566,17 +566,17 @@ export default function AdminAuditLogs() {
         {/* 4. Audit Log Table */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold">Timestamp</th>
-                  <th className="py-3.5 px-3 font-semibold">ID</th>
-                  <th className="py-3.5 px-4 font-semibold">Admin</th>
-                  <th className="py-3.5 px-4 font-semibold">Action</th>
-                  <th className="py-3.5 px-4 font-semibold">Target Entity</th>
-                  <th className="py-3.5 px-4 font-semibold">Client IP</th>
-                  <th className="py-3.5 px-4 font-semibold">Trace ID</th>
-                  <th className="py-3.5 px-4 font-semibold text-right">Inspection</th>
+                  <th className="py-3.5 px-4 font-semibold w-[15%]">Timestamp</th>
+                  <th className="py-3.5 px-3 font-semibold w-[8%]">ID</th>
+                  <th className="py-3.5 px-4 font-semibold w-[12%]">Admin</th>
+                  <th className="py-3.5 px-4 font-semibold w-[17%]">Action</th>
+                  <th className="py-3.5 px-4 font-semibold w-[15%]">Target Entity</th>
+                  <th className="py-3.5 px-4 font-semibold w-[12%]">Client IP</th>
+                  <th className="py-3.5 px-4 font-semibold w-[11%]">Trace ID</th>
+                  <th className="py-3.5 px-4 font-semibold text-right w-[10%]">Inspection</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
@@ -618,39 +618,39 @@ export default function AdminAuditLogs() {
                     return (
                       <tr key={log.id} className="hover:bg-[#FAFBF9] transition-colors">
                         {/* Timestamp */}
-                        <td className="py-4 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
                           <p className="font-mono text-xs font-semibold text-[#2B2A25]">{formatted.date}</p>
                           <p className="font-mono text-[11px] text-[#6B6F63] mt-0.5">{formatted.time}</p>
                         </td>
 
                         {/* Event ID */}
-                        <td className="py-4 px-3 whitespace-nowrap font-mono text-xs font-semibold text-[#2F5233]">
+                        <td className="py-4 px-3 whitespace-nowrap font-mono text-xs font-semibold text-[#2F5233] overflow-hidden truncate">
                           #{log.id}
                         </td>
 
                         {/* Admin ID */}
-                        <td className="py-4 px-4 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FAFBF9] text-[#2B2A25] border border-[#DCE3D5]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#2F5233]" />
-                            Admin #{log.adminId}
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FAFBF9] text-[#2B2A25] border border-[#DCE3D5] max-w-full truncate">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#2F5233] shrink-0" />
+                            <span className="truncate">Admin #{log.adminId}</span>
                           </span>
                         </td>
 
                         {/* Action */}
-                        <td className="py-4 px-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md font-mono text-xs font-semibold border ${badgeClass}`}>
-                            {log.action}
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md font-mono text-xs font-semibold border max-w-full truncate ${badgeClass}`} title={log.action}>
+                            <span className="truncate">{log.action}</span>
                           </span>
                         </td>
 
                         {/* Target Entity */}
-                        <td className="py-4 px-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#F4F6F1] text-[#6B6F63] border border-[#E0E5DC]">
+                        <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
+                          <div className="flex items-center gap-1.5 min-w-0" title={`${log.targetType || ''} ${log.targetId ? `#${log.targetId}` : ''}`}>
+                            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#F4F6F1] text-[#6B6F63] border border-[#E0E5DC] truncate shrink-0">
                               {log.targetType}
                             </span>
                             {log.targetId && (
-                              <span className="font-mono text-xs font-semibold text-[#2B2A25]">
+                              <span className="font-mono text-xs font-semibold text-[#2B2A25] truncate">
                                 #{log.targetId}
                               </span>
                             )}
@@ -658,17 +658,17 @@ export default function AdminAuditLogs() {
                         </td>
 
                         {/* Client IP Address */}
-                        <td className="py-4 px-4 whitespace-nowrap font-mono text-xs text-[#6B6F63]">
+                        <td className="py-4 px-4 whitespace-nowrap font-mono text-xs text-[#6B6F63] overflow-hidden truncate" title={log.ipAddress || ''}>
                           {log.ipAddress || '--'}
                         </td>
 
                         {/* Trace ID */}
-                        <td className="py-4 px-4 whitespace-nowrap font-mono text-[11px] text-[#8A9080]" title={log.traceId}>
+                        <td className="py-4 px-4 whitespace-nowrap font-mono text-[11px] text-[#8A9080] overflow-hidden truncate" title={log.traceId || ''}>
                           {log.traceId ? (log.traceId.length > 14 ? `${log.traceId.slice(0, 14)}…` : log.traceId) : '--'}
                         </td>
 
                         {/* Inspection Actions */}
-                        <td className="py-4 px-4 text-right whitespace-nowrap">
+                        <td className="py-4 px-4 text-right whitespace-nowrap overflow-hidden">
                           <button
                             onClick={() => handleInspect(log)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-lg hover:bg-[#d8e3d6] transition-colors"
