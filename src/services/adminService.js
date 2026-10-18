@@ -422,7 +422,7 @@ export async function decideCommentReport(id, data) {
  * @param {string} [params.from] ISO timestamp
  * @param {string} [params.to] ISO timestamp
  */
-export async function getAdminAuditLogs(params = {}) {
+export async function getAdminAuditLogs(params = {}, signal) {
   const { pageIndex = 1, pageSize = 20, adminId, action, targetType, targetId, from, to } = params;
   const query = new URLSearchParams();
   query.append('PageIndex', pageIndex);
@@ -436,7 +436,7 @@ export async function getAdminAuditLogs(params = {}) {
   if (to) query.append('To', to);
 
   try {
-    const response = await axiosInstance.get(`/admin/audit-logs?${query.toString()}`);
+    const response = await axiosInstance.get(`/admin/audit-logs?${query.toString()}`, { signal });
     return response.data;
   } catch (err) {
     throw extractError(err);

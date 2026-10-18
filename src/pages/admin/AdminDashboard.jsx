@@ -13,35 +13,43 @@ const defaultRange = () => {
 };
 const auditDate = (value) => new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
 
+// Each block loads independently; changing chart grouping only refetches activity.
+function useDashboardResource(kind, range, interval, retry) {
+  const [state, setState] = useState({ data: null, loading: true, error: '' });
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setState({ data: null, loading: true, error: '' });
+    const loaders = {
+      overview: () => getAdminDashboardOverview(range, controller.signal),
+      activity: () => getAdminDashboardActivity({ ...range, interval }, controller.signal),
+      categories: () => getAdminDashboardCategories({ ...range, limit: 3 }, controller.signal),
+      audit: () => getAdminAuditLogs({ pageSize: 5, from: `${range.from}T00:00:00Z`, to: `${range.to}T23:59:59.999999Z` }, controller.signal),
+    };
+    loaders[kind]().then((data) => {
+      if (active) setState({ data, loading: false, error: '' });
+    }).catch((err) => {
+      if (active) setState({ data: null, loading: false, error: `${kind}: ${err.message || 'Unable to load data.'}` });
+    });
+    return () => { active = false; controller.abort(); };
+  }, [kind, range, interval, retry]);
+  return state;
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [velocityPeriod, setVelocityPeriod] = useState('day');
   const [range, setRange] = useState(defaultRange);
   const [draftRange, setDraftRange] = useState(range);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [rangeError, setRangeError] = useState('');
   const [retry, setRetry] = useState(0);
-
-  useEffect(() => {
-    let active = true;
-    const controller = new AbortController();
-    setLoading(true);
-    setError('');
-    setData(null);
-    Promise.all([
-      getAdminDashboardOverview(range, controller.signal),
-      getAdminDashboardActivity({ ...range, interval: velocityPeriod }, controller.signal),
-      getAdminDashboardCategories({ ...range, limit: 3 }, controller.signal),
-      getAdminAuditLogs({ pageSize: 5, from: `${range.from}T00:00:00Z`, to: `${range.to}T23:59:59.999999Z` }),
-    ]).then(([overview, activity, categories, audit]) => {
-      if (active) setData({ overview, activity, categories, audit });
-    }).catch((err) => {
-      if (active) { setData(null); setError(err.message || 'Unable to load dashboard.'); }
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; controller.abort(); };
-  }, [range, velocityPeriod, retry]);
+  const overviewState = useDashboardResource('overview', range, null, retry);
+  const activityState = useDashboardResource('activity', range, velocityPeriod, retry);
+  const categoriesState = useDashboardResource('categories', range, null, retry);
+  const auditState = useDashboardResource('audit', range, null, retry);
+  const states = [overviewState, activityState, categoriesState, auditState];
+  const loading = states.some((state) => state.loading);
+  const error = states.map((state) => state.error).filter(Boolean).join(' · ');
 
   const applyRange = (event) => {
     event.preventDefault();
@@ -53,8 +61,8 @@ export default function AdminDashboard() {
     setRangeError('');
     setRange({ ...draftRange });
   };
-  const overview = data?.overview;
-  const activity = data?.activity?.items || [];
+  const overview = overviewState.data;
+  const activity = activityState.data?.items || [];
   const maxPosts = Math.max(1, ...activity.map((item) => item.postCount));
   const barData = activity.map((item) => ({
     label: new Date(`${item.period}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
@@ -62,9 +70,9 @@ export default function AdminDashboard() {
     height: `${item.postCount / maxPosts * 100}%`, value: item.postCount,
   }));
   const colors = ['bg-[#2F5233]', 'bg-[#4C8C4A]', 'bg-[#A8BDA2]'];
-  const topCategories = (data?.categories?.items || []).map((item, index) => ({ ...item, count: item.postCount, color: colors[index] }));
-  const metric = (value) => loading ? '…' : value == null ? '—' : value.toLocaleString('en-GB');
-  const recentEvents = (data?.audit?.items || []).map((item) => ({
+  const topCategories = (categoriesState.data?.items || []).map((item, index) => ({ ...item, count: item.postCount, color: colors[index] }));
+  const metric = (value) => overviewState.loading ? '…' : value == null ? '—' : value.toLocaleString('en-GB');
+  const recentEvents = (auditState.data?.items || []).map((item) => ({
     id: item.id, name: item.action, subtext: `Admin #${item.adminId}`,
     date: auditDate(item.createdAt).toLocaleDateString('en-GB'),
     time: auditDate(item.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
@@ -141,7 +149,7 @@ export default function AdminDashboard() {
 
                     <div className="mt-4 flex items-center justify-between text-[11px] text-white/80 font-mono">
                       <span>REGISTERED MEMBERS</span>
-                      <span>{loading ? 'LOADING' : error ? 'UNAVAILABLE' : 'SYNCED'}</span>
+                      <span>{overviewState.loading ? 'LOADING' : overviewState.error ? 'UNAVAILABLE' : 'SYNCED'}</span>
                     </div>
                   </div>
                 </div>
@@ -201,6 +209,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
+                  {activityState.loading && <p className="mt-3 text-xs text-[#6B6F63]">Loading post activity…</p>}
+                  {!activityState.loading && !activityState.error && !activity.some((item) => item.postCount > 0) && <p className="mt-3 text-xs text-[#6B6F63]">No posts were created in this period.</p>}
                   {/* Vertical Bar Chart matching the pill styling in reference image */}
                   <div className="mt-8 relative h-48 flex items-end gap-2 overflow-x-auto px-2 pt-8" aria-label="Post creation activity">
                     {/* Y-axis dashed background lines */}
@@ -251,7 +261,8 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                    {!loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">{error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
+                    {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">Loading audit events…</td></tr>}
+                    {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
                     {recentEvents.map((row) => (
                       <tr key={row.id} className="hover:bg-[#FAFBF9] transition-colors">
                         <td className="py-3 px-2 overflow-hidden">
@@ -336,7 +347,8 @@ export default function AdminDashboard() {
 
                 {/* Category List with Individual Progress Bars (Clean without icons) */}
                 <div className="space-y-3 mt-4">
-                  {!loading && topCategories.length === 0 && <p className="text-xs text-[#6B6F63]">{error ? 'Category data unavailable.' : 'No categorized published posts in this period.'}</p>}
+                  {categoriesState.loading && <p className="text-xs text-[#6B6F63]">Loading categories…</p>}
+                  {!categoriesState.loading && topCategories.length === 0 && <p className="text-xs text-[#6B6F63]">{categoriesState.error ? 'Category data unavailable.' : 'No categorized published posts in this period.'}</p>}
                   {topCategories.map((cat) => (
                     <div key={cat.name} className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
