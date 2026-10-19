@@ -1,29 +1,104 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import { getPublicProfile } from '../../services/userService';
+import FollowListModal from '../../components/home/FollowListModal';
+import { useAuth } from '../../context/AuthContext';
+import {
+  getPublicProfile,
+  getFollowStatus,
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
+} from '../../services/userService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { isNotFoundError } from '../../utils/errorUtils';
+import { formatDate, getTimeAgo } from '../../utils/dateUtils';
 
 function PublicUserProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
+  let currentUser = null;
+  let isAuthenticated = false;
+  try {
+    const auth = useAuth();
+    currentUser = auth?.user;
+    isAuthenticated = Boolean(auth?.isAuthenticated);
+  } catch {
+    currentUser = null;
+    isAuthenticated = false;
+  }
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [followStatus, setFollowStatus] = useState(null);
+  const [isFollowUpdating, setIsFollowUpdating] = useState(false);
+  const [followListModal, setFollowListModal] = useState({
+    isOpen: false,
+    initialTab: 'followers',
+  });
+
+  const isSelf = Boolean(
+    currentUser?.id &&
+    id &&
+    String(currentUser.id) === String(id)
+  );
+
   useEffect(() => {
     let cancelled = false;
-    async function fetchProfile() {
+
+    async function loadData() {
       try {
         setLoading(true);
-        const data = await getPublicProfile(id);
+        const profilePromise = getPublicProfile(id);
+
+        let followPromise;
+        if (isSelf) {
+          // Bypasses 400 Bad Request on self follow-status
+          followPromise = Promise.allSettled([
+            getFollowers(id, 1, 1),
+            getFollowing(id, 1, 1),
+          ]);
+        } else if (isAuthenticated) {
+          followPromise = getFollowStatus(id);
+        } else {
+          followPromise = Promise.allSettled([
+            getFollowers(id, 1, 1),
+            getFollowing(id, 1, 1),
+          ]);
+        }
+
+        const [profileData, followRes] = await Promise.all([profilePromise, followPromise]);
         if (cancelled) return;
-        setProfile(data);
+
+        setProfile(profileData);
         setError(null);
+
+        if (isSelf || !isAuthenticated) {
+          const [followersRes, followingRes] = followRes;
+          const followersCount = followersRes.status === 'fulfilled'
+            ? (followersRes.value?.totalCount ?? followersRes.value?.totalItems ?? (followersRes.value?.items?.length ?? 0))
+            : (currentUser?.followersCount ?? 0);
+          const followingCount = followingRes.status === 'fulfilled'
+            ? (followingRes.value?.totalCount ?? followingRes.value?.totalItems ?? (followingRes.value?.items?.length ?? 0))
+            : (currentUser?.followingCount ?? 0);
+
+          setFollowStatus({
+            userId: id,
+            isFollowing: false,
+            followersCount,
+            followingCount,
+            notifyOnNewPost: false,
+          });
+        } else {
+          setFollowStatus(followRes);
+        }
       } catch (err) {
         if (cancelled) return;
         if (isNotFoundError(err)) {
@@ -35,27 +110,92 @@ function PublicUserProfile() {
         if (!cancelled) setLoading(false);
       }
     }
-    fetchProfile();
-    return () => { cancelled = true; };
-  }, [id, navigate]);
 
-  const getTimeAgo = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 60) return `${diffMins} minutes ago`;
-    const diffHrs = Math.floor(diffMins / 60);
-    if (diffHrs < 24) return `${diffHrs} hours ago`;
-    const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays} days ago`;
-  };
+    loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isSelf, isAuthenticated, currentUser?.followersCount, currentUser?.followingCount, navigate]);
 
-  const getJoinedDate = (dateStr) => {
-    if (!dateStr) return '';
-    const options = { year: 'numeric', month: 'long' };
-    return new Date(dateStr).toLocaleDateString('en-US', options);
+  // Synchronize with external follow changes
+  useEffect(() => {
+    const handleFollowChanged = (e) => {
+      const detail = e.detail;
+      if (!detail) return;
+      if (id && String(detail.userId) === String(id)) {
+        setFollowStatus((prev) => ({
+          ...prev,
+          ...detail,
+        }));
+      }
+    };
+    window.addEventListener('veganhelper:follow-changed', handleFollowChanged);
+    return () => window.removeEventListener('veganhelper:follow-changed', handleFollowChanged);
+  }, [id]);
+
+  const handleToggleFollow = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to follow creators.');
+      navigate('/login');
+      return;
+    }
+
+    if (isSelf || isFollowUpdating || !id) return;
+
+    const previousFollow = followStatus?.isFollowing ?? false;
+    const previousFollowers = followStatus?.followersCount ?? 0;
+    const nextFollow = !previousFollow;
+    const nextFollowers = Math.max(0, previousFollow ? previousFollowers - 1 : previousFollowers + 1);
+
+    // Optimistic UI update
+    setFollowStatus((prev) => ({
+      ...prev,
+      userId: id,
+      isFollowing: nextFollow,
+      followersCount: nextFollowers,
+    }));
+    setIsFollowUpdating(true);
+
+    try {
+      let res;
+      if (nextFollow) {
+        res = await followUser(id);
+      } else {
+        res = await unfollowUser(id);
+      }
+
+      const authoritativeStatus = {
+        userId: id,
+        isFollowing: res?.isFollowing !== undefined ? res.isFollowing : nextFollow,
+        followersCount: res?.followersCount !== undefined ? res.followersCount : nextFollowers,
+        followingCount: res?.followingCount !== undefined ? res.followingCount : (followStatus?.followingCount ?? 0),
+        notifyOnNewPost: Boolean(res?.notifyOnNewPost),
+      };
+
+      setFollowStatus(authoritativeStatus);
+
+      // Broadcast global event for cross-screen consistency
+      window.dispatchEvent(
+        new CustomEvent('veganhelper:follow-changed', {
+          detail: {
+            userId: id,
+            ...authoritativeStatus,
+          },
+        })
+      );
+
+      toast.success(nextFollow ? `Following ${profile?.displayName || 'creator'}` : `Unfollowed ${profile?.displayName || 'creator'}`);
+    } catch (err) {
+      // Rollback on failure
+      setFollowStatus((prev) => ({
+        ...prev,
+        isFollowing: previousFollow,
+        followersCount: previousFollowers,
+      }));
+      toast.error('Could not update follow status. Please try again.');
+    } finally {
+      setIsFollowUpdating(false);
+    }
   };
 
   if (loading) {
@@ -94,6 +234,13 @@ function PublicUserProfile() {
     );
   }
 
+  const followersDisplay = followStatus?.followersCount !== undefined && followStatus?.followersCount !== null
+    ? followStatus.followersCount
+    : '—';
+  const followingDisplay = followStatus?.followingCount !== undefined && followStatus?.followingCount !== null
+    ? followStatus.followingCount
+    : '—';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
       <HeaderMember />
@@ -124,7 +271,7 @@ function PublicUserProfile() {
               {profile.displayName}
             </h1>
             
-            <div className="flex flex-wrap items-center justify-center gap-3 text-[#6B6F63] font-medium mb-8">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-[#6B6F63] font-medium mb-6">
               {profile.username && (
                 <span>@{profile.username}</span>
               )}
@@ -137,17 +284,108 @@ function PublicUserProfile() {
                 </>
               )}
               <span className="w-1 h-1 rounded-full bg-[#DCE3D5]"></span>
-              <span>Joined {getJoinedDate(profile.joinedAt)}</span>
+              <span>Joined {formatDate(profile.joinedAt)}</span>
             </div>
-            
-            <div className="w-full max-w-md border-t border-[#DCE3D5]/50 pt-8 mt-2 flex justify-center gap-16 md:gap-24">
-              <div className="flex flex-col items-center">
-                <span className="font-fraunces font-semibold text-3xl md:text-4xl text-[#2B2A25]">{profile.publishedPostCount || 0}</span>
-                <span className="text-xs md:text-sm text-[#6B6F63] font-medium uppercase tracking-widest mt-1">Published</span>
+
+            {/* Profile Action Buttons */}
+            {!isSelf ? (
+              <div className="mb-8">
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  disabled={isFollowUpdating}
+                  className={`h-11 px-7 rounded-full font-dm-sans text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                    followStatus?.isFollowing
+                      ? 'border-2 border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
+                      : 'bg-[#2F5233] text-white hover:bg-[#25401F] active:scale-[0.98]'
+                  }`}
+                >
+                  {isFollowUpdating ? (
+                    <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : followStatus?.isFollowing ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Following</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Follow</span>
+                    </>
+                  )}
+                </button>
               </div>
+            ) : (
+              <div className="mb-8 flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] transition-colors flex items-center gap-1.5 shadow-xs"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                  </svg>
+                  <span>Edit Settings</span>
+                </Link>
+                <Link
+                  to="/my-posts"
+                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold bg-[#2F5233] hover:bg-[#25401F] text-white transition-colors flex items-center gap-1.5 shadow-xs"
+                >
+                  <span>My Garden</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            )}
+            
+            {/* 4-Stat Row: Published, Followers, Following, Likes */}
+            <div className="w-full max-w-xl border-t border-[#DCE3D5]/50 pt-8 mt-2 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
               <div className="flex flex-col items-center">
-                <span className="font-fraunces font-semibold text-3xl md:text-4xl text-[#2B2A25]">{profile.receivedLikeCount || 0}</span>
-                <span className="text-xs md:text-sm text-[#6B6F63] font-medium uppercase tracking-widest mt-1">Likes</span>
+                <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25]">
+                  {profile.publishedPostCount || 0}
+                </span>
+                <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-widest mt-1">
+                  Published
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setFollowListModal({ isOpen: true, initialTab: 'followers' })}
+                className="flex flex-col items-center hover:text-[#2F5233] transition-colors cursor-pointer group rounded-xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                title="View followers"
+              >
+                <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                  {followersDisplay}
+                </span>
+                <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-widest mt-1 transition-colors">
+                  Followers
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFollowListModal({ isOpen: true, initialTab: 'following' })}
+                className="flex flex-col items-center hover:text-[#2F5233] transition-colors cursor-pointer group rounded-xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                title="View following"
+              >
+                <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                  {followingDisplay}
+                </span>
+                <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-widest mt-1 transition-colors">
+                  Following
+                </span>
+              </button>
+
+              <div className="flex flex-col items-center">
+                <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25]">
+                  {profile.receivedLikeCount || 0}
+                </span>
+                <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-widest mt-1">
+                  Likes
+                </span>
               </div>
             </div>
           </div>
@@ -198,7 +436,7 @@ function PublicUserProfile() {
                     </h3>
                     
                     <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#6B6F63] font-medium mb-5">
-                      <span>{getTimeAgo(post.createdAt)}</span>
+                      <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
                       {post.dietType && (
                         <>
                           <span className="w-1 h-1 rounded-full bg-[#DCE3D5]"></span>
@@ -224,6 +462,18 @@ function PublicUserProfile() {
           )}
         </section>
       </main>
+
+      {/* Followers & Following Modal */}
+      {followListModal.isOpen && (
+        <FollowListModal
+          isOpen={followListModal.isOpen}
+          onClose={() => setFollowListModal({ isOpen: false, initialTab: 'followers' })}
+          userId={id}
+          initialTab={followListModal.initialTab}
+          followersCount={followStatus?.followersCount}
+          followingCount={followStatus?.followingCount}
+        />
+      )}
 
       <AIChatbot />
       <Footer />

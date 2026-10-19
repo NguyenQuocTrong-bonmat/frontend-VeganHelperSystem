@@ -8,6 +8,11 @@ export function useScrollReveal(options = { threshold: 0.1, rootMargin: '0px 0px
     const currentRef = ref.current;
     if (!currentRef) return;
 
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setIsVisible(true);
@@ -18,7 +23,7 @@ export function useScrollReveal(options = { threshold: 0.1, rootMargin: '0px 0px
     observer.observe(currentRef);
 
     return () => {
-      if (currentRef) observer.unobserve(currentRef);
+      if (currentRef && observer) observer.unobserve(currentRef);
     };
   }, [options.threshold, options.rootMargin]);
 

@@ -1,15 +1,27 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
-export default function SearchBar() {
+export default function SearchBar({ isGuest: isGuestProp }) {
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();
+  
+  let isGuest = isGuestProp;
+  try {
+    const auth = useAuth();
+    if (isGuest === undefined) {
+      isGuest = !auth?.isAuthenticated && !auth?.user;
+    }
+  } catch (e) {
+    if (isGuest === undefined) isGuest = false;
+  }
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (keyword.trim()) {
-      navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
+      const targetPath = isGuest ? '/search-guest' : '/search';
+      navigate(`${targetPath}?q=${encodeURIComponent(keyword.trim())}`);
     }
   };
 

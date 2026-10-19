@@ -14,7 +14,12 @@ import PostDetailCore from '../../components/home/PostDetailCore';
 import { getMyPosts, getPostDetail, getCategories, updatePost } from '../../services/postService';
 import { getComments } from '../../services/interactionService';
 
-vi.mock('../../services/userService', () => ({ getPublicProfile: vi.fn() }));
+vi.mock('../../services/userService', () => ({
+  getPublicProfile: vi.fn(),
+  getFollowStatus: vi.fn(),
+  getFollowers: vi.fn(),
+  getFollowing: vi.fn(),
+}));
 vi.mock('../../services/shopService', () => ({ default: { getShopDetail: vi.fn() } }));
 vi.mock('../../services/authService', () => ({ authService: { getProfile: vi.fn() } }));
 vi.mock('@react-oauth/google', () => ({ GoogleLogin: () => null }));

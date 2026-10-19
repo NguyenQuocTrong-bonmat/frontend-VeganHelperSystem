@@ -94,3 +94,36 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Store Map Hover Tooltip Popup */
+.store-map-hover-popup {
+  pointer-events: none !important;
+  z-index: 100 !important;
+}
+
+.store-map-hover-popup .mapboxgl-popup-content {
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 25px -3px rgba(36, 76, 56, 0.2), 0 4px 10px -2px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(220, 227, 213, 0.9) !important;
+  pointer-events: none !important;
+  animation: fadeInStoreTooltip 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.store-map-hover-popup .mapboxgl-popup-tip {
+  border-top-color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+}
+
+@keyframes fadeInStoreTooltip {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

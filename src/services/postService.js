@@ -96,13 +96,18 @@ export async function createPost(postData) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
-  formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);
   formData.append('Content', postData.content);
   formData.append('DifficultyLevel', (postData.difficultyLevel || 'easy').toLowerCase());
-  formData.append('PrepTimeMins', postData.prepTimeMins || 0);
-  formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
-  formData.append('DietType', (postData.dietType || 'vegan').toLowerCase());
+  if (postData.prepTimeMins !== undefined && postData.prepTimeMins !== null && postData.prepTimeMins !== '') {
+    formData.append('PrepTimeMins', postData.prepTimeMins);
+  }
+  if (postData.cookingTimeMins !== undefined && postData.cookingTimeMins !== null && postData.cookingTimeMins !== '') {
+    formData.append('CookingTimeMins', postData.cookingTimeMins);
+  }
+  if (postData.dietType) {
+    formData.append('DietType', postData.dietType.toLowerCase());
+  }
 
   // Gắn file ảnh nếu có
   if (postData.mediaFiles && postData.mediaFiles.length > 0) {
@@ -198,13 +203,18 @@ export async function updatePost(id, postData) {
   }
 
   formData.append('Title', postData.title);
-  formData.append('PostType', (postData.postType || 'recipe').toLowerCase());
   formData.append('CategoryId', postData.categoryId);
   formData.append('Content', postData.content);
   formData.append('DifficultyLevel', (postData.difficultyLevel || 'easy').toLowerCase());
-  formData.append('PrepTimeMins', postData.prepTimeMins || 0);
-  formData.append('CookingTimeMins', postData.cookingTimeMins || 0);
-  formData.append('DietType', (postData.dietType || 'vegan').toLowerCase());
+  if (postData.prepTimeMins !== undefined && postData.prepTimeMins !== null && postData.prepTimeMins !== '') {
+    formData.append('PrepTimeMins', postData.prepTimeMins);
+  }
+  if (postData.cookingTimeMins !== undefined && postData.cookingTimeMins !== null && postData.cookingTimeMins !== '') {
+    formData.append('CookingTimeMins', postData.cookingTimeMins);
+  }
+  if (postData.dietType) {
+    formData.append('DietType', postData.dietType.toLowerCase());
+  }
 
   // Gắn file ảnh nếu có
   if (postData.mediaFiles && postData.mediaFiles.length > 0) {

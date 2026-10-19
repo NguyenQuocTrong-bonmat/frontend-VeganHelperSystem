@@ -6,6 +6,7 @@ import AIChatbot from '../../components/chat/AIChatbot';
 import shopService from '../../services/shopService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { isNotFoundError } from '../../utils/errorUtils';
+import ImageLightbox from '../../components/ui/ImageLightbox';
 
 export default function StoreDetail() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ export default function StoreDetail() {
   const [shop, setShop] = useState(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +55,33 @@ export default function StoreDetail() {
           </div>
         ) : shop ? (
           <article className="space-y-6">
-            {shop.mediaUrls?.[0] && <img src={getImageUrl(shop.mediaUrls[0])} alt={shop.name} className="w-full max-h-96 object-cover rounded-card" />}
+            {shop.mediaUrls?.[0] && (
+              <div
+                className="cursor-zoom-in group relative overflow-hidden rounded-card max-h-96"
+                onClick={() => setIsLightboxOpen(true)}
+                role="button"
+                tabIndex={0}
+                aria-label="Enlarge store image"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsLightboxOpen(true);
+                  }
+                }}
+              >
+                <img
+                  src={getImageUrl(shop.mediaUrls[0])}
+                  alt={shop.name}
+                  className="w-full max-h-96 object-cover rounded-card transition-transform duration-300 group-hover:scale-[1.01]"
+                />
+                <div className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs text-xs flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                  </svg>
+                  <span>Enlarge</span>
+                </div>
+              </div>
+            )}
             <div>
               <h1 className="font-dm-serif text-3xl sm:text-4xl text-vh-text-primary">{shop.name}</h1>
               <p className="mt-3 text-vh-text-secondary">{shop.address}</p>
@@ -68,6 +96,12 @@ export default function StoreDetail() {
           </article>
         ) : null}
       </main>
+      <ImageLightbox
+        isOpen={isLightboxOpen}
+        src={shop?.mediaUrls?.[0] ? getImageUrl(shop.mediaUrls[0]) : null}
+        alt={shop?.name || 'Store photo'}
+        onClose={() => setIsLightboxOpen(false)}
+      />
       <AIChatbot />
       <Footer />
     </div>

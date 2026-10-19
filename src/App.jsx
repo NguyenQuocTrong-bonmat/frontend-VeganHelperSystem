@@ -21,6 +21,7 @@ import PublicUserProfile from './pages/member/PublicUserProfile.jsx'
 import MyPosts from './pages/member/MyPosts.jsx'
 import PostDetail from './pages/member/PostDetail.jsx'
 import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
+import MealPlanPaymentResult from './pages/member/MealPlanPaymentResult.jsx'
 import FindVeganStores from './pages/member/FindVeganStores.jsx'
 import StoreDetail from './pages/member/StoreDetail.jsx'
 import SearchResults from './pages/member/SearchResults.jsx'
@@ -33,15 +34,11 @@ import CreatePost from './pages/member/CreatePost.jsx'
 import EditPost from './pages/member/EditPost.jsx'
 
 // Admin pages
-import AdminConsole from './pages/admin/AdminConsole.jsx'
-import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminContentManagement from './pages/admin/AdminContentManagement.jsx'
 import AdminMemberManagement from './pages/admin/AdminMemberManagement.jsx'
 import AdminCategoryManagement from './pages/admin/AdminCategoryManagement.jsx'
-import AdminMealPlannerConfiguration from './pages/admin/AdminMealPlannerConfiguration.jsx'
-import AdminAiModerationQueue from './pages/admin/AdminAiModerationQueue.jsx'
-import AdminAiModelMonitoring from './pages/admin/AdminAiModelMonitoring.jsx'
-import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQueue.jsx'
+import AdminAuditLogs from './pages/admin/AdminAuditLogs.jsx'
 
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -77,6 +74,9 @@ function App() {
         <Route path="/posts/edit/:id" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
         <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
+        <Route path="/meal-plans/payment/success" element={<ProtectedRoute><MealPlanPaymentResult variant="success" /></ProtectedRoute>} />
+        <Route path="/meal-plans/payment/cancel" element={<ProtectedRoute><MealPlanPaymentResult variant="cancel" /></ProtectedRoute>} />
+        <Route path="/meal-plans/payment/failed" element={<ProtectedRoute><MealPlanPaymentResult variant="failed" /></ProtectedRoute>} />
         <Route path="/vegan-stores" element={<ProtectedRoute><FindVeganStores /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
         <Route path="/saved-posts" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
@@ -85,14 +85,11 @@ function App() {
         <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
         <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
         {/* Admin */}
-        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminConsole /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
         <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
-        <Route path="/admin/meal-planner-config" element={<ProtectedRoute requireAdmin={true}><AdminMealPlannerConfiguration /></ProtectedRoute>} />
-        <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
-        <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
-        <Route path="/admin/video-summarization" element={<ProtectedRoute requireAdmin={true}><AdminVideoSummarizationQueue /></ProtectedRoute>} />
+        <Route path="/admin/audit-logs" element={<ProtectedRoute requireAdmin={true}><AdminAuditLogs /></ProtectedRoute>} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

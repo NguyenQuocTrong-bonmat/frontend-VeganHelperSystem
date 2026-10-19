@@ -29,18 +29,6 @@ function SavedPosts({ isComponent = false }) {
     loadSavedPosts();
   }, []);
 
-  const getTimeAgo = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 60) return `${diffMins} minutes ago`;
-    const diffHrs = Math.floor(diffMins / 60);
-    if (diffHrs < 24) return `${diffHrs} hours ago`;
-    const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays} days ago`;
-  };
 
   const handleUnsave = async (postId) => {
     try {
@@ -118,7 +106,7 @@ function SavedPosts({ isComponent = false }) {
                     <div className="w-full h-full flex items-center justify-center text-[#6B6F63] text-sm">No Image</div>
                   )}
                   <div className="absolute top-3 left-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full border border-white/50 text-[#2F5233] text-xs font-medium shadow-sm">
-                    {post.postType || 'Recipe'}
+                    {post.categoryName || 'Post'}
                   </div>
                 </div>
                 

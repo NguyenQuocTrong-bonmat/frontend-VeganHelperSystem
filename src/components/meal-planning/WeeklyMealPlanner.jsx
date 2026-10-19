@@ -1,30 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { generateMealPlan, getMealPlan, listMealPlans } from '../../services/mealPlanService';
+import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
+import PlanSetupFlow from './PlanSetupFlow';
+import WeeklyCalendar from './WeeklyCalendar';
 
-const number = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
-const dateLabel = value => value ? new Date(`${value}T00:00:00Z`).toLocaleDateString('en-GB', {
-  day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC',
-}) : 'Unknown date';
-const rangeLabel = plan => `${dateLabel(plan.startDate)} – ${dateLabel(plan.endDate)} · #${plan.id}`;
-const control = 'rounded-lg border border-[#DCE3D5] bg-white px-3 py-2.5 text-[#2B2A25] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50';
-const utcToday = () => new Date().toISOString().slice(0, 10);
+import MealRoutinePanel from './MealRoutinePanel';
+import PlannerIcon from './PlannerIcon';
+import plannerInspiration from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
+import { dietLabel, number, rangeLabel } from './plannerFormat';
+import './weekly-menu.css';
 
-export default function WeeklyMealPlanner({ onEditProfile }) {
-  const [startDate, setStartDate] = useState(utcToday);
+export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange }) {
   const [pageIndex, setPageIndex] = useState(1);
   const [refresh, setRefresh] = useState(0);
   const [saved, setSaved] = useState({ items: [], totalPages: 0 });
   const [plan, setPlan] = useState(null);
-  const [dayIndex, setDayIndex] = useState(1);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [listError, setListError] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [setupOpen, setSetupOpen] = useState(false);
   const submitting = useRef(false);
   const detailRequest = useRef(null);
   const mounted = useRef(true);
+  const createButton = useRef(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -34,6 +35,16 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setListError('');
+
+    if (access === undefined) return () => controller.abort();
+
+    if (access && !access.canViewExistingPlans && !access.canViewTrialPlans) {
+      setSaved({ items: [], totalPages: 0 });
+      setPlan(null);
+      setLoading(false);
+      return () => controller.abort();
+    }
+
     listMealPlans(pageIndex, controller.signal).then(data => {
       if (controller.signal.aborted) return;
       setSaved(data);
@@ -42,7 +53,7 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
       if (!controller.signal.aborted) setListError(failure.message);
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [pageIndex, refresh]);
+  }, [access, pageIndex, refresh]);
 
   async function openPlan(id) {
     detailRequest.current?.abort();
@@ -51,7 +62,7 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
     setOpening(true); setError(''); setSuccess('');
     try {
       const result = await getMealPlan(id, controller.signal);
-      if (!controller.signal.aborted) { setPlan(result); setDayIndex(1); }
+      if (!controller.signal.aborted) { setPlan(result); }
     } catch (failure) {
       if (!controller.signal.aborted) setError(failure.message);
     } finally {
@@ -59,19 +70,31 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
     }
   }
 
-  async function generate(event) {
-    event.preventDefault();
+  async function generate(selectedStartDate) {
     if (submitting.current || opening) return;
+    if (access?.canGenerate === false) {
+      setError('Your free meal-plan generations have been used. Choose a package above to create more plans.');
+      return;
+    }
     submitting.current = true;
     setGenerating(true); setError(''); setSuccess('');
     try {
-      const result = await generateMealPlan(startDate);
+      const result = await generateMealPlan(selectedStartDate);
       if (!mounted.current) return;
-      setPlan(result); setDayIndex(1);
+      setPlan(result);
       setSuccess('Your weekly menu has been created and saved.');
+      setSetupOpen(false);
       setPageIndex(1); setRefresh(value => value + 1);
+      getMealPlanAccess().then(nextAccess => {
+        if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
+      }).catch(() => {});
     } catch (failure) {
       if (mounted.current) setError(failure.message);
+      if (failure.status === 402 || failure.code === 'MEAL_PLAN_TRIAL_LIMIT_REACHED') {
+        getMealPlanAccess().then(nextAccess => {
+          if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
+        }).catch(() => {});
+      }
     } finally {
       submitting.current = false;
       if (mounted.current) setGenerating(false);
@@ -79,92 +102,50 @@ export default function WeeklyMealPlanner({ onEditProfile }) {
   }
 
   const busy = generating || opening;
-  const selectedDay = plan?.menu?.days?.find(day => day.dayIndex === dayIndex);
   const choices = plan && !saved.items.some(item => item.id === plan.id) ? [plan, ...saved.items] : saved.items;
-  const today = utcToday();
-  const nextYear = new Date(`${today}T00:00:00Z`);
-  const month = nextYear.getUTCMonth();
-  nextYear.setUTCFullYear(nextYear.getUTCFullYear() + 1);
-  if (nextYear.getUTCMonth() !== month) nextYear.setUTCDate(0);
+  const menu = plan?.menu;
+  function cancelSetup() { setSetupOpen(false); setError(''); createButton.current?.focus(); }
 
-  return (
-    <div className="space-y-8">
-      <section className="rounded-2xl border border-[#DCE3D5] bg-white p-5 sm:p-7 space-y-5" aria-labelledby="create-menu-heading">
-        <div>
-          <h2 id="create-menu-heading" className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Plan your week</h2>
-          <p className="mt-2 text-sm text-[#6B6F63]">Seven days, three meals a day, one dish per meal. Uses your saved health profile, diet and allergies to estimate maintenance calories.</p>
-          <button type="button" onClick={onEditProfile} className="mt-2 text-sm font-semibold text-[#2F5233] underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233]">Review health profile & allergies</button>
-        </div>
-        <form onSubmit={generate} className="flex flex-col sm:flex-row sm:items-end gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="meal-plan-start" className="text-sm font-medium text-[#2B2A25]">Start date</label>
-            <input id="meal-plan-start" type="date" value={startDate} onChange={event => setStartDate(event.target.value)} min={today} max={nextYear.toISOString().slice(0, 10)} required disabled={busy} className={control} aria-describedby="generation-help" />
-          </div>
-          <button type="submit" disabled={busy || loading} className="rounded-lg border border-[#2F5233] bg-[#2F5233] px-4 py-2.5 text-white font-semibold hover:bg-[#244229] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-50 disabled:cursor-wait">
-            {generating ? 'Creating your menu…' : 'Create weekly menu'}
-          </button>
-        </form>
-        <p id="generation-help" className="text-xs text-[#6B6F63]">Dates use UTC. Each creation saves a separate plan. Save profile and allergy changes before creating a new menu; existing plans keep their original information. Generation requires a complete profile for an adult aged 20–120 and a supported male/female energy calculation.</p>
-        {error && <div role="alert" className="rounded-lg border border-[#A63446]/30 bg-[#FFF5F5] p-4 text-sm text-[#A63446]">{error}</div>}
-        <p role="status" className="text-sm text-[#2F5233]">{generating ? 'Creating and saving your weekly menu. Please wait…' : opening ? 'Opening saved menu…' : success}</p>
-      </section>
-
-      <section aria-label="Saved meal plans" className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-          <div className="flex-1 min-w-0 space-y-2">
-            <label htmlFor="saved-meal-plan" className="block text-sm font-semibold text-[#2B2A25]">Saved plans</label>
-            <select id="saved-meal-plan" value={plan?.id ?? ''} onChange={event => openPlan(event.target.value)} disabled={busy || loading || !choices.length} className={`${control} w-full`}>
-              {!plan && <option value="">Choose a saved plan</option>}
-              {choices.map(item => <option key={item.id} value={item.id}>{rangeLabel(item)}</option>)}
-            </select>
-          </div>
-          <button type="button" disabled={busy || loading} onClick={() => setRefresh(value => value + 1)} className={control}>Reload saved plans</button>
-        </div>
-        {listError ? <div role="alert" className="text-sm text-[#A63446]">{listError} <button type="button" onClick={() => setRefresh(value => value + 1)} className="underline font-semibold">Retry</button></div>
-          : loading ? <p role="status" className="text-sm text-[#6B6F63]">Loading saved plans…</p> : null}
-        {saved.totalPages > 1 && <div className="flex flex-wrap items-center gap-3 text-sm text-[#6B6F63]">
-          <button type="button" className={control} disabled={busy || loading || pageIndex <= 1} onClick={() => setPageIndex(value => value - 1)}>Previous</button>
-          <span>Page {pageIndex} of {saved.totalPages}</span>
-          <button type="button" className={control} disabled={busy || loading || pageIndex >= saved.totalPages} onClick={() => setPageIndex(value => value + 1)}>Next</button>
-        </div>}
-      </section>
-
-      {!plan && !loading && !listError && <div className="rounded-2xl border border-[#DCE3D5] bg-white p-8 text-center">
-        <h2 className="font-fraunces text-2xl text-[#2B2A25]">No weekly menu available.</h2>
-        <p className="mt-2 text-[#6B6F63]">Review your health profile and allergies, then choose a start date to create your first menu.</p>
-      </div>}
-      {plan && !plan.menu && <p className="rounded-xl border border-[#DCE3D5] bg-white p-5 text-[#6B6F63]">This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p>}
-      {plan?.menu && <section aria-label="Weekly menu details" className="space-y-6" aria-busy={opening}>
-        <div className="space-y-2 text-sm text-[#6B6F63]">
-          <h2 className="font-fraunces text-2xl text-[#2B2A25]">{rangeLabel(plan)}</h2>
-          <p>{plan.menu.dietType === 'vegan' ? 'Vegan' : 'Lacto-ovo vegetarian'} · Target {number(plan.menu.targetDailyCalories)} kcal/day · BMI {number(plan.menu.bmi)}</p>
-          <p>Allergies used: {plan.menu.allergies?.length ? plan.menu.allergies.join(', ') : 'None declared'}</p>
-        </div>
-        <nav aria-label="Meal plan days" className="flex overflow-x-auto border-b border-[#DCE3D5] gap-5">
-          {plan.menu.days.map(day => <button type="button" key={day.dayIndex} aria-current={dayIndex === day.dayIndex ? 'date' : undefined} onClick={() => setDayIndex(day.dayIndex)} className={`shrink-0 border-b-2 pb-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233] ${dayIndex === day.dayIndex ? 'font-semibold text-[#2F5233] border-[#2F5233]' : 'text-[#6B6F63] border-transparent'}`}>
-            <span className="block">{new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })}</span>
-            <span className="block text-xs mt-1">{dateLabel(day.date)}</span>
-          </button>)}
-        </nav>
-        {selectedDay && <div aria-live="polite" className="space-y-4">
-          <p className="text-sm text-[#6B6F63]">{dateLabel(selectedDay.date)} · Total {number(selectedDay.totalCalories)} kcal</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {selectedDay.meals.map(meal => <article key={meal.mealTime} className="min-w-0 rounded-2xl border border-[#DCE3D5] bg-white p-5 break-words">
-              <h3 className="text-sm font-semibold capitalize text-[#2F5233]">{meal.mealTime}</h3>
-              <h4 className="font-fraunces text-xl text-[#2B2A25] mt-3">{meal.name}</h4>
-              <p className="text-sm text-[#6B6F63] mt-2">{number(meal.calories)} kcal · {number(meal.portionMultiplier)}× standard serving</p>
-              <p className="text-sm font-semibold text-[#2B2A25] mt-5 mb-2">Ingredients for this portion</p>
-              <ul className="space-y-2 text-sm text-[#6B6F63]">
-                {meal.ingredients.map(ingredient => <li key={ingredient.ingredientId}>{ingredient.name} — {Number(ingredient.quantity).toLocaleString('en-US', { maximumFractionDigits: 3 })} {ingredient.unit}</li>)}
-              </ul>
-            </article>)}
-          </div>
-        </div>}
-        <div className="rounded-xl border border-[#DCE3D5] p-5 text-sm text-[#6B6F63] space-y-2">
-          <p>Calories are estimates for weight maintenance. This menu is not a weight-loss treatment or a guarantee of nutritional adequacy. Check ingredients and product labels for allergens.</p>
-          {plan.menu.notes?.map((note, index) => <p key={index}>{note}</p>)}
-        </div>
-      </section>}
+  return <div className="wm-workspace">
+    <div className="wm-workspace-toolbar">
+      <div><h2>A good week starts here.</h2></div>
+      <button type="button" ref={createButton} className="wm-button wm-button-primary" disabled={busy || loading || access?.canGenerate === false} onClick={() => { setSetupOpen(true); setError(''); setSuccess(''); }}><PlannerIcon name="plus" />New weekly menu</button>
     </div>
-  );
+    <p role="status" className={generating || opening || success ? 'wm-status' : 'sr-only'}>{generating ? 'Creating and saving your weekly menu. Please wait…' : opening ? 'Opening saved menu…' : success}</p>
+    {access?.canGenerate === false && <p role="status" className="wm-notice">Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.</p>}
+    {access && !access.canViewExistingPlans && !access.canViewTrialPlans && <p className="wm-notice">No saved meal plans are available to view yet. Create a plan with your free trial or activate a package to unlock saved plans.</p>}
+    <div className="wm-workspace-grid">
+      <aside className="wm-sidebar" aria-label="Plan overview and saved menus">
+        <section className="wm-plan-summary">
+          <div className="wm-summary-image"><img src={plannerInspiration} alt="" /><span>Plant-based inspiration</span></div>
+          <div className="wm-summary-copy"><h2>Your week,<br />thoughtfully planned.</h2><p>Plant-based meals, planned around you.</p></div>
+          {menu ? <><div className="wm-summary-target"><span>Daily calorie target</span><strong>{number(menu.targetDailyCalories)}<small>kcal</small></strong><span>{menu.goal === 'weight_goal' ? 'Estimated weight goal calories' : 'Estimated maintenance calories'}</span></div><div className="wm-summary-diet"><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</div><dl className="wm-summary-facts"><div><dt>Duration</dt><dd>{menu.days?.length ?? '—'} days</dd></div><div><dt>Scheduled meals</dt><dd>{menu.days?.reduce((count, day) => count + (day.meals?.length || 0), 0) ?? '—'}</dd></div></dl></> : <p className="wm-summary-first">Your menu overview will appear here once you have a saved plan.</p>}
+        </section>
+        <section className="wm-saved-plans" aria-labelledby="saved-menu-heading">
+          <div className="wm-section-heading"><h3 id="saved-menu-heading">Your saved plans</h3><button type="button" className="wm-icon-button" aria-label="Reload saved plans" disabled={busy || loading} onClick={() => setRefresh(value => value + 1)}><PlannerIcon name="refresh" /></button></div>
+          <label className="wm-field-label" htmlFor="saved-meal-plan">Choose a week</label>
+          <select id="saved-meal-plan" value={plan?.id ?? ''} onChange={event => openPlan(event.target.value)} disabled={busy || loading || !choices.length} className="wm-control">
+            {!plan && <option value="">No saved menus yet</option>}{choices.map(item => <option key={item.id} value={item.id}>{rangeLabel(item)} · #{item.id}</option>)}
+          </select>
+          {listError ? <div role="alert" className="wm-inline-error"><p>{listError}</p><button type="button" className="wm-text-button" onClick={() => setRefresh(value => value + 1)}>Retry</button></div> : loading ? <p role="status" className="wm-muted">Loading saved plans…</p> : <p className="wm-saved-help">Every menu keeps the profile and allergies used when it was created.</p>}
+          {saved.totalPages > 1 && <div className="wm-pagination"><button type="button" className="wm-icon-button" aria-label="Previous plans" disabled={busy || loading || pageIndex <= 1} onClick={() => setPageIndex(value => value - 1)}><PlannerIcon name="chevron" className="wm-reverse" /></button><span>{pageIndex} / {saved.totalPages}</span><button type="button" className="wm-icon-button" aria-label="Next plans" disabled={busy || loading || pageIndex >= saved.totalPages} onClick={() => setPageIndex(value => value + 1)}><PlannerIcon name="chevron" /></button></div>}
+        </section>
+        <section className="wm-profile-link"><PlannerIcon name="leaf" /><h3>Good plans start with you.</h3><p>Keep your health profile, diet and allergies up to date before creating a menu.</p><button type="button" className="wm-text-button" onClick={onEditProfile}>Review health profile <PlannerIcon name="arrow" /></button></section>
+      </aside>
+      <div className="wm-main-column">
+        {setupOpen && <PlanSetupFlow profileRevision={profileRevision} busy={generating} error={error} onGenerate={generate} onCancel={cancelSetup} onEditProfile={onEditProfile} />}
+        {!setupOpen && error && <div role="alert" className="wm-alert">{error}</div>}
+        {loading && !plan && !listError && <div role="status" className="wm-loading"><PlannerIcon name="calendar" /><p>Making room for your week…</p><div className="wm-skeleton-calendar" aria-hidden="true">{Array.from({ length: 7 }, (_, index) => <span key={index} />)}</div></div>}
+        {!plan && !loading && !listError && !setupOpen && <section className="wm-empty"><span className="wm-empty-art"><PlannerIcon name="bowl" /><PlannerIcon name="leaf" /></span><span className="wm-eyebrow">A fresh start, every week</span><h2>Your next week starts here.</h2><p>Less time wondering what to eat.<br />More time enjoying what is on your plate.</p><button type="button" className="wm-button wm-button-primary" disabled={access?.canGenerate === false} onClick={() => setSetupOpen(true)}>Create your first menu <PlannerIcon name="arrow" /></button><span className="wm-empty-caption">7 days · 3 meals a day · Made for your preferences</span></section>}
+        {plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
+        {menu && <>
+          <div className="wm-menu-context"><span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span><span className="wm-mobile-calorie">Daily target <strong>{number(menu.targetDailyCalories)} kcal</strong></span><span>BMI at creation <strong>{number(menu.bmi)}</strong></span><span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span></div>
+          <WeeklyCalendar key={`calendar-${plan.id}`} plan={plan} opening={opening} onRoutineChanged={routine=>setPlan(current=>current?.id === plan.id ? {...current,routine} : current)} />
+          {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated=>{setPlan(updated);setRefresh(value=>value+1);}} onEditProfile={onEditProfile} />}
+          <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
+        </>}
+        {plan?.routine?.mode === 'maintenance' && <p className="wm-notice">This balanced plan is for viewing your menu. Create a weight goal plan to use tracking and reminders.</p>}
+      </div>
+    </div>
+  </div>;
 }
