@@ -7,7 +7,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
   const savedPostsRoute = isGuest ? '/login' : '/saved-posts';
 
   const linkStyle = ({ isActive }) =>
-    `flex items-center gap-3.5 px-4 py-3 rounded-xl text-[14px] sm:text-[15px] font-dm-sans transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest ${
+    `flex items-center gap-2.5 lg:gap-3.5 px-2.5 lg:px-4 py-3 rounded-xl text-[14px] sm:text-[15px] font-dm-sans transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest ${
       isActive
         ? 'bg-vh-forest text-white font-medium shadow-sm'
         : 'text-vh-text-secondary hover:text-vh-forest hover:bg-vh-mint/30'
@@ -16,7 +16,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
   return (
     <aside
       aria-label="Social Navigation"
-      className="w-[260px] xl:w-[280px] shrink-0 hidden lg:block select-none sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pr-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="w-[200px] lg:w-[220px] xl:w-[260px] 2xl:w-[280px] shrink-0 hidden min-[900px]:block select-none sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pr-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 shadow-sm space-y-1.5">
         <div className="px-3 py-2 mb-1">

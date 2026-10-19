@@ -34,15 +34,11 @@ import CreatePost from './pages/member/CreatePost.jsx'
 import EditPost from './pages/member/EditPost.jsx'
 
 // Admin pages
-import AdminConsole from './pages/admin/AdminConsole.jsx'
-import AdminDashboardHomeOverview from './pages/admin/AdminDashboardHomeOverview.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminContentManagement from './pages/admin/AdminContentManagement.jsx'
 import AdminMemberManagement from './pages/admin/AdminMemberManagement.jsx'
 import AdminCategoryManagement from './pages/admin/AdminCategoryManagement.jsx'
-import AdminMealPlannerConfiguration from './pages/admin/AdminMealPlannerConfiguration.jsx'
-import AdminAiModerationQueue from './pages/admin/AdminAiModerationQueue.jsx'
-import AdminAiModelMonitoring from './pages/admin/AdminAiModelMonitoring.jsx'
-import AdminVideoSummarizationQueue from './pages/admin/AdminVideoSummarizationQueue.jsx'
+import AdminAuditLogs from './pages/admin/AdminAuditLogs.jsx'
 
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -89,14 +85,11 @@ function App() {
         <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
         <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
         {/* Admin */}
-        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminConsole /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
         <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><AdminMemberManagement /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute requireAdmin={true}><AdminCategoryManagement /></ProtectedRoute>} />
-        <Route path="/admin/meal-planner-config" element={<ProtectedRoute requireAdmin={true}><AdminMealPlannerConfiguration /></ProtectedRoute>} />
-        <Route path="/admin/ai-moderation" element={<ProtectedRoute requireAdmin={true}><AdminAiModerationQueue /></ProtectedRoute>} />
-        <Route path="/admin/ai-monitoring" element={<ProtectedRoute requireAdmin={true}><AdminAiModelMonitoring /></ProtectedRoute>} />
-        <Route path="/admin/video-summarization" element={<ProtectedRoute requireAdmin={true}><AdminVideoSummarizationQueue /></ProtectedRoute>} />
+        <Route path="/admin/audit-logs" element={<ProtectedRoute requireAdmin={true}><AdminAuditLogs /></ProtectedRoute>} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

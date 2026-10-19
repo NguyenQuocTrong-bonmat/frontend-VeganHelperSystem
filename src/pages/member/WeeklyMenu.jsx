@@ -6,6 +6,8 @@ import HealthAndWellness from './HealthAndWellness';
 import WeeklyMealPlanner from '../../components/meal-planning/WeeklyMealPlanner';
 import MealPlanBillingPanel from '../../components/meal-planning/MealPlanBillingPanel';
 import { useLocation } from 'react-router-dom';
+import PlannerIcon from '../../components/meal-planning/PlannerIcon';
+import weeklyMenuImage from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
 
 function WeeklyMenu() {
   const location = useLocation();
@@ -22,64 +24,51 @@ function WeeklyMenu() {
     });
     return () => cancelAnimationFrame(frame);
   }, [location.hash]);
+  const [profileRevision, setProfileRevision] = useState(0);
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
+    <div className="wm-page min-h-screen flex flex-col">
       <HeaderMember />
       
       {/* PAGE HEADER */}
-      <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
-        <div className="max-w-6xl mx-auto px-6 py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-            Wellness Dashboard
-          </h1>
-          <p className="text-[#6B6F63] text-[15px]">
-            Manage your meal plans, health profile, allergies, and BMI metrics
-          </p>
+      <div className="wm-page-header">
+        <img className="wm-header-backdrop" src={weeklyMenuImage} alt="" aria-hidden="true" />
+        <div className="wm-header-copy">
+          <span className="wm-page-badge"><PlannerIcon name="bowl" />A little variety on your plate</span>
+          <h1>Weekly Menu</h1>
+          <p>A week of plant-based meals, with a little more intention and a little less effort.</p>
+          <span className="wm-header-signature"><PlannerIcon name="leaf" />Made for your everyday</span>
         </div>
       </div>
 
       {/* TABS NAVIGATION — Unified 2-Tab Navigation */}
-      <div className="w-full bg-white border-b border-[#DCE3D5] sticky top-16 z-30 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center gap-8">
+      <div className="wm-page-tabs">
+        <div role="tablist" aria-label="Meal planning and health">
             <button
               type="button"
-              aria-pressed={activeTab === 'weekly'}
+              id="weekly-menu-tab" role="tab" aria-selected={activeTab === 'weekly'} aria-controls="weekly-menu-panel" tabIndex={activeTab === 'weekly' ? 0 : -1}
+              onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'End'].includes(event.key)) { event.preventDefault(); setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); } }}
               onClick={() => setActiveTab('weekly')}
-              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233] cursor-pointer ${
-                activeTab === 'weekly' 
-                  ? 'border-[#2F5233] text-[#2F5233]' 
-                  : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'
-              }`}
             >
-              Weekly Menu
+              <PlannerIcon name="calendar" />Weekly Menu
             </button>
             <button
               type="button"
-              aria-pressed={activeTab === 'wellness'}
+              id="wellness-tab" role="tab" aria-selected={activeTab === 'wellness'} aria-controls="wellness-panel" tabIndex={activeTab === 'wellness' ? 0 : -1}
+              onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'Home'].includes(event.key)) { event.preventDefault(); setActiveTab('weekly'); document.getElementById('weekly-menu-tab')?.focus(); } }}
               onClick={() => setActiveTab('wellness')}
-              className={`h-14 px-2 font-medium text-[15px] border-b-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233] cursor-pointer ${
-                activeTab === 'wellness' 
-                  ? 'border-[#2F5233] text-[#2F5233]' 
-                  : 'border-transparent text-[#6B6F63] hover:text-[#2F5233]'
-              }`}
             >
-              Health & Wellness
+              <PlannerIcon name="leaf" />Health & Wellness
             </button>
-          </div>
         </div>
       </div>
 
-      <main hidden={activeTab !== 'weekly'} className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <main id="weekly-menu-panel" role="tabpanel" aria-labelledby="weekly-menu-tab" hidden={activeTab !== 'weekly'} className="wm-page-main flex-grow">
+
         <MealPlanBillingPanel access={mealPlanAccess} onAccessChange={setMealPlanAccess} />
-        <WeeklyMealPlanner
-          access={mealPlanAccess}
-          onAccessChange={setMealPlanAccess}
-          onEditProfile={() => setActiveTab('wellness')}
-        />
+        <WeeklyMealPlanner access={mealPlanAccess} onAccessChange={setMealPlanAccess} profileRevision={profileRevision} onEditProfile={() => { setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); }} />
       </main>
 
-      {activeTab === 'wellness' && <HealthAndWellness isComponent={true} />}
+      <div id="wellness-panel" role="tabpanel" aria-labelledby="wellness-tab" hidden={activeTab !== 'wellness'}>{activeTab === 'wellness' && <HealthAndWellness isComponent={true} onProfileUpdated={() => setProfileRevision(value => value + 1)} />}</div>
 
       <AIChatbot />
       <Footer />

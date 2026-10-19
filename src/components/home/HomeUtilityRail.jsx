@@ -20,7 +20,7 @@ export default function HomeUtilityRail({
   return (
     <aside
       aria-label="Community Utilities"
-      className="w-[310px] xl:w-[330px] shrink-0 hidden xl:block space-y-5 select-none text-left sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pl-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="w-[210px] lg:w-[260px] xl:w-[300px] 2xl:w-[330px] shrink-0 hidden min-[900px]:block space-y-5 select-none text-left sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pl-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       {/* 1. Weekly Meal Planner Card */}
       <div className="bg-vh-surface border border-vh-border/70 rounded-card p-5 shadow-sm space-y-3">

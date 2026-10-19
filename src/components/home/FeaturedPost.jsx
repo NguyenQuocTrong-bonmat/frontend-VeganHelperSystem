@@ -82,11 +82,11 @@ export default function FeaturedPost({
       </div>
       
       <Link 
-        className="block bg-vh-surface border border-vh-border/70 rounded-card-lg grid grid-cols-1 lg:grid-cols-12 overflow-hidden hover:shadow-xl hover:shadow-vh-sage/15 hover:border-vh-sage/60 hover:-translate-y-0.5 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest" 
+        className="block bg-vh-surface border border-vh-border/70 rounded-card-lg grid grid-cols-1 2xl:grid-cols-12 overflow-hidden hover:shadow-xl hover:shadow-vh-sage/15 hover:border-vh-sage/60 hover:-translate-y-0.5 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
         to={linkTo}
       >
         {/* Media Container */}
-        <div className="relative lg:col-span-7 w-full h-64 sm:h-72 md:h-80 lg:h-full min-h-[240px] lg:min-h-[320px] bg-vh-mint/30 overflow-hidden flex items-center justify-center">
+        <div className="relative 2xl:col-span-7 w-full h-64 sm:h-72 md:h-80 2xl:h-full min-h-[240px] 2xl:min-h-[320px] bg-vh-mint/30 overflow-hidden flex items-center justify-center">
           {resolvedUrl && !mediaError ? (
             isVideo ? (
               <video
@@ -140,7 +140,7 @@ export default function FeaturedPost({
         </div>
         
         {/* Editorial Text Content */}
-        <div className="lg:col-span-5 flex flex-col justify-center p-6 md:p-8 text-left bg-gradient-to-br from-vh-surface to-vh-cream/50">
+        <div className="2xl:col-span-5 flex flex-col justify-center p-6 md:p-8 text-left bg-gradient-to-br from-vh-surface to-vh-cream/50">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[13px] font-semibold font-dm-sans text-vh-forest uppercase tracking-wider">

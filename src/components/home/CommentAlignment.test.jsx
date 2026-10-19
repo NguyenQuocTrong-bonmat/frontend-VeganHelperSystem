@@ -6,6 +6,7 @@ import * as interactionService from '../../services/interactionService';
 import toast from 'react-hot-toast';
 
 vi.mock('../../services/interactionService', () => ({
+  COMMENT_DELETE_REASON_MAX_LENGTH: 500,
   getComments: vi.fn(),
   createComment: vi.fn(),
   updateComment: vi.fn(),
