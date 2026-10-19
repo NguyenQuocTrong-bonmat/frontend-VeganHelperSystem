@@ -13,6 +13,29 @@ const defaultRange = () => {
 };
 const auditDate = (value) => new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
 
+export const getUtcWeekMonday = (date) => {
+  const d = new Date(date);
+  const dayOfWeek = d.getUTCDay();
+  const diffToMonday = (dayOfWeek + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - diffToMonday);
+  return utcDay(d);
+};
+
+export const isCurrentPeriod = (period, interval, now = new Date()) => {
+  if (!period) return false;
+  if (interval === 'day') {
+    return period === utcDay(now);
+  }
+  if (interval === 'week') {
+    return period === getUtcWeekMonday(now);
+  }
+  if (interval === 'month') {
+    const currentYearMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+    return period.startsWith(currentYearMonth);
+  }
+  return false;
+};
+
 // Each block loads independently; changing chart grouping only refetches activity.
 function useDashboardResource(kind, range, interval, retry) {
   const [state, setState] = useState({ data: null, loading: true, error: '' });
@@ -64,11 +87,22 @@ export default function AdminDashboard() {
   const overview = overviewState.data;
   const activity = activityState.data?.items || [];
   const maxPosts = Math.max(1, ...activity.map((item) => item.postCount));
-  const barData = activity.map((item) => ({
-    label: new Date(`${item.period}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
-    period: item.period,
-    height: `${item.postCount / maxPosts * 100}%`, value: item.postCount,
-  }));
+  const currentPeriodTag =
+    velocityPeriod === 'day'
+      ? 'Today'
+      : velocityPeriod === 'week'
+      ? 'This Week'
+      : 'This Month';
+  const barData = activity.map((item) => {
+    const isCurrent = isCurrentPeriod(item.period, velocityPeriod);
+    return {
+      label: new Date(`${item.period}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
+      period: item.period,
+      height: `${(item.postCount / maxPosts) * 100}%`,
+      value: item.postCount,
+      isCurrent,
+    };
+  });
   const colors = ['bg-[#2F5233]', 'bg-[#4C8C4A]', 'bg-[#A8BDA2]'];
   const topCategories = (categoriesState.data?.items || []).map((item, index) => ({ ...item, count: item.postCount, color: colors[index] }));
   const metric = (value) => overviewState.loading ? '…' : value == null ? '—' : value.toLocaleString('en-GB');
@@ -209,6 +243,18 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Legend distinguishing past vs current period */}
+                  <div className="mt-3 flex items-center gap-4 text-xs text-[#6B6F63]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#C6D9C8]" aria-hidden="true" />
+                      <span>Past</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2F5233]" aria-hidden="true" />
+                      <span className="font-semibold text-[#2F5233]">{currentPeriodTag}</span>
+                    </div>
+                  </div>
+
                   {activityState.loading && <p className="mt-3 text-xs text-[#6B6F63]">Loading post activity…</p>}
                   {!activityState.loading && !activityState.error && !activity.some((item) => item.postCount > 0) && <p className="mt-3 text-xs text-[#6B6F63]">No posts were created in this period.</p>}
                   {/* Vertical Bar Chart matching the pill styling in reference image */}
@@ -227,13 +273,26 @@ export default function AdminDashboard() {
                         <div className="w-9 sm:w-11 h-full flex flex-col justify-end">
                           <div
                             style={{ height: bar.height }}
-                            className="w-full rounded-full bg-[#C6D9C8] hover:bg-[#A8BDA2] transition-all duration-300 relative"
-                            title={`${bar.label}: ${bar.value}`}
-                            role="img" aria-label={`${bar.label}: ${bar.value} posts`}
+                            className={`w-full rounded-full transition-all duration-300 relative min-h-[4px] ${
+                              bar.isCurrent
+                                ? 'bg-[#2F5233] hover:bg-[#1E3B21] shadow-xs ring-2 ring-[#2F5233]/20'
+                                : 'bg-[#C6D9C8] hover:bg-[#A8BDA2]'
+                            }`}
+                            title={`${bar.label}${bar.isCurrent ? ` (${currentPeriodTag})` : ''}: ${bar.value} posts`}
+                            role="img"
+                            aria-label={`${bar.label}: ${bar.value} posts`}
                           />
                         </div>
 
-                        <span className="text-[11px] font-semibold text-[#6B6F63] mt-1">{bar.label}</span>
+                        <span
+                          className={`text-[11px] mt-1 transition-colors ${
+                            bar.isCurrent
+                              ? 'font-bold text-[#2F5233]'
+                              : 'font-semibold text-[#6B6F63]'
+                          }`}
+                        >
+                          {bar.label}
+                        </span>
                       </div>
                     ))}
                   </div>

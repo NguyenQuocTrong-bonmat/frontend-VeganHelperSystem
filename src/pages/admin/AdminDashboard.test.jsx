@@ -2,7 +2,7 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { vi, beforeEach, afterEach, test, expect } from 'vitest';
-import AdminDashboard from './AdminDashboard';
+import AdminDashboard, { isCurrentPeriod, getUtcWeekMonday } from './AdminDashboard';
 import * as service from '../../services/adminService';
 
 vi.mock('../../components/admin/AdminLayout', () => ({ default: ({ children }) => <main>{children}</main> }));
@@ -124,4 +124,52 @@ test('discards an older date-range response that arrives after a newer response'
   await act(async () => completeOld({ members: { total: 9999 }, posts: {}, moderation: {} }));
   expect(container.textContent).not.toContain('9,999');
   expect(container.textContent).toContain('1,250');
+});
+
+test('isCurrentPeriod accurately identifies current day, week, and month', () => {
+  const fixedNow = new Date('2026-10-19T10:00:00Z'); // Monday
+  // Day
+  expect(isCurrentPeriod('2026-10-19', 'day', fixedNow)).toBe(true);
+  expect(isCurrentPeriod('2026-10-18', 'day', fixedNow)).toBe(false);
+
+  // Week
+  expect(isCurrentPeriod('2026-10-19', 'week', fixedNow)).toBe(true);
+  expect(isCurrentPeriod('2026-10-12', 'week', fixedNow)).toBe(false);
+
+  // Week tested from mid-week (Wednesday 21 Oct)
+  const midWeek = new Date('2026-10-21T10:00:00Z');
+  expect(isCurrentPeriod('2026-10-19', 'week', midWeek)).toBe(true);
+  expect(isCurrentPeriod('2026-10-12', 'week', midWeek)).toBe(false);
+
+  // Month
+  expect(isCurrentPeriod('2026-10-01', 'month', fixedNow)).toBe(true);
+  expect(isCurrentPeriod('2026-09-01', 'month', fixedNow)).toBe(false);
+});
+
+test('distinguishes current day, week, and month with darker bar color and legend in post activity chart', async () => {
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  service.getAdminDashboardActivity.mockResolvedValue({
+    items: [
+      { period: '2026-01-01', postCount: 4 },
+      { period: todayUtc, postCount: 9 },
+    ],
+  });
+  await render();
+
+  const pastBar = container.querySelector('[aria-label="01 Jan: 4 posts"]');
+  const currentBar = container.querySelector(`[aria-label*="9 posts"]`);
+  expect(pastBar).not.toBeNull();
+  expect(currentBar).not.toBeNull();
+  expect(pastBar.className).toContain('bg-[#C6D9C8]');
+  expect(currentBar.className).toContain('bg-[#2F5233]');
+  expect(container.textContent).toContain('Past');
+  expect(container.textContent).toContain('Today');
+
+  // Switch to Weekly
+  await click('Weekly');
+  expect(container.textContent).toContain('This Week');
+
+  // Switch to Monthly
+  await click('Monthly');
+  expect(container.textContent).toContain('This Month');
 });
