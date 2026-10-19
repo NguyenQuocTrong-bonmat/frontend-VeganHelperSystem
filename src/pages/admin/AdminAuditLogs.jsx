@@ -3,93 +3,10 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
 import { getPaginationPages } from '../../utils/paginationUtils';
 
-// Fallback audit events strictly matching backend AdminAuditLogDto (used when backend is offline)
-const FALLBACK_AUDIT_LOGS = [
-  {
-    id: 10824,
-    adminId: 1,
-    action: 'member.ban',
-    targetType: 'member',
-    targetId: '892',
-    ipAddress: '113.161.42.18',
-    traceId: '0HN9V80F12A1',
-    createdAt: '2026-10-17T14:45:12Z',
-  },
-  {
-    id: 10823,
-    adminId: 2,
-    action: 'moderation.approve',
-    targetType: 'post',
-    targetId: '401',
-    ipAddress: '14.162.188.75',
-    traceId: '0HN9V80F12A2',
-    createdAt: '2026-10-17T14:12:05Z',
-  },
-  {
-    id: 10822,
-    adminId: 1,
-    action: 'auth.login_failed',
-    targetType: 'auth_attempt',
-    targetId: '45.132.88.19',
-    ipAddress: '45.132.88.19',
-    traceId: '0HN9V80F12A3',
-    createdAt: '2026-10-17T13:50:33Z',
-  },
-  {
-    id: 10821,
-    adminId: 1,
-    action: 'category.create',
-    targetType: 'category',
-    targetId: '108',
-    ipAddress: '113.161.42.18',
-    traceId: '0HN9V80F12A4',
-    createdAt: '2026-10-17T12:30:19Z',
-  },
-  {
-    id: 10820,
-    adminId: 2,
-    action: 'moderation.reject',
-    targetType: 'post',
-    targetId: '398',
-    ipAddress: '14.162.188.75',
-    traceId: '0HN9V80F12A5',
-    createdAt: '2026-10-17T11:15:40Z',
-  },
-  {
-    id: 10819,
-    adminId: 1,
-    action: 'member.unban',
-    targetType: 'member',
-    targetId: '615',
-    ipAddress: '113.161.42.18',
-    traceId: '0HN9V80F12A6',
-    createdAt: '2026-10-17T10:05:22Z',
-  },
-  {
-    id: 10818,
-    adminId: 1,
-    action: 'audit.list',
-    targetType: 'audit_log',
-    targetId: null,
-    ipAddress: '113.161.42.18',
-    traceId: '0HN9V80F12A7',
-    createdAt: '2026-10-17T09:20:11Z',
-  },
-  {
-    id: 10817,
-    adminId: 1,
-    action: 'auth.login_success',
-    targetType: 'session',
-    targetId: '9921',
-    ipAddress: '113.161.42.18',
-    traceId: '0HN9V80F12A8',
-    createdAt: '2026-10-17T08:45:00Z',
-  },
-];
-
 export default function AdminAuditLogs() {
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,8 +35,9 @@ export default function AdminAuditLogs() {
   // Fetch audit logs list from GET /api/admin/audit-logs
   const fetchAuditLogs = useCallback(async () => {
     setIsLoading(true);
+    setLoadError('');
     try {
-      const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 100 });
+      const data = await getAdminAuditLogs({ pageIndex: 1, pageSize: 100, importantOnly: true });
       const items = data.items || data;
       if (Array.isArray(items) && items.length > 0) {
         setLogs(
@@ -138,8 +56,8 @@ export default function AdminAuditLogs() {
         setLogs([]);
       }
     } catch (err) {
-      console.warn('Backend /admin/audit-logs unavailable, using fallback feed:', err.message);
-      setLogs(FALLBACK_AUDIT_LOGS);
+      setLogs([]);
+      setLoadError(err.message || 'Audit logs could not be loaded. Please try refreshing.');
     } finally {
       setIsLoading(false);
     }
@@ -358,6 +276,8 @@ export default function AdminAuditLogs() {
           </div>
         )}
 
+        {loadError && <div role="alert" className="rounded-xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#A63446]">{loadError}</div>}
+
         {/* 1. Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -365,7 +285,7 @@ export default function AdminAuditLogs() {
               Audit Logs
             </h1>
             <p className="text-sm text-[#6B6F63] mt-1">
-              Traceable activity record of administrative operations and system audit events.
+              Important administrative changes to specific resources. Routine list and view events are excluded.
             </p>
           </div>
 

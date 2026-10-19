@@ -17,9 +17,9 @@ import {
 const PAGE_SIZE = 10;
 
 const QUEUES = [
-  { id: 'ai', label: 'AI flagged posts', description: 'Posts hidden by automated content checks and awaiting an Admin decision.' },
-  { id: 'posts', label: 'Reported posts', description: 'Published posts reported by community members.' },
-  { id: 'comments', label: 'Reported comments', description: 'Comments reported by the community, grouped by comment.' },
+  { id: 'ai', label: 'AI flagged posts' },
+  { id: 'posts', label: 'Reported posts' },
+  { id: 'comments', label: 'Reported comments' },
 ];
 
 const ACTIONS = {
@@ -213,11 +213,10 @@ export default function AdminContentManagement() {
           </div>
         )}
 
-        <header className="rounded-3xl border border-[#DCE3D5] bg-[linear-gradient(135deg,#F7F8F2_0%,#EEF3E9_55%,#FDF8EE_100%)] p-6 shadow-sm sm:p-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#5F795E]">Community safety</p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#233127] sm:text-4xl">Content Management</h1>
-            <p className="mt-3 text-sm leading-6 text-[#667067] sm:text-base">Review content identified by AI or reported by members. Every decision is recorded in the Admin audit log.</p>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B2A25] tracking-tight">Content Management</h1>
+            <p className="text-sm text-[#6B6F63] mt-1">Review content identified by AI or reported by members. Every decision is recorded in the Admin audit log.</p>
           </div>
         </header>
 
@@ -225,12 +224,11 @@ export default function AdminContentManagement() {
           {QUEUES.map((queue) => {
             const isActive = queue.id === activeQueue;
             return (
-              <button type="button" key={queue.id} onClick={() => { setActiveQueue(queue.id); setPage(1); setSearch(''); }} className={`rounded-2xl border p-4 text-left transition ${isActive ? 'border-[#2F5233] bg-[#2F5233] text-white shadow-md' : 'border-[#DCE3D5] bg-white text-[#27342A] hover:border-[#91A58B]'}`} aria-current={isActive ? 'page' : undefined}>
+              <button type="button" key={queue.id} onClick={() => { setActiveQueue(queue.id); setPage(1); setSearch(''); }} className={`min-h-11 rounded-xl border px-4 py-2 text-left transition ${isActive ? 'border-[#2F5233] bg-[#2F5233] text-white shadow-sm' : 'border-[#DCE3D5] bg-white text-[#27342A] hover:border-[#91A58B]'}`} aria-current={isActive ? 'page' : undefined}>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-bold">{queue.label}</span>
                   <span className={`min-w-8 rounded-full px-2.5 py-1 text-center text-xs font-extrabold ${isActive ? 'bg-white/15 text-white' : 'bg-[#EAF0E9] text-[#2F5233]'}`}>{queueCounts[queue.id]}</span>
                 </div>
-                <p className={`mt-2 text-xs leading-5 ${isActive ? 'text-white/75' : 'text-[#727A72]'}`}>{queue.description}</p>
               </button>
             );
           })}
@@ -243,8 +241,8 @@ export default function AdminContentManagement() {
           </div>
         )}
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)]">
-          <section className="overflow-hidden rounded-3xl border border-[#DCE3D5] bg-white shadow-sm" aria-labelledby="queue-heading">
+        <div className="grid items-start gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)]">
+          <section className="min-w-0 overflow-hidden rounded-3xl border border-[#DCE3D5] bg-white shadow-sm" aria-labelledby="queue-heading">
             <div className="border-b border-[#E4E9DF] p-5">
               <div className="flex items-end justify-between gap-4">
                 <div>
@@ -272,13 +270,12 @@ export default function AdminContentManagement() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#27342A]">{queueTitle(activeQueue, item)}</p>
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#6D756D]">{queueDescription(activeQueue, item)}</p>
+                        {activeQueue !== 'ai' && <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#6D756D]">{queueDescription(activeQueue, item)}</p>}
                       </div>
-                      <span className="shrink-0 rounded-full bg-[#FBEAE7] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#A63446]">Review</span>
+                      {activeQueue !== 'ai' && <span className="shrink-0 rounded-full bg-[#FBEAE7] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#A63446]">Review</span>}
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#7B847A]">
-                      <span>{formatDate(item.createdAt)}</span>
-                      {activeQueue === 'ai' && item.confidenceScore != null && <span>{Math.round(item.confidenceScore * 100)}% confidence</span>}
+                      <time dateTime={item.createdAt || undefined}>{formatDate(item.createdAt)}</time>
                       {activeQueue === 'comments' && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
                     </div>
                   </button>
@@ -308,7 +305,7 @@ export default function AdminContentManagement() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-[#DCE3D5] bg-white shadow-sm" aria-labelledby="review-heading">
+          <section className="min-w-0 break-words overflow-hidden rounded-3xl border border-[#DCE3D5] bg-white shadow-sm" aria-labelledby="review-heading">
             {!selected ? (
               <EmptyState message="Choose an item from the queue to review its content and evidence." />
             ) : isDetailLoading ? (

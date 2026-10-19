@@ -168,7 +168,7 @@ export async function getAdminCategoryById(id) {
 
 /**
  * Create a new category
- * @param {Object} data { name: string, slug: string, postCategoryKind: string }
+ * @param {Object} data { name: string, slug?: string, postCategoryKind: string }
  */
 export async function createAdminCategory(data) {
   try {
@@ -186,7 +186,7 @@ export async function createAdminCategory(data) {
 /**
  * Update existing category
  * @param {number|string} id
- * @param {Object} data { name: string, slug: string, postCategoryKind: string }
+ * @param {Object} data { name: string, slug?: string, postCategoryKind: string }
  */
 export async function updateAdminCategory(id, data) {
   try {
@@ -413,6 +413,7 @@ export async function decideCommentReport(id, data) {
 /**
  * Get paginated list of audit logs (FN44)
  * @param {Object} params
+ * @param {boolean} [params.importantOnly=false] Only administrative changes with an identified target
  * @param {number} [params.pageIndex=1]
  * @param {number} [params.pageSize=20]
  * @param {number} [params.adminId]
@@ -423,12 +424,13 @@ export async function decideCommentReport(id, data) {
  * @param {string} [params.to] ISO timestamp
  */
 export async function getAdminAuditLogs(params = {}, signal) {
-  const { pageIndex = 1, pageSize = 20, adminId, action, targetType, targetId, from, to } = params;
+  const { pageIndex = 1, pageSize = 20, adminId, action, targetType, targetId, from, to, importantOnly } = params;
   const query = new URLSearchParams();
   query.append('PageIndex', pageIndex);
   query.append('PageSize', pageSize);
 
   if (adminId) query.append('AdminId', adminId);
+  if (importantOnly != null) query.append('ImportantOnly', String(importantOnly));
   if (action) query.append('Action', action);
   if (targetType) query.append('TargetType', targetType);
   if (targetId) query.append('TargetId', targetId);

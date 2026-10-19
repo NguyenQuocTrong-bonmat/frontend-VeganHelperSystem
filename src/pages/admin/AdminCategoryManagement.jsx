@@ -59,7 +59,6 @@ export default function AdminCategoryManagement() {
     isEditing: false,
     category: null,
     name: '',
-    slug: '',
     type: 'Recipe Type',
   });
 
@@ -116,7 +115,6 @@ export default function AdminCategoryManagement() {
       isEditing: false,
       category: null,
       name: '',
-      slug: '',
       type: 'Recipe Type',
     });
   };
@@ -127,26 +125,12 @@ export default function AdminCategoryManagement() {
       isEditing: true,
       category: cat,
       name: cat.name,
-      slug: cat.slug,
       type: cat.type || (cat.postCategoryKind === 'food' ? 'Food Type' : 'Recipe Type'),
     });
   };
 
   const handleNameChange = (newName) => {
-    // Auto-generate slug if creating new
-    if (!formModal.isEditing) {
-      const generatedSlug = `/recipes/${newName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')}`;
-      setFormModal((prev) => ({
-        ...prev,
-        name: newName,
-        slug: generatedSlug,
-      }));
-    } else {
-      setFormModal((prev) => ({ ...prev, name: newName }));
-    }
+    setFormModal((prev) => ({ ...prev, name: newName }));
   };
 
   const handleSaveCategory = async (e) => {
@@ -156,7 +140,6 @@ export default function AdminCategoryManagement() {
       return;
     }
 
-    const cleanSlug = (formModal.slug.trim().replace(/^\/+/, '').replace(/^recipes\//, '') || formModal.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).toLowerCase();
     const kind = formModal.type === 'Food Type' ? 'food' : 'recipe';
 
     if (formModal.isEditing && formModal.category) {
@@ -164,7 +147,6 @@ export default function AdminCategoryManagement() {
       try {
         await updateAdminCategory(formModal.category.id, {
           name: formModal.name.trim(),
-          slug: cleanSlug,
           postCategoryKind: kind,
         });
         showToast(`Category "${formModal.name}" has been updated on backend.`, 'success');
@@ -178,7 +160,6 @@ export default function AdminCategoryManagement() {
       try {
         await createAdminCategory({
           name: formModal.name.trim(),
-          slug: cleanSlug,
           postCategoryKind: kind,
         });
         showToast(`New category "${formModal.name}" created on backend.`, 'success');
@@ -194,7 +175,6 @@ export default function AdminCategoryManagement() {
       isEditing: false,
       category: null,
       name: '',
-      slug: '',
       type: 'Recipe Type',
     });
   };
@@ -562,7 +542,7 @@ export default function AdminCategoryManagement() {
                     </h3>
                     <p className="text-xs text-[#6B6F63]">
                       {formModal.isEditing
-                        ? 'Update category name, slug, and type'
+                        ? 'Update category name and type'
                         : 'Add a new recipe or food category to the platform'}
                     </p>
                   </div>
@@ -580,35 +560,23 @@ export default function AdminCategoryManagement() {
               <form onSubmit={handleSaveCategory} className="mt-4 space-y-4 text-xs">
                 {/* Category Name */}
                 <div>
-                  <label className="block font-semibold text-[#2B2A25] mb-1.5">
+                  <label htmlFor="category-name" className="block font-semibold text-[#2B2A25] mb-1.5">
                     Category Name <span className="text-[#A63446]">*</span>
                   </label>
                   <input
                     type="text"
+                    id="category-name"
                     required
-                    placeholder="e.g., Món kho thực dưỡng, Canh dưỡng sinh..."
+                    maxLength={100}
+                    placeholder="e.g., Soups, Stir-fried Dishes, Vegan Desserts"
                     value={formModal.name}
                     onChange={(e) => handleNameChange(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
                   />
                 </div>
 
-                {/* Slug & Type Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-[#2B2A25] mb-1.5">
-                      URL Slug <span className="text-[#A63446]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="/recipes/category-slug"
-                      value={formModal.slug}
-                      onChange={(e) => setFormModal((prev) => ({ ...prev, slug: e.target.value }))}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] font-mono"
-                    />
-                  </div>
-
+                {/* Category Type */}
+                <div>
                   <div>
                     <label className="block font-semibold text-[#2B2A25] mb-1.5">
                       Type

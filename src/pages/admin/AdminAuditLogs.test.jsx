@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import AdminAuditLogs from './AdminAuditLogs';
 import { useAuth } from '../../context/AuthContext';
+import { getAdminAuditLogs } from '../../services/adminService';
 
 // Mock AuthContext
 vi.mock('../../context/AuthContext', () => ({
@@ -15,9 +16,8 @@ vi.mock('../../components/notifications/NotificationBell', () => ({
   default: () => <div data-testid="mock-notification-bell">NotificationBell</div>,
 }));
 
-// Mock adminService to trigger fallback
 vi.mock('../../services/adminService', () => ({
-  getAdminAuditLogs: vi.fn().mockRejectedValue(new Error('Backend offline in test')),
+  getAdminAuditLogs: vi.fn(),
   getAdminAuditLogById: vi.fn(),
 }));
 
@@ -26,6 +26,11 @@ let root;
 
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
+  getAdminAuditLogs.mockResolvedValue({ items: [
+    { id: 1, adminId: 1, action: 'member.ban', targetType: 'member', targetId: '892', createdAt: '2026-10-17T14:45:12Z' },
+    { id: 2, adminId: 1, action: 'member.unban', targetType: 'member', targetId: '615', createdAt: '2026-10-17T10:05:22Z' },
+    { id: 3, adminId: 2, action: 'category.create', targetType: 'category', targetId: '108', createdAt: '2026-10-17T12:30:19Z' },
+  ] });
   useAuth.mockReturnValue({
     user: { id: 'admin-1', username: 'superadmin', role: 'ADMIN' },
     isAuthenticated: true,
@@ -58,6 +63,19 @@ const renderComponent = async () => {
 };
 
 describe('AdminAuditLogs', () => {
+  it('requests only important target changes from the backend', async () => {
+    await renderComponent();
+    expect(getAdminAuditLogs).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 100, importantOnly: true });
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(3);
+  });
+
+  it('shows a load error without inventing audit records', async () => {
+    getAdminAuditLogs.mockRejectedValueOnce(new Error('Audit service unavailable'));
+    await renderComponent();
+    expect(container.querySelector('[role="alert"]').textContent).toContain('Audit service unavailable');
+    expect(container.textContent).not.toContain('member.ban');
+  });
+
   it('renders page header, KPI summary cards, and audit log table', async () => {
     await renderComponent();
 
