@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import SearchBar from '../../components/home/SearchBar';
@@ -353,36 +352,13 @@ function Home() {
                 >
                   What are you sharing today, {user?.displayName || 'friend'}?
                 </button>
-              </div>
-              <div className="mt-4 pt-3.5 border-t border-vh-border/40 flex items-center justify-around text-xs sm:text-sm font-dm-sans text-vh-text-secondary">
                 <button
                   type="button"
                   onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
                   aria-label="Create Post"
-                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
+                  className="shrink-0 rounded-full bg-vh-forest px-4 py-3 font-dm-sans text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1D3D2D] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 sm:px-5 sm:py-3.5 sm:text-sm"
                 >
-                  <span className="text-base">📝</span>
                   <span>Create Post</span>
-                </button>
-                <span className="text-vh-border">•</span>
-                <button
-                  type="button"
-                  onClick={(e) => handleOpenComposer('post', true, e.currentTarget)}
-                  aria-label="Photo / Video"
-                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
-                >
-                  <span className="text-base">📷</span>
-                  <span>Photo / Video</span>
-                </button>
-                <span className="text-vh-border">•</span>
-                <button
-                  type="button"
-                  onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
-                  aria-label="Recipe Details"
-                  className="flex items-center gap-2 hover:text-vh-forest transition-colors p-1 font-medium cursor-pointer"
-                >
-                  <span className="text-base">🍲</span>
-                  <span>Recipe Details</span>
                 </button>
               </div>
             </div>
@@ -430,38 +406,6 @@ function Home() {
               </div>
             )}
 
-            {/* Mobile / Tablet Utility Shortcuts (shown before the desktop utility rail appears) */}
-            <div className="block min-[900px]:hidden pt-6 border-t border-vh-border/60">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 shadow-sm text-left">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-base">📅</span>
-                    <span className="font-dm-serif text-sm font-semibold text-vh-text-primary">Weekly Planner</span>
-                  </div>
-                  <p className="text-xs font-dm-sans text-vh-text-secondary mb-3">Plan your 7-day plant-based meals.</p>
-                  <Link to="/weekly-menu" className="text-xs font-semibold font-dm-sans text-vh-forest hover:text-vh-sage">
-                    Open Weekly Menu &rarr;
-                  </Link>
-                </div>
-                <div className="bg-gradient-to-br from-vh-surface to-vh-mint/25 border border-vh-border/70 rounded-card p-4 shadow-sm text-left">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-base">✨</span>
-                    <span className="font-dm-serif text-sm font-semibold text-vh-text-primary">Plant-Based Assistant</span>
-                  </div>
-                  <p className="text-xs font-dm-sans text-vh-text-secondary mb-3">Need quick substitutions or high-protein ideas?</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const fab = document.getElementById('chat-fab') || document.querySelector('[aria-label*="AI"]') || document.querySelector('button[title*="AI"]');
-                      if (fab) fab.click();
-                    }}
-                    className="text-xs font-semibold font-dm-sans text-vh-forest hover:text-vh-sage cursor-pointer"
-                  >
-                    Ask AI Assistant &rarr;
-                  </button>
-                </div>
-              </div>
-            </div>
           </section>
 
           {/* Right Utility Rail */}

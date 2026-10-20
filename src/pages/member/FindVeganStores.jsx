@@ -4,6 +4,7 @@ import '@goongmaps/goong-js/dist/goong-js.css';
 import HeaderMember from '../../components/layout/HeaderMember';
 import AIChatbot from '../../components/chat/AIChatbot';
 import shopService from '../../services/shopService';
+import { createStoreMarkerElement, setStoreMarkerHighlighted } from '../../utils/storeMapMarker';
 
 function FindVeganStores() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -284,15 +285,10 @@ function FindVeganStores() {
     shops.forEach(shop => {
       if (!shop.latitude || !shop.longitude) return;
 
-      const el = document.createElement('div');
-      el.className = 'w-6 h-6 bg-[#A63446] rounded-full border-2 border-white shadow-md cursor-pointer flex items-center justify-center text-white transition-all duration-150 hover:scale-125 hover:shadow-lg';
-      el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', shop.name || 'Vegan Store');
-      el.title = shop.name || 'Vegan Store';
+      const isSelected = selectedShopId === shop.shopId;
+      const el = createStoreMarkerElement(shop, isSelected);
 
-      if (selectedShopId === shop.shopId) {
-        el.classList.add('w-8', 'h-8', 'z-10', 'bg-[#2F5233]', 'scale-110');
-      }
+      if (isSelected) el.style.zIndex = '10';
 
       const marker = new goongjs.Marker({ element: el })
         .setLngLat([shop.longitude, shop.latitude])
@@ -300,11 +296,13 @@ function FindVeganStores() {
 
       el.addEventListener('mouseenter', () => {
         el.style.zIndex = '999';
+        setStoreMarkerHighlighted(el, true);
         showShopTooltip(shop);
       });
 
       el.addEventListener('mouseleave', () => {
-        el.style.zIndex = selectedShopId === shop.shopId ? '10' : '';
+        el.style.zIndex = isSelected ? '10' : '';
+        setStoreMarkerHighlighted(el, false);
         hideShopTooltip(shop.shopId);
       });
 
@@ -481,7 +479,7 @@ function FindVeganStores() {
                     const marker = markersRef.current[shop.shopId];
                     if (marker) {
                       marker.getElement().style.zIndex = '999';
-                      marker.getElement().classList.add('scale-125');
+                      setStoreMarkerHighlighted(marker.getElement(), true);
                     }
                     showShopTooltip(shop);
                   }}
@@ -489,7 +487,7 @@ function FindVeganStores() {
                     const marker = markersRef.current[shop.shopId];
                     if (marker) {
                       marker.getElement().style.zIndex = selectedShopId === shop.shopId ? '10' : '';
-                      marker.getElement().classList.remove('scale-125');
+                      setStoreMarkerHighlighted(marker.getElement(), false);
                     }
                     hideShopTooltip(shop.shopId);
                   }}

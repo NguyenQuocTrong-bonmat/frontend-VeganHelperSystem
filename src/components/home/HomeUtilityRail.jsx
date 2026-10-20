@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { listMealPlans } from '../../services/mealPlanService';
+import { dietLabel, number, rangeLabel } from '../meal-planning/plannerFormat';
 
 export default function HomeUtilityRail({ 
   isGuest = false,
@@ -8,78 +10,103 @@ export default function HomeUtilityRail({
   onSelectCategory
 }) {
   const weeklyMenuRoute = isGuest ? '/weekly-menu/locked' : '/weekly-menu';
+  const [latestPlan, setLatestPlan] = useState(undefined);
 
-  const handleOpenAiChat = () => {
-    // If AIChatbot has a floating action button or trigger in the DOM, activate it
-    const fab = document.getElementById('chat-fab') || document.querySelector('[aria-label*="AI"]') || document.querySelector('button[title*="AI"]');
-    if (fab) {
-      fab.click();
+  useEffect(() => {
+    if (isGuest) {
+      setLatestPlan(null);
+      return undefined;
     }
-  };
+
+    const controller = new AbortController();
+    listMealPlans(1, controller.signal)
+      .then((data) => setLatestPlan(data?.items?.[0] ?? null))
+      .catch((error) => {
+        if (error?.code !== 'ERR_CANCELED') setLatestPlan(null);
+      });
+    return () => controller.abort();
+  }, [isGuest]);
+
+  const tracking = useMemo(() => {
+    const entries = latestPlan?.routine?.entries ?? [];
+    return {
+      followed: entries.filter((entry) => entry.status === 'followed').length,
+      total: entries.length,
+    };
+  }, [latestPlan]);
 
   return (
     <aside
       aria-label="Community Utilities"
       className="w-[210px] lg:w-[260px] xl:w-[300px] 2xl:w-[330px] shrink-0 hidden min-[900px]:block space-y-5 select-none text-left sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pl-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
-      {/* 1. Weekly Meal Planner Card */}
-      <div className="bg-vh-surface border border-vh-border/70 rounded-card p-5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-vh-mint/60 text-vh-forest rounded-full text-xs font-semibold font-dm-sans">
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Nutrition Tool</span>
-          </span>
+      {/* 1. Contextual weekly meal-plan summary */}
+      <section className="overflow-hidden rounded-card border border-vh-border/70 bg-vh-surface shadow-sm" aria-labelledby="weekly-plan-summary-heading">
+        <div className="relative bg-vh-forest px-5 py-5 text-white">
+          <div aria-hidden="true" className="absolute -right-8 -top-10 h-28 w-28 rounded-full border-[18px] border-white/10" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-dm-sans text-[11px] font-semibold text-white/90">
+              <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7H5v12a2 2 0 002 2z" />
+              </svg>
+              Nutrition Tool
+            </span>
+            <h2 id="weekly-plan-summary-heading" className="mt-4 font-dm-serif text-2xl leading-tight">
+              {latestPlan ? 'Your week is ready.' : 'Make the week feel easier.'}
+            </h2>
+            <p className="mt-2 font-dm-sans text-xs leading-5 text-white/75">
+              {latestPlan ? rangeLabel(latestPlan) : 'Build seven days of plant-based meals around your health profile.'}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-dm-serif text-lg font-medium text-vh-text-primary">
-            Weekly Meal Planner
-          </h3>
-          <p className="text-xs leading-relaxed font-dm-sans text-vh-text-secondary mt-1">
-            Build 7 days of wholesome plant-based meals customized to your dietary profile and allergies.
-          </p>
-        </div>
-        <Link
-          to={weeklyMenuRoute}
-          className="inline-flex items-center gap-2 text-xs font-semibold font-dm-sans text-vh-forest hover:text-vh-sage transition-colors focus:outline-none focus-visible:underline"
-        >
-          <span>{isGuest ? 'Explore Weekly Planner' : 'Open My Weekly Menu'}</span>
-          <span>&rarr;</span>
-        </Link>
-      </div>
 
-      {/* 2. AI Nutrition Assistant Card */}
-      <div className="bg-gradient-to-br from-vh-surface to-vh-mint/25 border border-vh-border/70 rounded-card p-5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/80 text-vh-forest rounded-full text-xs font-semibold font-dm-sans shadow-2xs">
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-            <span>AI Genie</span>
-          </span>
-        </div>
-        <div>
-          <h3 className="font-dm-serif text-lg font-medium text-vh-text-primary">
-            Plant-Based Assistant
-          </h3>
-          <p className="text-xs leading-relaxed font-dm-sans text-vh-text-secondary mt-1">
-            Need ingredient substitutions for fish sauce or quick high-protein vegan ideas?
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleOpenAiChat}
-          className="w-full py-2.5 px-3 bg-vh-forest text-white rounded-xl text-xs font-semibold font-dm-sans hover:bg-vh-sage transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
-        >
-          <span>Ask AI Assistant</span>
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </button>
-      </div>
+        <div className="space-y-4 p-5">
+          {latestPlan === undefined ? (
+            <div className="space-y-2" aria-label="Loading weekly menu summary" aria-busy="true">
+              <span className="block h-4 w-3/4 animate-pulse rounded bg-vh-mint" />
+              <span className="block h-4 w-1/2 animate-pulse rounded bg-vh-mint" />
+            </div>
+          ) : latestPlan ? (
+            <>
+              <dl className="grid grid-cols-2 gap-3 font-dm-sans">
+                <div>
+                  <dt className="text-[10px] uppercase tracking-wide text-vh-text-secondary">Diet</dt>
+                  <dd className="mt-1 text-xs font-semibold text-vh-text-primary">{dietLabel(latestPlan.menu?.dietType ?? latestPlan.dietType)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] uppercase tracking-wide text-vh-text-secondary">Daily target</dt>
+                  <dd className="mt-1 text-xs font-semibold text-vh-text-primary">{latestPlan.menu?.targetDailyCalories ? `${number(latestPlan.menu.targetDailyCalories)} kcal` : 'Balanced'}</dd>
+                </div>
+              </dl>
+              {tracking.total > 0 && (
+                <div>
+                  <div className="mb-2 flex items-center justify-between font-dm-sans text-xs">
+                    <span className="text-vh-text-secondary">Meals followed</span>
+                    <strong className="text-vh-text-primary">{tracking.followed}/{tracking.total}</strong>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-vh-mint" aria-label={`${tracking.followed} of ${tracking.total} meals followed`} role="img">
+                    <span className="block h-full rounded-full bg-vh-success" style={{ width: `${Math.round((tracking.followed / tracking.total) * 100)}%` }} />
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="font-dm-sans text-xs leading-5 text-vh-text-secondary">
+              {isGuest ? 'Sign in to create a menu shaped around your dietary preferences.' : 'Create your first menu with 21 meals, allergies and a daily calorie target.'}
+            </p>
+          )}
 
-      {/* 3. Popular Food Categories */}
+          <Link
+            to={weeklyMenuRoute}
+            className="inline-flex w-full items-center justify-between rounded-xl border border-vh-forest px-4 py-3 font-dm-sans text-xs font-semibold text-vh-forest transition-colors hover:bg-vh-mint/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
+          >
+            <span>{latestPlan ? 'View this week' : isGuest ? 'Explore Weekly Planner' : 'Create a weekly menu'}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* 2. Popular Food Categories */}
       {categories && categories.length > 0 && (
         <div className="bg-vh-surface border border-vh-border/70 rounded-card p-5 shadow-sm space-y-3">
           <div className="flex items-center gap-2">
@@ -112,7 +139,7 @@ export default function HomeUtilityRail({
         </div>
       )}
 
-      {/* 4. Footer Note */}
+      {/* 3. Footer Note */}
       <div className="px-3 text-[11px] font-dm-sans text-vh-text-secondary/70 leading-normal">
         <p>VeganHelper &copy; 2026</p>
         <p className="mt-0.5">Empowering Vietnamese plant-based living with authentic recipes & community insights.</p>
