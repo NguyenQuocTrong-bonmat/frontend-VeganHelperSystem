@@ -127,3 +127,41 @@ body {
   }
 }
 
+
+/* Store Map Pin Selected Pulse & Click Effect matching Landing Page */
+@keyframes storePinPulse {
+  from {
+    transform: scale(0.8);
+    opacity: 0.75;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes storePinPop {
+  0% {
+    transform: rotate(-45deg) scale(0.9);
+  }
+  50% {
+    transform: rotate(-45deg) scale(1.22);
+  }
+  100% {
+    transform: rotate(-45deg) scale(1.1);
+  }
+}
+
+.store-marker-pin-selected {
+  animation: storePinPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.store-marker-pin-selected::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1.5px solid #2F5233;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: storePinPulse 0.75s ease-out both;
+}
