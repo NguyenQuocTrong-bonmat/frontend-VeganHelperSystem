@@ -46,6 +46,12 @@ body {
 .font-dm-serif { font-family: 'DM Serif Display', serif; }
 .font-dm-sans { font-family: 'DM Sans', sans-serif; }
 
+/* Edge adds a native reveal control beside our accessible password toggle. */
+.auth-password-input::-ms-reveal,
+.auth-password-input::-ms-clear {
+  display: none;
+}
+
 /* Hero asymmetric radius (Old) */
 .hero-radius {
   border-top-left-radius: 32px;

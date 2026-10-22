@@ -335,7 +335,7 @@ function SignUp() {
                 </AnimatePresence>
               </motion.div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
                 <motion.div variants={itemVariants} className="relative pb-5">
                   <label className="block text-[12px] font-semibold text-text-charcoal mb-2 uppercase tracking-wider" htmlFor="password">
                     Password
@@ -343,14 +343,17 @@ function SignUp() {
                   <div className="relative">
                     <input
                       {...register('password')}
-                      className={`${getInputClasses(!!errors.password)} pr-11`}
+                      className={`${getInputClasses(!!errors.password)} auth-password-input pr-11`}
                       id="password"
                       placeholder="min 8 chars"
                       type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
                       disabled={isSuccess || isSubmitting}
                     />
                     <button
-                      aria-label="Toggle password visibility"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
+                      aria-controls="password"
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1"
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -387,14 +390,17 @@ function SignUp() {
                   <div className="relative">
                     <input
                       {...register('confirmPassword')}
-                      className={`${getInputClasses(!!errors.confirmPassword)} pr-11`}
+                      className={`${getInputClasses(!!errors.confirmPassword)} auth-password-input pr-11`}
                       id="confirmPassword"
                       placeholder="Re-enter password"
                       type={showConfirmPassword ? "text" : "password"}
+                      autoComplete="new-password"
                       disabled={isSuccess || isSubmitting}
                     />
                     <button
-                      aria-label="Toggle password visibility"
+                      aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                      aria-pressed={showConfirmPassword}
+                      aria-controls="confirmPassword"
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1"
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}

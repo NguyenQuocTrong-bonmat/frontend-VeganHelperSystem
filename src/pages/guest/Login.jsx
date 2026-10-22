@@ -296,14 +296,17 @@ function Login() {
                 <div className="relative">
                   <input
                     {...register('password')}
-                    className={`${getInputClasses(!!errors.password)} pr-11`}
+                    className={`${getInputClasses(!!errors.password)} auth-password-input pr-11`}
                     id="password"
                     placeholder="Enter your password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     disabled={isSuccess || isSubmitting}
                   />
                   <button
-                    aria-label="Toggle password visibility"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    aria-controls="password"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
