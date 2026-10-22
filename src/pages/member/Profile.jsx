@@ -4,6 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
+import AIChatbot from '../../components/chat/AIChatbot';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatCalendarDate } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
@@ -469,91 +470,7 @@ function Profile() {
         </div>
       </footer>
       {/* END: MainFooter */}
-      {/* BEGIN: ChatbotFloatingComponent */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end" data-purpose="ai-assistant-container">
-        {/* AI Nutrition Assistant Pop-up Widget */}
-        <div className="hidden w-[380px] h-[520px] bg-surface-paper rounded-2xl shadow-popover border border-border-sage-mist flex flex-col mb-4 overflow-hidden origin-bottom-right transition-all animate-in fade-in zoom-in-95 duration-200" id="aiChatWidget">
-          {/* Assistant Header */}
-          <div className="bg-primary-moss text-white px-5 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                {/* 4-point Sparkle Icon */}
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-fraunces font-semibold text-base leading-tight">
-                  AI Nutrition Assistant
-                </h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[11px] text-white/80 font-normal">
-                    Online & ready
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition" id="closeAiChatBtn" type="button">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
-              </svg>
-            </button>
-          </div>
-          {/* Messages Scroll Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-herb-white/40 text-sm">
-            {/* Assistant Message Bubble */}
-            <div className="flex items-start gap-2.5 max-w-[85%]">
-              <div className="w-7 h-7 rounded-full bg-primary-moss/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-primary-moss">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"></path>
-                </svg>
-              </div>
-              <div className="bg-surface-paper border border-border-sage-mist rounded-2xl rounded-tl-sm p-3 shadow-xs text-text-charcoal">
-                <p className="">
-                  Hello Linh! 👋 I'm your Vegan Helper nutrition guide. How can I assist your plant-based meal planning today?
-                </p>
-              </div>
-            </div>
-            {/* Suggestion Chips Group */}
-            <div className="pt-2">
-              <p className="text-[11px] font-semibold text-text-stem-gray uppercase tracking-wider mb-2">
-                Quick inquiries
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🌱 High Protein Dishes
-                </button>
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🥣 Weight Loss Menu
-                </button>
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🥦 Ingredient Swaps
-                </button>
-              </div>
-            </div>
-          </div>
-          {/* Input Footer Area */}
-          <div className="p-3 bg-surface-paper border-t border-border-sage-mist">
-            <form className="flex items-center gap-2">
-              <input className="flex-1 text-sm bg-herb-white/60 border border-border-sage-mist rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-moss/30 focus:border-primary-moss placeholder:text-text-stem-gray/70" placeholder="Ask AI nutrition assistant..." type="text" />
-              <button className="w-9 h-9 rounded-full bg-primary-moss text-white flex items-center justify-center hover:bg-moss-hover transition shadow-sm flex-shrink-0" title="Send" type="submit">
-                <svg className="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <path d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-              </button>
-            </form>
-          </div>
-        </div>
-        {/* 56px Floating Action Button (AI Assistant) */}
-        <button aria-label="Toggle AI Nutrition Assistant" className="w-14 h-14 rounded-full bg-primary-moss text-white flex items-center justify-center shadow-float hover:bg-moss-hover hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-4 focus:ring-primary-moss/30" id="aiChatToggleBtn" type="button">
-          {/* 4-point AI sparkle icon */}
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"></path>
-          </svg>
-        </button>
-      </div>
-      {/* END: ChatbotFloatingComponent */}
+      <AIChatbot />
       {/* BEGIN: EditProfileModal */}
       <div className={`fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 ${isEditOpen ? "" : "hidden"}`} id="edit-profile-modal-overlay">
         {/* Sibling 1: Backdrop */}
