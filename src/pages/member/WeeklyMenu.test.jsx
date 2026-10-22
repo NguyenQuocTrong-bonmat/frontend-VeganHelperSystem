@@ -30,6 +30,8 @@ const failure = (status, data) => Object.assign(new Error('Request failed'), { r
 let container, root, adapter, route, profileRoute, originalAdapter, paymentAccess;
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-10-20T12:00:00Z'));
   global.IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
   originalAdapter = axios.defaults.adapter;
@@ -54,6 +56,7 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await act(async () => root.unmount()); container.remove(); axios.defaults.adapter = originalAdapter; clearAuthTokens();
+  vi.useRealTimers();
 });
 const render = () => act(async () => root.render(<MemoryRouter><WeeklyMenu /></MemoryRouter>));
 const button = text => [...container.querySelectorAll('button')].find(node => node.textContent.includes(text) || node.getAttribute('aria-label')?.includes(text));
