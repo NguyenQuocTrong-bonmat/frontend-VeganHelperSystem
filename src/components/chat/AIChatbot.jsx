@@ -1,65 +1,165 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { aiChatService } from '../../services/aiChatService';
+
+const welcome = 'Hello! Ask me about plant-based meals, ingredients, or balanced nutrition.';
+const guestIdentityKey = 'veganhelper-ai-chat-guest-id';
+
+function readSession(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || 'null');
+    return value && Number.isSafeInteger(value.sessionId) && value.sessionId > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function errorText(error) {
+  const status = error.response?.status;
+  if (status === 429 && error.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') return 'Your three free questions are used. Sign in or create an account to continue.';
+  if (status === 429) return 'Too many requests right now. Please try again later.';
+  if (status === 503 || status === 502) return 'The AI assistant is temporarily unavailable. Please try again later.';
+  if (status === 422) return 'I could not answer that question. Please try wording it differently.';
+  if (status === 404) return 'This conversation is no longer available. Start a new one.';
+  if (status === 400) return error.response?.data?.error || 'Please check your question and try again.';
+  return 'Unable to reach the assistant. Please try again.';
+}
 
 export default function AIChatbot() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [session, setSession] = useState(null);
+  const [remaining, setRemaining] = useState(3);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [limitReached, setLimitReached] = useState(false);
+  const endRef = useRef(null);
+  const activeScope = useRef('');
+  const skipHistoryForSession = useRef(null);
+  const storageKey = authLoading ? null : isAuthenticated ? `veganhelper-ai-chat-member-${user?.id}` : 'veganhelper-ai-chat-guest';
+
+  useEffect(() => {
+    if (!storageKey || storageKey === activeScope.current) return;
+    activeScope.current = storageKey;
+    skipHistoryForSession.current = null;
+    setSession(readSession(storageKey));
+    setMessages([]);
+    setDraft('');
+    setError('');
+    setRemaining(3);
+    setLimitReached(false);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!isOpen || !storageKey || !session?.sessionId) return;
+    if (skipHistoryForSession.current === session.sessionId) {
+      skipHistoryForSession.current = null;
+      return;
+    }
+    let cancelled = false;
+    setBusy(true);
+    aiChatService.history(session.sessionId, isAuthenticated ? null : session.guestSessionId)
+      .then((history) => {
+        if (cancelled) return;
+        setMessages(history.messages || []);
+        if (!isAuthenticated) {
+          const used = (history.messages || []).filter((message) => message.senderType === 'ai').length;
+          setRemaining(Math.max(0, 3 - used));
+          setLimitReached(used >= 3);
+        }
+      })
+      .catch((cause) => {
+        if (cancelled) return;
+        if (cause.response?.status === 404) {
+          localStorage.removeItem(storageKey);
+          setSession(null);
+        }
+        setError(errorText(cause));
+      })
+      .finally(() => { if (!cancelled) setBusy(false); });
+    return () => { cancelled = true; };
+  }, [isOpen, isAuthenticated, session?.sessionId, session?.guestSessionId, storageKey]);
+
+  useEffect(() => { endRef.current?.scrollIntoView?.({ behavior: 'smooth' }); }, [messages, busy, isOpen]);
+
+  async function send(event) {
+    event.preventDefault();
+    const message = draft.trim();
+    if (!message || busy || authLoading || !storageKey || limitReached) return;
+    const scope = storageKey;
+    const guestSessionId = isAuthenticated ? null : session?.guestSessionId || localStorage.getItem(guestIdentityKey) || crypto.randomUUID();
+    if (!isAuthenticated) localStorage.setItem(guestIdentityKey, guestSessionId);
+    setBusy(true);
+    setError('');
+    try {
+      const result = await aiChatService.send(message, session?.sessionId || null, guestSessionId);
+      if (activeScope.current !== scope) return;
+      const nextSession = { sessionId: result.sessionId, guestSessionId: result.guestSessionId || null };
+      localStorage.setItem(scope, JSON.stringify(nextSession));
+      skipHistoryForSession.current = result.sessionId;
+      setSession(nextSession);
+      setMessages((previous) => [...previous,
+        { id: `user-${Date.now()}`, senderType: 'user', messageText: message },
+        { id: `ai-${Date.now()}`, senderType: 'ai', messageText: result.answer },
+      ]);
+      setDraft('');
+      if (!isAuthenticated && typeof result.guestQuestionsRemaining === 'number') {
+        setRemaining(result.guestQuestionsRemaining);
+        setLimitReached(result.guestQuestionsRemaining === 0);
+      }
+    } catch (cause) {
+      if (activeScope.current !== scope) return;
+      setError(errorText(cause));
+      if (cause.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') setLimitReached(true);
+    } finally {
+      if (activeScope.current === scope) setBusy(false);
+    }
+  }
 
   return (
     <aside className="fixed bottom-6 right-6 z-50">
-      <div className={`flex-col w-[calc(100vw-3rem)] sm:w-[380px] h-[520px] max-h-[85vh] bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl modal-shadow overflow-hidden transition-all ${isOpen ? 'flex' : 'hidden'}`}>
-        <div className="px-4 py-3 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#F3F6EE] border border-[#DCE3D5] text-[#2F5233] flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"></path>
-              </svg>
-            </div>
+      {isOpen ? (
+        <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl">
+          <header className="flex items-center justify-between border-b border-[#DCE3D5] px-4 py-3">
             <div>
-              <h4 className="font-vietnam text-[15px] font-semibold text-[#2B2A25] leading-snug">
-                AI Nutrition Assistant
-              </h4>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#4C8C4A]"></span>
-                <span className="text-[11px] text-[#6B6F63]">Ready to assist</span>
+              <h2 className="font-semibold text-[#2B2A25]">AI Nutrition Assistant</h2>
+              <p className="text-xs text-[#6B6F63]">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
+            </div>
+            <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233]">×</button>
+          </header>
+          <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-3 overflow-y-auto bg-[#F3F6EE]/40 p-4 text-sm">
+            <p className="max-w-[88%] rounded-xl border border-[#DCE3D5] bg-white p-3 text-[#2B2A25]">{welcome}</p>
+            {messages.map((item, index) => (
+              <p key={item.id || index} className={`max-w-[88%] whitespace-pre-wrap break-words rounded-xl p-3 ${item.senderType === 'user' ? 'ml-auto bg-[#2F5233] text-white' : 'border border-[#DCE3D5] bg-white text-[#2B2A25]'}`}>{item.messageText}</p>
+            ))}
+            {busy && <p className="text-xs text-[#6B6F63]">Assistant is responding…</p>}
+            <div ref={endRef} />
+          </div>
+          {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
+          <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
+            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder="Ask about plant-based food…" className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-[#2F5233] disabled:opacity-60" />
+            <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] disabled:opacity-50">Send</button>
+          </form>
+          {limitReached && !isAuthenticated && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">
+              <div className="rounded-2xl bg-white p-5 text-center shadow-xl">
+                <h3 className="font-semibold text-[#2B2A25]">Continue your conversation</h3>
+                <p className="mt-2 text-sm text-[#6B6F63]">You have used your three free questions. Sign in or create an account to keep chatting.</p>
+                <div className="mt-4 flex justify-center gap-3 text-sm">
+                  <Link to="/login" className="rounded-lg bg-[#2F5233] px-4 py-2 text-white">Log in</Link>
+                  <Link to="/sign-up" className="rounded-lg border border-[#2F5233] px-4 py-2 text-[#2F5233]">Sign up</Link>
+                </div>
+                <button type="button" onClick={() => setIsOpen(false)} className="mt-4 text-sm text-[#6B6F63] underline">Close</button>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setIsOpen(false)} className="w-7 h-7 rounded-lg text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] flex items-center justify-center transition-colors text-lg leading-none font-normal" title="Đóng">
-              ×
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex-1 p-4 overflow-y-auto bg-[#F3F6EE]/40 flex flex-col gap-3.5 text-[13px]">
-          <div className="flex items-start gap-2.5 max-w-[88%]">
-            <div className="w-7 h-7 rounded-full bg-[#F3F6EE] border border-[#DCE3D5] text-[#2F5233] flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-              </svg>
-            </div>
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-3 text-[#2B2A25] leading-relaxed">
-              <p>Hello! I am the Vegan Helper AI Nutrition Assistant. I can help you discover wholesome plant-based recipes.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-3 bg-[#FDFBF6] border-t border-[#DCE3D5] shrink-0">
-          <div className="flex items-center gap-2 bg-[#F3F6EE] border border-[#DCE3D5] rounded-xl px-3 py-1.5 focus-within:border-[#2F5233] transition-colors">
-            <input className="flex-1 bg-transparent text-[13px] text-[#2B2A25] placeholder-[#6B6F63] focus:outline-none" placeholder="Ask the AI assistant..." type="text" />
-            <button className="w-8 h-8 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white flex items-center justify-center shrink-0 transition-colors shadow-sm" title="Gửi tin nhắn">
-              <svg className="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="w-14 h-14 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white flex items-center justify-center modal-shadow transition-transform hover:scale-105" title="Vegan Helper AI Assistant">
-          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"></path>
-          </svg>
+          )}
+        </section>
+      ) : (
+        <button id="chat-fab" type="button" onClick={() => setIsOpen(true)} aria-label="Open AI Nutrition Assistant" className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2F5233] text-white shadow-lg transition-transform hover:scale-105 hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
+          <svg aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 17l.7 2.3L21 20l-2.3.7L18 23l-.7-2.3L15 20l2.3-.7L18 17z" /></svg>
         </button>
       )}
     </aside>
