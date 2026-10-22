@@ -5,7 +5,7 @@ import LandingIcon from './LandingIcon';
 import useLandingNavigation from './useLandingNavigation';
 import useLandingMedia from './useLandingMedia';
 
-const links = [['Recipes', '#recipes'], ['Our Platform', '#platform'], ['Weekly Menu', '#weekly-menu-preview'], ['Vegan Stores', '#stores'], ['Community', '#community']];
+const links = [['Our Platform', '#platform'], ['Recipes', '#recipes'], ['Weekly Menu', '#weekly-menu-preview'], ['Vegan Stores', '#stores'], ['Community', '#community']];
 
 export default function LandingHeader() {
   const [open, setOpen] = useState(false);

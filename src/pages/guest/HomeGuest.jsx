@@ -37,9 +37,9 @@ export default function HomeGuest() {
 
       <div className="lp-promise-strip" aria-label="Explore the Vegan Helper platform"><div className="lp-container"><span><LandingIcon name="bowl" />Discover something delicious</span><span className="lp-promise-divider" aria-hidden="true">✳</span><span><LandingIcon name="calendar" />Make room for a good week</span><span className="lp-promise-divider" aria-hidden="true">✳</span><span><LandingIcon name="people" />Grow with a community</span></div></div>
 
-      <LandingRecipes onAuthRequired={setAuthReason} onCommunityLoaded={handleCommunityLoaded} />
-
       <LandingPillars />
+
+      <LandingRecipes onAuthRequired={setAuthReason} onCommunityLoaded={handleCommunityLoaded} />
 
       <WeeklyMenuPreview onAuthRequired={setAuthReason} />
       <VeganStorePreview onAuthRequired={setAuthReason} />
