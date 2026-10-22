@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPostDetail, getCategories } from '../../services/postService';
+import { getPostDetail, getCategories, reportPost } from '../../services/postService';
+import ReportPostModal from './ReportPostModal';
 import {
   createComment,
   updateComment,
@@ -84,6 +85,8 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [editCommentText, setEditCommentText] = useState('');
   const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
   const [reportingCommentId, setReportingCommentId] = useState(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isReportSubmitting, setIsReportSubmitting] = useState(false);
   const [profilePreview, setProfilePreview] = useState({
     isOpen: false,
     userId: null,
@@ -198,6 +201,51 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       toast.error('Failed to update like status');
     } finally {
       setIsLikeUpdating(false);
+    }
+  };
+
+  const isOwnPost = Boolean(
+    authUser?.id != null &&
+    post?.authorId != null &&
+    String(post.authorId) === String(authUser.id)
+  );
+
+  const handleOpenReport = () => {
+    if (isGuest || !authUser) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      } else {
+        toast.error('Please log in to report this post.');
+      }
+      return;
+    }
+    setIsReportModalOpen(true);
+  };
+
+  const handleReportSubmit = async ({ reasonCategory, reason }) => {
+    setIsReportSubmitting(true);
+    try {
+      const revision = post?.contentRevision ?? post?.ContentRevision ?? 1;
+      await reportPost(id, {
+        reasonCategory,
+        reason,
+        expectedRevision: revision,
+      });
+      toast.success('Thank you. Your report has been submitted for review.');
+      setIsReportModalOpen(false);
+    } catch (err) {
+      const status = err?.status || err?.response?.status;
+      if (status === 409) {
+        toast.error('This post was recently updated. Please refresh the page before reporting.');
+      } else if (status === 429) {
+        toast.error('You have reached the maximum report limit. Please try again later.');
+      } else if (status === 403) {
+        toast.error('You cannot report your own post.');
+      } else {
+        toast.error(err.message || 'Failed to submit report. Please try again.');
+      }
+    } finally {
+      setIsReportSubmitting(false);
     }
   };
 
@@ -945,6 +993,16 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               <span>{isSaved ? 'Saved' : 'Save recipe'}</span>
             </button>
           </div>
+
+          {!isOwnPost && (
+            <button
+              type="button"
+              onClick={handleOpenReport}
+              className="px-4 py-2 border border-[#DCE3D5] rounded-lg text-sm font-medium text-[#A63446] hover:bg-[#FBEAE7] hover:border-[#F4C2BC] transition-colors cursor-pointer"
+            >
+              Report
+            </button>
+          )}
         </div>
 
         <section className="pt-8 pb-12 space-y-8" id="comments">
@@ -1007,6 +1065,15 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
         src={post?.media?.[activeMediaIndex]?.mediaType !== 'video' ? getImageUrl(post?.media?.[activeMediaIndex]?.mediaUrl) : null}
         alt={post?.title || 'Recipe photo'}
         onClose={() => setIsLightboxOpen(false)}
+      />
+
+      {/* Report Post Modal */}
+      <ReportPostModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReportSubmit}
+        isSubmitting={isReportSubmitting}
+        postTitle={post?.title || ''}
       />
 
       {/* Profile Preview Popover */}

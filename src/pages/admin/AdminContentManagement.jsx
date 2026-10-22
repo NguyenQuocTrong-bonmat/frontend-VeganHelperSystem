@@ -350,6 +350,7 @@ export default function AdminContentManagement() {
                       <div className="rounded-2xl border border-[#F0D4CF] bg-[#FFF8F6] p-4">
                         <p className="text-xs font-bold uppercase tracking-wide text-[#A14C49]">{activeQueue === 'ai' ? 'AI finding' : 'Community report'}</p>
                         <p className="mt-2 text-sm leading-6 text-[#4A3B39]">{selected.reason || detail?.report?.reason || 'No reason provided.'}</p>
+                        {activeQueue === 'posts' && <p className="mt-3 text-xs leading-5 text-[#6B6F63]">Reports do not automatically hide posts or notify their authors. Only an Admin decision can hide a reported post.</p>}
                         {activeQueue === 'ai' && selected.aiModelName && <p className="mt-2 text-xs text-[#7F6965]">Model: {selected.aiModelName}</p>}
                       </div>
                       {Array.isArray(currentContent?.media) && currentContent.media.length > 0 && (

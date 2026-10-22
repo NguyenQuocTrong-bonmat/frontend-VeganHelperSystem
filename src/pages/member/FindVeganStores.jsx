@@ -4,7 +4,7 @@ import '@goongmaps/goong-js/dist/goong-js.css';
 import HeaderMember from '../../components/layout/HeaderMember';
 import AIChatbot from '../../components/chat/AIChatbot';
 import shopService from '../../services/shopService';
-import { createStoreMarkerElement, setStoreMarkerHighlighted } from '../../utils/storeMapMarker';
+import { createStoreMarkerElement, setStoreMarkerHighlighted, resolveStoreIcon, STORE_ICON_PATHS, STORE_MARKER_VISUAL_SELECTOR } from '../../utils/storeMapMarker';
 
 function FindVeganStores() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -307,6 +307,12 @@ function FindVeganStores() {
       });
 
       marker.getElement().addEventListener('click', () => {
+        const visual = el.querySelector(STORE_MARKER_VISUAL_SELECTOR);
+        if (visual) {
+          visual.classList.remove('store-marker-pin-selected');
+          void visual.offsetWidth;
+          visual.classList.add('store-marker-pin-selected');
+        }
         setSelectedShopId(shop.shopId);
         setIsPanelExpanded(true);
       });
@@ -318,6 +324,15 @@ function FindVeganStores() {
 
   const handleSelectShop = (shop) => {
     setSelectedShopId(shop.shopId);
+    const marker = markersRef.current[shop.shopId];
+    if (marker) {
+      const visual = marker.getElement().querySelector(STORE_MARKER_VISUAL_SELECTOR);
+      if (visual) {
+        visual.classList.remove('store-marker-pin-selected');
+        void visual.offsetWidth;
+        visual.classList.add('store-marker-pin-selected');
+      }
+    }
     if (mapRef.current && shop.latitude && shop.longitude) {
       mapRef.current.flyTo({ center: [shop.longitude, shop.latitude], zoom: 15, essential: true });
     }
@@ -493,7 +508,12 @@ function FindVeganStores() {
                   }}
                   className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm flex flex-col ${isSelected ? 'bg-[#F3F6EE] border-[#2F5233]' : 'bg-white border-[#DCE3D5] hover:border-[#2F5233]'}`}
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2.5 mb-2 min-w-0">
+                    <span className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#2F5233] text-white' : 'bg-[#E9EFE6] text-[#2F5233]'}`}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d={STORE_ICON_PATHS[resolveStoreIcon(shop)] || STORE_ICON_PATHS.pin} />
+                      </svg>
+                    </span>
                     <h3 className="font-semibold text-[#2B2A25] line-clamp-1">{shop.name}</h3>
                   </div>
                   <p className="text-xs text-[#6B6F63] line-clamp-2 mb-2">{shop.address}</p>
