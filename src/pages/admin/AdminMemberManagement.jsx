@@ -30,6 +30,7 @@ export default function AdminMemberManagement() {
     member: null,
     reason: '',
     duration: '30 Days',
+    isSubmitting: false,
   });
 
   const [unbanModal, setUnbanModal] = useState({
@@ -236,12 +237,20 @@ export default function AdminMemberManagement() {
   // Ban confirmation (POST /api/admin/members/{id}/ban)
   const handleConfirmBan = async (e) => {
     e.preventDefault();
-    if (!banModal.member) return;
-    if (!banModal.reason.trim()) {
+    if (!banModal.member || banModal.isSubmitting) return;
+
+    const trimmedReason = banModal.reason.trim();
+    if (!trimmedReason) {
       showToast('Please specify a reason for banning this account.', 'error');
       return;
     }
 
+    if (trimmedReason.length > 500) {
+      showToast('Ban reason cannot exceed 500 characters.', 'error');
+      return;
+    }
+
+    setBanModal((prev) => ({ ...prev, isSubmitting: true }));
     try {
       let expiresAt = null;
       if (banModal.duration === '7 Days') {
@@ -253,15 +262,16 @@ export default function AdminMemberManagement() {
       }
 
       await banMember(banModal.member.id, {
-        reason: banModal.reason.trim(),
+        reason: trimmedReason,
         expiresAt,
       });
 
       showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
       await fetchMembers();
-      setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
+      setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false });
     } catch (err) {
       showToast(err.message || 'The account could not be suspended.', 'error');
+      setBanModal((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -669,6 +679,7 @@ export default function AdminMemberManagement() {
                               </button>
                             ) : (
                               <button
+                                data-testid="open-ban-modal-btn"
                                 onClick={() =>
                                   setBanModal({
                                     isOpen: true,
@@ -787,8 +798,9 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                  onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false })}
+                  disabled={banModal.isSubmitting}
+                  className="text-[#8A9080] hover:text-[#2B2A25] disabled:opacity-50"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -815,8 +827,9 @@ export default function AdminMemberManagement() {
                   </label>
                   <select
                     value={banModal.duration}
+                    disabled={banModal.isSubmitting}
                     onChange={(e) => setBanModal((prev) => ({ ...prev, duration: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233]"
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] disabled:opacity-50"
                   >
                     <option value="7 Days">7 Days (Temporary Warning)</option>
                     <option value="30 Days">30 Days (Standard Moderation)</option>
@@ -827,16 +840,24 @@ export default function AdminMemberManagement() {
 
                 {/* Reason input */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#2B2A25] mb-1.5">
-                    Reason for Suspension <span className="text-[#A63446]">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="admin-ban-reason-input" className="block text-xs font-semibold text-[#2B2A25]">
+                      Reason for Suspension <span className="text-[#A63446]">*</span>
+                    </label>
+                    <span className={`text-[10px] ${banModal.reason.length > 450 ? 'text-[#A63446] font-semibold' : 'text-[#8A9080]'}`}>
+                      {banModal.reason.length}/500
+                    </span>
+                  </div>
                   <textarea
+                    id="admin-ban-reason-input"
                     rows={3}
                     required
+                    maxLength={500}
+                    disabled={banModal.isSubmitting}
                     placeholder="Specify why this account is being banned (e.g., Harassment, Unverified medical claims, commercial spam)..."
                     value={banModal.reason}
                     onChange={(e) => setBanModal((prev) => ({ ...prev, reason: e.target.value }))}
-                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] placeholder-[#8A9080]"
+                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] placeholder-[#8A9080] disabled:opacity-50"
                   />
                 </div>
 
@@ -849,16 +870,18 @@ export default function AdminMemberManagement() {
                 <div className="flex items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
-                    onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                    disabled={banModal.isSubmitting}
+                    onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false })}
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] transition-colors"
+                    disabled={banModal.isSubmitting || !banModal.reason.trim()}
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    Confirm & Revoke Access
+                    {banModal.isSubmitting ? 'Suspending...' : 'Confirm & Revoke Access'}
                   </button>
                 </div>
               </form>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories, reportPost } from '../../services/postService';
 import ReportPostModal from './ReportPostModal';
+import CommentDeleteModal from './CommentDeleteModal';
 import {
   createComment,
   updateComment,
@@ -61,14 +62,14 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     authUser = null;
     isAdmin = false;
   }
-  
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('Recipe');
-  
+
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
@@ -85,6 +86,10 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [editCommentText, setEditCommentText] = useState('');
   const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
   const [reportingCommentId, setReportingCommentId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReportSubmitting, setIsReportSubmitting] = useState(false);
   const [profilePreview, setProfilePreview] = useState({
@@ -180,15 +185,15 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       return;
     }
     if (isLikeUpdating) return;
-    
+
     // Optimistic UI update
     const previousIsLiked = isLiked;
     const previousLikeCount = likeCount;
-    
+
     setIsLiked(!isLiked);
     setLikeCount(prev => Math.max(0, isLiked ? prev - 1 : prev + 1));
     setIsLikeUpdating(true);
-    
+
     try {
       const response = await toggleLike(id);
       // Update with authoritative response
@@ -255,12 +260,12 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       return;
     }
     if (isSaveUpdating) return;
-    
+
     // Optimistic UI update
     const previousIsSaved = isSaved;
     setIsSaved(!isSaved);
     setIsSaveUpdating(true);
-    
+
     try {
       const response = await toggleSave(id);
       // Update with authoritative response
@@ -361,72 +366,51 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     }
   };
 
-  const handleCommentDelete = async (comment, isOwner) => {
+  const handleCommentDelete = (comment) => {
     if (isGuest) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
+    setCommentToDelete(comment);
+    setDeleteModalError(null);
+    setDeleteModalOpen(true);
+  };
 
-    const commentId = comment.id;
+  const confirmCommentDelete = async (reason) => {
+    if (!commentToDelete || !id) return;
 
-    if (isOwner) {
-      const confirmation = `Delete this comment?\n\n${getCommentDeletionImpact(comment)}`;
-      if (!window.confirm(confirmation)) return;
+    setIsDeletingComment(true);
+    setDeleteModalError(null);
+    try {
+      await deleteComment(id, commentToDelete.id, reason);
+      const commentAuthorId = commentToDelete.userId ?? commentToDelete.UserId;
+      const isMine = commentAuthorId != null && authUser?.id != null && String(authUser.id) === String(commentAuthorId);
+      const postAuthorId = post?.authorId ?? post?.author?.id;
+      const isPostAuthor = !isMine && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId);
 
-      setCommentActionLoadingId(commentId);
-      try {
-        await deleteComment(id, commentId);
-        toast.success('Comment deleted.');
-        if (editingCommentId === commentId) {
-          setEditingCommentId(null);
-          setEditCommentText('');
-        }
-        const refreshed = await getComments(id, { maxDepth: 4 });
-        setComments(asArray(refreshed));
-        setCommentsError('');
-      } catch (err) {
-        toast.error(err.message || 'Failed to delete comment.');
-      } finally {
-        setCommentActionLoadingId(null);
-      }
-    } else if (isAdmin) {
-      const promptReason = window.prompt(
-        `Admin deletion reason (required, maximum ${COMMENT_DELETE_REASON_MAX_LENGTH} characters):`
-      );
-      if (promptReason === null) return;
-      const reason = promptReason.trim();
-      if (!reason) {
-        toast.error('A reason is required when an administrator deletes a comment.');
-        return;
-      }
-      if (reason.length > COMMENT_DELETE_REASON_MAX_LENGTH) {
-        toast.error(`Deletion reason must not exceed ${COMMENT_DELETE_REASON_MAX_LENGTH} characters.`);
-        return;
-      }
-
-      const confirmation = [
-        'Delete this comment as administrator?',
-        getCommentDeletionImpact(comment),
-        `Reason: ${reason}`,
-      ].join('\n\n');
-      if (!window.confirm(confirmation)) return;
-
-      setCommentActionLoadingId(commentId);
-      try {
-        await deleteComment(id, commentId, reason);
+      if (isAdmin && !isMine) {
         toast.success('Comment deleted by administrator.');
-        if (editingCommentId === commentId) {
-          setEditingCommentId(null);
-          setEditCommentText('');
-        }
-        const refreshed = await getComments(id, { maxDepth: 4 });
-        setComments(asArray(refreshed));
-        setCommentsError('');
-      } catch (err) {
-        toast.error(err.message || 'Failed to delete comment.');
-      } finally {
-        setCommentActionLoadingId(null);
+      } else if (isPostAuthor && !isMine) {
+        toast.success('Comment deleted by post author.');
+      } else {
+        toast.success('Comment deleted.');
       }
+
+      setDeleteModalOpen(false);
+      setCommentToDelete(null);
+      if (editingCommentId === commentToDelete.id) {
+        setEditingCommentId(null);
+        setEditCommentText('');
+      }
+
+      const refreshed = await getComments(id, { maxDepth: 4 });
+      setComments(asArray(refreshed));
+      setCommentsError('');
+    } catch (err) {
+      setDeleteModalError(err.message || 'Failed to delete comment.');
+      toast.error(err.message || 'Failed to delete comment.');
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -477,6 +461,14 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     const depth = Number(comment.depth ?? comment.Depth) || 1;
     const isMine = Boolean(
       comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id))
+    );
+    const postAuthorId = post?.authorId ?? post?.author?.id;
+    const isPostAuthor = Boolean(
+      !isMine &&
+      !isGuest &&
+      authUser?.id != null &&
+      postAuthorId != null &&
+      String(authUser.id) === String(postAuthorId)
     );
     const updatedAt = comment.updatedAt ?? comment.UpdatedAt;
 
@@ -678,11 +670,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   {isMine && (
                     <button
                       type="button"
-                      onClick={() => handleCommentDelete(comment, true)}
-                      disabled={isActionLoading}
+                      onClick={() => handleCommentDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
                       className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
                     >
-                      {isActionLoading ? 'Deleting...' : 'Delete'}
+                      Delete
                     </button>
                   )}
 
@@ -690,17 +682,30 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   {isAdmin && !isMine && (
                     <button
                       type="button"
-                      onClick={() => handleCommentDelete(comment, false)}
-                      disabled={isActionLoading}
+                      onClick={() => handleCommentDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
                       className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
                       title="Delete as Administrator (requires reason)"
                     >
-                      {isActionLoading ? 'Deleting...' : 'Delete (Admin)'}
+                      Delete (Admin)
                     </button>
                   )}
 
-                  {/* Report (Non-owner, non-admin only) */}
-                  {!isMine && !isAdmin && (
+                  {/* Post Author Delete */}
+                  {!isMine && isPostAuthor && !isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommentDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                      title="Delete comment on your post"
+                    >
+                      Delete
+                    </button>
+                  )}
+
+                  {/* Report (Non-owner, non-admin, non-post-author) */}
+                  {!isMine && !isAdmin && !isPostAuthor && (
                     <button
                       type="button"
                       onClick={() => handleCommentReport(comment.id)}
@@ -893,7 +898,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   </div>
                 </div>
               )}
-              
+
               {post.media.length > 1 && (
                 <>
                   <button onClick={() => setActiveMediaIndex(prev => prev === 0 ? post.media.length - 1 : prev - 1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100">
@@ -908,7 +913,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 </>
               )}
             </div>
-            
+
             {post.media.length > 1 && (
               <div className="flex items-center gap-3 pt-1 overflow-x-auto pb-1 scrollbar-none">
                 {post.media.map((item, index) => (
@@ -968,9 +973,9 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
         <div className="py-6 my-8 border-y border-[#DCE3D5] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={handleLike} 
-              type="button" 
+            <button
+              onClick={handleLike}
+              type="button"
               disabled={isLikeUpdating}
               className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'bg-[#2F5233] border-[#2F5233] text-white' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
@@ -981,9 +986,9 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               <span className={`text-xs font-normal ml-0.5 ${isLiked ? 'text-white/80' : 'text-[#6B6F63]'}`}>{likeCount}</span>
             </button>
 
-            <button 
-              onClick={handleSave} 
-              type="button" 
+            <button
+              onClick={handleSave}
+              type="button"
               disabled={isSaveUpdating}
               className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isSaved ? 'bg-[#F3F6EE] border-[#2F5233] text-[#2F5233]' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
@@ -1016,12 +1021,12 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
           {!isGuest ? (
             <form onSubmit={handleCommentSubmit} className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-5 space-y-3">
-              <textarea 
+              <textarea
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
                 maxLength={500}
-                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[84px]" 
-                rows="3" 
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[84px]"
+                rows="3"
                 placeholder="Share your thoughts or questions..."
                 disabled={commentSubmitting}
               ></textarea>
@@ -1047,7 +1052,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               </div>
             </div>
           )}
-          
+
           {commentsLoading ? (
             <div className="py-8 text-center text-[#6B6F63] italic text-sm">Loading comments...</div>
           ) : commentsError ? (
@@ -1088,6 +1093,24 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           onAuthRequired={onAuthRequired}
         />
       )}
+
+      {/* Comment Delete Modal */}
+      <CommentDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          if (!isDeletingComment) {
+            setDeleteModalOpen(false);
+            setCommentToDelete(null);
+            setDeleteModalError(null);
+          }
+        }}
+        onConfirm={confirmCommentDelete}
+        comment={commentToDelete}
+        currentUser={authUser}
+        post={post}
+        isSubmitting={isDeletingComment}
+        submitError={deleteModalError}
+      />
     </main>
   );
 }

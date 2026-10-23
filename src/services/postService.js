@@ -130,7 +130,7 @@ export async function createPost(postData) {
     if (err.response?.data) {
       const errorJson = err.response.data;
       errorMessage = errorJson.message || errorJson.title || JSON.stringify(errorJson);
-      
+
       if (errorJson.errors) {
         let details = '';
         if (Array.isArray(errorJson.errors)) {
@@ -155,7 +155,7 @@ export async function createPost(postData) {
     } else if (err.message) {
       errorMessage = err.message;
     }
-    
+
     const error = new Error(errorMessage);
     error.status = err.response?.status;
     throw error;

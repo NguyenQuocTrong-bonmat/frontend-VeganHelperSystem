@@ -11,6 +11,7 @@ import {
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate, formatDateTime, getTimeAgo } from '../../utils/dateUtils';
 import { useAuth } from '../../context/AuthContext';
+import CommentDeleteModal from './CommentDeleteModal';
 
 function asArray(data) {
   if (Array.isArray(data)) return data;
@@ -75,16 +76,20 @@ export default function CommentModal({
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
-  
+
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentText, setEditCommentText] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [reportingId, setReportingId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState(null);
 
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -263,81 +268,53 @@ export default function CommentModal({
     }
   };
 
-  const handleDelete = async (comment, isOwner) => {
+  const handleDelete = (comment) => {
     if (isGuest) {
       onAuthRequired?.();
       return;
     }
+    setCommentToDelete(comment);
+    setDeleteModalError(null);
+    setDeleteModalOpen(true);
+  };
 
-    const commentId = comment.id;
+  const confirmDelete = async (reason) => {
+    if (!commentToDelete || !postId) return;
 
-    if (isOwner) {
-      if (!window.confirm('Delete this comment?\n\n' + getCommentDeletionImpact(comment))) return;
+    setIsDeletingComment(true);
+    setDeleteModalError(null);
+    try {
+      await deleteComment(postId, commentToDelete.id, reason);
+      const commentAuthorId = commentToDelete.userId ?? commentToDelete.UserId;
+      const isMine = commentAuthorId != null && authUser?.id != null && String(authUser.id) === String(commentAuthorId);
+      const postAuthorId = post?.authorId ?? post?.author?.id;
+      const isPostAuthor = !isMine && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId);
 
-      setActionLoadingId(commentId);
-      try {
-        await deleteComment(postId, commentId);
-        toast.success('Comment deleted.');
-        if (editingCommentId === commentId) {
-          setEditingCommentId(null);
-          setEditCommentText('');
-        }
-        const refreshed = await getComments(postId, { maxDepth: 4 });
-        const arr = asArray(refreshed);
-        setComments(arr);
-        const total = countComments(arr);
-        onCommentCountChange?.(total);
-      } catch (err) {
-        toast.error(err.message || 'Failed to delete comment.');
-      } finally {
-        setActionLoadingId(null);
-      }
-    } else if (isAdmin) {
-      const promptReason = window.prompt(
-        'Admin deletion reason (required, maximum '
-          + COMMENT_DELETE_REASON_MAX_LENGTH
-          + ' characters):'
-      );
-      if (promptReason === null) return;
-      const reason = promptReason.trim();
-      if (!reason) {
-        toast.error('A reason is required when an administrator deletes a comment.');
-        return;
-      }
-      if (reason.length > COMMENT_DELETE_REASON_MAX_LENGTH) {
-        toast.error(
-          'Deletion reason must not exceed '
-            + COMMENT_DELETE_REASON_MAX_LENGTH
-            + ' characters.'
-        );
-        return;
-      }
-
-      const confirmation = [
-        'Delete this comment as administrator?',
-        getCommentDeletionImpact(comment),
-        'Reason: ' + reason,
-      ].join('\n\n');
-      if (!window.confirm(confirmation)) return;
-
-      setActionLoadingId(commentId);
-      try {
-        await deleteComment(postId, commentId, reason);
+      if (isAdmin && !isMine) {
         toast.success('Comment deleted by administrator.');
-        if (editingCommentId === commentId) {
-          setEditingCommentId(null);
-          setEditCommentText('');
-        }
-        const refreshed = await getComments(postId, { maxDepth: 4 });
-        const arr = asArray(refreshed);
-        setComments(arr);
-        const total = countComments(arr);
-        onCommentCountChange?.(total);
-      } catch (err) {
-        toast.error(err.message || 'Failed to delete comment.');
-      } finally {
-        setActionLoadingId(null);
+      } else if (isPostAuthor && !isMine) {
+        toast.success('Comment deleted by post author.');
+      } else {
+        toast.success('Comment deleted.');
       }
+
+      setDeleteModalOpen(false);
+      setCommentToDelete(null);
+      if (editingCommentId === commentToDelete.id) {
+        setEditingCommentId(null);
+        setEditCommentText('');
+      }
+
+      const refreshed = await getComments(postId, { maxDepth: 4 });
+      const arr = asArray(refreshed);
+      setComments(arr);
+      const total = countComments(arr);
+      onCommentCountChange?.(total);
+    } catch (err) {
+      setDeleteModalError(err.message || 'Failed to delete comment.');
+      toast.error(err.message || 'Failed to delete comment.');
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -389,6 +366,8 @@ export default function CommentModal({
     const isMine = Boolean(
       comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id))
     );
+    const postAuthorId = post?.authorId ?? post?.author?.id;
+    const isPostAuthor = Boolean(!isMine && !isGuest && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId));
     const updatedAt = comment.updatedAt ?? comment.UpdatedAt;
 
     // A non-deleted comment with status="hidden" must not be exposed publicly
@@ -562,11 +541,11 @@ export default function CommentModal({
                   {isMine && (
                     <button
                       type="button"
-                      onClick={() => handleDelete(comment, true)}
-                      disabled={isActionLoading}
+                      onClick={() => handleDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
                       className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      {isActionLoading ? 'Deleting...' : 'Delete'}
+                      Delete
                     </button>
                   )}
 
@@ -574,12 +553,25 @@ export default function CommentModal({
                   {isAdmin && !isMine && (
                     <button
                       type="button"
-                      onClick={() => handleDelete(comment, false)}
-                      disabled={isActionLoading}
+                      onClick={() => handleDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
                       className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
                       title="Delete as Administrator (requires reason)"
                     >
-                      {isActionLoading ? 'Deleting...' : 'Delete (Admin)'}
+                      Delete (Admin)
+                    </button>
+                  )}
+
+                  {/* Post Author Delete */}
+                  {!isMine && isPostAuthor && !isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment)}
+                      disabled={isActionLoading || isDeletingComment}
+                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
+                      title="Delete as Post Author"
+                    >
+                      Delete
                     </button>
                   )}
 
@@ -769,6 +761,24 @@ export default function CommentModal({
           )}
         </div>
       </div>
+
+      {/* Accessible Comment Delete Modal */}
+      <CommentDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          if (!isDeletingComment) {
+            setDeleteModalOpen(false);
+            setCommentToDelete(null);
+            setDeleteModalError(null);
+          }
+        }}
+        onConfirm={confirmDelete}
+        comment={commentToDelete}
+        currentUser={authUser}
+        post={post}
+        isSubmitting={isDeletingComment}
+        submitError={deleteModalError}
+      />
     </div>
   );
 }

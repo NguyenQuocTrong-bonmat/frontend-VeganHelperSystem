@@ -83,7 +83,7 @@ function App() {
         <Route path="/health" element={<ProtectedRoute><HealthAndWellness /></ProtectedRoute>} />
         <Route path="/health/bmi" element={<ProtectedRoute><HealthAndWellness /></ProtectedRoute>} />
         <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
-        <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
+        <Route path="/account-suspended" element={<AccountSuspended />} />
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />

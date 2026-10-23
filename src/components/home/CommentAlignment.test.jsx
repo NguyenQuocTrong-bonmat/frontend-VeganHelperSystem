@@ -566,8 +566,14 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       deleteBtn.click();
     });
 
-    expect(window.confirm).toHaveBeenCalled();
-    expect(interactionService.deleteComment).toHaveBeenCalledWith('post-1', 'c-del-owner');
+    const confirmModalDeleteBtn = container.querySelector('[data-testid="confirm-delete-button"]');
+    expect(confirmModalDeleteBtn).not.toBeNull();
+
+    await act(async () => {
+      confirmModalDeleteBtn.click();
+    });
+
+    expect(interactionService.deleteComment).toHaveBeenCalledWith('post-1', 'c-del-owner', null);
     expect(toast.success).toHaveBeenCalledWith('Comment deleted.');
   });
 
@@ -590,9 +596,6 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       },
     ]);
 
-    vi.spyOn(window, 'prompt').mockReturnValue('Violates community standards');
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
     await act(async () => {
       root.render(<CommentModal isOpen={true} onClose={() => {}} post={mockPost} isGuest={false} />);
     });
@@ -609,7 +612,23 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       adminDeleteBtn.click();
     });
 
-    expect(window.prompt).toHaveBeenCalled();
+    const reasonTextarea = container.querySelector('textarea#comment-delete-reason');
+    expect(reasonTextarea).not.toBeNull();
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+      setter.call(reasonTextarea, 'Violates community standards');
+      reasonTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+      reasonTextarea.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const confirmModalDeleteBtn = container.querySelector('[data-testid="confirm-delete-button"]');
+    expect(confirmModalDeleteBtn.disabled).toBe(false);
+
+    await act(async () => {
+      confirmModalDeleteBtn.click();
+    });
+
     expect(interactionService.deleteComment).toHaveBeenCalledWith(
       'post-1',
       'c-target-user',
