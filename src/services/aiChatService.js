@@ -6,7 +6,7 @@ export const aiChatService = {
       message,
       sessionId: sessionId || null,
       guestSessionId: guestSessionId || null,
-    }, { timeout: 45000 });
+    }, { timeout: 75000 });
     return data;
   },
   async history(sessionId, guestSessionId) {

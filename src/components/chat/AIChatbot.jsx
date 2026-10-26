@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { aiChatService } from '../../services/aiChatService';
+import ChatMarkdown from './ChatMarkdown';
 
 const welcome = 'Hello! Ask me about plant-based meals, ingredients, or balanced nutrition.';
 const guestIdentityKey = 'veganhelper-ai-chat-guest-id';
@@ -103,7 +104,12 @@ export default function AIChatbot() {
       setSession(nextSession);
       setMessages((previous) => [...previous,
       { id: `user-${Date.now()}`, senderType: 'user', messageText: message },
-      { id: `ai-${Date.now()}`, senderType: 'ai', messageText: result.answer },
+      {
+        id: `ai-${Date.now()}`,
+        senderType: 'ai',
+        messageText: result.answer,
+        recommendedPosts: Array.isArray(result.recommendedPosts) ? result.recommendedPosts.slice(0, 3) : [],
+      },
       ]);
       setDraft('');
       if (!isAuthenticated && typeof result.guestQuestionsRemaining === 'number') {
@@ -133,7 +139,41 @@ export default function AIChatbot() {
           <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-3 overflow-y-auto bg-[#F3F6EE]/40 p-4 text-sm">
             <p className="max-w-[88%] rounded-xl border border-[#DCE3D5] bg-white p-3 text-[#2B2A25]">{welcome}</p>
             {messages.map((item, index) => (
-              <p key={item.id || index} className={`max-w-[88%] whitespace-pre-wrap break-words rounded-xl p-3 ${item.senderType === 'user' ? 'ml-auto bg-[#2F5233] text-white' : 'border border-[#DCE3D5] bg-white text-[#2B2A25]'}`}>{item.messageText}</p>
+              <div key={item.id || index} className={`max-w-[88%] break-words rounded-xl p-3 ${item.senderType === 'user' ? 'ml-auto whitespace-pre-wrap bg-[#2F5233] text-white' : 'border border-[#DCE3D5] bg-white text-[#2B2A25]'}`}>
+                {item.senderType === 'ai' ? <ChatMarkdown content={item.messageText} /> : item.messageText}
+                {item.senderType === 'ai' && Array.isArray(item.recommendedPosts) && item.recommendedPosts.length > 0 && (
+                  <div aria-label="Suggested VeganHelper posts" className="mt-3 space-y-2">
+                    {item.recommendedPosts.slice(0, 3).map((post) => {
+                      const postId = post?.postId;
+                      const title = typeof post?.title === 'string' ? post.title.trim() : '';
+                      if (!postId || !title) return null;
+
+                      return (
+                        <Link
+                          key={postId}
+                          to={isAuthenticated ? `/posts/${postId}` : `/posts/${postId}/guest`}
+                          onClick={() => setIsOpen(false)}
+                          aria-label={`Open recipe post: ${title}`}
+                          className="flex min-h-16 min-w-0 items-center gap-3 rounded-xl border border-[#DCE3D5] bg-[#F8FAF5] p-2 text-[#2B2A25] transition-colors hover:bg-[#EAF0E9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233]"
+                        >
+                          {post.thumbnailUrl && (
+                            <img
+                              src={post.thumbnailUrl}
+                              alt=""
+                              loading="lazy"
+                              width="56"
+                              height="56"
+                              className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                            />
+                          )}
+                          <span className="min-w-0 flex-1 font-medium leading-snug [overflow-wrap:anywhere]">{title}</span>
+                          <span aria-hidden="true" className="shrink-0 text-[#2F5233]">→</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             ))}
             {busy && <p className="text-xs text-[#6B6F63]">Assistant is responding…</p>}
             <div ref={endRef} />
