@@ -39,7 +39,7 @@ function UserCard({ user, onOpenProfilePreview, isGuest = false, onAuthRequired 
           }
         }}
         aria-label={`Preview profile for ${user.displayName || user.username || 'user'}`}
-        className="bg-[#FDFBF6] hover:bg-white border border-[#DCE3D5] hover:border-[#2F5233] rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+        className="bg-[#FDFBF6] hover:bg-white border border-[#DCE3D5] hover:border-[#2F5233] rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transform-none transition-all duration-200 cursor-pointer group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
       >
         {/* Avatar */}
         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-2 ring-[#DCE3D5] group-hover:ring-[#2F5233]/40 transition-colors bg-[#E9EFE6]">
@@ -47,7 +47,7 @@ function UserCard({ user, onOpenProfilePreview, isGuest = false, onAuthRequired 
             src={avatarUrl}
             alt={user.displayName || user.username || 'User'}
             onError={() => setImageError(true)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
           />
         </div>
 

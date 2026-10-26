@@ -108,7 +108,7 @@ export default function CategoryFilterRow({
           type="button"
           onClick={() => handleScrollBy(-220)}
           aria-label="Scroll categories left"
-          className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-vh-surface/95 hover:bg-white text-vh-forest border border-vh-border/80 shadow-md items-center justify-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest cursor-pointer"
+          className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-vh-surface/95 hover:bg-white text-vh-forest border border-vh-border/80 shadow-md items-center justify-center transition-all hover:scale-105 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-1 cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -132,14 +132,14 @@ export default function CategoryFilterRow({
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUpOrLeave}
         onMouseLeave={onMouseUpOrLeave}
-        className="w-full flex items-center gap-2 overflow-x-auto py-1 px-1 text-xs sm:text-sm font-dm-sans cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="w-full flex items-center gap-2 overflow-x-auto py-1 px-1 text-xs sm:text-sm font-dm-sans cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] focus:outline-none focus-visible:ring-1 focus-visible:ring-vh-forest/40 rounded-lg"
         tabIndex={0}
         aria-label="Categories list, use left and right arrow keys to scroll"
       >
         <button
           type="button"
           onClick={() => handleCategoryClick(null)}
-          className={`px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest ${
+          className={`px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none ${
             selectedCategoryId === null
               ? 'bg-vh-forest text-white font-medium shadow-xs'
               : 'bg-vh-surface text-vh-text-secondary hover:text-vh-forest hover:bg-vh-mint/40 border border-vh-border/70'
@@ -155,7 +155,7 @@ export default function CategoryFilterRow({
               key={cat.id}
               type="button"
               onClick={() => handleCategoryClick(isSelected ? null : cat.id)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest ${
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none ${
                 isSelected
                   ? 'bg-vh-forest text-white font-medium shadow-xs'
                   : 'bg-vh-surface text-vh-text-secondary hover:text-vh-forest hover:bg-vh-mint/40 border border-vh-border/70'
@@ -181,7 +181,7 @@ export default function CategoryFilterRow({
           type="button"
           onClick={() => handleScrollBy(220)}
           aria-label="Scroll categories right"
-          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-vh-surface/95 hover:bg-white text-vh-forest border border-vh-border/80 shadow-md items-center justify-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest cursor-pointer"
+          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-vh-surface/95 hover:bg-white text-vh-forest border border-vh-border/80 shadow-md items-center justify-center transition-all hover:scale-105 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-1 cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

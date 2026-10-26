@@ -79,7 +79,7 @@ function Home() {
 
   useEffect(() => {
     setIsMounted(true);
-    
+
     const handleMouseMove = (e) => {
       if (window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       if (!collageRef.current) return;
@@ -88,7 +88,7 @@ function Home() {
       collageRef.current.style.setProperty('--mouse-x', `${x}px`);
       collageRef.current.style.setProperty('--mouse-y', `${y}px`);
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -105,10 +105,10 @@ function Home() {
       totalItemsRef.current = 0;
 
       try {
-        const data = await getPostsFeed({ 
-          pageIndex: 1, 
-          pageSize: 6, 
-          categoryId: selectedCategoryId 
+        const data = await getPostsFeed({
+          pageIndex: 1,
+          pageSize: 6,
+          categoryId: selectedCategoryId
         });
         if (isCancelled) return;
 
@@ -169,10 +169,10 @@ function Home() {
         postsPoolRef.current.length < totalItemsRef.current
       ) {
         const nextPage = apiPageRef.current + 1;
-        const data = await getPostsFeed({ 
-          pageIndex: nextPage, 
-          pageSize: 6, 
-          categoryId: selectedCategoryId 
+        const data = await getPostsFeed({
+          pageIndex: nextPage,
+          pageSize: 6,
+          categoryId: selectedCategoryId
         });
         apiPageRef.current = nextPage;
 
@@ -200,8 +200,8 @@ function Home() {
       setExploreRecipes(nextExplore);
 
       const totalExplore = Math.max(0, totalItemsRef.current - startIndex);
-      const noMoreAvailable = 
-        nextExplore.length < targetExploreCount && 
+      const noMoreAvailable =
+        nextExplore.length < targetExploreCount &&
         nextExplore.length >= (postsPoolRef.current.length - startIndex);
       setHasMore(nextExplore.length < totalExplore && !noMoreAvailable);
     } catch (err) {
@@ -227,23 +227,23 @@ function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-vh-cream overflow-x-clip">
       <HeaderMember />
-      
+
       {/* IMMERSIVE HERO */}
       <div className="relative w-full min-h-[650px] h-auto lg:h-[700px] py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-8 md:mb-10 bg-vh-cream">
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src={heroBg} 
+          <img
+            src={heroBg}
             alt=""
-            aria-hidden="true" 
+            aria-hidden="true"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-vh-cream/85 backdrop-blur-[2px]"></div>
         </div>
-        
+
         {/* Content Container */}
         <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 h-full flex flex-col md:flex-row items-center justify-between gap-12 mt-12 md:mt-0">
-          
+
           {/* Left Side: Text and Search */}
           <div className="w-full md:w-5/12 flex flex-col items-start text-left">
             <span className={`font-dm-sans text-vh-forest font-bold tracking-[0.15em] text-[11px] md:text-xs mb-4 uppercase transform transition-all duration-700 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -255,12 +255,12 @@ function Home() {
             <p className={`font-dm-sans text-vh-text-secondary text-[16px] md:text-lg max-w-[400px] mb-10 font-light leading-relaxed transform transition-all duration-700 delay-200 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               Explore the vibrant world of Vietnamese plant-based cuisine, starting in Ho Chi Minh City.
             </p>
-            
+
             <div className={`w-full max-w-[450px] transform transition-all duration-700 delay-300 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <SearchBar />
             </div>
-            
-            <button 
+
+            <button
               onClick={() => {
                 const targetEl = document.getElementById('social-feed');
                 if (targetEl) {
@@ -270,7 +270,7 @@ function Home() {
                 }
               }}
               style={{ transitionDelay: isMounted ? '400ms' : '0ms' }}
-              className={`mt-2 px-8 py-3.5 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-500 shadow-sm flex items-center gap-2 transform ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`mt-2 px-8 py-3.5 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 transition-all duration-500 shadow-sm flex items-center gap-2 transform ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
               Explore Vegan Recipes
               <svg className="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
@@ -278,38 +278,38 @@ function Home() {
           </div>
 
           {/* Right Side: Collage */}
-          <div 
+          <div
             ref={collageRef}
             className={`w-full md:w-7/12 flex items-center justify-center relative h-[350px] md:h-[500px] transform transition-all duration-1000 delay-[400ms] ease-out mt-8 md:mt-0 ${isMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
           >
-             {/* Secondary Image - Spring Rolls */}
-             <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * -1), calc(var(--mouse-y, 0px) * -1))' }} className="absolute top-16 left-8 z-10 transition-transform duration-300 ease-out hidden md:block">
-               <div className="w-[220px] h-[260px] lg:w-[240px] lg:h-[280px] bg-white p-3 rounded-xl shadow-xl shadow-black/10 -rotate-6 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
-                  <div className="w-full h-full overflow-hidden rounded shadow-inner">
-                    <img src={heroSpringRolls} alt="" aria-hidden="true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            {/* Secondary Image - Spring Rolls */}
+            <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * -1), calc(var(--mouse-y, 0px) * -1))' }} className="absolute top-16 left-8 z-10 transition-transform duration-300 ease-out hidden md:block">
+              <div className="w-[220px] h-[260px] lg:w-[240px] lg:h-[280px] bg-white p-3 rounded-xl shadow-xl shadow-black/10 -rotate-6 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
+                <div className="w-full h-full overflow-hidden rounded shadow-inner">
+                  <img src={heroSpringRolls} alt="" aria-hidden="true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Image - Pho */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:top-8 md:left-auto md:right-0 lg:right-8 z-20">
+              <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 0.5), calc(var(--mouse-y, 0px) * 0.5))' }} className="transition-transform duration-300 ease-out">
+                <div className="w-[260px] h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
+                  <div className="w-full h-full overflow-hidden rounded-xl shadow-inner">
+                    <img src={heroPho} alt="Vegan Pho" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   </div>
-               </div>
-             </div>
-             
-             {/* Primary Image - Pho */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:top-8 md:left-auto md:right-0 lg:right-8 z-20">
-               <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 0.5), calc(var(--mouse-y, 0px) * 0.5))' }} className="transition-transform duration-300 ease-out">
-                 <div className="w-[260px] h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
-                    <div className="w-full h-full overflow-hidden rounded-xl shadow-inner">
-                      <img src={heroPho} alt="Vegan Pho" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    </div>
-                 </div>
-               </div>
-             </div>
-             
-             {/* Tertiary Image */}
-             <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 1.5), calc(var(--mouse-y, 0px) * 1.5))' }} className="absolute bottom-10 left-24 lg:left-32 z-10 transition-transform duration-300 ease-out hidden md:block">
-               <div className="w-[180px] h-[220px] lg:w-[200px] lg:h-[240px] bg-white p-2.5 rounded-xl shadow-lg shadow-black/10 rotate-12 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
-                  <div className="w-full h-full overflow-hidden rounded shadow-inner">
-                    <img src={heroSalad} alt="" aria-hidden="true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  </div>
-               </div>
-             </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tertiary Image */}
+            <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 1.5), calc(var(--mouse-y, 0px) * 1.5))' }} className="absolute bottom-10 left-24 lg:left-32 z-10 transition-transform duration-300 ease-out hidden md:block">
+              <div className="w-[180px] h-[220px] lg:w-[200px] lg:h-[240px] bg-white p-2.5 rounded-xl shadow-lg shadow-black/10 rotate-12 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
+                <div className="w-full h-full overflow-hidden rounded shadow-inner">
+                  <img src={heroSalad} alt="" aria-hidden="true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -348,7 +348,7 @@ function Home() {
                   type="button"
                   onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
                   aria-label="Create a post"
-                  className="flex-1 px-5 py-3 sm:py-3.5 bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 rounded-full text-xs sm:text-sm font-dm-sans text-vh-text-secondary transition-all text-left truncate cursor-pointer shadow-2xs focus-ring-vh"
+                  className="flex-1 px-5 py-3 sm:py-3.5 bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 rounded-full text-xs sm:text-sm font-dm-sans text-vh-text-secondary transition-all text-left truncate cursor-pointer shadow-2xs focus-ring-vh active:scale-[0.99] motion-reduce:transform-none"
                 >
                   What are you sharing today, {user?.displayName || 'friend'}?
                 </button>
@@ -356,7 +356,7 @@ function Home() {
                   type="button"
                   onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
                   aria-label="Create Post"
-                  className="shrink-0 rounded-full bg-vh-forest px-4 py-3 font-dm-sans text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1D3D2D] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 sm:px-5 sm:py-3.5 sm:text-sm"
+                  className="shrink-0 rounded-full bg-vh-forest px-4 py-3 font-dm-sans text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1D3D2D] hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 sm:px-5 sm:py-3.5 sm:text-sm cursor-pointer"
                 >
                   <span>Create Post</span>
                 </button>
@@ -388,15 +388,15 @@ function Home() {
             ) : (
               <div className="space-y-8">
                 {featuredPost && (
-                  <FeaturedPost 
-                    post={featuredPost} 
-                    isGuest={false} 
+                  <FeaturedPost
+                    post={featuredPost}
+                    isGuest={false}
                     onOpenProfilePreview={handleOpenProfilePreview}
                   />
                 )}
-                <PostList 
-                  posts={exploreRecipes} 
-                  isGuest={false} 
+                <PostList
+                  posts={exploreRecipes}
+                  isGuest={false}
                   onLoadMore={handleLoadMore}
                   hasMore={hasMore}
                   loadingMore={loadingMore}

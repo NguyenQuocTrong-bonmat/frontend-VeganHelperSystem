@@ -133,8 +133,9 @@ describe('MY-POSTS-MODERATION-STATUS-01: Moderation Status System in My Posts', 
 
     const card = container.querySelector('[data-testid="post-card-102"]');
     expect(card).not.toBeNull();
-    expect(card.className).toContain('border-red-400');
-    // Red status strip at top
+    expect(card.className).toContain('border-[#DCE5D9]');
+    expect(card.className).not.toContain('border-red-400');
+    // Subtle red status strip at top
     expect(card.querySelector('[data-testid="post-red-strip"]')).not.toBeNull();
 
     // Concise explanatory notice
@@ -204,14 +205,16 @@ describe('MY-POSTS-MODERATION-STATUS-01: Moderation Status System in My Posts', 
 
     const cardHidden = container.querySelector('[data-testid="post-card-103"]');
     expect(cardHidden).not.toBeNull();
-    expect(cardHidden.className).toContain('border-red-400');
+    expect(cardHidden.className).toContain('border-[#DCE5D9]');
+    expect(cardHidden.className).not.toContain('border-red-400');
     expect(cardHidden.querySelector('[data-testid="post-red-strip"]')).not.toBeNull();
     expect(cardHidden.textContent).toContain('Hidden');
     expect(cardHidden.textContent).toContain('This post is not currently visible to the public');
 
     const cardRejected = container.querySelector('[data-testid="post-card-104"]');
     expect(cardRejected).not.toBeNull();
-    expect(cardRejected.className).toContain('border-red-400');
+    expect(cardRejected.className).toContain('border-[#DCE5D9]');
+    expect(cardRejected.className).not.toContain('border-red-400');
     expect(cardRejected.querySelector('[data-testid="post-red-strip"]')).not.toBeNull();
     expect(cardRejected.textContent).toContain('Rejected');
     expect(cardRejected.textContent).toContain('This post is not currently visible to the public');

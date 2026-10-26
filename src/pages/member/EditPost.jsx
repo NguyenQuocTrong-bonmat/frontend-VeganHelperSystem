@@ -57,17 +57,17 @@ export default function EditPost() {
         setPrepTimeMins(data.prepTimeMins || 15);
         setCookingTimeMins(data.cookingTimeMins || 30);
         setDietType(data.dietType || 'vegan');
-        
+
         // Populate arrays safely, handling object DTOs from backend
         if (data.ingredients && data.ingredients.length > 0) {
-           setIngredients(data.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || ''));
+          setIngredients(data.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name || ''));
         }
         if (data.steps && data.steps.length > 0) {
-           setSteps(data.steps.map(step => typeof step === 'string' ? step : step.description || step.instruction || ''));
+          setSteps(data.steps.map(step => typeof step === 'string' ? step : step.description || step.instruction || ''));
         }
-        
+
         if (data.media && data.media.length > 0) {
-           setExistingMedia(data.media);
+          setExistingMedia(data.media);
         }
       } catch (err) {
         if (cancelled) return;
@@ -85,7 +85,7 @@ export default function EditPost() {
       await Promise.all([loadCats(), loadPost()]);
       if (!cancelled) setIsFetching(false);
     }
-    
+
     initData();
     return () => { cancelled = true; };
   }, [id, navigate]);
@@ -143,7 +143,7 @@ export default function EditPost() {
         ingredients: ingredients.filter((i) => i.trim() !== ''),
         steps: steps.filter((s) => s.trim() !== ''),
       };
-      
+
       await updatePost(id, payload);
       toast.success('Post updated successfully!');
       navigate('/my-posts');
@@ -189,311 +189,311 @@ export default function EditPost() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10 space-y-10">
-          
-          {/* Post Information */}
-          <section className="space-y-6">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Post Information</h2>
-            
-            <div>
-              <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                Title <span className="text-vh-error">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Traditional Hue Style Vegan Pho"
-                className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-              />
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Post Information */}
+            <section className="space-y-6">
+              <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Post Information</h2>
+
               <div>
                 <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                  Category <span className="text-vh-error">*</span>
+                  Title <span className="text-vh-error">*</span>
                 </label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Traditional Hue Style Vegan Pho"
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                    Category <span className="text-vh-error">*</span>
+                  </label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                    Diet Type
+                  </label>
+                  <select
+                    value={dietType}
+                    onChange={(e) => setDietType(e.target.value)}
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                  >
+                    <option value="vegan">Vegan</option>
+                    <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                  Diet Type
+                  Description <span className="text-vh-error">*</span>
                 </label>
-                <select
-                  value={dietType}
-                  onChange={(e) => setDietType(e.target.value)}
-                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                >
-                  <option value="vegan">Vegan</option>
-                  <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
-                </select>
+                <textarea
+                  rows="4"
+                  required
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Introduce your recipe, culinary background or special notes..."
+                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
+                ></textarea>
               </div>
-            </div>
+            </section>
 
-            <div>
-              <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                Description <span className="text-vh-error">*</span>
-              </label>
-              <textarea
-                rows="4"
-                required
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Introduce your recipe, culinary background or special notes..."
-                className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
-              ></textarea>
-            </div>
-          </section>
+            {/* Recipe Cover */}
+            <section className="space-y-4">
+              <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Recipe Cover</h2>
 
-          {/* Recipe Cover */}
-          <section className="space-y-4">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Recipe Cover</h2>
-            
-            <div className="w-full">
-              <input
-                type="file"
-                multiple
-                onChange={(e) => {
-                  const selectedFiles = Array.from(e.target.files || []);
-                  if (selectedFiles.length > 0) setMediaFiles(prev => [...prev, ...selectedFiles]);
-                  e.target.value = '';
-                }}
-                className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
-              />
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
-                {/* Hiển thị Existing Media */}
-                {existingMedia.filter(m => !removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
-                  <div key={`existing-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-sage/40 group shadow-sm bg-vh-surface">
-                    <div className="absolute top-2 left-2 bg-vh-mint/90 text-vh-forest text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
-                      Existing {m.mediaType}
-                    </div>
-                    {m.mediaType === 'video' ? (
-                      <video src={m.mediaUrl} className="w-full h-full object-cover opacity-80" controls />
-                    ) : (
-                      <img src={m.mediaUrl} alt="Existing" className="w-full h-full object-cover opacity-80" />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setRemovedMediaUrls([...removedMediaUrls, m.mediaUrl])}
-                      className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
-                      title="Remove existing media"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                    </button>
-                  </div>
-                ))}
-                
-                {/* Hiển thị Existing Media Đã Xóa (Hoàn tác) */}
-                {existingMedia.filter(m => removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
-                  <div key={`removed-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-red-300 group shadow-sm bg-red-50/50">
-                    <div className="absolute inset-0 bg-red-100/50 flex flex-col items-center justify-center z-10">
-                      <span className="text-vh-error font-medium mb-2">Deleted</span>
+              <div className="w-full">
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    const selectedFiles = Array.from(e.target.files || []);
+                    if (selectedFiles.length > 0) setMediaFiles(prev => [...prev, ...selectedFiles]);
+                    e.target.value = '';
+                  }}
+                  className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
+                />
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+                  {/* Hiển thị Existing Media */}
+                  {existingMedia.filter(m => !removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
+                    <div key={`existing-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-sage/40 group shadow-sm bg-vh-surface">
+                      <div className="absolute top-2 left-2 bg-vh-mint/90 text-vh-forest text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
+                        Existing {m.mediaType}
+                      </div>
+                      {m.mediaType === 'video' ? (
+                        <video src={m.mediaUrl} className="w-full h-full object-cover opacity-80" controls />
+                      ) : (
+                        <img src={m.mediaUrl} alt="Existing" className="w-full h-full object-cover opacity-80" />
+                      )}
                       <button
                         type="button"
-                        onClick={() => setRemovedMediaUrls(removedMediaUrls.filter(url => url !== m.mediaUrl))}
-                        className="px-3 py-1 bg-white rounded-control text-vh-text-primary hover:text-vh-forest text-sm font-medium shadow-sm transition-colors"
+                        onClick={() => setRemovedMediaUrls([...removedMediaUrls, m.mediaUrl])}
+                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
+                        title="Remove existing media"
                       >
-                        Undo
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                       </button>
                     </div>
-                    {m.mediaType === 'video' ? (
-                      <video src={m.mediaUrl} className="w-full h-full object-cover opacity-20 grayscale" />
-                    ) : (
-                      <img src={m.mediaUrl} alt="Deleted" className="w-full h-full object-cover opacity-20 grayscale" />
-                    )}
-                  </div>
-                ))}
+                  ))}
 
-                {/* Hiển thị New Media */}
-                {mediaFiles.map((file, idx) => (
-                  <div key={`new-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
-                    {file.type.startsWith('video/') ? (
-                      <video src={URL.createObjectURL(file)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow" controls />
-                    ) : (
-                      <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow" />
-                    )}
-                    <div className="absolute top-2 left-2 bg-blue-500/80 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
-                      New {file.type.startsWith('video/') ? 'Video' : 'Image'}
+                  {/* Hiển thị Existing Media Đã Xóa (Hoàn tác) */}
+                  {existingMedia.filter(m => removedMediaUrls.includes(m.mediaUrl)).map((m, idx) => (
+                    <div key={`removed-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-red-300 group shadow-sm bg-red-50/50">
+                      <div className="absolute inset-0 bg-red-100/50 flex flex-col items-center justify-center z-10">
+                        <span className="text-vh-error font-medium mb-2">Deleted</span>
+                        <button
+                          type="button"
+                          onClick={() => setRemovedMediaUrls(removedMediaUrls.filter(url => url !== m.mediaUrl))}
+                          className="px-3 py-1 bg-white rounded-control text-vh-text-primary hover:text-vh-forest text-sm font-medium shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
+                        >
+                          Undo
+                        </button>
+                      </div>
+                      {m.mediaType === 'video' ? (
+                        <video src={m.mediaUrl} className="w-full h-full object-cover opacity-20 grayscale" />
+                      ) : (
+                        <img src={m.mediaUrl} alt="Deleted" className="w-full h-full object-cover opacity-20 grayscale" />
+                      )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
-                      className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer"
-                      title="Remove new media"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                    </button>
+                  ))}
+
+                  {/* Hiển thị New Media */}
+                  {mediaFiles.map((file, idx) => (
+                    <div key={`new-${idx}`} className="relative aspect-square rounded-card overflow-hidden border border-vh-border group shadow-sm">
+                      {file.type.startsWith('video/') ? (
+                        <video src={URL.createObjectURL(file)} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 motion-reduce:transform-none" controls />
+                      ) : (
+                        <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 motion-reduce:transform-none" />
+                      )}
+                      <div className="absolute top-2 left-2 bg-blue-500/80 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-2 py-1 rounded-control shadow-sm z-10 pointer-events-none">
+                        New {file.type.startsWith('video/') ? 'Video' : 'Image'}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setMediaFiles(mediaFiles.filter((_, i) => i !== idx))}
+                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2 text-vh-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-floating cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
+                        title="Remove new media"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Cooking Details */}
+            <section className="space-y-6">
+              <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details (Optional)</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                    Prep Time (mins)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={prepTimeMins}
+                    onChange={(e) => setPrepTimeMins(e.target.value)}
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                    Cook Time (mins)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={cookingTimeMins}
+                    onChange={(e) => setCookingTimeMins(e.target.value)}
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-vh-text-primary mb-2">
+                    Difficulty
+                  </label>
+                  <select
+                    value={difficultyLevel}
+                    onChange={(e) => setDifficultyLevel(e.target.value)}
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* Ingredients */}
+            <section className="space-y-4">
+              <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Ingredients (Optional)</h2>
+              <div className="space-y-3">
+                {ingredients.map((ing, idx) => (
+                  <div key={idx} className="flex gap-3 group items-center">
+                    <span className="text-vh-sage font-medium w-6 shrink-0 text-right">{idx + 1}.</span>
+                    <input
+                      type="text"
+                      value={ing}
+                      onChange={(e) => handleIngredientChange(e.target.value, idx)}
+                      placeholder="e.g. 2 cups of fresh basil"
+                      className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                    />
+                    {ingredients.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveIngredient(idx)}
+                        className="p-2 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
+                        title="Remove ingredient"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
-            </div>
-          </section>
+              <button
+                type="button"
+                onClick={handleAddIngredient}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Ingredient
+              </button>
+            </section>
 
-          {/* Cooking Details */}
-          <section className="space-y-6">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details (Optional)</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                  Prep Time (mins)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={prepTimeMins}
-                  onChange={(e) => setPrepTimeMins(e.target.value)}
-                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                />
+            {/* Cooking Instructions */}
+            <section className="space-y-4">
+              <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Step-by-Step Instructions (Optional)</h2>
+              <div className="space-y-3">
+                {steps.map((st, idx) => (
+                  <div key={idx} className="flex gap-3 group items-start">
+                    <span className="text-vh-sage font-medium w-6 shrink-0 pt-3 text-right">{idx + 1}.</span>
+                    <textarea
+                      rows="2"
+                      value={st}
+                      onChange={(e) => handleStepChange(e.target.value, idx)}
+                      placeholder="Describe this step..."
+                      className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
+                    />
+                    {steps.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStep(idx)}
+                        className="p-2 mt-1 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
+                        title="Remove step"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                  Cook Time (mins)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={cookingTimeMins}
-                  onChange={(e) => setCookingTimeMins(e.target.value)}
-                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-vh-text-primary mb-2">
-                  Difficulty
-                </label>
-                <select
-                  value={difficultyLevel}
-                  onChange={(e) => setDifficultyLevel(e.target.value)}
-                  className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                >
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-              </div>
-            </div>
-          </section>
+              <button
+                type="button"
+                onClick={handleAddStep}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Step
+              </button>
+            </section>
 
-          {/* Ingredients */}
-          <section className="space-y-4">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Ingredients (Optional)</h2>
-            <div className="space-y-3">
-              {ingredients.map((ing, idx) => (
-                <div key={idx} className="flex gap-3 group items-center">
-                  <span className="text-vh-sage font-medium w-6 shrink-0 text-right">{idx + 1}.</span>
-                  <input
-                    type="text"
-                    value={ing}
-                    onChange={(e) => handleIngredientChange(e.target.value, idx)}
-                    placeholder="e.g. 2 cups of fresh basil"
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
-                  />
-                  {ingredients.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveIngredient(idx)}
-                      className="p-2 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-colors"
-                      title="Remove ingredient"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
+            {/* Form Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pt-8 border-t border-vh-border">
+              <button
+                type="button"
+                onClick={() => navigate('/my-posts')}
+                className="w-full sm:w-auto px-6 py-3 rounded-control border-2 border-vh-sage/30 text-base font-medium text-vh-text-secondary hover:bg-vh-sage/10 hover:text-vh-forest transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto px-8 py-3 rounded-control bg-vh-forest text-white text-base font-medium hover:bg-[#1a3829] transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-floating cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </span>
+                ) : 'Save Changes'}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleAddIngredient}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-colors cursor-pointer"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Ingredient
-            </button>
-          </section>
-
-          {/* Cooking Instructions */}
-          <section className="space-y-4">
-            <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Step-by-Step Instructions (Optional)</h2>
-            <div className="space-y-3">
-              {steps.map((st, idx) => (
-                <div key={idx} className="flex gap-3 group items-start">
-                  <span className="text-vh-sage font-medium w-6 shrink-0 pt-3 text-right">{idx + 1}.</span>
-                  <textarea
-                    rows="2"
-                    value={st}
-                    onChange={(e) => handleStepChange(e.target.value, idx)}
-                    placeholder="Describe this step..."
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal resize-y"
-                  />
-                  {steps.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStep(idx)}
-                      className="p-2 mt-1 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-control transition-colors"
-                      title="Remove step"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={handleAddStep}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-vh-forest bg-vh-mint/50 hover:bg-vh-mint rounded-control transition-colors cursor-pointer"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Step
-            </button>
-          </section>
-
-          {/* Form Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pt-8 border-t border-vh-border">
-            <button
-              type="button"
-              onClick={() => navigate('/my-posts')}
-              className="w-full sm:w-auto px-6 py-3 rounded-control border-2 border-vh-sage/30 text-base font-medium text-vh-text-secondary hover:bg-vh-sage/10 hover:text-vh-forest transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto px-8 py-3 rounded-control bg-vh-forest text-white text-base font-medium hover:bg-[#1a3829] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-floating cursor-pointer"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving...
-                </span>
-              ) : 'Save Changes'}
-            </button>
-          </div>
-        </form>
+          </form>
         )}
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../context/AuthContext';
 import { getAdminDashboardOverview, getAdminDashboardActivity, getAdminDashboardCategories, getAdminAuditLogs } from '../../services/adminService';
@@ -61,6 +62,7 @@ function useDashboardResource(kind, range, interval, retry) {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
   const [velocityPeriod, setVelocityPeriod] = useState('day');
   const [range, setRange] = useState(defaultRange);
   const [draftRange, setDraftRange] = useState(range);
@@ -135,14 +137,14 @@ export default function AdminDashboard() {
 
           {/* Date Range Selector nicely aligned */}
           <form onSubmit={applyRange} className="flex flex-wrap items-end gap-2 text-xs text-[#2B2A25]">
-            <label className="grid gap-1">From (UTC)<input aria-label="From (UTC)" type="date" required min="2000-01-01" max={utcDay(new Date())} value={draftRange.from} onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2" /></label>
-            <label className="grid gap-1">To (UTC)<input aria-label="To (UTC)" type="date" required min={draftRange.from} max={utcDay(new Date())} value={draftRange.to} onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2" /></label>
-            <button type="submit" className="rounded-xl bg-[#2F5233] px-4 py-2.5 text-white">Apply</button>
+            <label className="grid gap-1">From (UTC)<input aria-label="From (UTC)" type="date" required min="2000-01-01" max={utcDay(new Date())} value={draftRange.from} onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all" /></label>
+            <label className="grid gap-1">To (UTC)<input aria-label="To (UTC)" type="date" required min={draftRange.from} max={utcDay(new Date())} value={draftRange.to} onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all" /></label>
+            <button type="submit" className="rounded-xl bg-[#2F5233] hover:bg-[#25401F] px-4 py-2.5 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Apply</button>
           </form>
         </div>
         {rangeError && <p role="alert" className="text-sm text-[#A63446]">{rangeError}</p>}
         {loading && <p role="status" className="text-sm text-[#6B6F63]">Loading dashboard…</p>}
-        {error && <div role="alert" className="rounded-xl border border-[#A63446] p-4 text-[#A63446]">{error}<button type="button" onClick={() => setRetry((value) => value + 1)} className="ml-4 underline">Retry</button></div>}
+        {error && <div role="alert" className="rounded-xl border border-[#A63446] p-4 text-[#A63446]">{error}<button type="button" onClick={() => setRetry((value) => value + 1)} className="ml-4 underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80">Retry</button></div>}
 
         {/* ============================================================== */}
         {/* 2. MAIN 3-COLUMN DASHBOARD GRID */}
@@ -215,30 +217,64 @@ export default function AdminDashboard() {
 
                     <div className="flex items-center gap-2">
                       {/* Group creation counts by calendar day, week or month. */}
-                      <div className="flex items-center bg-[#EAF0E9] p-1 rounded-full text-xs border border-[#DCE3D5]">
+                      <div className="flex items-center bg-[#EAF0E9] p-1 rounded-full text-xs border border-[#DCE3D5]" role="group" aria-label="Velocity period selection">
                         <button
+                          type="button"
                           aria-pressed={velocityPeriod === 'day'}
                           onClick={() => setVelocityPeriod('day')}
-                          className={`px-3 py-1 rounded-full font-medium transition-all ${
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
                             velocityPeriod === 'day'
-                              ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                              ? 'text-white font-semibold'
                               : 'text-[#6B6F63] hover:text-[#2B2A25]'
                           }`}
                         >
-                          Daily
+                          {velocityPeriod === 'day' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Daily</span>
                         </button>
                         <button
+                          type="button"
                           aria-pressed={velocityPeriod === 'week'}
                           onClick={() => setVelocityPeriod('week')}
-                          className={`px-3 py-1 rounded-full font-medium transition-all ${
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
                             velocityPeriod === 'week'
-                              ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                              ? 'text-white font-semibold'
                               : 'text-[#6B6F63] hover:text-[#2B2A25]'
                           }`}
                         >
-                          Weekly
+                          {velocityPeriod === 'week' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Weekly</span>
                         </button>
-                        <button type="button" aria-pressed={velocityPeriod === 'month'} onClick={() => setVelocityPeriod('month')} className={`px-3 py-1 rounded-full font-medium ${velocityPeriod === 'month' ? 'bg-[#2F5233] text-white' : 'text-[#6B6F63]'}`}>Monthly</button>
+                        <button 
+                          type="button" 
+                          aria-pressed={velocityPeriod === 'month'} 
+                          onClick={() => setVelocityPeriod('month')} 
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
+                            velocityPeriod === 'month' 
+                              ? 'text-white font-semibold' 
+                              : 'text-[#6B6F63] hover:text-[#2B2A25]'
+                          }`}
+                        >
+                          {velocityPeriod === 'month' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Monthly</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -303,7 +339,7 @@ export default function AdminDashboard() {
             {/* Bottom Wide Table: Recent Activity & Audit Log (Spanning Col 1 & 2) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs">
               <div className="pb-4 border-b border-[#DCE3D5]">
-                <Link to="/admin/audit-logs" className="font-semibold text-base text-[#2B2A25] hover:underline">Audit Trail & Recent Events</Link>
+                <Link to="/admin/audit-logs" className="font-semibold text-base text-[#2B2A25] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-0.5 active:opacity-80">Audit Trail & Recent Events</Link>
                 <p className="text-xs text-[#6B6F63]">Recent platform management actions</p>
               </div>
 
@@ -323,7 +359,7 @@ export default function AdminDashboard() {
                     {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">Loading audit events…</td></tr>}
                     {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
                     {recentEvents.map((row) => (
-                      <tr key={row.id} className="hover:bg-[#FAFBF9] transition-colors">
+                      <tr key={row.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         <td className="py-3 px-2 overflow-hidden">
                           <div className="min-w-0">
                             <p className="font-semibold text-[#2B2A25] truncate" title={row.name}>{row.name}</p>
@@ -446,7 +482,7 @@ export default function AdminDashboard() {
 
               <div className="flex items-center justify-between mt-4">
                 <h2 className="text-3xl font-extrabold text-[#2B2A25]">{metric(overview?.moderation.totalPending)} Items</h2>
-                <Link to="/admin/content" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">Review</Link>
+                <Link to="/admin/content" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] hover:bg-[#DCE5D9] text-[#2F5233] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">Review</Link>
               </div>
               <p className="mt-3 text-xs text-[#6B6F63]">{metric(overview?.moderation.aiFlaggedPosts)} AI flagged posts · {metric(overview?.moderation.reportedPosts)} reported posts · {metric(overview?.moderation.reportedComments)} reported comments</p>
               <p className="mt-1 text-xs text-[#6B6F63]">Current pending content. A post flagged by both AI and users is counted once in the total.</p>

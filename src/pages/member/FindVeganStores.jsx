@@ -364,7 +364,7 @@ function FindVeganStores() {
           <button
             onClick={handleGetMyLocation}
             disabled={isLocating}
-            className="w-10 h-10 bg-white rounded-lg shadow-md border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] transition-colors focus:outline-none"
+            className="w-10 h-10 bg-white rounded-lg shadow-md border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
             title="My Location"
           >
             {isLocating ? (
@@ -380,7 +380,7 @@ function FindVeganStores() {
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 hidden md:block">
             <button
               onClick={handleSearchThisArea}
-              className="px-4 py-2 bg-white rounded-full shadow-md text-sm font-medium text-[#2F5233] hover:bg-[#FDFBF6] border border-[#DCE3D5] transition-all"
+              className="px-4 py-2 bg-white rounded-full shadow-md text-sm font-medium text-[#2F5233] hover:bg-[#FDFBF6] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
             >
               Search this area
             </button>
@@ -408,7 +408,7 @@ function FindVeganStores() {
                   </div>
                 )}
               </div>
-              <button className="md:hidden text-[#6B6F63] shrink-0" onClick={(e) => { e.stopPropagation(); setIsPanelExpanded(!isPanelExpanded); }}>
+              <button className="md:hidden text-[#6B6F63] shrink-0 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none" onClick={(e) => { e.stopPropagation(); setIsPanelExpanded(!isPanelExpanded); }}>
                 <svg className={`w-6 h-6 transition-transform ${isPanelExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
               </button>
             </div>
@@ -431,12 +431,12 @@ function FindVeganStores() {
                   }
                 }}
                 placeholder="Search by store name..."
-                className="w-full pl-11 pr-4 py-3 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[14px] text-[#2B2A25] placeholder:text-[#6B6F63] focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
+                className="w-full pl-11 pr-4 py-3 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[14px] text-[#2B2A25] placeholder:text-[#6B6F63] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all"
               />
             </div>
 
             {showSearchThisArea && (
-              <button onClick={(e) => { e.stopPropagation(); handleSearchThisArea(); }} className="w-full md:hidden py-2 bg-[#FDFBF6] rounded-xl shadow-sm text-sm font-medium text-[#2F5233] border border-[#DCE3D5]">
+              <button onClick={(e) => { e.stopPropagation(); handleSearchThisArea(); }} className="w-full md:hidden py-2 bg-[#FDFBF6] rounded-xl shadow-sm text-sm font-medium text-[#2F5233] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">
                 Search this area
               </button>
             )}
@@ -506,7 +506,15 @@ function FindVeganStores() {
                     }
                     hideShopTooltip(shop.shopId);
                   }}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer shadow-sm flex flex-col ${isSelected ? 'bg-[#F3F6EE] border-[#2F5233]' : 'bg-white border-[#DCE3D5] hover:border-[#2F5233]'}`}
+                  className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none ${isSelected ? 'bg-[#F3F6EE] border-[#2F5233]' : 'bg-white border-[#DCE3D5] hover:border-[#2F5233]'}`}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectShop(shop);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-2.5 mb-2 min-w-0">
                     <span className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#2F5233] text-white' : 'bg-[#E9EFE6] text-[#2F5233]'}`}>
@@ -529,7 +537,7 @@ function FindVeganStores() {
                             href={mapsDirUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 bg-[#2F5233] text-white rounded-lg text-xs font-medium hover:bg-[#223d26] transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-[#2F5233] text-white rounded-lg text-xs font-medium hover:bg-[#223d26] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                             Directions
@@ -540,7 +548,7 @@ function FindVeganStores() {
                             href={mapsSearchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#2F5233] border border-[#2F5233] rounded-lg text-xs font-medium hover:bg-[#F3F6EE] transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#2F5233] border border-[#2F5233] rounded-lg text-xs font-medium hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                           >
                             Google Maps
                           </a>

@@ -52,7 +52,7 @@ export function resolvePostStatus(post) {
       isRestricted: true,
       isRed: true,
       badgeClass: 'bg-red-50 text-red-700 border-red-200',
-      borderClass: 'border-red-400 ring-1 ring-red-200',
+      borderClass: 'border-[#DCE5D9]',
       message: 'This post is under moderation review',
     };
   }
@@ -67,7 +67,7 @@ export function resolvePostStatus(post) {
       isRestricted: true,
       isRed: true,
       badgeClass: 'bg-red-100 text-red-800 border-red-300',
-      borderClass: 'border-red-400 ring-1 ring-red-200',
+      borderClass: 'border-[#DCE5D9]',
       message: 'This post is not currently visible to the public',
     };
   }
@@ -81,7 +81,7 @@ export function resolvePostStatus(post) {
       isRestricted: true,
       isRed: true,
       badgeClass: 'bg-red-100 text-red-800 border-red-300',
-      borderClass: 'border-red-400 ring-1 ring-red-200',
+      borderClass: 'border-[#DCE5D9]',
       message: 'This post is not currently visible to the public',
     };
   }
@@ -97,7 +97,7 @@ export function resolvePostStatus(post) {
         isRestricted: true,
         isRed: true,
         badgeClass: 'bg-red-50 text-red-700 border-red-200',
-        borderClass: 'border-red-400 ring-1 ring-red-200',
+        borderClass: 'border-[#DCE5D9]',
         message: 'This post is under moderation review',
       };
     }
@@ -245,18 +245,18 @@ export function PostStatusNotice({ post, reason = null, className = '' }) {
     <div
       data-testid="post-status-notice"
       role="status"
-      className={`p-3 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-800 flex flex-col gap-1.5 ${className}`}
+      className={`p-3 rounded-xl bg-rose-50/90 border border-rose-200/80 text-xs text-rose-900 flex flex-col gap-1.5 ${className}`}
     >
-      <div className="flex items-center gap-1.5 font-medium text-red-700">
-        <svg className="w-4 h-4 shrink-0 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+      <div className="flex items-center gap-1.5 font-medium text-rose-800">
+        <svg className="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
         </svg>
         <span className="font-semibold">{statusInfo.message}</span>
       </div>
 
       {reason && (
-        <div data-testid="moderation-reason" className="pt-2 mt-0.5 border-t border-red-200/70 text-red-900/90 text-xs break-words leading-relaxed">
-          <strong className="font-semibold text-red-800">Reason: </strong>
+        <div data-testid="moderation-reason" className="pt-2 mt-0.5 border-t border-rose-200/70 text-rose-950/90 text-xs break-words leading-relaxed">
+          <strong className="font-semibold text-rose-900">Reason: </strong>
           <span>{reason}</span>
         </div>
       )}

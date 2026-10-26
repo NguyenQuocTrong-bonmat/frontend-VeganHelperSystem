@@ -8,14 +8,21 @@ import { getFollowStatus, getFollowers, getFollowing } from '../../services/user
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/dateUtils';
+import { motion, useReducedMotion } from 'framer-motion';
 import SavedPosts from './SavedPosts';
 import FollowListModal from '../../components/home/FollowListModal';
+import ModalMotion from '../../components/ui/ModalMotion';
 import PostStatusBadge, { resolvePostStatus, extractModerationReason, PostStatusNotice } from '../../components/posts/PostStatusBadge';
+import RecipeMediaRenderer from '../../components/posts/RecipeMediaRenderer';
+
+// Shared media renderer with video detection, muted hover preview, and botanical fallback
+const RecipeCardImage = RecipeMediaRenderer;
 
 function MyPosts({ notifications = [] } = {}) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+  const shouldReduceMotion = useReducedMotion();
+
   const [activeTab, setActiveTab] = useState('my-posts');
   const [posts, setPosts] = useState([]);
   const [totalPostsCount, setTotalPostsCount] = useState(null);
@@ -122,7 +129,7 @@ function MyPosts({ notifications = [] } = {}) {
           followingCount,
           loading: false,
         });
-      }).catch(() => {});
+      }).catch(() => { });
     };
 
     window.addEventListener('veganhelper:follow-changed', handleFollowChanged);
@@ -239,9 +246,9 @@ function MyPosts({ notifications = [] } = {}) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F0]">
       <HeaderMember />
-      
+
       {errorMessage && (
-        <div className="mx-auto w-full max-w-[1040px] px-6 pt-4">
+        <div className="mx-auto w-full max-w-[1140px] px-4 sm:px-6 md:px-8 pt-4">
           <div role="alert" className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -263,32 +270,33 @@ function MyPosts({ notifications = [] } = {}) {
         </div>
       )}
 
-      {/* COMPACT SOCIAL PROFILE HEADER (Instagram & Facebook Inspired) */}
-      <section className="w-full bg-[#FAF8F0] border-b border-[#DCE5D9]">
-        <div className="max-w-[1040px] mx-auto px-6 pt-8 pb-8 md:pt-10 md:pb-10">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10">
-            {/* Avatar Column */}
-            <div className="shrink-0">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-[#E9EFE6] ring-1 ring-[#DCE5D9] flex items-center justify-center">
-                {user?.avatarUrl ? (
-                  <img
-                    src={getImageUrl(user.avatarUrl)}
-                    alt={user.displayName || 'Avatar'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center font-fraunces text-4xl sm:text-5xl font-bold text-[#2F5233] bg-[#E9EFE6] select-none">
-                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* BOTANICAL EDITORIAL PROFILE HEADER */}
+      <section className="w-full bg-[#FAF8F0] border-b border-[#DCE5D9]/80">
+        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
 
-            {/* Profile Info Column */}
-            <div className="flex-1 text-center md:text-left min-w-0">
-              {/* Name, Username & Quick Actions Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
-                <div className="flex items-center justify-center md:justify-start gap-2.5 flex-wrap">
+            {/* Left & Center: Identity + Bio + Stats */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 flex-1 min-w-0 text-center sm:text-left">
+              {/* Avatar */}
+              <div className="shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white shadow-sm overflow-hidden bg-[#E9EFE6] ring-1 ring-[#DCE5D9] flex items-center justify-center">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={getImageUrl(user.avatarUrl)}
+                      alt={user.displayName || 'Avatar'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-fraunces text-3xl sm:text-4xl font-bold text-[#2F5233] bg-[#E9EFE6] select-none">
+                      {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Information Column */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap mb-1">
                   <h1 className="font-fraunces text-2xl sm:text-3xl font-semibold text-[#2B2A25] tracking-tight">
                     {user?.displayName || 'Creator'}
                   </h1>
@@ -299,175 +307,208 @@ function MyPosts({ notifications = [] } = {}) {
                   )}
                 </div>
 
-                <div className="flex items-center justify-center md:justify-start gap-2.5">
-                  <Link
-                    to="/profile"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] text-xs font-semibold font-dm-sans transition-colors shadow-xs cursor-pointer"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                    </svg>
-                    <span>Edit Profile</span>
-                  </Link>
+                <p className="text-xs sm:text-sm font-medium text-[#6B6F63] mb-2">
+                  @{user?.username || 'user'}
+                </p>
+
+                <p className="text-xs sm:text-sm text-[#4E5246] max-w-xl font-dm-sans leading-relaxed mb-3">
+                  {user?.bio || "Culinary garden & plant-based kitchen recipes. Sharing wholesome vegan inspiration with the community."}
+                </p>
+
+                {/* Compact Social & Content Statistics */}
+                <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 flex-wrap text-xs font-dm-sans">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-fraunces font-bold text-base sm:text-lg text-[#2B2A25]">
+                      {displayPostCount}
+                    </span>
+                    <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-wider">
+                      Posts
+                    </span>
+                  </div>
+
+                  <div className="w-px h-3.5 bg-[#DCE5D9]" aria-hidden="true" />
 
                   <button
                     type="button"
-                    onClick={() => navigate('/posts/create')}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white text-xs font-semibold font-dm-sans transition-colors shadow-xs cursor-pointer"
+                    onClick={() => setFollowListModal({ isOpen: true, initialTab: 'followers' })}
+                    className="flex items-center gap-1.5 hover:text-[#2F5233] transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5 active:scale-95 motion-reduce:transform-none"
+                    title="View your followers"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    <span>Write Recipe</span>
+                    <span className="font-fraunces font-bold text-base sm:text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                      {followersDisplay}
+                    </span>
+                    <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
+                      Followers
+                    </span>
                   </button>
+
+                  <div className="w-px h-3.5 bg-[#DCE5D9]" aria-hidden="true" />
+
+                  <button
+                    type="button"
+                    onClick={() => setFollowListModal({ isOpen: true, initialTab: 'following' })}
+                    className="flex items-center gap-1.5 hover:text-[#2F5233] transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5 active:scale-95 motion-reduce:transform-none"
+                    title="View who you are following"
+                  >
+                    <span className="font-fraunces font-bold text-base sm:text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
+                      {followingDisplay}
+                    </span>
+                    <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
+                      Following
+                    </span>
+                  </button>
+
+                  {/* Attention badges for owner awareness */}
+                  {statusCounts.underReview > 0 && (
+                    <>
+                      <div className="w-px h-3.5 bg-[#DCE5D9]" aria-hidden="true" />
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        {statusCounts.underReview} Under Review
+                      </span>
+                    </>
+                  )}
+
+                  {statusCounts.restricted > 0 && (
+                    <>
+                      <div className="w-px h-3.5 bg-[#DCE5D9]" aria-hidden="true" />
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">
+                        {statusCounts.restricted} Restricted
+                      </span>
+                    </>
+                  )}
+
+                  {statusCounts.draft > 0 && (
+                    <>
+                      <div className="w-px h-3.5 bg-[#DCE5D9]" aria-hidden="true" />
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                        {statusCounts.draft} Draft{statusCounts.draft > 1 ? 's' : ''}
+                      </span>
+                    </>
+                  )}
                 </div>
-              </div>
-
-              {/* Handle and Bio */}
-              <div className="space-y-1.5 mb-4">
-                <p className="text-sm font-medium text-[#6B6F63]">
-                  @{user?.username || 'user'}
-                </p>
-                <p className="text-sm text-[#4E5246] max-w-xl font-dm-sans leading-relaxed">
-                  {user?.bio || "Culinary garden & plant-based kitchen recipes. Sharing wholesome vegan inspiration with the community."}
-                </p>
-              </div>
-
-              {/* Social Relationship & Content Statistics Row */}
-              <div className="flex items-center justify-center md:justify-start gap-4 sm:gap-6 flex-wrap pt-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-fraunces font-bold text-lg text-[#2B2A25]">
-                    {displayPostCount}
-                  </span>
-                  <span className="text-xs text-[#6B6F63] font-medium uppercase tracking-wider">
-                    Posts
-                  </span>
-                </div>
-
-                <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
-
-                <button
-                  type="button"
-                  onClick={() => setFollowListModal({ isOpen: true, initialTab: 'followers' })}
-                  className="flex items-center gap-1.5 hover:text-[#2F5233] transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5"
-                  title="View your followers"
-                >
-                  <span className="font-fraunces font-bold text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
-                    {followersDisplay}
-                  </span>
-                  <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
-                    Followers
-                  </span>
-                </button>
-
-                <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
-
-                <button
-                  type="button"
-                  onClick={() => setFollowListModal({ isOpen: true, initialTab: 'following' })}
-                  className="flex items-center gap-1.5 hover:text-[#2F5233] transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5"
-                  title="View who you are following"
-                >
-                  <span className="font-fraunces font-bold text-lg text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
-                    {followingDisplay}
-                  </span>
-                  <span className="text-xs text-[#6B6F63] group-hover:text-[#2F5233] font-medium uppercase tracking-wider transition-colors">
-                    Following
-                  </span>
-                </button>
-
-                {/* Attention badges for owner awareness */}
-                {statusCounts.underReview > 0 && (
-                  <>
-                    <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      {statusCounts.underReview} Under Review
-                    </span>
-                  </>
-                )}
-
-                {statusCounts.restricted > 0 && (
-                  <>
-                    <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">
-                      {statusCounts.restricted} Restricted
-                    </span>
-                  </>
-                )}
-
-                {statusCounts.draft > 0 && (
-                  <>
-                    <div className="w-px h-4 bg-[#DCE5D9]" aria-hidden="true" />
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                      {statusCounts.draft} Draft{statusCounts.draft > 1 ? 's' : ''}
-                    </span>
-                  </>
-                )}
               </div>
             </div>
+
+            {/* Right: Profile Actions */}
+            <div className="flex items-center justify-center sm:justify-start md:justify-end gap-2.5 shrink-0 self-center md:self-start pt-1">
+              <button
+                type="button"
+                onClick={() => navigate('/posts/create')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Write Recipe</span>
+              </button>
+
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                </svg>
+                <span>Edit Profile</span>
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* PROFILE NAVIGATION TABS */}
-      <nav className="w-full bg-white border-b border-[#DCE5D9] sticky top-16 z-30 shadow-xs" aria-label="Profile Sections">
-        <div className="max-w-[1040px] mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-8">
+      {/* BOTANICAL CONTENT SWITCHER */}
+      <div className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-1">
+        <div className="flex items-center justify-between border-b border-[#DCE5D9]/70 pb-3.5">
+          <nav
+            className="inline-flex p-1 sm:p-1.5 bg-[#E8EEE4]/60 border border-[#DCE5D9] rounded-2xl shadow-2xs backdrop-blur-xs select-none max-w-full overflow-x-auto no-scrollbar"
+            role="tablist"
+            aria-label="Profile navigation"
+          >
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === 'my-posts'}
               onClick={() => setActiveTab('my-posts')}
-              className={`h-13 px-2 font-dm-sans font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
-                activeTab === 'my-posts'
-                  ? 'border-[#2F5233] text-[#2F5233]'
-                  : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
-              }`}
+              className={`relative px-4 sm:px-5 py-2.5 rounded-xl font-dm-sans font-semibold text-sm flex items-center gap-2.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none shrink-0 ${activeTab === 'my-posts'
+                  ? 'text-white'
+                  : 'text-[#556052] hover:text-[#2B2A25]'
+                }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-              </svg>
-              <span>My Recipes</span>
-              <span className="text-xs px-2 py-0.2 rounded-full bg-[#F3F6EE] text-[#2F5233] font-medium border border-[#DCE3D5]">
-                {displayPostCount}
+              {activeTab === 'my-posts' && (
+                <motion.div
+                  layoutId="my-posts-active-tab"
+                  className="absolute inset-0 bg-[#2F5233] rounded-xl shadow-xs"
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <span>My Posts</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${activeTab === 'my-posts'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-white/80 text-[#2F5233] border border-[#DCE3D5]'
+                    }`}
+                >
+                  {displayPostCount}
+                </span>
               </span>
             </button>
 
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === 'saved'}
               onClick={() => setActiveTab('saved')}
-              className={`h-13 px-2 font-dm-sans font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
-                activeTab === 'saved'
-                  ? 'border-[#2F5233] text-[#2F5233]'
-                  : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
-              }`}
+              className={`relative px-4 sm:px-5 py-2.5 rounded-xl font-dm-sans font-semibold text-sm flex items-center gap-2.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none shrink-0 ${activeTab === 'saved'
+                  ? 'text-white'
+                  : 'text-[#556052] hover:text-[#2B2A25]'
+                }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-              </svg>
-              <span>Saved Recipes</span>
-              <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#E9EFE6] text-[#2F5233] font-medium">
-                Private
+              {activeTab === 'saved' && (
+                <motion.div
+                  layoutId="my-posts-active-tab"
+                  className="absolute inset-0 bg-[#2F5233] rounded-xl shadow-xs"
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+                <span>Saved Recipes</span>
+                <span
+                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${activeTab === 'saved'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-[#E8EEE4] text-[#4A7A4D]'
+                    }`}
+                >
+                  Private
+                </span>
               </span>
             </button>
-          </div>
+          </nav>
         </div>
-      </nav>
+      </div>
 
       {/* MAIN CONTENT AREA */}
       {activeTab === 'my-posts' ? (
-        <main className="flex-1 w-full max-w-[1040px] mx-auto px-6 py-8">
+        <main className="flex-1 w-full max-w-[1140px] mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8">
           {/* Sub-Filter Bar & State Refresh Button */}
           {!loading && posts.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-[#DCE5D9]">
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter recipes by status">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#DCE5D9]">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" role="group" aria-label="Filter recipes by status">
                 <button
                   type="button"
                   onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-colors cursor-pointer ${
-                    statusFilter === 'all'
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none ${statusFilter === 'all'
                       ? 'bg-[#2F5233] text-white shadow-xs'
                       : 'bg-white text-[#6B6F63] hover:text-[#2B2A25] border border-[#DCE5D9]'
-                  }`}
+                    }`}
                 >
                   All ({posts.length})
                 </button>
@@ -475,11 +516,10 @@ function MyPosts({ notifications = [] } = {}) {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('published')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-colors cursor-pointer ${
-                    statusFilter === 'published'
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none ${statusFilter === 'published'
                       ? 'bg-[#2F5233] text-white shadow-xs'
                       : 'bg-white text-[#2F5233] hover:bg-[#F3F6EE] border border-[#DCE5D9]'
-                  }`}
+                    }`}
                 >
                   Published ({statusCounts.published})
                 </button>
@@ -488,11 +528,10 @@ function MyPosts({ notifications = [] } = {}) {
                   <button
                     type="button"
                     onClick={() => setStatusFilter('under_review')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-colors cursor-pointer ${
-                      statusFilter === 'under_review'
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'under_review'
                         ? 'bg-red-600 text-white shadow-xs'
                         : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
-                    }`}
+                      }`}
                   >
                     Under Review ({statusCounts.underReview})
                   </button>
@@ -502,11 +541,10 @@ function MyPosts({ notifications = [] } = {}) {
                   <button
                     type="button"
                     onClick={() => setStatusFilter('restricted')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-colors cursor-pointer ${
-                      statusFilter === 'restricted'
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'restricted'
                         ? 'bg-red-700 text-white shadow-xs'
                         : 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'
-                    }`}
+                      }`}
                   >
                     Hidden / Restricted ({statusCounts.restricted})
                   </button>
@@ -516,11 +554,10 @@ function MyPosts({ notifications = [] } = {}) {
                   <button
                     type="button"
                     onClick={() => setStatusFilter('draft')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-colors cursor-pointer ${
-                      statusFilter === 'draft'
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'draft'
                         ? 'bg-amber-700 text-white shadow-xs'
                         : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-                    }`}
+                      }`}
                   >
                     Drafts ({statusCounts.draft})
                   </button>
@@ -532,7 +569,7 @@ function MyPosts({ notifications = [] } = {}) {
                 type="button"
                 onClick={() => loadMyPosts(true)}
                 disabled={isRefreshing || loading}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#F3F6EE] text-[#4E5246] hover:text-[#2F5233] text-xs font-semibold font-dm-sans border border-[#DCE5D9] transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#F3F6EE] text-[#4E5246] hover:text-[#2F5233] text-xs font-semibold font-dm-sans border border-[#DCE5D9] transition-all shadow-xs cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none shrink-0 self-end sm:self-center"
                 title="Refresh posts"
                 aria-label="Refresh posts"
               >
@@ -546,8 +583,8 @@ function MyPosts({ notifications = [] } = {}) {
 
           {loading ? (
             <div className="w-full py-20 flex flex-col items-center justify-center text-[#6B6F63] gap-4">
-              <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
-              <p className="font-dm-sans text-sm">Gathering your garden harvest...</p>
+              <div className="w-10 h-10 border-3 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin" />
+              <p className="font-fraunces text-sm text-[#2F5233] font-medium tracking-wide">Gathering your recipe journal...</p>
             </div>
           ) : posts.length === 0 ? (
             <div className="w-full py-20 px-6 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-[#DCE5D9] shadow-xs">
@@ -563,7 +600,7 @@ function MyPosts({ notifications = [] } = {}) {
               <button
                 type="button"
                 onClick={() => navigate('/posts/create')}
-                className="px-6 py-2.5 bg-[#2F5233] hover:bg-[#25401F] text-white rounded-full font-dm-sans text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                className="px-6 py-2.5 bg-[#2F5233] hover:bg-[#25401F] text-white rounded-full font-dm-sans text-sm font-semibold transition-all shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none"
               >
                 Create Your First Recipe
               </button>
@@ -576,13 +613,13 @@ function MyPosts({ notifications = [] } = {}) {
               <button
                 type="button"
                 onClick={() => setStatusFilter('all')}
-                className="px-4 py-2 bg-[#F3F6EE] hover:bg-[#2F5233] text-[#2F5233] hover:text-white rounded-full font-dm-sans text-xs font-semibold transition-colors border border-[#DCE3D5] cursor-pointer"
+                className="px-4 py-2 bg-[#F3F6EE] hover:bg-[#2F5233] text-[#2F5233] hover:text-white rounded-full font-dm-sans text-xs font-semibold transition-all border border-[#DCE3D5] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
               >
                 Show All Recipes
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
               {filteredPosts.map((post) => {
                 const statusInfo = resolvePostStatus(post);
                 const reason = extractModerationReason(post, notifications);
@@ -592,45 +629,42 @@ function MyPosts({ notifications = [] } = {}) {
                     key={post.id}
                     data-testid={`post-card-${post.id}`}
                     data-status={statusInfo.key}
-                    className={`flex flex-col rounded-2xl overflow-hidden transition-all duration-300 group ${
-                      statusInfo.isRed
-                        ? 'bg-white border-2 border-red-400 ring-2 ring-red-100 shadow-xs'
-                        : 'bg-white border border-[#DCE5D9] shadow-xs hover:shadow-md'
-                    }`}
+                    className="flex flex-col rounded-2xl overflow-hidden transition-all duration-200 group bg-white border border-[#DCE5D9] hover:border-[#2F5233]/40 shadow-xs hover:shadow-md"
                   >
-                    {/* Top visible red accent status strip for flagged or restricted posts */}
+                    {/* Top subtle red accent status strip for flagged or restricted posts */}
                     {statusInfo.isRed && (
                       <div
                         data-testid="post-red-strip"
-                        className="h-1.5 w-full bg-red-600 shrink-0"
+                        className="h-1 w-full bg-[#E05252] shrink-0"
                         aria-hidden="true"
                       />
                     )}
 
                     {/* Photo Container */}
                     <div
-                      className="relative w-full aspect-[4/3] bg-[#E9EFE6] overflow-hidden cursor-pointer"
+                      className="relative w-full aspect-[4/3] bg-[#E9EFE6] overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/posts/${post.id}`);
+                        }
+                      }}
                       onClick={() => navigate(`/posts/${post.id}`)}
                     >
-                      {post.thumbnailUrl ? (
-                        <img
-                          src={getImageUrl(post.thumbnailUrl)}
-                          alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-dm-sans text-[#6B6F63] text-xs">
-                          No Image
-                        </div>
-                      )}
-                      
+                      <RecipeCardImage
+                        post={post}
+                        alt={post.title}
+                        className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
+                      />
+
                       {/* Category Overlay Tag */}
-                      <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-white/60 text-[#2F5233] font-dm-sans text-[11px] font-semibold shadow-xs">
+                      <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-white/60 text-[#2F5233] font-dm-sans text-[11px] font-semibold shadow-xs select-none">
                         {categories[post.categoryId] || post.categoryName || post.category?.name || 'Recipe'}
                       </div>
 
                       {/* Status Badge placed prominently near the top right of each card */}
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-3 right-3 select-none">
                         <PostStatusBadge post={post} />
                       </div>
                     </div>
@@ -641,8 +675,18 @@ function MyPosts({ notifications = [] } = {}) {
                         {/* Explanatory Banner & Reason for Restricted Posts */}
                         <PostStatusNotice post={post} reason={reason} className="mb-3" />
 
-                        <div onClick={() => navigate(`/posts/${post.id}`)} className="cursor-pointer">
-                          <div className="flex items-center gap-2 mb-2 text-xs text-[#6B6F63] font-medium">
+                        <div
+                          onClick={() => navigate(`/posts/${post.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/posts/${post.id}`);
+                            }
+                          }}
+                          tabIndex={0}
+                          className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-0.5 active:opacity-80"
+                        >
+                          <div className="flex items-center gap-2 mb-1.5 text-xs text-[#6B6F63] font-medium">
                             <time dateTime={post.createdAt}>
                               {formatDate(post.createdAt)}
                             </time>
@@ -653,13 +697,13 @@ function MyPosts({ notifications = [] } = {}) {
                           </h3>
 
                           <p className="text-xs leading-relaxed font-dm-sans text-[#6B6F63] line-clamp-2 mb-4">
-                            {post.content}
+                            {post.content || 'Plant-based recipe created with fresh botanical ingredients.'}
                           </p>
                         </div>
                       </div>
 
                       {/* Footer Stats & Owner Controls */}
-                      <div className="pt-3 border-t border-[#DCE5D9]/70 flex items-center justify-between text-xs font-dm-sans">
+                      <div className="pt-3 border-t border-[#DCE5D9]/70 flex items-center justify-between text-xs font-dm-sans mt-auto">
                         <div className="flex items-center gap-3">
                           <span className="flex items-center gap-1 text-[#6B6F63]" title="Views">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -688,7 +732,7 @@ function MyPosts({ notifications = [] } = {}) {
                               e.stopPropagation();
                               navigate(`/posts/edit/${post.id}`);
                             }}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#F3F6EE] hover:bg-[#2F5233] text-[#2F5233] hover:text-white transition-colors border border-[#DCE3D5] cursor-pointer"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#F3F6EE] hover:bg-[#2F5233] text-[#2F5233] hover:text-white transition-all border border-[#DCE3D5] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-90 motion-reduce:transform-none"
                             title="Edit post"
                             aria-label={`Edit ${post.title}`}
                           >
@@ -703,7 +747,7 @@ function MyPosts({ notifications = [] } = {}) {
                               e.stopPropagation();
                               setPostToDelete({ id: post.id, title: post.title });
                             }}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors border border-red-100 cursor-pointer"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all border border-red-100 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-90 motion-reduce:transform-none"
                             title="Delete post"
                             aria-label={`Delete ${post.title}`}
                           >
@@ -725,45 +769,44 @@ function MyPosts({ notifications = [] } = {}) {
       )}
 
       {/* DELETE CONFIRMATION MODAL OVERLAY */}
-      {postToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-recipe-title"
-            className="bg-[#FDFBF6] border border-[#DCE5D9] rounded-2xl p-6 w-full max-w-sm shadow-xl animate-in zoom-in-95"
+      <ModalMotion
+        isOpen={Boolean(postToDelete)}
+        onClose={() => {
+          if (!isDeleting) setPostToDelete(null);
+        }}
+        backdropClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+        dialogClassName="bg-[#FDFBF6] border border-[#DCE5D9] rounded-2xl p-6 w-full max-w-sm shadow-xl"
+        ariaLabelledBy="delete-recipe-title"
+      >
+        <h3 id="delete-recipe-title" className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2">
+          Delete Recipe?
+        </h3>
+        <p className="font-dm-sans text-[#6B6F63] text-sm mb-6">
+          Are you sure you want to delete {postToDelete?.title ? `"${postToDelete.title}"` : 'this recipe'}? This action cannot be undone.
+        </p>
+        <div className="flex gap-2.5 justify-end">
+          <button
+            type="button"
+            onClick={() => setPostToDelete(null)}
+            className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold text-[#6B6F63] hover:bg-[#F3F6EE] transition-all border border-[#DCE5D9] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+            disabled={isDeleting}
           >
-            <h3 id="delete-recipe-title" className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2">
-              Delete Recipe?
-            </h3>
-            <p className="font-dm-sans text-[#6B6F63] text-sm mb-6">
-              Are you sure you want to delete {postToDelete.title ? `"${postToDelete.title}"` : 'this recipe'}? This action cannot be undone.
-            </p>
-            <div className="flex gap-2.5 justify-end">
-              <button
-                type="button"
-                onClick={() => setPostToDelete(null)}
-                className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold text-[#6B6F63] hover:bg-[#F3F6EE] transition-colors border border-[#DCE5D9] cursor-pointer"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-xs flex items-center justify-center cursor-pointer"
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  'Delete'
-                )}
-              </button>
-            </div>
-          </div>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteConfirm}
+            className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-all shadow-xs flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100"
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              'Delete'
+            )}
+          </button>
         </div>
-      )}
+      </ModalMotion>
 
       {/* Followers & Following Modal */}
       {user?.id && (

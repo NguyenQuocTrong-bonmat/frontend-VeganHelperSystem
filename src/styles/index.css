@@ -67,13 +67,20 @@ body {
 
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--primary-moss);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #FAF8F0, 0 0 0 4px var(--primary-moss);
+}
+
+.focus-ring-vh:focus {
+  outline: none;
 }
 
 .focus-ring-vh:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--vh-forest);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #FAF8F0, 0 0 0 4px var(--vh-forest);
 }
 
 /* Glassmorphism System */

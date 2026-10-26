@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../../services/userService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/dateUtils';
+import { popoverBackdropVariants, popoverCardVariants, reducedMotionVariants } from '../ui/dropdownMotion';
 
 // In-memory session cache for preview data to avoid duplicate queries
 const previewCache = new Map(); // userId -> { profile, followStatus, timestamp }
@@ -53,6 +55,7 @@ export default function UserProfilePreview({
   const [imageError, setImageError] = useState(false);
   const [positionStyle, setPositionStyle] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const popoverRef = useRef(null);
   const closeBtnRef = useRef(null);
@@ -385,7 +388,9 @@ export default function UserProfilePreview({
     return () => window.removeEventListener('veganhelper:follow-changed', handleFollowChanged);
   }, [userId]);
 
-  if (!isOpen || !userId) return null;
+  if (!isOpen && !userId) {
+    return null;
+  }
 
   // Resolve user fields
   const displayName = profile?.displayName || initialUser?.displayName || 'User';
@@ -411,18 +416,23 @@ export default function UserProfilePreview({
   const viewProfileUrl = isSelf ? '/my-posts' : `/users/${userId}`;
 
   const content = (
-    <div
+    <motion.div
       ref={popoverRef}
       role="dialog"
       aria-modal={isMobile ? 'true' : 'false'}
       aria-label={`Profile preview for ${displayName}`}
       onClick={(e) => e.stopPropagation()}
       style={!isMobile ? positionStyle : undefined}
-      className={`bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl shadow-xl z-50 overflow-hidden transition-all duration-200 text-left ${
+      className={`bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl shadow-xl z-50 overflow-hidden text-left ${
         isMobile
-          ? 'w-[92vw] max-w-sm mx-auto animate-in fade-in zoom-in-95'
-          : 'w-[330px] animate-in fade-in duration-150'
+          ? 'w-[92vw] max-w-sm mx-auto'
+          : 'w-[330px]'
       }`}
+      custom={isMobile}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={shouldReduceMotion ? reducedMotionVariants : popoverCardVariants}
     >
       {/* Header Accent & Close */}
       <div className="relative z-0 h-16 bg-gradient-to-r from-[#E9EFE6] via-[#F3F6EE] to-[#E9EFE6] border-b border-[#DCE3D5]/40 flex items-center justify-between px-4">
@@ -439,7 +449,7 @@ export default function UserProfilePreview({
               e.stopPropagation();
               onClose();
             }}
-            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-colors shadow-xs border border-[#DCE3D5]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-all shadow-xs border border-[#DCE3D5]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
             aria-label="Close profile preview"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -554,10 +564,10 @@ export default function UserProfilePreview({
               type="button"
               onClick={handleToggleFollow}
               disabled={isFollowUpdating}
-              className={`flex-1 h-10 px-4 rounded-xl font-dm-sans text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+              className={`flex-1 h-10 px-4 rounded-xl font-dm-sans text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
                 isFollowing
                   ? 'border border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
-                  : 'bg-[#2F5233] text-white hover:bg-[#25401F] shadow-xs active:scale-[0.98]'
+                  : 'bg-[#2F5233] text-white hover:bg-[#25401F] shadow-xs'
               }`}
             >
               {isFollowUpdating ? (
@@ -583,7 +593,7 @@ export default function UserProfilePreview({
           <Link
             to={viewProfileUrl}
             onClick={() => onClose()}
-            className={`h-10 px-4 rounded-xl font-dm-sans text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#DCE3D5] bg-[#F3F6EE] hover:bg-[#E2EAD9] text-[#2F5233] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer ${
+            className={`h-10 px-4 rounded-xl font-dm-sans text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 border border-[#DCE3D5] bg-[#F3F6EE] hover:bg-[#E2EAD9] text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer ${
               isSelf ? 'w-full' : 'flex-1'
             }`}
           >
@@ -592,20 +602,29 @@ export default function UserProfilePreview({
           </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
-  // Wrap in backdrop overlay for mobile and desktop to guarantee clean dismiss and prevent cut-off
+  // Wrap in backdrop overlay with AnimatePresence for clean entrance and exit without blocking clicks
   return (
-    <div
-      className={`fixed inset-0 z-50 ${
-        isMobile || !triggerEl
-          ? 'flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs'
-          : 'bg-black/20 backdrop-blur-[1px]'
-      } animate-in fade-in`}
-      onClick={onClose}
-    >
-      {content}
-    </div>
+    <AnimatePresence>
+      {isOpen && userId && (
+        <motion.div
+          key={`user-profile-preview-overlay-${userId}`}
+          className={`fixed inset-0 z-50 ${
+            isMobile || !triggerEl
+              ? 'flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs'
+              : 'bg-black/20 backdrop-blur-[1px]'
+          }`}
+          onClick={onClose}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={shouldReduceMotion ? reducedMotionVariants : popoverBackdropVariants}
+        >
+          {content}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

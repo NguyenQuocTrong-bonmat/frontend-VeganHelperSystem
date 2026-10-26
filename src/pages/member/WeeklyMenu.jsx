@@ -46,6 +46,7 @@ function WeeklyMenu() {
             <button
               type="button"
               id="weekly-menu-tab" role="tab" aria-selected={activeTab === 'weekly'} aria-controls="weekly-menu-panel" tabIndex={activeTab === 'weekly' ? 0 : -1}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
               onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'End'].includes(event.key)) { event.preventDefault(); setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); } }}
               onClick={() => setActiveTab('weekly')}
             >
@@ -54,6 +55,7 @@ function WeeklyMenu() {
             <button
               type="button"
               id="wellness-tab" role="tab" aria-selected={activeTab === 'wellness'} aria-controls="wellness-panel" tabIndex={activeTab === 'wellness' ? 0 : -1}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
               onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'Home'].includes(event.key)) { event.preventDefault(); setActiveTab('weekly'); document.getElementById('weekly-menu-tab')?.focus(); } }}
               onClick={() => setActiveTab('wellness')}
             >

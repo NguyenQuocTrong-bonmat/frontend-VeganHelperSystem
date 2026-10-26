@@ -1,30 +1,75 @@
-import { useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import useLandingMedia from './useLandingMedia';
+import { easeEditorial, defaultViewport } from './motionVariants';
 
-function ScrollReveal({ as = 'div', delay = 0, depth = false, children, style, ...props }) {
+function InViewReveal({ as = 'div', delay = 0, depth = false, children, style, ...props }) {
   const target = useRef(null);
-  const [focused, setFocused] = useState(false);
-  const { scrollYProgress } = useScroll({ target, offset: ['start end', 'end start'] });
-  // Leave a broad, fully visible reading window. Both edges reverse with native scrolling.
-  const arrival = Math.min(0.24, 0.16 + delay * 0.2);
-  const opacity = useTransform(scrollYProgress, [0, arrival, 0.88, 1], [0.4, 1, 1, 0.4]);
-  const y = useTransform(scrollYProgress, [0, arrival, 0.88, 1], [depth ? 64 : 38, 0, 0, depth ? -48 : -28]);
-  const scale = useTransform(scrollYProgress, [0, arrival, 0.88, 1], [depth ? 0.96 : 1, 1, 1, depth ? 0.98 : 1]);
-  const Component = motion[as];
-  return <Component {...props} ref={target} data-scroll-reveal
-    style={{ ...style, opacity: focused ? 1 : opacity, y: focused ? 0 : y, scale: focused ? 1 : scale }}
-    onFocusCapture={() => setFocused(true)}
-    onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}
-  >{children}</Component>;
+  const desktop = useLandingMedia('(min-width: 901px)');
+
+  // Optional subtle scroll depth parallax for designated elements (depth=true) on desktop
+  const { scrollYProgress } = useScroll({
+    target,
+    offset: ['start end', 'end start'],
+  });
+
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [16, -16]);
+
+  const Component = motion[as] || motion.div;
+
+  const transition = {
+    duration: 0.75,
+    delay: Math.min(0.4, delay),
+    ease: easeEditorial,
+  };
+
+  const initial = {
+    opacity: 0,
+    y: depth ? 32 : 22,
+    scale: depth ? 0.98 : 1,
+  };
+
+  const whileInView = {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+  };
+
+  // Combine initial entrance with subtle depth parallax if applicable
+  const combinedStyle = depth && desktop
+    ? { ...style, y: parallaxY }
+    : style;
+
+  return (
+    <Component
+      {...props}
+      ref={target}
+      data-scroll-reveal
+      initial={initial}
+      whileInView={whileInView}
+      viewport={defaultViewport}
+      transition={transition}
+      style={combinedStyle}
+    >
+      {children}
+    </Component>
+  );
 }
 
 export default function LandingReveal({ as = 'div', delay = 0, depth = false, children, ...props }) {
-  const reducedMotion = useLandingMedia('(prefers-reduced-motion: reduce)');
-  const motionSupported = useLandingMedia('(min-width: 1px)');
-  if (reducedMotion || !motionSupported) {
+  const mediaReducedMotion = useLandingMedia('(prefers-reduced-motion: reduce)');
+  const framerReducedMotion = useReducedMotion();
+  const isReduced = mediaReducedMotion || Boolean(framerReducedMotion);
+  const hasObserver = typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function';
+
+  if (isReduced || !hasObserver) {
     const Component = as;
     return <Component {...props}>{children}</Component>;
   }
-  return <ScrollReveal as={as} delay={delay} depth={depth} {...props}>{children}</ScrollReveal>;
+
+  return (
+    <InViewReveal as={as} delay={delay} depth={depth} {...props}>
+      {children}
+    </InViewReveal>
+  );
 }

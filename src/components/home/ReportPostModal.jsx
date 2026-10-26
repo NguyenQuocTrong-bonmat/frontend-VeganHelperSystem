@@ -111,7 +111,7 @@ export default function ReportPostModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-xs font-semibold text-[#6B6F63] hover:text-[#2B2A25] px-2 py-1 rounded transition-colors disabled:opacity-50"
+            className="text-xs font-semibold text-[#6B6F63] hover:text-[#2B2A25] px-2 py-1 rounded transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none disabled:opacity-50 cursor-pointer"
             aria-label="Close report dialog"
           >
             Close
@@ -129,11 +129,10 @@ export default function ReportPostModal({
               {REASON_CATEGORIES.map((cat) => (
                 <label
                   key={cat.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    selectedCategory === cat.id
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all focus-within:ring-2 focus-within:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none ${selectedCategory === cat.id
                       ? 'border-[#2F5233] bg-[#F4F7F2]'
                       : 'border-[#DCE3D5] hover:border-[#8A9080] bg-white'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -148,7 +147,7 @@ export default function ReportPostModal({
                       }
                     }}
                     disabled={isSubmitting}
-                    className="mt-0.5 text-[#2F5233] focus:ring-[#2F5233]"
+                    className="mt-0.5 text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-[#2B2A25]">{cat.label}</p>
@@ -183,7 +182,7 @@ export default function ReportPostModal({
                   if (validationError) setValidationError('');
                 }}
                 disabled={isSubmitting}
-                className="w-full p-3 bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl text-xs text-[#2B2A25] focus:outline-none focus:border-[#2F5233] resize-y min-h-[80px]"
+                className="w-full p-3 bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl text-xs text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors resize-y min-h-[80px]"
               />
               {validationError && (
                 <p className="text-[11px] text-[#A63446] mt-1 font-medium">{validationError}</p>
@@ -197,14 +196,14 @@ export default function ReportPostModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 border border-[#DCE3D5] rounded-lg font-medium text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#FAFBF9] transition-colors disabled:opacity-50"
+              className="px-4 py-2 border border-[#DCE3D5] rounded-lg font-medium text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#FAFBF9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-[#A63446] hover:bg-[#8F2D3C] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 bg-[#A63446] hover:bg-[#8F2D3C] text-white font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Report'}
             </button>

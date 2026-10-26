@@ -12,6 +12,7 @@ import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate, formatDateTime, getTimeAgo } from '../../utils/dateUtils';
 import { useAuth } from '../../context/AuthContext';
 import CommentDeleteModal from './CommentDeleteModal';
+import ModalMotion from '../ui/ModalMotion';
 
 function asArray(data) {
   if (Array.isArray(data)) return data;
@@ -455,7 +456,7 @@ export default function CommentModal({
                     onChange={(e) => setEditCommentText(e.target.value)}
                     maxLength={500}
                     rows="2"
-                    className="w-full bg-vh-cream/50 border border-vh-border rounded-lg p-2.5 text-xs sm:text-sm focus:outline-none focus:border-vh-forest transition-colors resize-y min-h-[60px]"
+                    className="w-full bg-vh-cream/50 border border-vh-border rounded-lg p-2.5 text-xs sm:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-colors resize-y min-h-[60px]"
                     disabled={isActionLoading}
                     autoFocus
                   />
@@ -469,14 +470,14 @@ export default function CommentModal({
                           setEditCommentText('');
                         }}
                         disabled={isActionLoading}
-                        className="px-2.5 py-1 border border-vh-border text-vh-text-secondary text-xs rounded-lg hover:text-vh-forest disabled:opacity-50 cursor-pointer"
+                        className="px-2.5 py-1 border border-vh-border text-vh-text-secondary text-xs rounded-lg hover:text-vh-forest disabled:opacity-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isActionLoading || !editCommentText.trim()}
-                        className="px-3 py-1 bg-vh-forest text-white text-xs font-medium rounded-lg disabled:opacity-50 cursor-pointer"
+                        className="px-3 py-1 bg-vh-forest text-white text-xs font-medium rounded-lg disabled:opacity-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
                       >
                         {isActionLoading ? 'Saving...' : 'Save'}
                       </button>
@@ -502,7 +503,7 @@ export default function CommentModal({
                         setReplyingTo(replyingTo === comment.id ? null : comment.id);
                         setReplyText('');
                       }}
-                      className="font-medium text-vh-forest hover:text-vh-sage transition-colors cursor-pointer"
+                      className="font-medium text-vh-forest hover:text-vh-sage transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
                     >
                       {replyingTo === comment.id ? 'Cancel reply' : 'Reply'}
                     </button>
@@ -511,7 +512,7 @@ export default function CommentModal({
                     <button
                       type="button"
                       onClick={onAuthRequired}
-                      className="font-medium text-vh-forest hover:text-vh-sage transition-colors cursor-pointer"
+                      className="font-medium text-vh-forest hover:text-vh-sage transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
                     >
                       Log in to reply
                     </button>
@@ -531,7 +532,7 @@ export default function CommentModal({
                         setEditCommentText(content || '');
                       }}
                       disabled={isActionLoading}
-                      className="font-medium text-vh-text-secondary hover:text-vh-forest transition-colors cursor-pointer disabled:opacity-50"
+                      className="font-medium text-vh-text-secondary hover:text-vh-forest transition-colors cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
                     >
                       Edit
                     </button>
@@ -543,7 +544,7 @@ export default function CommentModal({
                       type="button"
                       onClick={() => handleDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
+                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error rounded px-1 active:opacity-80"
                     >
                       Delete
                     </button>
@@ -555,7 +556,7 @@ export default function CommentModal({
                       type="button"
                       onClick={() => handleDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
+                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error rounded px-1 active:opacity-80"
                       title="Delete as Administrator (requires reason)"
                     >
                       Delete (Admin)
@@ -568,7 +569,7 @@ export default function CommentModal({
                       type="button"
                       onClick={() => handleDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50"
+                      className="font-medium text-vh-error hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error rounded px-1 active:opacity-80"
                       title="Delete as Post Author"
                     >
                       Delete
@@ -581,7 +582,7 @@ export default function CommentModal({
                       type="button"
                       onClick={() => handleReport(comment.id)}
                       disabled={isReporting}
-                      className="font-medium text-vh-text-secondary/70 hover:text-vh-error transition-colors cursor-pointer disabled:opacity-50"
+                      className="font-medium text-vh-text-secondary/70 hover:text-vh-error transition-colors cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
                     >
                       {isReporting ? 'Reporting...' : 'Report'}
                     </button>
@@ -600,7 +601,7 @@ export default function CommentModal({
                 maxLength={500}
                 rows="2"
                 placeholder={`Reply to ${comment.authorName || 'user'}...`}
-                className="w-full bg-vh-cream/50 border border-vh-border rounded-lg p-2.5 text-xs sm:text-sm focus:outline-none focus:border-vh-forest transition-colors resize-y min-h-[56px]"
+                className="w-full bg-vh-cream/50 border border-vh-border rounded-lg p-2.5 text-xs sm:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-colors resize-y min-h-[56px]"
                 disabled={submitting}
                 autoFocus
               />
@@ -613,14 +614,14 @@ export default function CommentModal({
                       setReplyingTo(null);
                       setReplyText('');
                     }}
-                    className="px-2.5 py-1 text-xs border border-vh-border rounded-lg text-vh-text-secondary hover:text-vh-forest"
+                    className="px-2.5 py-1 text-xs border border-vh-border rounded-lg text-vh-text-secondary hover:text-vh-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting || !replyText.trim()}
-                    className="px-3 py-1 bg-vh-forest hover:bg-vh-sage disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                    className="px-3 py-1 bg-vh-forest hover:bg-vh-sage disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
                   >
                     {submitting ? 'Posting...' : 'Post Reply'}
                   </button>
@@ -637,32 +638,40 @@ export default function CommentModal({
     );
   };
 
-  if (!isOpen || !post) return null;
+  const lastPostRef = useRef(post);
+  if (post) {
+    lastPostRef.current = post;
+  }
+  const currentPost = post || lastPostRef.current;
 
-  const totalCommentCount = countComments(comments);
+  if (!isOpen && !currentPost) {
+    return null;
+  }
+
+  const totalCommentCount = currentPost ? countComments(comments) : 0;
 
   return (
-    <div
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 transition-opacity duration-200"
-    >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="comment-modal-title"
-        className="relative w-full sm:max-w-xl md:max-w-2xl bg-vh-surface border-t sm:border border-vh-border/80 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[86vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+    <>
+      <ModalMotion
+        isOpen={Boolean(isOpen && currentPost)}
+        onClose={onClose}
+        variant="bottom-sheet"
+        backdropClassName="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4"
+        dialogClassName="relative w-full sm:max-w-xl md:max-w-2xl bg-vh-surface border-t sm:border border-vh-border/80 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[86vh] overflow-hidden"
+        ariaLabelledBy="comment-modal-title"
+        dialogRef={modalRef}
+        closeOnEscape={false}
       >
         {/* Header */}
         <div className="px-5 py-4 border-b border-vh-border/70 flex items-center justify-between shrink-0 bg-vh-surface">
           <div className="min-w-0 flex-1 pr-3">
             <h2 id="comment-modal-title" className="font-dm-serif text-lg sm:text-xl font-medium text-vh-text-primary truncate">
-              Comments on &ldquo;{post.title}&rdquo;
+              Comments on &ldquo;{currentPost?.title || 'Recipe'}&rdquo;
             </h2>
             <div className="flex items-center gap-2 text-xs font-dm-sans text-vh-text-secondary mt-0.5">
-              <span>{post.authorName || 'Author'}</span>
+              <span>{currentPost?.authorName || 'Author'}</span>
               <span>•</span>
-              <span>{formatDate(post.createdAt)}</span>
+              <span>{formatDate(currentPost?.createdAt)}</span>
               <span>•</span>
               <span className="font-medium text-vh-forest">{totalCommentCount} comments</span>
             </div>
@@ -673,7 +682,7 @@ export default function CommentModal({
             type="button"
             onClick={onClose}
             aria-label="Close comments dialog"
-            className="w-8 h-8 rounded-full bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 text-vh-text-secondary hover:text-vh-forest flex items-center justify-center transition-colors focus-ring-vh cursor-pointer"
+            className="w-8 h-8 rounded-full bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 text-vh-text-secondary hover:text-vh-forest flex items-center justify-center transition-all focus-ring-vh active:scale-95 motion-reduce:transform-none cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -694,7 +703,7 @@ export default function CommentModal({
               <button
                 type="button"
                 onClick={loadCommentsList}
-                className="px-4 py-1.5 bg-vh-forest text-white rounded-lg text-xs font-medium hover:bg-vh-sage transition-colors"
+                className="px-4 py-1.5 bg-vh-forest text-white rounded-lg text-xs font-medium hover:bg-vh-sage transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none cursor-pointer"
               >
                 Retry
               </button>
@@ -725,7 +734,7 @@ export default function CommentModal({
                 maxLength={500}
                 rows="2"
                 placeholder="Share your thoughts or questions about this dish..."
-                className="w-full bg-vh-cream/40 border border-vh-border/70 rounded-xl p-3 text-xs sm:text-sm font-dm-sans text-vh-text-primary focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest transition-colors resize-none min-h-[58px]"
+                className="w-full bg-vh-cream/40 border border-vh-border/70 rounded-xl p-3 text-xs sm:text-sm font-dm-sans text-vh-text-primary focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest transition-colors resize-none min-h-[58px]"
                 disabled={submitting}
               />
               <div className="flex items-center justify-between gap-3">
@@ -735,7 +744,7 @@ export default function CommentModal({
                 <button
                   type="submit"
                   disabled={submitting || !commentText.trim()}
-                  className="px-5 py-2 bg-vh-forest hover:bg-vh-sage disabled:opacity-50 text-white text-xs sm:text-sm font-medium rounded-full shadow-2xs transition-all hover:shadow-xs active:scale-98 cursor-pointer flex items-center gap-1.5"
+                  className="px-5 py-2 bg-vh-forest hover:bg-vh-sage disabled:opacity-50 text-white text-xs sm:text-sm font-medium rounded-full shadow-2xs transition-all hover:shadow-xs active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2"
                 >
                   {submitting && (
                     <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -760,7 +769,7 @@ export default function CommentModal({
             </div>
           )}
         </div>
-      </div>
+      </ModalMotion>
 
       {/* Accessible Comment Delete Modal */}
       <CommentDeleteModal
@@ -775,10 +784,10 @@ export default function CommentModal({
         onConfirm={confirmDelete}
         comment={commentToDelete}
         currentUser={authUser}
-        post={post}
+        post={currentPost}
         isSubmitting={isDeletingComment}
         submitError={deleteModalError}
       />
-    </div>
+    </>
   );
 }

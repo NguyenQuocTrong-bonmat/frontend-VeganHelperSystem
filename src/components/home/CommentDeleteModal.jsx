@@ -173,7 +173,7 @@ export default function CommentDeleteModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-xs font-semibold text-[#6B6F63] hover:text-[#2B2A25] px-2 py-1 rounded transition-colors disabled:opacity-50"
+            className="text-xs font-semibold text-[#6B6F63] hover:text-[#2B2A25] px-2 py-1 rounded transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
             aria-label="Close delete dialog"
           >
             Close
@@ -211,7 +211,7 @@ export default function CommentDeleteModal({
                 maxLength={COMMENT_DELETE_REASON_MAX_LENGTH}
                 rows={3}
                 placeholder="Explain why this comment is being removed..."
-                className="w-full rounded-xl border border-[#DCE3D5] bg-[#FDFBF6] p-3 text-sm text-[#2B2A25] placeholder:text-[#6B6F63]/70 focus:outline-none focus:border-[#2F5233] transition-colors resize-y disabled:opacity-60"
+                className="w-full rounded-xl border border-[#DCE3D5] bg-[#FDFBF6] p-3 text-sm text-[#2B2A25] placeholder:text-[#6B6F63]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors resize-y disabled:opacity-60"
                 disabled={isSubmitting}
                 aria-required="true"
                 aria-invalid={Boolean(validationError)}
@@ -251,7 +251,7 @@ export default function CommentDeleteModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 border border-[#DCE3D5] text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] rounded-lg text-sm font-medium transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 border border-[#DCE3D5] text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] rounded-lg text-sm font-medium transition-all disabled:opacity-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
             >
               Cancel
             </button>
@@ -259,7 +259,7 @@ export default function CommentDeleteModal({
               type="submit"
               data-testid="confirm-delete-button"
               disabled={isSubmitting || (isReasonRequired && (!reason.trim() || reason.trim().length > COMMENT_DELETE_REASON_MAX_LENGTH))}
-              className="px-5 py-2 bg-[#A63446] hover:bg-[#8A2B3A] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+              className="px-5 py-2 bg-[#A63446] hover:bg-[#8A2B3A] text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none"
             >
               {isSubmitting ? 'Deleting...' : 'Delete'}
             </button>

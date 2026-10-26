@@ -1,5 +1,7 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
+import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
 import { getPaginationPages } from '../../utils/paginationUtils';
 
@@ -22,12 +24,23 @@ export default function AdminAuditLogs() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
+  const shouldReduceMotion = useReducedMotion();
+  const toastTimerRef = useRef(null);
+
+  // Clean up toast timer on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   // Toast feedback
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   const showToast = (message, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ show: true, message, type });
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
     }, 3500);
   };
@@ -256,25 +269,46 @@ export default function AdminAuditLogs() {
     <AdminLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Toast Feedback */}
-        {toast.show && (
-          <div
-            role="status"
-            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${
-              toast.type === 'error'
-                ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
-                : 'bg-[#2F5233] text-white border-[#25401F]'
-            }`}
-          >
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {toast.type === 'error' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              )}
-            </svg>
-            <span>{toast.message}</span>
-          </div>
-        )}
+        <AnimatePresence>
+          {toast.show && (
+            <motion.div
+              role="status"
+              variants={shouldReduceMotion ? reducedToastVariants : toastVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium pointer-events-auto ${toast.type === 'error'
+                  ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
+                  : 'bg-[#2F5233] text-white border-[#25401F]'
+                }`}
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {toast.type === 'error' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                )}
+              </svg>
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                  setToast({ show: false, message: '', type: 'success' });
+                }}
+                className={`ml-1.5 p-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 cursor-pointer ${toast.type === 'error'
+                    ? 'hover:bg-[#FBEAE7] text-[#A63446] focus-visible:ring-[#A63446]'
+                    : 'hover:bg-white/20 text-white focus-visible:ring-white'
+                  }`}
+                aria-label="Dismiss notification"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {loadError && <div role="alert" className="rounded-xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#A63446]">{loadError}</div>}
 
@@ -291,10 +325,11 @@ export default function AdminAuditLogs() {
 
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
+              type="button"
               onClick={handleRefresh}
               disabled={isLoading}
               title="Refresh audit feed"
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-50 cursor-pointer transition-all"
             >
               <svg className={`w-3.5 h-3.5 text-[#6B6F63] ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -303,8 +338,9 @@ export default function AdminAuditLogs() {
             </button>
 
             <button
+              type="button"
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full shadow-xs hover:bg-[#d8e3d6] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full shadow-xs hover:bg-[#d8e3d6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer transition-all"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -395,12 +431,14 @@ export default function AdminAuditLogs() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:ring-1 focus:ring-[#2F5233] outline-none transition-all placeholder-[#8A9080] text-[#2B2A25]"
+                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] transition-all placeholder-[#8A9080] text-[#2B2A25]"
               />
               {searchQuery && (
                 <button
+                  type="button"
+                  aria-label="Clear search"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25]"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg active:scale-95 motion-reduce:transform-none"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -419,7 +457,7 @@ export default function AdminAuditLogs() {
                     setTargetTypeFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="All">All Target Types</option>
                   {availableTargetTypes.map((t) => (
@@ -438,7 +476,7 @@ export default function AdminAuditLogs() {
                     setTimeFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="all">All Time</option>
                   <option value="today">Today (24h)</option>
@@ -452,7 +490,7 @@ export default function AdminAuditLogs() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="newest">Sort: Newest First</option>
                   <option value="oldest">Sort: Oldest First</option>
@@ -474,8 +512,9 @@ export default function AdminAuditLogs() {
 
             {isFiltered && (
               <button
+                type="button"
                 onClick={handleClearFilters}
-                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F]"
+                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:scale-95 motion-reduce:transform-none cursor-pointer"
               >
                 Clear all filters
               </button>
@@ -536,7 +575,7 @@ export default function AdminAuditLogs() {
                     const badgeClass = getActionBadgeClass(log.action);
 
                     return (
-                      <tr key={log.id} className="hover:bg-[#FAFBF9] transition-colors">
+                      <tr key={log.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         {/* Timestamp */}
                         <td className="py-4 px-4 whitespace-nowrap overflow-hidden">
                           <p className="font-mono text-xs font-semibold text-[#2B2A25]">{formatted.date}</p>
@@ -590,8 +629,9 @@ export default function AdminAuditLogs() {
                         {/* Inspection Actions */}
                         <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
                           <button
+                            type="button"
                             onClick={() => handleInspect(log)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-lg hover:bg-[#d8e3d6] transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-lg hover:bg-[#d8e3d6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -617,8 +657,9 @@ export default function AdminAuditLogs() {
                           No records match your active search or filter criteria. Try adjusting your parameters.
                         </p>
                         <button
+                          type="button"
                           onClick={handleClearFilters}
-                          className="px-4 py-2 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-full hover:bg-[#d8e3d6] transition-colors"
+                          className="px-4 py-2 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-full hover:bg-[#d8e3d6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -641,9 +682,10 @@ export default function AdminAuditLogs() {
 
               <div className="flex items-center gap-1.5">
                 <button
+                  type="button"
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 border border-[#DCE3D5] rounded-lg bg-white font-medium hover:bg-[#FAFBF9] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-3 py-1.5 border border-[#DCE3D5] rounded-lg bg-white font-medium hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Previous
                 </button>
@@ -651,21 +693,22 @@ export default function AdminAuditLogs() {
                 {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
                   <button
                     key={pageNum}
+                    type="button"
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg font-semibold transition-all ${
-                      currentPage === pageNum
+                    className={`w-8 h-8 rounded-lg font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.95] motion-reduce:transform-none cursor-pointer ${currentPage === pageNum
                         ? 'bg-[#2F5233] text-white shadow-xs'
                         : 'border border-[#DCE3D5] bg-white text-[#2B2A25] hover:bg-[#FAFBF9]'
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
                 ))}
 
                 <button
+                  type="button"
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 border border-[#DCE3D5] rounded-lg bg-white font-medium hover:bg-[#FAFBF9] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="px-3 py-1.5 border border-[#DCE3D5] rounded-lg bg-white font-medium hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Next
                 </button>
@@ -675,18 +718,15 @@ export default function AdminAuditLogs() {
         </div>
 
         {/* 5. Detailed Event Inspection Modal (Real GET /api/admin/audit-logs/{id} data) */}
-        {selectedEvent && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in"
-            onClick={() => setSelectedEvent(null)}
-          >
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="audit-modal-title"
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[28px] border border-[#DCE3D5] shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
-            >
+        <ModalMotion
+          isOpen={Boolean(selectedEvent)}
+          onClose={() => setSelectedEvent(null)}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-white rounded-[28px] border border-[#DCE3D5] shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+          ariaLabelledBy="audit-modal-title"
+        >
+          {selectedEvent && (
+            <>
               {/* Modal Header */}
               <div className="px-6 py-5 border-b border-[#DCE3D5] flex items-center justify-between bg-[#FAFBF9]">
                 <div className="flex items-center gap-3">
@@ -704,8 +744,10 @@ export default function AdminAuditLogs() {
                 </div>
 
                 <button
+                  type="button"
+                  aria-label="Close modal"
                   onClick={() => setSelectedEvent(null)}
-                  className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#FAFBF9] transition-colors"
+                  className="w-8 h-8 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none transition-all cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -764,8 +806,9 @@ export default function AdminAuditLogs() {
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-[#6B6F63] uppercase tracking-wider">Raw Event Payload (API DTO)</span>
                         <button
+                          type="button"
                           onClick={() => handleCopyJSON(selectedEvent)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-md hover:bg-[#d8e3d6] transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-[#2F5233] bg-[#EAF0E9] rounded-md hover:bg-[#d8e3d6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none transition-all cursor-pointer"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -784,15 +827,16 @@ export default function AdminAuditLogs() {
               {/* Modal Footer */}
               <div className="px-6 py-4 border-t border-[#DCE3D5] flex items-center justify-end bg-[#FAFBF9]">
                 <button
+                  type="button"
                   onClick={() => setSelectedEvent(null)}
-                  className="px-5 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full hover:border-[#2F5233] transition-colors"
+                  className="px-5 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                 >
                   Close
                 </button>
               </div>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalMotion>
       </div>
     </AdminLayout>
   );

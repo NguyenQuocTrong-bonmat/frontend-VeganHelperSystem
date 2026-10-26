@@ -102,8 +102,8 @@ export default function AIChatbot() {
       skipHistoryForSession.current = result.sessionId;
       setSession(nextSession);
       setMessages((previous) => [...previous,
-        { id: `user-${Date.now()}`, senderType: 'user', messageText: message },
-        { id: `ai-${Date.now()}`, senderType: 'ai', messageText: result.answer },
+      { id: `user-${Date.now()}`, senderType: 'user', messageText: message },
+      { id: `ai-${Date.now()}`, senderType: 'ai', messageText: result.answer },
       ]);
       setDraft('');
       if (!isAuthenticated && typeof result.guestQuestionsRemaining === 'number') {
@@ -128,7 +128,7 @@ export default function AIChatbot() {
               <h2 className="font-semibold text-[#2B2A25]">AI Nutrition Assistant</h2>
               <p className="text-xs text-[#6B6F63]">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
             </div>
-            <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233]">×</button>
+            <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">×</button>
           </header>
           <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-3 overflow-y-auto bg-[#F3F6EE]/40 p-4 text-sm">
             <p className="max-w-[88%] rounded-xl border border-[#DCE3D5] bg-white p-3 text-[#2B2A25]">{welcome}</p>
@@ -140,8 +140,8 @@ export default function AIChatbot() {
           </div>
           {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
           <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
-            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder="Ask about plant-based food…" className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-[#2F5233] disabled:opacity-60" />
-            <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] disabled:opacity-50">Send</button>
+            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder="Ask about plant-based food…" className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
+            <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>
           </form>
           {limitReached && !isAuthenticated && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">
@@ -149,16 +149,16 @@ export default function AIChatbot() {
                 <h3 className="font-semibold text-[#2B2A25]">Continue your conversation</h3>
                 <p className="mt-2 text-sm text-[#6B6F63]">You have used your three free questions. Sign in or create an account to keep chatting.</p>
                 <div className="mt-4 flex justify-center gap-3 text-sm">
-                  <Link to="/login" className="rounded-lg bg-[#2F5233] px-4 py-2 text-white">Log in</Link>
-                  <Link to="/sign-up" className="rounded-lg border border-[#2F5233] px-4 py-2 text-[#2F5233]">Sign up</Link>
+                  <Link to="/login" className="rounded-lg bg-[#2F5233] px-4 py-2 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Log in</Link>
+                  <Link to="/sign-up" className="rounded-lg border border-[#2F5233] px-4 py-2 text-[#2F5233] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Sign up</Link>
                 </div>
-                <button type="button" onClick={() => setIsOpen(false)} className="mt-4 text-sm text-[#6B6F63] underline">Close</button>
+                <button type="button" onClick={() => setIsOpen(false)} className="mt-4 text-sm text-[#6B6F63] underline hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80">Close</button>
               </div>
             </div>
           )}
         </section>
       ) : (
-        <button id="chat-fab" type="button" onClick={() => setIsOpen(true)} aria-label="Open AI Nutrition Assistant" className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2F5233] text-white shadow-lg transition-transform hover:scale-105 hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
+        <button id="chat-fab" type="button" onClick={() => setIsOpen(true)} aria-label="Open AI Nutrition Assistant" className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2F5233] text-white shadow-lg transition-all hover:scale-105 hover:bg-[#1E3B21] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">
           <svg aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 17l.7 2.3L21 20l-2.3.7L18 23l-.7-2.3L15 20l2.3-.7L18 17z" /></svg>
         </button>
       )}

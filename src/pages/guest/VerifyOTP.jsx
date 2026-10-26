@@ -131,14 +131,14 @@ function VerifyOTP() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="email@example.com"
-                  className="w-full h-11 px-3.5 bg-surface-paper border border-border-sage-mist rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus:border-primary-moss transition-colors"
+                  className="w-full h-11 px-3.5 bg-surface-paper border border-border-sage-mist rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors"
                   required
                 />
               </div>
               <button
                 type="submit"
                 disabled={isSending || countdown > 0}
-                className="w-full h-11 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors"
+                className="w-full h-11 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
               >
                 {isSending ? 'Sending...' : countdown > 0 ? `Code sent (${formatTime(countdown)})` : 'Send verification code'}
               </button>
@@ -154,7 +154,7 @@ function VerifyOTP() {
                   </label>
                   <input
                     {...register('otp')}
-                    className={`w-full h-12 px-4 text-center tracking-[0.5em] text-lg bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus:border-primary-moss transition-colors`}
+                    className={`w-full h-12 px-4 text-center tracking-[0.5em] text-lg bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
                     id="otp"
                     placeholder="000000"
                     maxLength={6}
@@ -167,7 +167,7 @@ function VerifyOTP() {
                 </div>
                 <button
                   disabled={isSubmitting}
-                  className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
                   type="submit"
                 >
                   {isSubmitting ? 'Verifying...' : 'Verify Code'}
@@ -184,7 +184,7 @@ function VerifyOTP() {
                   <button
                     onClick={sendCode}
                     disabled={isSending}
-                    className="text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70"
+                    className="text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:scale-95 motion-reduce:transform-none disabled:active:scale-100"
                   >
                     {isSending ? 'Resending...' : 'Resend Code Now'}
                   </button>
@@ -194,7 +194,7 @@ function VerifyOTP() {
           )}
 
           <p className="text-center mt-8 text-sm text-text-stem-gray">
-            Already verified? <Link className="text-primary-moss hover:underline" to="/login">Log in</Link>
+            Already verified? <Link className="text-primary-moss hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-0.5 active:opacity-80" to="/login">Log in</Link>
           </p>
         </div>
       </main>
@@ -202,8 +202,8 @@ function VerifyOTP() {
         <div className="max-w-[1120px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
           <div className="flex items-center gap-4">
-            <Link className="hover:text-primary-moss transition-colors" to="#">Terms of Service</Link>
-            <Link className="hover:text-primary-moss transition-colors" to="#">Privacy Policy</Link>
+            <Link className="hover:text-primary-moss transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:opacity-80" to="#">Terms of Service</Link>
+            <Link className="hover:text-primary-moss transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:opacity-80" to="#">Privacy Policy</Link>
           </div>
         </div>
       </footer>

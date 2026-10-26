@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { mobileDrawerVariants, reducedMotionVariants } from '../ui/dropdownMotion';
 
 export default function HeaderGuest() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -11,9 +14,21 @@ export default function HeaderGuest() {
         setIsMobileMenuOpen(false);
       }
     }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+        mobileMenuRef.current?.querySelector('button')?.focus();
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   const navItems = [
     {
@@ -73,10 +88,9 @@ export default function HeaderGuest() {
               end={item.end}
               aria-label={item.label}
               className={({ isActive }) =>
-                `relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
-                  isActive
-                    ? 'bg-[#2F5233] text-white shadow-xs'
-                    : 'text-[#555A4E] hover:text-[#2F5233] hover:bg-[#EBF2E8]/80'
+                `relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${isActive
+                  ? 'bg-[#2F5233] text-white shadow-xs'
+                  : 'text-[#555A4E] hover:text-[#2F5233] hover:bg-[#EBF2E8]/80'
                 }`
               }
             >
@@ -101,7 +115,7 @@ export default function HeaderGuest() {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={isMobileMenuOpen}
-          className="md:hidden w-9 h-9 rounded-lg border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+          className="md:hidden w-9 h-9 rounded-lg border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             {isMobileMenuOpen ? (
@@ -113,32 +127,39 @@ export default function HeaderGuest() {
         </button>
 
         {/* Mobile Navigation Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-[#FDFBF6] border-b border-[#DCE3D5] shadow-lg p-3 space-y-1.5 z-40 text-left">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-dm-sans transition-colors ${
-                    isActive
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              className="md:hidden absolute top-full left-0 right-0 bg-[#FDFBF6] border-b border-[#DCE3D5] shadow-lg p-3 space-y-1.5 z-40 text-left origin-top"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={shouldReduceMotion ? reducedMotionVariants : mobileDrawerVariants}
+            >
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-dm-sans transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.98] motion-reduce:transform-none ${isActive
                       ? 'bg-[#2F5233] text-white font-medium shadow-xs'
                       : 'text-[#2B2A25] hover:text-[#2F5233] hover:bg-[#F3F6EE]'
-                  }`
-                }
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        )}
+                    }`
+                  }
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <Link className="h-9 sm:h-10 px-3 sm:px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[13px] sm:text-[14px] font-medium hover:bg-[#F3F6EE] hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]" to="/login">
+        <Link className="h-9 sm:h-10 px-3 sm:px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[13px] sm:text-[14px] font-medium hover:bg-[#F3F6EE] hover:-translate-y-0.5 hover:shadow-sm active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]" to="/login">
           Log In
         </Link>
-        <Link className="h-9 sm:h-10 px-3 sm:px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[13px] sm:text-[14px] font-medium hover:bg-[#25401F] hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1" to="/register">
+        <Link className="h-9 sm:h-10 px-3 sm:px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[13px] sm:text-[14px] font-medium hover:bg-[#25401F] hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1" to="/register">
           Sign Up
         </Link>
       </div>

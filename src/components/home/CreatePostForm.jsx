@@ -173,7 +173,7 @@ export default function CreatePostForm({
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 p-4 rounded-xl bg-red-50 border border-vh-error/30 text-vh-error text-sm font-medium animate-in fade-in"
+          className="mb-6 p-4 rounded-xl bg-red-50 border border-vh-error/30 text-vh-error text-sm font-medium"
         >
           {errorMessage}
         </div>
@@ -204,7 +204,7 @@ export default function CreatePostForm({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Give your post an inviting title..."
-                className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all"
+                className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all"
               />
             </div>
 
@@ -217,7 +217,7 @@ export default function CreatePostForm({
                   id="post-category-select"
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all cursor-pointer"
                 >
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
@@ -235,7 +235,7 @@ export default function CreatePostForm({
                   id="post-diet-select"
                   value={dietType}
                   onChange={(e) => setDietType(e.target.value)}
-                  className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all cursor-pointer"
                 >
                   <option value="vegan">Vegan</option>
                   <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
@@ -254,7 +254,7 @@ export default function CreatePostForm({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Share your thoughts, story, or recipe details..."
-                className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all resize-y"
+                className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all resize-y"
               />
             </div>
           </section>
@@ -298,7 +298,7 @@ export default function CreatePostForm({
                         <img
                           src={URL.createObjectURL(file)}
                           alt={`Preview ${idx + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200 motion-reduce:transform-none"
                         />
                       )}
 
@@ -317,7 +317,7 @@ export default function CreatePostForm({
                             fileInputRef.current.value = '';
                           }
                         }}
-                        className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full p-1.5 text-vh-error hover:bg-white shadow-xs cursor-pointer transition-opacity"
+                        className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full p-1.5 text-vh-error hover:bg-white shadow-xs cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
                         aria-label={`Remove file ${idx + 1}`}
                         title="Remove file"
                       >
@@ -354,7 +354,7 @@ export default function CreatePostForm({
                   min="0"
                   value={prepTimeMins}
                   onChange={(e) => setPrepTimeMins(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm text-vh-text-primary transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm text-vh-text-primary transition-all"
                 />
               </div>
               <div>
@@ -367,7 +367,7 @@ export default function CreatePostForm({
                   min="0"
                   value={cookingTimeMins}
                   onChange={(e) => setCookingTimeMins(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm text-vh-text-primary transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm text-vh-text-primary transition-all"
                 />
               </div>
               <div>
@@ -378,7 +378,7 @@ export default function CreatePostForm({
                   id="difficulty-select"
                   value={difficultyLevel}
                   onChange={(e) => setDifficultyLevel(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-sm text-vh-text-primary transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm text-vh-text-primary transition-all cursor-pointer"
                 >
                   <option value="easy">Easy</option>
                   <option value="medium">Medium</option>
@@ -404,13 +404,13 @@ export default function CreatePostForm({
                     value={ing}
                     onChange={(e) => handleIngredientChange(e.target.value, idx)}
                     placeholder="e.g. 2 cups of fresh Thai basil or 200g firm tofu"
-                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all"
+                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all"
                   />
                   {ingredients.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveIngredient(idx)}
-                      className="p-1.5 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
                       aria-label={`Remove ingredient ${idx + 1}`}
                       title="Remove ingredient"
                     >
@@ -425,7 +425,7 @@ export default function CreatePostForm({
             <button
               type="button"
               onClick={handleAddIngredient}
-              className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-vh-forest bg-vh-mint/40 hover:bg-vh-mint rounded-lg transition-colors cursor-pointer"
+              className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-vh-forest bg-vh-mint/40 hover:bg-vh-mint rounded-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -450,13 +450,13 @@ export default function CreatePostForm({
                     value={st}
                     onChange={(e) => handleStepChange(e.target.value, idx)}
                     placeholder={`Describe step ${idx + 1}...`}
-                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus:border-vh-forest focus:ring-1 focus:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all resize-y min-h-[52px]"
+                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all resize-y min-h-[52px]"
                   />
                   {steps.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveStep(idx)}
-                      className="p-1.5 mt-1 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 mt-1 text-vh-error/60 hover:text-vh-error hover:bg-vh-error/10 rounded-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-error active:scale-90 motion-reduce:transform-none"
                       aria-label={`Remove step ${idx + 1}`}
                       title="Remove step"
                     >
@@ -471,7 +471,7 @@ export default function CreatePostForm({
             <button
               type="button"
               onClick={handleAddStep}
-              className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-vh-forest bg-vh-mint/40 hover:bg-vh-mint rounded-lg transition-colors cursor-pointer"
+              className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-vh-forest bg-vh-mint/40 hover:bg-vh-mint rounded-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -486,14 +486,14 @@ export default function CreatePostForm({
               type="button"
               onClick={onCancel}
               disabled={loading}
-              className="px-5 py-2.5 rounded-full border border-vh-border text-xs sm:text-sm font-semibold text-vh-text-secondary hover:text-vh-forest hover:bg-vh-cream transition-colors cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-full border border-vh-border text-xs sm:text-sm font-semibold text-vh-text-secondary hover:text-vh-forest hover:bg-vh-cream transition-all cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-7 py-2.5 rounded-full bg-vh-forest text-white text-xs sm:text-sm font-semibold hover:bg-vh-sage transition-all shadow-sm active:scale-98 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-7 py-2.5 rounded-full bg-vh-forest text-white text-xs sm:text-sm font-semibold hover:bg-vh-sage transition-all shadow-sm active:scale-[0.98] motion-reduce:transform-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2"
             >
               {loading && (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -1,5 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
+import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import {
   getAdminCategories,
   createAdminCategory,
@@ -67,12 +69,23 @@ export default function AdminCategoryManagement() {
     category: null,
   });
 
+  const shouldReduceMotion = useReducedMotion();
+  const toastTimerRef = useRef(null);
+
+  // Clean up toast timer on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   // Toast feedback state
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   const showToast = (message, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ show: true, message, type });
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
     }, 3500);
   };
@@ -214,25 +227,48 @@ export default function AdminCategoryManagement() {
     <AdminLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Toast Notification */}
-        {toast.show && (
-          <div
-            role="status"
-            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${
-              toast.type === 'error'
-                ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
-                : 'bg-[#2F5233] text-white border-[#25401F]'
-            }`}
-          >
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {toast.type === 'error' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              )}
-            </svg>
-            <span>{toast.message}</span>
-          </div>
-        )}
+        <AnimatePresence>
+          {toast.show && (
+            <motion.div
+              role="status"
+              variants={shouldReduceMotion ? reducedToastVariants : toastVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium pointer-events-auto ${
+                toast.type === 'error'
+                  ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
+                  : 'bg-[#2F5233] text-white border-[#25401F]'
+              }`}
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {toast.type === 'error' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                )}
+              </svg>
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                  setToast({ show: false, message: '', type: 'success' });
+                }}
+                className={`ml-1.5 p-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 cursor-pointer ${
+                  toast.type === 'error'
+                    ? 'hover:bg-[#FBEAE7] text-[#A63446] focus-visible:ring-[#A63446]'
+                    : 'hover:bg-white/20 text-white focus-visible:ring-white'
+                }`}
+                aria-label="Dismiss notification"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 1. Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -247,8 +283,9 @@ export default function AdminCategoryManagement() {
 
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
+              type="button"
               onClick={handleOpenAddModal}
-              className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-[#2F5233] rounded-full shadow-xs hover:bg-[#25401F] active:scale-95 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-[#2F5233] rounded-full shadow-xs hover:bg-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer transition-all"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -261,7 +298,11 @@ export default function AdminCategoryManagement() {
         {loadError && (
           <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#8B2B3A] sm:flex-row sm:items-center sm:justify-between">
             <span>{loadError}</span>
-            <button type="button" onClick={loadCategories} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto">
+            <button
+              type="button"
+              onClick={loadCategories}
+              className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer transition-all"
+            >
               Try again
             </button>
           </div>
@@ -285,12 +326,14 @@ export default function AdminCategoryManagement() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:ring-1 focus:ring-[#2F5233] outline-none transition-all placeholder-[#8A9080] text-[#2B2A25]"
+                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] transition-all placeholder-[#8A9080] text-[#2B2A25]"
               />
               {searchQuery && (
                 <button
+                  type="button"
+                  aria-label="Clear search"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25]"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg active:scale-95 motion-reduce:transform-none"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -305,7 +348,7 @@ export default function AdminCategoryManagement() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="posts-desc">Sort: Highest Posts</option>
                   <option value="name-asc">Sort: Name (A-Z)</option>
@@ -328,8 +371,9 @@ export default function AdminCategoryManagement() {
             </div>
             {Boolean(searchQuery) && (
               <button
+                type="button"
                 onClick={handleClearFilters}
-                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F]"
+                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:scale-95 motion-reduce:transform-none cursor-pointer"
               >
                 Clear all filters
               </button>
@@ -375,7 +419,7 @@ export default function AdminCategoryManagement() {
                     const hasLinkedPosts = cat.postsCount > 0;
 
                     return (
-                      <tr key={cat.id} className="hover:bg-[#FAFBF9] transition-colors">
+                      <tr key={cat.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         {/* Name & Slug */}
                         <td className="py-4 px-5 overflow-hidden">
                           <p className="font-semibold text-sm text-[#2B2A25] truncate" title={cat.name}>{cat.name}</p>
@@ -414,8 +458,9 @@ export default function AdminCategoryManagement() {
                           <div className="inline-flex items-center justify-start gap-2">
                             {/* Edit Button */}
                             <button
+                              type="button"
                               onClick={() => handleOpenEditModal(cat)}
-                              className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all"
+                              className="px-3 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                               title="Edit Category"
                             >
                               Edit
@@ -423,12 +468,13 @@ export default function AdminCategoryManagement() {
 
                             {/* Delete Button (Protected when postsCount > 0) */}
                             <button
+                              type="button"
                               onClick={() => handleOpenDeleteModal(cat)}
                               disabled={hasLinkedPosts}
-                              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-1 disabled:active:scale-100 ${
                                 hasLinkedPosts
                                   ? 'opacity-40 cursor-not-allowed text-[#8A9080] bg-[#FAFBF9] border border-[#EAF0E9]'
-                                  : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white'
+                                  : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white active:scale-[0.97] motion-reduce:transform-none cursor-pointer'
                               }`}
                               title={
                                 hasLinkedPosts
@@ -462,8 +508,9 @@ export default function AdminCategoryManagement() {
                         <p className="font-semibold text-sm text-[#2B2A25]">No categories found</p>
                         <p className="text-xs text-[#8A9080] mt-0.5">Try searching with a different keyword or reset filters.</p>
                         <button
+                          type="button"
                           onClick={handleClearFilters}
-                          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full hover:bg-[#2F5233] hover:text-white transition-all"
+                          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full hover:bg-[#2F5233] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -491,9 +538,10 @@ export default function AdminCategoryManagement() {
 
             <div className="flex items-center gap-1.5">
               <button
+                type="button"
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Previous
               </button>
@@ -501,8 +549,9 @@ export default function AdminCategoryManagement() {
               {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
                 <button
                   key={pageNum}
+                  type="button"
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.95] motion-reduce:transform-none transition-all cursor-pointer ${
                     currentPage === pageNum
                       ? 'bg-[#2F5233] text-white shadow-xs'
                       : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
@@ -513,9 +562,10 @@ export default function AdminCategoryManagement() {
               ))}
 
               <button
+                type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Next
               </button>
@@ -526,99 +576,107 @@ export default function AdminCategoryManagement() {
         {/* ============================================================ */}
         {/* MODAL 1: ADD / EDIT CATEGORY FORM                            */}
         {/* ============================================================ */}
-        {formModal.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-lg w-full shadow-2xl p-6 overflow-hidden">
-              <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#EAF0E9] text-[#2F5233] flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base text-[#2B2A25]">
-                      {formModal.isEditing ? 'Edit Category' : 'Create New Category'}
-                    </h3>
-                    <p className="text-xs text-[#6B6F63]">
-                      {formModal.isEditing
-                        ? 'Update category name and type'
-                        : 'Add a new recipe or food category to the platform'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setFormModal((prev) => ({ ...prev, isOpen: false }))}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        <ModalMotion
+          isOpen={formModal.isOpen}
+          onClose={() => setFormModal((prev) => ({ ...prev, isOpen: false }))}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-lg w-full shadow-2xl p-6 overflow-hidden"
+        >
+          <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#EAF0E9] text-[#2F5233] flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
               </div>
-
-              <form onSubmit={handleSaveCategory} className="mt-4 space-y-4 text-xs">
-                {/* Category Name */}
-                <div>
-                  <label htmlFor="category-name" className="block font-semibold text-[#2B2A25] mb-1.5">
-                    Category Name <span className="text-[#A63446]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="category-name"
-                    required
-                    maxLength={100}
-                    placeholder="e.g., Soups, Stir-fried Dishes, Vegan Desserts"
-                    value={formModal.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
-                  />
-                </div>
-
-                {/* Category Type */}
-                <div>
-                  <div>
-                    <label className="block font-semibold text-[#2B2A25] mb-1.5">
-                      Type
-                    </label>
-                    <select
-                      value={formModal.type}
-                      onChange={(e) => setFormModal((prev) => ({ ...prev, type: e.target.value }))}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
-                    >
-                      <option value="Recipe Type">Recipe Type</option>
-                      <option value="Food Type">Food Type</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#DCE3D5]">
-                  <button
-                    type="button"
-                    onClick={() => setFormModal((prev) => ({ ...prev, isOpen: false }))}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-xl shadow-xs hover:bg-[#25401F] transition-colors"
-                  >
-                    {formModal.isEditing ? 'Save Changes' : 'Create Category'}
-                  </button>
-                </div>
-              </form>
+              <div>
+                <h3 className="font-bold text-base text-[#2B2A25]">
+                  {formModal.isEditing ? 'Edit Category' : 'Create New Category'}
+                </h3>
+                <p className="text-xs text-[#6B6F63]">
+                  {formModal.isEditing
+                    ? 'Update category name and type'
+                    : 'Add a new recipe or food category to the platform'}
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              aria-label="Close modal"
+              onClick={() => setFormModal((prev) => ({ ...prev, isOpen: false }))}
+              className="p-1 rounded-lg text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        )}
+
+          <form onSubmit={handleSaveCategory} className="mt-4 space-y-4 text-xs">
+            {/* Category Name */}
+            <div>
+              <label htmlFor="category-name" className="block font-semibold text-[#2B2A25] mb-1.5">
+                Category Name <span className="text-[#A63446]">*</span>
+              </label>
+              <input
+                type="text"
+                id="category-name"
+                required
+                maxLength={100}
+                placeholder="e.g., Soups, Stir-fried Dishes, Vegan Desserts"
+                value={formModal.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] text-[#2B2A25]"
+              />
+            </div>
+
+            {/* Category Type */}
+            <div>
+              <div>
+                <label className="block font-semibold text-[#2B2A25] mb-1.5">
+                  Type
+                </label>
+                <select
+                  value={formModal.type}
+                  onChange={(e) => setFormModal((prev) => ({ ...prev, type: e.target.value }))}
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] text-[#2B2A25] cursor-pointer"
+                >
+                  <option value="Recipe Type">Recipe Type</option>
+                  <option value="Food Type">Food Type</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#DCE3D5]">
+              <button
+                type="button"
+                onClick={() => setFormModal((prev) => ({ ...prev, isOpen: false }))}
+                className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-xl shadow-xs hover:bg-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none transition-all cursor-pointer"
+              >
+                {formModal.isEditing ? 'Save Changes' : 'Create Category'}
+              </button>
+            </div>
+          </form>
+        </ModalMotion>
 
         {/* ============================================================ */}
         {/* MODAL 2: DELETE CONFIRMATION (Only for 0 posts)              */}
         {/* ============================================================ */}
-        {deleteModal.isOpen && deleteModal.category && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden">
+        <ModalMotion
+          isOpen={Boolean(deleteModal.isOpen && deleteModal.category)}
+          onClose={() => setDeleteModal({ isOpen: false, category: null })}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden"
+        >
+          {deleteModal.category && (
+            <>
               <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#FBEAE7] text-[#A63446] flex items-center justify-center shrink-0">
@@ -632,8 +690,10 @@ export default function AdminCategoryManagement() {
                   </div>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Close modal"
                   onClick={() => setDeleteModal({ isOpen: false, category: null })}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                  className="p-1 rounded-lg text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -658,22 +718,22 @@ export default function AdminCategoryManagement() {
                   <button
                     type="button"
                     onClick={() => setDeleteModal({ isOpen: false, category: null })}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleConfirmDelete}
-                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] transition-colors"
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none transition-all cursor-pointer"
                   >
                     Delete Category
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalMotion>
       </div>
     </AdminLayout>
   );

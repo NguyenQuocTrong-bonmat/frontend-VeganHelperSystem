@@ -37,10 +37,10 @@ const isValidBirthDate = (value) => {
 function Profile() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  
+
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Edit Profile States
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -71,8 +71,8 @@ function Profile() {
     try {
       setIsLoading(true);
       const data = await authService.getProfile();
-      setProfile(data.data || data); 
-      
+      setProfile(data.data || data);
+
       const p = data.data || data;
       setEditForm({
         displayName: p.displayName || '',
@@ -221,7 +221,7 @@ function Profile() {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 30) return `Joined ${diffDays === 0 ? 'today' : `${diffDays} days ago`}`;
     const diffMonths = Math.floor(diffDays / 30);
     if (diffMonths < 12) return `Joined ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
@@ -288,7 +288,7 @@ function Profile() {
             </div>
             {/* Right: Primary Action Button */}
             <div className="flex-shrink-0 self-start md:self-center">
-              <button onClick={() => setIsEditOpen(true)} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition shadow-sm hover:shadow active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-moss" id="openEditProfileBtn" type="button">
+              <button onClick={() => setIsEditOpen(true)} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition-all shadow-sm hover:shadow active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-moss cursor-pointer" id="openEditProfileBtn" type="button">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -408,8 +408,8 @@ function Profile() {
                     </span>
                   </div>
                   <p className="text-sm font-semibold text-text-charcoal">
-                    {(profile?.provider === 'google' || profile?.isGoogleLinked) 
-                      ? 'Your account is linked to Google.' 
+                    {(profile?.provider === 'google' || profile?.isGoogleLinked)
+                      ? 'Your account is linked to Google.'
                       : 'Connect your Google account for quicker login'}
                   </p>
                 </div>
@@ -487,7 +487,7 @@ function Profile() {
                 Update your account identity and contact details.
               </p>
             </div>
-            <button onClick={() => setIsEditOpen(false)} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-colors duration-200" id="closeEditProfileBtn" type="button">
+            <button onClick={() => setIsEditOpen(false)} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" id="closeEditProfileBtn" type="button">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
@@ -508,7 +508,7 @@ function Profile() {
                 </span>
               </div>
               <div>
-                <button onClick={() => fileInputRef.current.click()} className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-colors duration-200 shadow-2xs" type="button"><input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} accept="image/png, image/jpeg" />
+                <button onClick={() => fileInputRef.current.click()} className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" type="button"><input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} accept="image/png, image/jpeg" />
                   Change Photo
                 </button>
                 <p className="text-[11px] text-text-stem-gray mt-1">
@@ -522,7 +522,7 @@ function Profile() {
                 Full Name
               </label>
               <input
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
                 id="modalFullName"
                 type="text"
                 value={editForm.displayName}
@@ -553,7 +553,7 @@ function Profile() {
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalPhone">
                 Phone Number
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value={editForm.phoneNumber} onChange={handleEditChange} />
+              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value={editForm.phoneNumber} onChange={handleEditChange} />
             </div>
             {/* 2-Column Grid: Sex & DOB */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -561,14 +561,14 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalSex">
                   Biological Sex
                 </label>
-                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 cursor-pointer" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
                   Date of Birth
                 </label>
                 <input
-                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
+                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
                   id="modalDob"
                   type="date"
                   value={editForm.birthDate}
@@ -581,10 +581,10 @@ function Profile() {
             </div>
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-2">
-              <button onClick={() => setIsEditOpen(false)} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200" id="cancelEditProfileBtn" type="button">
+              <button onClick={() => setIsEditOpen(false)} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer" id="cancelEditProfileBtn" type="button">
                 Cancel
               </button>
-              <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 shadow-sm" id="saveEditProfileBtn" type="submit">
+              <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer" id="saveEditProfileBtn" type="submit">
                 Save Changes
               </button>
             </div>
@@ -596,21 +596,21 @@ function Profile() {
       {/* Set Password Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isPasswordModalOpen ? "" : "hidden"}`}>
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => setIsPasswordModalOpen(false)}></div>
-        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full border border-border-sage-mist shadow-lg">
           <h3 className="font-caslon text-xl font-bold mb-4">Set Local Password</h3>
           <p className="text-sm text-text-stem-gray mb-4">You need to set a local password before unlinking your Google account.</p>
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div>
               <label className="block text-xs mb-1">New Password</label>
-              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.newPassword} onChange={e => setPasswordForm(p => ({...p, newPassword: e.target.value}))} />
+              <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={passwordForm.newPassword} onChange={e => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))} />
             </div>
             <div>
               <label className="block text-xs mb-1">Confirm Password</label>
-              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(p => ({...p, confirmPassword: e.target.value}))} />
+              <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(p => ({ ...p, confirmPassword: e.target.value }))} />
             </div>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-sm bg-primary-moss text-white rounded-lg">Save Password</button>
+              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-sm bg-primary-moss hover:bg-moss-hover text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Save Password</button>
             </div>
           </form>
         </div>
@@ -619,20 +619,20 @@ function Profile() {
       {/* Unlink Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isUnlinkModalOpen ? "" : "hidden"}`}>
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }}></div>
-        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full border border-border-sage-mist shadow-lg">
           <h3 className="font-caslon text-xl font-bold mb-4">Unlink Google Account</h3>
-          
+
           {unlinkStep === 1 ? (
             <>
               <p className="text-sm text-text-stem-gray mb-4">Please enter your password to confirm this action.</p>
               <form onSubmit={handleRequestUnlinkGoogle} className="space-y-4">
                 <div>
                   <label className="block text-xs mb-1">Current Password</label>
-                  <input type="password" required className="w-full border rounded-lg px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                  <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Continue</button>
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot hover:bg-red-800 text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-beetroot focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Continue</button>
                 </div>
               </form>
             </>
@@ -642,11 +642,11 @@ function Profile() {
               <form onSubmit={handleConfirmUnlinkGoogle} className="space-y-4">
                 <div>
                   <label className="block text-xs mb-1">OTP</label>
-                  <input type="text" required className="w-full border rounded-lg px-3 py-2" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
+                  <input type="text" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Confirm Unlink</button>
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot hover:bg-red-800 text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-beetroot focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Confirm Unlink</button>
                 </div>
               </form>
             </>

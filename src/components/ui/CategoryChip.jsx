@@ -14,7 +14,7 @@ const CategoryChip = ({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-medium font-dm-sans transition-all duration-normal ease-vh focus-ring-vh ${activeStyles} ${className}`}
+      className={`rounded-full px-4 py-2 text-sm font-medium font-dm-sans transition-all duration-normal ease-vh focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer ${activeStyles} ${className}`}
       aria-pressed={isActive}
     >
       {label}

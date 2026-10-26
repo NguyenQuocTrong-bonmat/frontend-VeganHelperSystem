@@ -154,7 +154,7 @@ export default function PostList({
             className={`h-12 px-8 rounded-full border border-vh-forest font-dm-sans text-[15px] font-medium transition-all duration-300 focus-ring-vh flex items-center justify-center gap-2.5 ${
               loadingMore 
                 ? 'bg-vh-mint/40 text-vh-forest cursor-wait border-vh-sage' 
-                : 'bg-transparent text-vh-forest hover:bg-vh-forest hover:text-white hover:-translate-y-0.5 hover:shadow-md active:scale-95 cursor-pointer'
+                : 'bg-transparent text-vh-forest hover:bg-vh-forest hover:text-white hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none cursor-pointer'
             }`}
           >
             {loadingMore ? (

@@ -215,8 +215,8 @@ function Login() {
   // Common input classes with soft hover and focus rings
   const getInputClasses = (hasError) =>
     `w-full h-10 sm:h-10.5 px-3.5 bg-surface-paper/60 border ${hasError
-      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/15'
-      : 'border-border-sage-mist/80 hover:border-primary-moss/60 focus:border-primary-moss focus:ring-2 focus:ring-primary-moss/15'
+      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500/20'
+      : 'border-border-sage-mist/80 hover:border-primary-moss/60 focus:border-primary-moss focus-visible:ring-2 focus-visible:ring-primary-moss/20'
     } rounded-lg text-xs sm:text-[13.5px] text-text-charcoal placeholder:text-text-stem-gray/80 focus:outline-none transition-all duration-200`;
 
   return (
@@ -311,7 +311,7 @@ function Login() {
                 <label className="block text-[11px] sm:text-[11.5px] font-semibold text-text-charcoal uppercase tracking-wider" htmlFor="password">
                   Password
                 </label>
-                <Link className="text-[11.5px] text-text-stem-gray hover:text-primary-moss transition-colors font-medium focus-ring-vh rounded" to="/forgot-password">
+                <Link className="text-[11.5px] text-text-stem-gray hover:text-primary-moss transition-colors font-medium focus-ring-vh rounded active:opacity-80" to="/forgot-password">
                   Forgot password?
                 </Link>
               </div>
@@ -329,7 +329,7 @@ function Login() {
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
                   aria-controls="password"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1 focus:outline-none"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:rounded active:scale-95 motion-reduce:transform-none"
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isSuccess || isSubmitting}
@@ -396,7 +396,7 @@ function Login() {
               <motion.button
                 whileTap={isSubmitting || isSuccess || prefersReducedMotion ? {} : { scale: scale.press }}
                 disabled={isSubmitting || isSuccess}
-                className="w-full h-10 sm:h-10.5 bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh"
+                className="w-full h-10 sm:h-10.5 bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh active:scale-[0.98] motion-reduce:transform-none"
                 type="submit"
               >
                 <AnimatePresence mode="wait">
@@ -502,7 +502,7 @@ function Login() {
           <motion.div variants={itemVariants} className="mt-3.5 sm:mt-4 pt-2.5 sm:pt-3 border-t border-border-sage-mist/50 text-center">
             <p className="text-xs sm:text-[13px] text-text-stem-gray">
               Don't have an account?
-              <Link className="font-semibold text-text-charcoal hover:text-primary-moss transition-colors duration-200 ml-1.5 focus-ring-vh rounded" to="/sign-up">
+              <Link className="font-semibold text-text-charcoal hover:text-primary-moss transition-colors duration-200 ml-1.5 focus-ring-vh rounded active:opacity-80" to="/sign-up">
                 Sign up now
               </Link>
             </p>
@@ -517,8 +517,8 @@ function Login() {
         <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-3">
           <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
           <div className="flex items-center gap-4">
-            <Link className="hover:text-primary-moss lg:hover:text-white transition-colors" to="#">Terms of Service</Link>
-            <Link className="hover:text-primary-moss lg:hover:text-white transition-colors" to="#">Privacy Policy</Link>
+            <Link className="hover:text-primary-moss lg:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss lg:focus-visible:ring-white rounded px-1 active:opacity-80" to="#">Terms of Service</Link>
+            <Link className="hover:text-primary-moss lg:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss lg:focus-visible:ring-white rounded px-1 active:opacity-80" to="#">Privacy Policy</Link>
           </div>
         </div>
       </footer>

@@ -82,7 +82,7 @@ export default function FeaturedPost({
       </div>
       
       <Link 
-        className="block bg-vh-surface border border-vh-border/70 rounded-card-lg grid grid-cols-1 2xl:grid-cols-12 overflow-hidden hover:shadow-xl hover:shadow-vh-sage/15 hover:border-vh-sage/60 hover:-translate-y-0.5 transition-all duration-500 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
+        className="block bg-vh-surface border border-vh-border/70 rounded-card-lg grid grid-cols-1 2xl:grid-cols-12 overflow-hidden hover:shadow-lg hover:shadow-vh-sage/15 hover:border-vh-sage/60 hover:-translate-y-0.5 motion-reduce:transform-none transition-all duration-200 ease-out cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
         to={linkTo}
       >
         {/* Media Container */}
@@ -91,7 +91,7 @@ export default function FeaturedPost({
             isVideo ? (
               <video
                 src={resolvedUrl}
-                className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
                 muted
                 playsInline
                 autoPlay
@@ -103,7 +103,7 @@ export default function FeaturedPost({
               <img 
                 src={resolvedUrl} 
                 alt={post.title} 
-                className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
                 onError={() => setMediaError(true)}
                 loading="lazy"
               />
@@ -165,7 +165,7 @@ export default function FeaturedPost({
             <button
               type="button"
               onClick={handleAuthorClick}
-              className="flex items-center gap-2.5 text-left group/author hover:opacity-85 transition-opacity cursor-pointer focus-ring-vh rounded-lg p-1 -m-1 z-10"
+              className="flex items-center gap-2.5 text-left group/author hover:opacity-85 active:scale-95 motion-reduce:transform-none transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-1 rounded-lg p-1 -m-1 z-10"
               aria-label={`View ${post.authorName || 'Vegan Helper'}'s profile`}
             >
               <div className="w-9 h-9 rounded-full bg-vh-mint border border-vh-border flex items-center justify-center overflow-hidden shrink-0 group-hover/author:ring-2 group-hover/author:ring-vh-forest/40 transition-all">

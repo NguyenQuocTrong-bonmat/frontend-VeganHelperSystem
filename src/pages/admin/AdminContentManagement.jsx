@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getPaginationPages } from '../../utils/paginationUtils';
 import {
@@ -68,6 +70,7 @@ function EmptyState({ message }) {
 }
 
 export default function AdminContentManagement() {
+  const shouldReduceMotion = useReducedMotion();
   const [activeQueue, setActiveQueue] = useState('ai');
   const [items, setItems] = useState([]);
   const [queueCounts, setQueueCounts] = useState({ ai: 0, posts: 0, comments: 0 });
@@ -207,11 +210,46 @@ export default function AdminContentManagement() {
   return (
     <AdminLayout>
       <div className="mx-auto max-w-7xl space-y-6">
-        {toast && (
-          <div role="status" className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border px-5 py-3 text-sm font-semibold shadow-xl ${toast.type === 'error' ? 'border-[#F4C2BC] bg-[#FDF2F2] text-[#A63446]' : 'border-[#25401F] bg-[#2F5233] text-white'}`}>
-            {toast.message}
-          </div>
-        )}
+        {/* Toast Feedback */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              role="status"
+              variants={shouldReduceMotion ? reducedToastVariants : toastVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium pointer-events-auto ${
+                toast.type === 'error'
+                  ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
+                  : 'bg-[#2F5233] text-white border-[#25401F]'
+              }`}
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {toast.type === 'error' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                )}
+              </svg>
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                onClick={() => setToast(null)}
+                className={`ml-1.5 p-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 cursor-pointer ${
+                  toast.type === 'error'
+                    ? 'hover:bg-[#FBEAE7] text-[#A63446] focus-visible:ring-[#A63446]'
+                    : 'hover:bg-white/20 text-white focus-visible:ring-white'
+                }`}
+                aria-label="Dismiss notification"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -224,7 +262,7 @@ export default function AdminContentManagement() {
           {QUEUES.map((queue) => {
             const isActive = queue.id === activeQueue;
             return (
-              <button type="button" key={queue.id} onClick={() => { setActiveQueue(queue.id); setPage(1); setSearch(''); }} className={`min-h-11 rounded-xl border px-4 py-2 text-left transition ${isActive ? 'border-[#2F5233] bg-[#2F5233] text-white shadow-sm' : 'border-[#DCE3D5] bg-white text-[#27342A] hover:border-[#91A58B]'}`} aria-current={isActive ? 'page' : undefined}>
+              <button type="button" key={queue.id} onClick={() => { setActiveQueue(queue.id); setPage(1); setSearch(''); }} className={`min-h-11 rounded-xl border px-4 py-2 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none cursor-pointer ${isActive ? 'border-[#2F5233] bg-[#2F5233] text-white shadow-sm' : 'border-[#DCE3D5] bg-white text-[#27342A] hover:border-[#91A58B]'}`} aria-current={isActive ? 'page' : undefined}>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-bold">{queue.label}</span>
                   <span className={`min-w-8 rounded-full px-2.5 py-1 text-center text-xs font-extrabold ${isActive ? 'bg-white/15 text-white' : 'bg-[#EAF0E9] text-[#2F5233]'}`}>{queueCounts[queue.id]}</span>
@@ -237,7 +275,7 @@ export default function AdminContentManagement() {
         {error && (
           <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#8B2B3A] sm:flex-row sm:items-center sm:justify-between">
             <span>{error}</span>
-            <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-bold hover:bg-white sm:self-auto">Try again</button>
+            <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-bold hover:bg-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] active:scale-95 motion-reduce:transform-none sm:self-auto cursor-pointer">Try again</button>
           </div>
         )}
 
@@ -254,7 +292,7 @@ export default function AdminContentManagement() {
               <label className="relative mt-4 block">
                 <span className="sr-only">Search current queue</span>
                 <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7B847A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" /></svg>
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, content, or reason" className="w-full rounded-xl border border-[#DCE3D5] bg-[#F8FAF6] py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-[#2F5233] focus:bg-white" />
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, content, or reason" className="w-full rounded-xl border border-[#DCE3D5] bg-[#F8FAF6] py-2.5 pl-10 pr-4 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] focus-visible:bg-white" />
               </label>
             </div>
 
@@ -266,7 +304,7 @@ export default function AdminContentManagement() {
               ) : filteredItems.map((item) => {
                 const isSelected = selected?.id === item.id;
                 return (
-                  <button type="button" key={item.id} onClick={() => setSelected(item)} className={`w-full rounded-2xl border p-4 text-left transition ${isSelected ? 'border-[#2F5233] bg-[#F1F5ED] shadow-sm' : 'border-transparent hover:border-[#D5DED0] hover:bg-[#FAFBF8]'}`}>
+                  <button type="button" key={item.id} onClick={() => setSelected(item)} className={`w-full rounded-2xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none cursor-pointer ${isSelected ? 'border-[#2F5233] bg-[#F1F5ED] shadow-sm' : 'border-transparent hover:border-[#D5DED0] hover:bg-[#FAFBF8]'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#27342A]">{queueTitle(activeQueue, item)}</p>
@@ -284,14 +322,14 @@ export default function AdminContentManagement() {
             </div>
 
             <div className="flex items-center justify-between border-t border-[#E4E9DF] px-5 py-4 text-xs text-[#697369]">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="rounded-full border border-[#D4DDD0] px-3 py-1.5 font-bold disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="rounded-full border border-[#D4DDD0] px-3 py-1.5 font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">Previous</button>
               <div className="flex items-center gap-1.5">
                 {getPaginationPages(page, totalPages, 5).map((pageNum) => (
                   <button
                     type="button"
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
                       page === pageNum
                         ? 'bg-[#2F5233] text-white shadow-xs'
                         : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
@@ -301,7 +339,7 @@ export default function AdminContentManagement() {
                   </button>
                 ))}
               </div>
-              <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="rounded-full border border-[#D4DDD0] px-3 py-1.5 font-bold disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+              <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="rounded-full border border-[#D4DDD0] px-3 py-1.5 font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">Next</button>
             </div>
           </section>
 
@@ -360,7 +398,7 @@ export default function AdminContentManagement() {
                             {currentContent.media.map((media) => media.mediaType === 'image' ? (
                               <img key={media.id} src={getImageUrl(media.mediaUrl)} alt="Post evidence" className="aspect-square w-full rounded-xl border border-[#DCE3D5] object-cover" />
                             ) : (
-                              <a key={media.id} href={media.mediaUrl} target="_blank" rel="noreferrer" className="flex aspect-square items-center justify-center rounded-xl border border-[#DCE3D5] bg-[#F5F7F3] px-3 text-center text-xs font-bold text-[#2F5233]">Open video evidence</a>
+                              <a key={media.id} href={media.mediaUrl} target="_blank" rel="noreferrer" className="flex aspect-square items-center justify-center rounded-xl border border-[#DCE3D5] bg-[#F5F7F3] px-3 text-center text-xs font-bold text-[#2F5233] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Open video evidence</a>
                             ))}
                           </div>
                         </div>
@@ -374,7 +412,7 @@ export default function AdminContentManagement() {
                     <legend className="text-sm font-extrabold text-[#27342A]">Admin decision</legend>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {ACTIONS[activeQueue].map((action) => (
-                        <label key={action.id} className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-bold transition ${decision.action === action.id ? action.tone === 'danger' ? 'border-[#A63446] bg-[#A63446] text-white' : action.tone === 'positive' ? 'border-[#2F5233] bg-[#2F5233] text-white' : 'border-[#5E685F] bg-[#5E685F] text-white' : 'border-[#CED8C9] bg-white text-[#4D584F] hover:border-[#7F947A]'}`}>
+                        <label key={action.id} className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-bold transition-all focus-within:ring-2 focus-within:ring-offset-1 focus-within:ring-[#2F5233] active:scale-95 motion-reduce:transform-none ${decision.action === action.id ? action.tone === 'danger' ? 'border-[#A63446] bg-[#A63446] text-white' : action.tone === 'positive' ? 'border-[#2F5233] bg-[#2F5233] text-white' : 'border-[#5E685F] bg-[#5E685F] text-white' : 'border-[#CED8C9] bg-white text-[#4D584F] hover:border-[#7F947A]'}`}>
                           <input type="radio" name="moderation-action" value={action.id} checked={decision.action === action.id} onChange={(event) => setDecision((value) => ({ ...value, action: event.target.value }))} className="sr-only" />
                           {action.label}
                         </label>
@@ -383,11 +421,11 @@ export default function AdminContentManagement() {
                   </fieldset>
                   <label className="block">
                     <span className="text-xs font-bold text-[#3D493F]">Decision reason</span>
-                    <textarea required maxLength={1000} rows={4} value={decision.reason} onChange={(event) => setDecision((value) => ({ ...value, reason: event.target.value }))} placeholder="Explain the evidence and why this action is appropriate." className="mt-2 w-full resize-y rounded-xl border border-[#CED8C9] bg-white p-3 text-sm leading-6 outline-none transition focus:border-[#2F5233]" />
+                    <textarea required maxLength={1000} rows={4} value={decision.reason} onChange={(event) => setDecision((value) => ({ ...value, reason: event.target.value }))} placeholder="Explain the evidence and why this action is appropriate." className="mt-2 w-full resize-y rounded-xl border border-[#CED8C9] bg-white p-3 text-sm leading-6 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233]" />
                   </label>
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-[11px] leading-5 text-[#788078]">This action is saved to the Admin audit log.</p>
-                    <button type="submit" disabled={!decision.action || !decision.reason.trim() || isSubmitting} className="rounded-full bg-[#2F5233] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#25452A] disabled:cursor-not-allowed disabled:opacity-45">{isSubmitting ? 'Saving…' : 'Confirm decision'}</button>
+                    <button type="submit" disabled={!decision.action || !decision.reason.trim() || isSubmitting} className="rounded-full bg-[#2F5233] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#25452A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 cursor-pointer">{isSubmitting ? 'Saving…' : 'Confirm decision'}</button>
                   </div>
                 </form>
               </div>

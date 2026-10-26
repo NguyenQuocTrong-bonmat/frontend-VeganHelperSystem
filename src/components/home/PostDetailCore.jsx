@@ -521,7 +521,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     e
                   )
                 }
-                className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] hover:border-[#2F5233] flex items-center justify-center overflow-hidden cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] hover:border-[#2F5233] flex items-center justify-center overflow-hidden cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                 aria-label={`View profile of ${comment.authorName || 'commenter'}`}
               >
                 {comment.avatarUrl ? (
@@ -561,7 +561,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                         e
                       )
                     }
-                    className="font-semibold text-[#2B2A25] hover:text-[#2F5233] hover:underline cursor-pointer transition-colors text-left focus-visible:outline-none"
+                    className="font-semibold text-[#2B2A25] hover:text-[#2F5233] hover:underline cursor-pointer transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-0.5 active:opacity-80"
                   >
                     {comment.authorName || 'Anonymous'}
                   </button>
@@ -594,7 +594,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     onChange={(event) => setEditCommentText(event.target.value)}
                     maxLength={500}
                     rows="3"
-                    className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[72px]"
+                    className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors resize-y min-h-[72px]"
                     disabled={isActionLoading}
                     autoFocus
                   />
@@ -608,11 +608,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                           setEditCommentText('');
                         }}
                         disabled={isActionLoading}
-                        className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233] disabled:opacity-60"
+                        className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233] disabled:opacity-60 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                       >
                         Cancel
                       </button>
-                      <button type="submit" disabled={isActionLoading || !editCommentText.trim()} className="px-3 py-1.5 bg-[#2F5233] text-white text-xs font-medium rounded-lg disabled:opacity-60">
+                      <button type="submit" disabled={isActionLoading || !editCommentText.trim()} className="px-3 py-1.5 bg-[#2F5233] text-white text-xs font-medium rounded-lg disabled:opacity-60 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer">
                         {isActionLoading ? 'Saving...' : 'Save'}
                       </button>
                     </div>
@@ -635,13 +635,13 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                         setReplyingTo(replyingTo === comment.id ? null : comment.id);
                         setReplyText('');
                       }}
-                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F]"
+                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80 cursor-pointer"
                     >
                       {replyingTo === comment.id ? 'Cancel reply' : 'Reply'}
                     </button>
                   )}
                   {canReply && isGuest && (
-                    <button type="button" onClick={onAuthRequired} className="text-xs font-medium text-[#2F5233] hover:text-[#25401F]">
+                    <button type="button" onClick={onAuthRequired} className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80 cursor-pointer">
                       Log in to reply
                     </button>
                   )}
@@ -660,7 +660,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                         setEditCommentText(content || '');
                       }}
                       disabled={isActionLoading}
-                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] disabled:opacity-60"
+                      className="text-xs font-medium text-[#2F5233] hover:text-[#25401F] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80 cursor-pointer"
                     >
                       Edit
                     </button>
@@ -672,7 +672,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       type="button"
                       onClick={() => handleCommentDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80 cursor-pointer"
                     >
                       Delete
                     </button>
@@ -684,7 +684,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       type="button"
                       onClick={() => handleCommentDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80 cursor-pointer"
                       title="Delete as Administrator (requires reason)"
                     >
                       Delete (Admin)
@@ -697,7 +697,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       type="button"
                       onClick={() => handleCommentDelete(comment)}
                       disabled={isActionLoading || isDeletingComment}
-                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60"
+                      className="text-xs font-medium text-[#A63446] hover:text-[#822C3B] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80 cursor-pointer"
                       title="Delete comment on your post"
                     >
                       Delete
@@ -710,7 +710,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       type="button"
                       onClick={() => handleCommentReport(comment.id)}
                       disabled={isReporting}
-                      className="text-xs font-medium text-[#6B6F63] hover:text-[#A63446] disabled:opacity-60"
+                      className="text-xs font-medium text-[#6B6F63] hover:text-[#A63446] disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80 cursor-pointer"
                     >
                       {isReporting ? 'Reporting...' : 'Report'}
                     </button>
@@ -728,7 +728,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 maxLength={500}
                 rows="2"
                 placeholder={`Reply to ${comment.authorName || 'user'}...`}
-                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[64px]"
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors resize-y min-h-[64px]"
                 disabled={commentSubmitting}
                 autoFocus
               />
@@ -741,11 +741,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       setReplyingTo(null);
                       setReplyText('');
                     }}
-                    className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233]"
+                    className="px-3 py-1.5 border border-[#DCE3D5] text-[#6B6F63] text-xs font-medium rounded-lg hover:text-[#2F5233] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                   >
                     Cancel
                   </button>
-                  <button type="submit" disabled={commentSubmitting || !replyText.trim()} className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-colors">
+                  <button type="submit" disabled={commentSubmitting || !replyText.trim()} className="px-4 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-xs font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer">
                     {commentSubmitting ? 'Posting...' : 'Post Reply'}
                   </button>
                 </div>
@@ -816,7 +816,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     e
                   )
                 }
-                className="flex items-center gap-3 group/author text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-full p-0.5 -m-0.5"
+                className="flex items-center gap-3 group/author text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-full p-0.5 -m-0.5 active:scale-95 motion-reduce:transform-none"
                 aria-label={`View profile of ${post.authorName || 'author'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-[#FDFBF6] border border-[#DCE3D5] group-hover/author:border-[#2F5233] flex items-center justify-center text-[#6B6F63] overflow-hidden transition-colors">
@@ -977,7 +977,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               onClick={handleLike}
               type="button"
               disabled={isLikeUpdating}
-              className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'bg-[#2F5233] border-[#2F5233] text-white' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
+              className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 ${isLiked ? 'bg-[#2F5233] border-[#2F5233] text-white' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
               <svg className={`w-5 h-5 ${isLiked ? 'fill-current' : 'fill-none'}`} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path>
@@ -990,7 +990,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               onClick={handleSave}
               type="button"
               disabled={isSaveUpdating}
-              className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${isSaved ? 'bg-[#F3F6EE] border-[#2F5233] text-[#2F5233]' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
+              className={`px-4 py-2 border rounded-lg text-sm font-medium flex items-center gap-2 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 ${isSaved ? 'bg-[#F3F6EE] border-[#2F5233] text-[#2F5233]' : 'bg-[#FDFBF6] border-[#DCE3D5] text-[#2B2A25] hover:text-[#2F5233] hover:border-[#2F5233]'}`}
             >
               <svg className={`w-5 h-5 ${isSaved ? 'fill-current' : 'fill-none'}`} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
@@ -1003,7 +1003,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
             <button
               type="button"
               onClick={handleOpenReport}
-              className="px-4 py-2 border border-[#DCE3D5] rounded-lg text-sm font-medium text-[#A63446] hover:bg-[#FBEAE7] hover:border-[#F4C2BC] transition-colors cursor-pointer"
+              className="px-4 py-2 border border-[#DCE3D5] rounded-lg text-sm font-medium text-[#A63446] hover:bg-[#FBEAE7] hover:border-[#F4C2BC] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer"
             >
               Report
             </button>
@@ -1025,14 +1025,14 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
                 maxLength={500}
-                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus:border-[#2F5233] transition-colors resize-y min-h-[84px]"
+                className="w-full bg-[#F3F6EE] border border-[#DCE3D5] rounded-lg p-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors resize-y min-h-[84px]"
                 rows="3"
                 placeholder="Share your thoughts or questions..."
                 disabled={commentSubmitting}
               ></textarea>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs text-[#6B6F63]">{commentText.length}/500</span>
-                <button type="submit" disabled={commentSubmitting} className="px-5 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                <button type="submit" disabled={commentSubmitting} className="px-5 py-2 bg-[#2F5233] hover:bg-[#25401F] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer">
                   {commentSubmitting ? 'Posting...' : 'Post Comment'}
                 </button>
               </div>
@@ -1046,7 +1046,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                 </p>
               </div>
               <div className="flex items-center justify-center gap-3 pt-2">
-                <button onClick={onAuthRequired} className="px-6 py-2.5 bg-[#2F5233] text-white text-sm font-medium rounded-lg hover:bg-[#25401F] transition-colors cursor-pointer">
+                <button onClick={onAuthRequired} className="px-6 py-2.5 bg-[#2F5233] text-white text-sm font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">
                   Log In
                 </button>
               </div>

@@ -260,299 +260,296 @@ export default function InlinePostCard({
   return (
     <>
       <article
-        className="w-full bg-vh-surface border border-vh-border/75 rounded-card-lg shadow-xs hover:shadow-md transition-all duration-300 text-left overflow-hidden flex flex-col"
+        className="w-full bg-vh-surface border border-vh-border/75 hover:border-vh-sage/60 rounded-card-lg shadow-xs hover:shadow-md transition-all duration-200 text-left overflow-hidden flex flex-col"
         aria-labelledby={`post-title-${postId}`}
       >
-      {/* 1. Post Header */}
-      <div className="p-4 sm:p-5 flex items-center justify-between gap-3 border-b border-vh-border/40">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Author avatar */}
-          <button
-            type="button"
-            onClick={handleAuthorClick}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-vh-mint/60 border border-vh-border flex items-center justify-center shrink-0 overflow-hidden focus-ring-vh cursor-pointer"
-            aria-label={`View ${post.authorName || 'author'}'s profile`}
-          >
-            {post.avatarUrl ? (
-              <img src={getImageUrl(post.avatarUrl)} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-semibold text-sm text-vh-forest">
-                {post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}
-              </span>
-            )}
-          </button>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAuthorClick}
-                className="font-dm-sans font-semibold text-sm sm:text-base text-vh-text-primary hover:text-vh-forest truncate text-left transition-colors cursor-pointer"
-              >
-                {post.authorName || 'Anonymous'}
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs font-dm-sans text-vh-text-secondary mt-0.5">
-              <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
-              {post.categoryName && (
-                <>
-                  <span>•</span>
-                  <span>{post.categoryName}</span>
-                </>
+        {/* 1. Post Header */}
+        <div className="p-4 sm:p-5 flex items-center justify-between gap-3 border-b border-vh-border/40">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Author avatar */}
+            <button
+              type="button"
+              onClick={handleAuthorClick}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-vh-mint/60 border border-vh-border flex items-center justify-center shrink-0 overflow-hidden focus-ring-vh active:scale-95 motion-reduce:transform-none cursor-pointer"
+              aria-label={`View ${post.authorName || 'author'}'s profile`}
+            >
+              {post.avatarUrl ? (
+                <img src={getImageUrl(post.avatarUrl)} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-semibold text-sm text-vh-forest">
+                  {post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}
+                </span>
               )}
+            </button>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAuthorClick}
+                  className="font-dm-sans font-semibold text-sm sm:text-base text-vh-text-primary hover:text-vh-forest truncate text-left transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-0.5 active:opacity-80"
+                >
+                  {post.authorName || 'Anonymous'}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-dm-sans text-vh-text-secondary mt-0.5">
+                <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+                {post.categoryName && (
+                  <>
+                    <span>•</span>
+                    <span>{post.categoryName}</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Explicit View Link */}
-        <Link
-          to={postLink}
-          className="text-xs font-dm-sans font-medium text-vh-forest hover:text-vh-sage px-3 py-1.5 rounded-full hover:bg-vh-mint/40 transition-colors shrink-0 cursor-pointer inline-flex items-center"
-        >
-          View Post →
-        </Link>
-      </div>
-
-      {/* 2. Post Title & Body */}
-      <div className="px-4 sm:px-5 pt-4 pb-2">
-        <h2 id={`post-title-${postId}`} className="leading-snug mb-2.5">
+          {/* Explicit View Link */}
           <Link
             to={postLink}
-            className="font-dm-serif text-xl sm:text-2xl font-medium text-vh-text-primary hover:text-vh-forest transition-colors cursor-pointer block"
+            className="text-xs font-dm-sans font-medium text-vh-forest hover:text-vh-sage px-3 py-1.5 rounded-full hover:bg-vh-mint/40 transition-colors shrink-0 cursor-pointer inline-flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
           >
-            {post.title}
+            View Post →
           </Link>
-        </h2>
+        </div>
 
-        {bodyText ? (
-          <div className="text-sm sm:text-[15px] font-dm-sans text-vh-text-primary/90 leading-relaxed space-y-2">
-            <p className="whitespace-pre-wrap break-words">{displayedText}</p>
-            {isTextLong && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(!isExpanded);
-                }}
-                className="text-xs font-semibold text-vh-forest hover:underline focus-ring-vh inline-block cursor-pointer pt-0.5"
-              >
-                {isExpanded ? 'See less' : 'See more'}
-              </button>
+        {/* 2. Post Title & Body */}
+        <div className="px-4 sm:px-5 pt-4 pb-2">
+          <h2 id={`post-title-${postId}`} className="leading-snug mb-2.5">
+            <Link
+              to={postLink}
+              className="font-dm-serif text-xl sm:text-2xl font-medium text-vh-text-primary hover:text-vh-forest transition-colors cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded"
+            >
+              {post.title}
+            </Link>
+          </h2>
+
+          {bodyText ? (
+            <div className="text-sm sm:text-[15px] font-dm-sans text-vh-text-primary/90 leading-relaxed space-y-2">
+              <p className="whitespace-pre-wrap break-words">{displayedText}</p>
+              {isTextLong && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="text-xs font-semibold text-vh-forest hover:underline focus-ring-vh inline-block cursor-pointer pt-0.5 active:opacity-80"
+                >
+                  {isExpanded ? 'See less' : 'See more'}
+                </button>
+              )}
+            </div>
+          ) : detailsLoading ? (
+            <div className="h-4 w-3/4 bg-vh-cream animate-pulse rounded my-2" />
+          ) : null}
+        </div>
+
+        {/* 3. Cooking/Recipe Metadata Badges (if present) */}
+        {(cookingTime || prepTime || difficulty || dietType || ingredientsCount) && (
+          <div className="px-4 sm:px-5 py-2.5 flex flex-wrap items-center gap-2 text-xs font-dm-sans">
+            {cookingTime && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-primary">
+                <svg className="w-3.5 h-3.5 text-vh-forest" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>Cook: {cookingTime}m</span>
+              </span>
+            )}
+            {prepTime && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-primary">
+                <span>Prep: {prepTime}m</span>
+              </span>
+            )}
+            {difficulty && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-mint/40 border border-vh-border/70 text-vh-forest font-medium">
+                <span>Level: {difficulty}</span>
+              </span>
+            )}
+            {dietType && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-mint/40 border border-vh-border/70 text-vh-forest font-medium">
+                <span>{dietType}</span>
+              </span>
+            )}
+            {ingredientsCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-secondary">
+                <span>{ingredientsCount} ingredients</span>
+              </span>
             )}
           </div>
-        ) : detailsLoading ? (
-          <div className="h-4 w-3/4 bg-vh-cream animate-pulse rounded my-2" />
-        ) : null}
-      </div>
+        )}
 
-      {/* 3. Cooking/Recipe Metadata Badges (if present) */}
-      {(cookingTime || prepTime || difficulty || dietType || ingredientsCount) && (
-        <div className="px-4 sm:px-5 py-2.5 flex flex-wrap items-center gap-2 text-xs font-dm-sans">
-          {cookingTime && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-primary">
-              <svg className="w-3.5 h-3.5 text-vh-forest" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              <span>Cook: {cookingTime}m</span>
-            </span>
-          )}
-          {prepTime && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-primary">
-              <span>Prep: {prepTime}m</span>
-            </span>
-          )}
-          {difficulty && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-mint/40 border border-vh-border/70 text-vh-forest font-medium">
-              <span>Level: {difficulty}</span>
-            </span>
-          )}
-          {dietType && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-mint/40 border border-vh-border/70 text-vh-forest font-medium">
-              <span>{dietType}</span>
-            </span>
-          )}
-          {ingredientsCount > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-cream border border-vh-border/70 text-vh-text-secondary">
-              <span>{ingredientsCount} ingredients</span>
-            </span>
-          )}
-        </div>
-      )}
+        {/* 4. Media Section */}
+        {resolvedMediaUrl && !mediaError && (
+          <div className="mt-2.5 w-full bg-vh-mint/20 border-y border-vh-border/60 relative overflow-hidden flex items-center justify-center max-h-[500px]">
+            {isVideo ? (
+              <video
+                src={resolvedMediaUrl}
+                className="w-full max-h-[500px] object-cover sm:object-contain bg-black/5"
+                controls
+                playsInline
+                preload="metadata"
+                onError={() => setMediaError(true)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={resolvedMediaUrl}
+                alt={post.title}
+                className="w-full max-h-[500px] object-cover sm:object-contain cursor-zoom-in transition-transform duration-200 ease-out hover:scale-[1.03] motion-reduce:transform-none"
+                loading="lazy"
+                onError={() => setMediaError(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenLightbox?.(resolvedMediaUrl, post.title);
+                }}
+              />
+            )}
+          </div>
+        )}
 
-      {/* 4. Media Section */}
-      {resolvedMediaUrl && !mediaError && (
-        <div className="mt-2.5 w-full bg-vh-mint/20 border-y border-vh-border/60 relative overflow-hidden flex items-center justify-center max-h-[500px]">
-          {isVideo ? (
-            <video
-              src={resolvedMediaUrl}
-              className="w-full max-h-[500px] object-cover sm:object-contain bg-black/5"
-              controls
-              playsInline
-              preload="metadata"
-              onError={() => setMediaError(true)}
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <img
-              src={resolvedMediaUrl}
-              alt={post.title}
-              className="w-full max-h-[500px] object-cover sm:object-contain cursor-zoom-in transition-transform duration-300 hover:scale-[1.01]"
-              loading="lazy"
-              onError={() => setMediaError(true)}
+        {/* 5. Engagement Counts Row */}
+        <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-dm-sans text-vh-text-secondary border-b border-vh-border/40">
+          <div className="flex items-center gap-1.5">
+            {likeCount > 0 && (
+              <span className="flex items-center gap-1 text-vh-forest font-medium">
+                <span className="w-4 h-4 rounded-full bg-vh-forest text-white flex items-center justify-center text-[10px]">
+                  ♥
+                </span>
+                <span>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenLightbox?.(resolvedMediaUrl, post.title);
+                onOpenComments?.(post, commentButtonRef, (newCount) => setCommentCount(newCount));
               }}
-            />
-          )}
-        </div>
-      )}
-
-      {/* 5. Engagement Counts Row */}
-      <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-dm-sans text-vh-text-secondary border-b border-vh-border/40">
-        <div className="flex items-center gap-1.5">
-          {likeCount > 0 && (
-            <span className="flex items-center gap-1 text-vh-forest font-medium">
-              <span className="w-4 h-4 rounded-full bg-vh-forest text-white flex items-center justify-center text-[10px]">
-                ♥
-              </span>
-              <span>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
-            </span>
-          )}
+              className="hover:underline hover:text-vh-forest transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
+            >
+              {commentCount > 0 ? `${commentCount} comments` : 'Leave a comment'}
+            </button>
+            <span>•</span>
+            <span>{post.viewCount || 0} views</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* 6. Social Action Bar */}
+        <div className="px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 text-xs sm:text-sm font-dm-sans font-medium text-vh-text-secondary">
+          {/* Like Button */}
           <button
+            type="button"
+            onClick={handleLike}
+            disabled={isLikeUpdating}
+            aria-label={isLiked ? 'Unlike post' : 'Like post'}
+            className={`flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer focus-ring-vh active:scale-95 motion-reduce:transform-none disabled:active:scale-100 ${isLiked
+                ? 'text-vh-error bg-vh-error/10 hover:bg-vh-error/15 font-semibold'
+                : 'hover:bg-vh-cream hover:text-vh-forest text-vh-text-secondary'
+              }`}
+          >
+            <svg
+              className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform active:scale-125 ${isLiked ? 'fill-current' : 'fill-none'
+                }`}
+              stroke="currentColor"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+            <span>{isLiked ? 'Liked' : 'Like'}</span>
+          </button>
+
+          {/* Comment Button */}
+          <button
+            ref={commentButtonRef}
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onOpenComments?.(post, commentButtonRef, (newCount) => setCommentCount(newCount));
             }}
-            className="hover:underline hover:text-vh-forest transition-colors cursor-pointer"
+            aria-label="Open comments dialog"
+            className="flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 hover:bg-vh-cream hover:text-vh-forest transition-colors cursor-pointer focus-ring-vh active:scale-95 motion-reduce:transform-none"
           >
-            {commentCount > 0 ? `${commentCount} comments` : 'Leave a comment'}
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.861-.861 5.973 5.973 0 011.058-2.035C4.03 16.556 3 14.417 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+              />
+            </svg>
+            <span>Comment</span>
           </button>
-          <span>•</span>
-          <span>{post.viewCount || 0} views</span>
+
+          {/* Save Button */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaveUpdating}
+            aria-label={isSaved ? 'Remove recipe from saved' : 'Save recipe'}
+            className={`flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer focus-ring-vh active:scale-95 motion-reduce:transform-none disabled:active:scale-100 ${isSaved
+                ? 'text-vh-forest bg-vh-mint/40 font-semibold'
+                : 'hover:bg-vh-cream hover:text-vh-forest text-vh-text-secondary'
+              }`}
+          >
+            <svg
+              className={`w-4 h-4 sm:w-5 sm:h-5 ${isSaved ? 'fill-current' : 'fill-none'}`}
+              stroke="currentColor"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+              />
+            </svg>
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
+          </button>
+
+          {/* Share Button */}
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label="Share post link"
+            className="flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 hover:bg-vh-cream hover:text-vh-forest transition-colors cursor-pointer focus-ring-vh active:scale-95 motion-reduce:transform-none"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
+              />
+            </svg>
+            <span>Share</span>
+          </button>
         </div>
-      </div>
+      </article>
 
-      {/* 6. Social Action Bar */}
-      <div className="px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 text-xs sm:text-sm font-dm-sans font-medium text-vh-text-secondary">
-        {/* Like Button */}
-        <button
-          type="button"
-          onClick={handleLike}
-          disabled={isLikeUpdating}
-          aria-label={isLiked ? 'Unlike post' : 'Like post'}
-          className={`flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer focus-ring-vh ${
-            isLiked
-              ? 'text-vh-error bg-vh-error/10 hover:bg-vh-error/15 font-semibold'
-              : 'hover:bg-vh-cream hover:text-vh-forest text-vh-text-secondary'
-          }`}
-        >
-          <svg
-            className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform active:scale-125 ${
-              isLiked ? 'fill-current' : 'fill-none'
-            }`}
-            stroke="currentColor"
-            strokeWidth="1.8"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-            />
-          </svg>
-          <span>{isLiked ? 'Liked' : 'Like'}</span>
-        </button>
-
-        {/* Comment Button */}
-        <button
-          ref={commentButtonRef}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenComments?.(post, commentButtonRef, (newCount) => setCommentCount(newCount));
+      {/* Fallback local profile preview if no container-level modal is provided */}
+      {!onOpenProfilePreview && (
+        <UserProfilePreview
+          isOpen={localProfilePreview.isOpen}
+          onClose={() => setLocalProfilePreview({ isOpen: false, triggerEl: null })}
+          userId={post.authorId || details?.authorId}
+          initialUser={{
+            id: post.authorId || details?.authorId,
+            displayName: post.authorName || details?.authorName,
+            avatarUrl: post.avatarUrl || details?.avatarUrl,
           }}
-          aria-label="Open comments dialog"
-          className="flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 hover:bg-vh-cream hover:text-vh-forest transition-colors cursor-pointer focus-ring-vh"
-        >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.861-.861 5.973 5.973 0 011.058-2.035C4.03 16.556 3 14.417 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-            />
-          </svg>
-          <span>Comment</span>
-        </button>
-
-        {/* Save Button */}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaveUpdating}
-          aria-label={isSaved ? 'Remove recipe from saved' : 'Save recipe'}
-          className={`flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer focus-ring-vh ${
-            isSaved
-              ? 'text-vh-forest bg-vh-mint/40 font-semibold'
-              : 'hover:bg-vh-cream hover:text-vh-forest text-vh-text-secondary'
-          }`}
-        >
-          <svg
-            className={`w-4 h-4 sm:w-5 sm:h-5 ${isSaved ? 'fill-current' : 'fill-none'}`}
-            stroke="currentColor"
-            strokeWidth="1.8"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-            />
-          </svg>
-          <span>{isSaved ? 'Saved' : 'Save'}</span>
-        </button>
-
-        {/* Share Button */}
-        <button
-          type="button"
-          onClick={handleShare}
-          aria-label="Share post link"
-          className="flex-1 py-2 sm:py-2.5 px-2 rounded-lg flex items-center justify-center gap-2 hover:bg-vh-cream hover:text-vh-forest transition-colors cursor-pointer focus-ring-vh"
-        >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
-            />
-          </svg>
-          <span>Share</span>
-        </button>
-      </div>
-    </article>
-
-    {/* Fallback local profile preview if no container-level modal is provided */}
-    {!onOpenProfilePreview && (
-      <UserProfilePreview
-        isOpen={localProfilePreview.isOpen}
-        onClose={() => setLocalProfilePreview({ isOpen: false, triggerEl: null })}
-        userId={post.authorId || details?.authorId}
-        initialUser={{
-          id: post.authorId || details?.authorId,
-          displayName: post.authorName || details?.authorName,
-          avatarUrl: post.avatarUrl || details?.avatarUrl,
-        }}
-        triggerEl={localProfilePreview.triggerEl}
-        isGuest={isGuest}
-        onAuthRequired={onAuthRequired}
-      />
-    )}
-  </>
-);
+          triggerEl={localProfilePreview.triggerEl}
+          isGuest={isGuest}
+          onAuthRequired={onAuthRequired}
+        />
+      )}
+    </>
+  );
 }

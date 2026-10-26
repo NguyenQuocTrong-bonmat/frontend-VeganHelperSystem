@@ -224,7 +224,7 @@ function PublicUserProfile() {
             </div>
             <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">{error || 'User not found.'}</h2>
             <p className="text-[#6B6F63] mb-6">Please try again, or return home and open the profile again.</p>
-            <button onClick={() => navigate('/home')} className="px-6 py-2.5 bg-[#2F5233] text-white rounded-lg font-medium hover:bg-[#25401F] transition-colors">
+            <button onClick={() => navigate('/home')} className="px-6 py-2.5 bg-[#2F5233] text-white rounded-lg font-medium hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none">
               Return Home
             </button>
           </div>
@@ -244,7 +244,7 @@ function PublicUserProfile() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
       <HeaderMember />
-      
+
       <main className="flex-grow max-w-[1200px] w-full mx-auto px-6 py-12">
         {/* Profile Header */}
         <section className="bg-[#FDFBF6] rounded-3xl mb-16 relative overflow-hidden flex flex-col items-center border border-[#DCE3D5]/60 shadow-sm">
@@ -252,10 +252,10 @@ function PublicUserProfile() {
           <div className="absolute top-0 left-0 w-full h-40 md:h-48 bg-gradient-to-b from-[#E9EFE6] to-[#FDFBF6] z-0">
             {/* Decorative SVG pattern */}
             <svg className="absolute inset-0 w-full h-full text-[#DCE3D5]/30" preserveAspectRatio="none" viewBox="0 0 100 100" fill="none">
-              <path d="M0,0 L100,0 L100,100 Q50,20 0,100 Z" fill="currentColor"/>
+              <path d="M0,0 L100,0 L100,100 Q50,20 0,100 Z" fill="currentColor" />
             </svg>
           </div>
-          
+
           <div className="relative z-10 w-full flex flex-col items-center pt-24 md:pt-28 pb-12 px-6">
             <div className="mb-5">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#FDFBF6] shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-5xl font-semibold ring-1 ring-[#DCE3D5]">
@@ -266,11 +266,11 @@ function PublicUserProfile() {
                 )}
               </div>
             </div>
-            
+
             <h1 className="font-fraunces text-3xl md:text-5xl text-[#2B2A25] font-semibold mb-3 text-center tracking-tight">
               {profile.displayName}
             </h1>
-            
+
             <div className="flex flex-wrap items-center justify-center gap-3 text-[#6B6F63] font-medium mb-6">
               {profile.username && (
                 <span>@{profile.username}</span>
@@ -294,11 +294,10 @@ function PublicUserProfile() {
                   type="button"
                   onClick={handleToggleFollow}
                   disabled={isFollowUpdating}
-                  className={`h-11 px-7 rounded-full font-dm-sans text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
-                    followStatus?.isFollowing
+                  className={`h-11 px-7 rounded-full font-dm-sans text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed ${followStatus?.isFollowing
                       ? 'border-2 border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
-                      : 'bg-[#2F5233] text-white hover:bg-[#25401F] active:scale-[0.98]'
-                  }`}
+                      : 'bg-[#2F5233] text-white hover:bg-[#25401F]'
+                    }`}
                 >
                   {isFollowUpdating ? (
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -323,7 +322,7 @@ function PublicUserProfile() {
               <div className="mb-8 flex items-center gap-3">
                 <Link
                   to="/profile"
-                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] transition-colors flex items-center gap-1.5 shadow-xs"
+                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] transition-all flex items-center gap-1.5 shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
@@ -332,14 +331,14 @@ function PublicUserProfile() {
                 </Link>
                 <Link
                   to="/my-posts"
-                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold bg-[#2F5233] hover:bg-[#25401F] text-white transition-colors flex items-center gap-1.5 shadow-xs"
+                  className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold bg-[#2F5233] hover:bg-[#25401F] text-white transition-all flex items-center gap-1.5 shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none"
                 >
                   <span>My Garden</span>
                   <span aria-hidden="true">→</span>
                 </Link>
               </div>
             )}
-            
+
             {/* 4-Stat Row: Published, Followers, Following, Likes */}
             <div className="w-full max-w-xl border-t border-[#DCE3D5]/50 pt-8 mt-2 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
               <div className="flex flex-col items-center">
@@ -354,7 +353,7 @@ function PublicUserProfile() {
               <button
                 type="button"
                 onClick={() => setFollowListModal({ isOpen: true, initialTab: 'followers' })}
-                className="flex flex-col items-center hover:text-[#2F5233] transition-colors cursor-pointer group rounded-xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                className="flex flex-col items-center hover:text-[#2F5233] transition-all cursor-pointer group rounded-xl p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                 title="View followers"
               >
                 <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
@@ -368,7 +367,7 @@ function PublicUserProfile() {
               <button
                 type="button"
                 onClick={() => setFollowListModal({ isOpen: true, initialTab: 'following' })}
-                className="flex flex-col items-center hover:text-[#2F5233] transition-colors cursor-pointer group rounded-xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
+                className="flex flex-col items-center hover:text-[#2F5233] transition-all cursor-pointer group rounded-xl p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                 title="View following"
               >
                 <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25] group-hover:text-[#2F5233] transition-colors">
@@ -399,7 +398,7 @@ function PublicUserProfile() {
             </h2>
             <div className="flex-1 h-px bg-[#DCE3D5]"></div>
           </div>
-          
+
           {(!profile.posts || profile.posts.length === 0) ? (
             <div className="py-24 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl flex flex-col items-center shadow-sm">
               <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-4xl mb-5 shadow-inner border border-[#DCE3D5]/30">
@@ -411,30 +410,37 @@ function PublicUserProfile() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
               {profile.posts.map(post => (
-                <div 
-                  key={post.id} 
-                  className="flex flex-col bg-transparent group cursor-pointer"
+                <div
+                  key={post.id}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/posts/${post.id}`);
+                    }
+                  }}
+                  className="flex flex-col bg-transparent group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 rounded-2xl p-1"
                   onClick={() => navigate(`/posts/${post.id}`)}
                 >
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1 motion-reduce:transform-none">
                     {post.thumbnailUrl ? (
-                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[#6B6F63] text-sm">No Image</div>
                     )}
                   </div>
-                  
+
                   <div className="flex flex-col flex-grow px-1">
                     <div className="flex items-center gap-2 mb-2.5">
                       <span className="text-[12px] font-semibold text-[#2F5233] uppercase tracking-wider">
                         {post.categoryName || 'Recipe'}
                       </span>
                     </div>
-                    
+
                     <h3 className="font-fraunces text-[22px] md:text-[24px] font-semibold text-[#2B2A25] mb-2.5 leading-tight group-hover:text-[#2F5233] transition-colors line-clamp-2">
                       {post.title}
                     </h3>
-                    
+
                     <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#6B6F63] font-medium mb-5">
                       <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
                       {post.dietType && (
@@ -444,14 +450,14 @@ function PublicUserProfile() {
                         </>
                       )}
                     </div>
-                    
+
                     <div className="mt-auto flex items-center gap-5 text-[14px] text-[#6B6F63]">
                       <span className="flex items-center gap-1.5">
                         <svg className="w-4 h-4 text-[#2B2A25]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         <strong className="font-semibold text-[#2B2A25]">{post.viewCount || 0}</strong>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-[#2F5233]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <svg className="w-4 h-4 text-[#2F5233]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
                         <strong className="font-semibold text-[#2B2A25]">{post.likeCount || 0}</strong>
                       </span>
                     </div>

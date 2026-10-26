@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 
 function HealthProfile({ isComponent = false }) {
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [savingHealth, setSavingHealth] = useState(false);
   const [savingAllergies, setSavingAllergies] = useState(false);
@@ -28,9 +28,9 @@ function HealthProfile({ isComponent = false }) {
     systemAllergies: [],
     customAllergies: []
   });
-  
+
   const [customInput, setCustomInput] = useState('');
-  
+
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [ingredientResults, setIngredientResults] = useState([]);
   const [searchingIngredients, setSearchingIngredients] = useState(false);
@@ -47,7 +47,7 @@ function HealthProfile({ isComponent = false }) {
           dietType: profile.dietType || 'vegan',
           activityLevel: profile.activityLevel || 'moderate'
         });
-        
+
         const systemAllergies = (profile.allergies || [])
           .filter(a => !a.isCustom)
           .map(a => ({ id: a.ingredientId, name: a.name }));
@@ -81,7 +81,7 @@ function HealthProfile({ isComponent = false }) {
       toast.error('Weight must be between 30kg and 200kg.');
       return;
     }
-    
+
     try {
       setSavingHealth(true);
       await updateHealthProfile({
@@ -199,23 +199,23 @@ function HealthProfile({ isComponent = false }) {
   return (
     <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
       {!isComponent && <HeaderMember />}
-      
+
       {/* PAGE HEADER */}
       {!isComponent && (
-      <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
-        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-            Health & Allergies
-          </h1>
-          <p className="text-[#6B6F63] text-[15px]">
-            Manage your physical profile and dietary restrictions
-          </p>
+        <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
+          <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
+              Health & Allergies
+            </h1>
+            <p className="text-[#6B6F63] text-[15px]">
+              Manage your physical profile and dietary restrictions
+            </p>
+          </div>
         </div>
-      </div>
       )}
 
       <main className={`flex-grow w-full max-w-4xl mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'} space-y-12`}>
-        
+
         {/* SECTION 1: HEALTH PROFILE */}
         <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
@@ -229,12 +229,12 @@ function HealthProfile({ isComponent = false }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Height (cm)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   name="heightCm"
                   value={healthData.heightCm}
                   onChange={handleHealthChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   placeholder="e.g. 170"
                   min="100"
                   max="250"
@@ -244,12 +244,12 @@ function HealthProfile({ isComponent = false }) {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Weight (kg)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   name="weightKg"
                   value={healthData.weightKg}
                   onChange={handleHealthChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   placeholder="e.g. 65"
                   min="30"
                   max="200"
@@ -262,11 +262,11 @@ function HealthProfile({ isComponent = false }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Biological Sex</label>
-                <select 
+                <select
                   name="biologicalSex"
                   value={healthData.biologicalSex}
                   onChange={handleHealthChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] cursor-pointer"
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -275,13 +275,13 @@ function HealthProfile({ isComponent = false }) {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Birth Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   name="birthDate"
                   value={healthData.birthDate}
                   onChange={handleHealthChange}
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   required
                 />
               </div>
@@ -290,11 +290,11 @@ function HealthProfile({ isComponent = false }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Diet Type</label>
-                <select 
+                <select
                   name="dietType"
                   value={healthData.dietType}
                   onChange={handleHealthChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] cursor-pointer"
                 >
                   <option value="vegan">Vegan</option>
                   <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
@@ -302,11 +302,11 @@ function HealthProfile({ isComponent = false }) {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Activity Level</label>
-                <select 
+                <select
                   name="activityLevel"
                   value={healthData.activityLevel}
                   onChange={handleHealthChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] cursor-pointer"
                 >
                   <option value="sedentary">Sedentary (Little or no exercise)</option>
                   <option value="light">Lightly Active (Exercise 1-3 days/week)</option>
@@ -318,10 +318,10 @@ function HealthProfile({ isComponent = false }) {
             </div>
 
             <div className="pt-4 flex justify-end">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={savingHealth}
-                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-colors disabled:opacity-70 flex items-center gap-2"
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all disabled:opacity-70 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer shadow-xs"
               >
                 {savingHealth && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>}
                 Save Health Profile
@@ -340,13 +340,13 @@ function HealthProfile({ isComponent = false }) {
           </div>
 
           <form onSubmit={handleAllergiesSubmit} className="space-y-8">
-            
+
             {/* SYSTEM ALLERGY SELECTOR */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-[#2B2A25]">Search System Ingredients</label>
               <div className="flex gap-3">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={ingredientSearch}
                   onChange={(e) => setIngredientSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -355,14 +355,14 @@ function HealthProfile({ isComponent = false }) {
                       handleSearchIngredients();
                     }
                   }}
-                  className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   placeholder="e.g. Tomato, Milk, Peanut..."
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleSearchIngredients}
                   disabled={searchingIngredients}
-                  className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] disabled:opacity-70 flex items-center gap-2"
+                  className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-all border border-[#DCE3D5] disabled:opacity-70 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                 >
                   {searchingIngredients && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>}
                   Search
@@ -375,10 +375,10 @@ function HealthProfile({ isComponent = false }) {
                   {ingredientResults.map(ing => (
                     <div key={ing.id} className="flex justify-between items-center p-2 hover:bg-[#E9EFE6] rounded-md transition-colors">
                       <span className="text-sm text-[#2B2A25]">{ing.name}</span>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => addSystemAllergy(ing)}
-                        className="text-xs font-medium text-[#2F5233] bg-[#E9EFE6] px-3 py-1.5 rounded-md hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5]"
+                        className="text-xs font-medium text-[#2F5233] bg-[#E9EFE6] px-3 py-1.5 rounded-md hover:bg-[#DCE3D5] transition-all border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                       >
                         Add
                       </button>
@@ -395,10 +395,11 @@ function HealthProfile({ isComponent = false }) {
                     {allergyData.systemAllergies.map((allergy) => (
                       <div key={allergy.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F5233]/10 text-[#2F5233] border border-[#2F5233]/20 rounded-full text-sm font-medium">
                         {allergy.name}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeSystemAllergy(allergy.id)}
-                          className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none"
+                          className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-current rounded-full active:scale-90 motion-reduce:transform-none cursor-pointer"
+                          aria-label={`Remove allergy ${allergy.name}`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
@@ -415,8 +416,8 @@ function HealthProfile({ isComponent = false }) {
             <div className="space-y-4">
               <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
               <div className="flex gap-3">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -425,13 +426,13 @@ function HealthProfile({ isComponent = false }) {
                       addCustomAllergy();
                     }
                   }}
-                  className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6]"
+                  className="flex-grow px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   placeholder="e.g. Peanuts, Soy, Gluten..."
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={addCustomAllergy}
-                  className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5]"
+                  className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-all border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                 >
                   Add
                 </button>
@@ -444,10 +445,11 @@ function HealthProfile({ isComponent = false }) {
                     {allergyData.customAllergies.map((allergy, index) => (
                       <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#A63446]/10 text-[#A63446] border border-[#A63446]/20 rounded-full text-sm font-medium">
                         {allergy}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeCustomAllergy(allergy)}
-                          className="text-[#A63446]/60 hover:text-[#A63446] focus:outline-none"
+                          className="text-[#A63446]/60 hover:text-[#A63446] focus:outline-none focus-visible:ring-2 focus-visible:ring-current rounded-full active:scale-90 motion-reduce:transform-none cursor-pointer"
+                          aria-label={`Remove custom allergy ${allergy}`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
@@ -459,10 +461,10 @@ function HealthProfile({ isComponent = false }) {
             </div>
 
             <div className="pt-6 flex justify-end border-t border-[#DCE3D5]/50">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={savingAllergies}
-                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-colors disabled:opacity-70 flex items-center gap-2"
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all disabled:opacity-70 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer shadow-xs"
               >
                 {savingAllergies && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>}
                 Save Allergies
@@ -470,7 +472,7 @@ function HealthProfile({ isComponent = false }) {
             </div>
           </form>
         </section>
-        
+
       </main>
 
       {!isComponent && <AIChatbot />}
