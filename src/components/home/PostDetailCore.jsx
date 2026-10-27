@@ -20,6 +20,7 @@ import ImageLightbox from '../ui/ImageLightbox';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import UserProfilePreview from './UserProfilePreview';
+import PostVideoSummary from './PostVideoSummary';
 
 const asArray = (value) => {
   if (Array.isArray(value)) return value;
@@ -933,6 +934,10 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               </div>
             )}
           </div>
+        )}
+
+        {post.media?.some((item) => item.mediaType === 'video') && (
+          <PostVideoSummary postId={id} isGuest={isGuest} onAuthRequired={onAuthRequired} />
         )}
 
         <div className="max-w-[760px] space-y-6 pt-4 text-[#2B2A25] leading-relaxed text-[17px]">
