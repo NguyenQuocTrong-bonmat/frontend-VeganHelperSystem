@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { generateMealPlan, getMealPlan, listMealPlans } from '../../services/mealPlanService';
 import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
 import PlanSetupFlow from './PlanSetupFlow';
+import MenuJourney from './MenuJourney';
+import CalendarCreationProgress from './CalendarCreationProgress';
 import WeeklyCalendar from './WeeklyCalendar';
 
 import MealRoutinePanel from './MealRoutinePanel';
@@ -18,6 +20,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [creation, setCreation] = useState(null);
   const [listError, setListError] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -76,20 +79,50 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       setError('Your free meal-plan generations have been used. Choose a package above to create more plans.');
       return;
     }
+    const { clientPreview, ...request } = typeof selectedStartDate === 'string'
+      ? { startDate: selectedStartDate }
+      : selectedStartDate;
     submitting.current = true;
     setGenerating(true); setError(''); setSuccess('');
+    setSetupOpen(false);
+    setCreation({ phase: 'tdee', preview: clientPreview });
     try {
-      const result = await generateMealPlan(selectedStartDate);
+      const apiResult = generateMealPlan(request).then(result => ({ result }), failure => ({ failure }));
+      const surfaceApiFailure = () => apiResult.then(outcome => outcome.failure
+        ? Promise.reject(outcome.failure)
+        : new Promise(() => {}));
+      const waitForPhase = async (phase, duration) => {
+        if (mounted.current) setCreation({ phase, preview: clientPreview });
+        await Promise.race([new Promise(resolve => setTimeout(resolve, duration)), surfaceApiFailure()]);
+      };
+
+      await waitForPhase('tdee', 3000);
+      await waitForPhase('split', 3000);
+      await waitForPhase('waiting', 5000);
+      const outcome = await apiResult;
+      if (outcome.failure) throw outcome.failure;
+      const result = outcome.result;
       if (!mounted.current) return;
+
+      const totalMeals = (result.menu?.days || []).reduce((total, day) => total + (day.meals?.length || 0), 0);
+      if (totalMeals > 0) {
+        setCreation({ phase: 'revealing', preview: clientPreview, pendingPlan: result, visibleMealCount: 1 });
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        for (let visibleMealCount = 2; visibleMealCount <= totalMeals; visibleMealCount += 1) {
+          if (!reduceMotion) await new Promise(resolve => setTimeout(resolve, 500));
+          if (!mounted.current) return;
+          setCreation({ phase: 'revealing', preview: clientPreview, pendingPlan: result, visibleMealCount });
+        }
+      }
       setPlan(result);
       setSuccess('Your weekly menu has been created and saved.');
-      setSetupOpen(false);
+      setCreation(null);
       setPageIndex(1); setRefresh(value => value + 1);
       getMealPlanAccess().then(nextAccess => {
         if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
       }).catch(() => {});
     } catch (failure) {
-      if (mounted.current) setError(failure.message);
+      if (mounted.current) { setCreation(null); setSetupOpen(true); setError(failure.message); }
       if (failure.status === 402 || failure.code === 'MEAL_PLAN_TRIAL_LIMIT_REACHED') {
         getMealPlanAccess().then(nextAccess => {
           if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
@@ -135,14 +168,16 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       <div className="wm-main-column">
         {setupOpen && <PlanSetupFlow profileRevision={profileRevision} busy={generating} error={error} onGenerate={generate} onCancel={cancelSetup} onEditProfile={onEditProfile} />}
         {!setupOpen && error && <div role="alert" className="wm-alert">{error}</div>}
-        {loading && !plan && !listError && <div role="status" className="wm-loading"><PlannerIcon name="calendar" /><p>Making room for your week…</p><div className="wm-skeleton-calendar" aria-hidden="true">{Array.from({ length: 7 }, (_, index) => <span key={index} />)}</div></div>}
-        {!plan && !loading && !listError && !setupOpen && <section className="wm-empty"><span className="wm-empty-art"><PlannerIcon name="bowl" /><PlannerIcon name="leaf" /></span><span className="wm-eyebrow">A fresh start, every week</span><h2>Your next week starts here.</h2><p>Less time wondering what to eat.<br />More time enjoying what is on your plate.</p><button type="button" className="wm-button wm-button-primary" disabled={access?.canGenerate === false} onClick={() => setSetupOpen(true)}>Create your first menu <PlannerIcon name="arrow" /></button><span className="wm-empty-caption">7 days · 3 meals a day · Made for your preferences</span></section>}
-        {plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
-        {menu && <>
+        {creation && <CalendarCreationProgress phase={creation.phase} preview={creation.preview} pendingPlan={creation.pendingPlan} visibleMealCount={creation.visibleMealCount} />}
+        {!creation && loading && !plan && !listError && <div role="status" className="wm-loading"><PlannerIcon name="calendar" /><p>Making room for your week…</p><div className="wm-skeleton-calendar" aria-hidden="true">{Array.from({ length: 7 }, (_, index) => <span key={index} />)}</div></div>}
+        {!creation && !plan && !loading && !listError && !setupOpen && <section className="wm-empty"><span className="wm-empty-art"><PlannerIcon name="bowl" /><PlannerIcon name="leaf" /></span><span className="wm-eyebrow">A fresh start, every week</span><h2>Your next week starts here.</h2><p>Less time wondering what to eat.<br />More time enjoying what is on your plate.</p><button type="button" className="wm-button wm-button-primary" disabled={access?.canGenerate === false} onClick={() => setSetupOpen(true)}>Create your first menu <PlannerIcon name="arrow" /></button><span className="wm-empty-caption">7 days · 3 meals a day · Made for your preferences</span></section>}
+        {!creation && plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
+        {!creation && menu && <>
           <div className="wm-menu-context"><span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span><span className="wm-mobile-calorie">Daily target <strong>{number(menu.targetDailyCalories)} kcal</strong></span><span>BMI at creation <strong>{number(menu.bmi)}</strong></span><span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span></div>
           <WeeklyCalendar key={`calendar-${plan.id}`} plan={plan} opening={opening} onRoutineChanged={routine=>setPlan(current=>current?.id === plan.id ? {...current,routine} : current)} />
+          <MenuJourney menu={menu} />
           {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated=>{setPlan(updated);setRefresh(value=>value+1);}} onEditProfile={onEditProfile} />}
-          <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
+          <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.mealCalorieSplit && <p>Daily calorie split: breakfast {menu.mealCalorieSplit.breakfastPercent}%, lunch {menu.mealCalorieSplit.lunchPercent}%, dinner {menu.mealCalorieSplit.dinnerPercent}%. These shares divide the daily target and do not change it.</p>}{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
         </>}
         {plan?.routine?.mode === 'maintenance' && <p className="wm-notice">This balanced plan is for viewing your menu. Create a weight goal plan to use tracking and reminders.</p>}
       </div>

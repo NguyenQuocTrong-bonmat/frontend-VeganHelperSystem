@@ -197,14 +197,20 @@ test('uses backend access to block another generation after the three free trial
   expect(adapter.mock.calls.some(([config]) => config.url === '/MealPlans/generate')).toBe(false);
 });
 
-test('generates and displays the persisted response, posting only the selected start date', async () => {
+test('generates and displays the persisted response with the selected meal calorie split', async () => {
   route = async config => config.method === 'post' ? plan(9) : page();
   await render();
   await openReview();
-  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+  const generation = act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  await vi.advanceTimersByTimeAsync(21000);
+  await generation;
   const request = adapter.mock.calls.map(([config]) => config).find(config => config.method === 'post');
   expect(request.url).toBe('/MealPlans/generate');
-  expect(JSON.parse(request.data)).toEqual({ startDate: '2026-10-21' });
+  expect(JSON.parse(request.data)).toEqual({
+    startDate: '2026-10-21',
+    mealCalorieSplit: { breakfastPercent: 25, lunchPercent: 30, dinnerPercent: 45 },
+  });
   expect(request.headers.Authorization).toBe('Bearer session-member');
   expect(container.textContent).toContain('breakfast dish 9-1');
   expect(container.textContent).toContain('saved');

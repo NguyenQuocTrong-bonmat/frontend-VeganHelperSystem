@@ -18,6 +18,8 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
   const [timeZoneId, setTimeZoneId] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
   const [reminders, setReminders] = useState(false);
   const [times, setTimes] = useState({ breakfastTime: '07:30', lunchTime: '12:00', dinnerTime: '18:30' });
+  const [mealSplit, setMealSplit] = useState({ breakfast: '25', lunch: '30', dinner: '45' });
+  const [splitError, setSplitError] = useState('');
   const [safety, setSafety] = useState(null);
   const [checking, setChecking] = useState(false);
   const [safetyError, setSafetyError] = useState('');
@@ -26,6 +28,14 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
   useEffect(() => { setSafety(null); setSafetyError(''); }, [startDate, targetWeight, targetDate, eligibility, timeZoneId, profileRevision]);
   const heading = useRef(null);
   const weightGoal = mode === 'weight-goal';
+  const splitValues = Object.values(mealSplit).map(Number);
+  const splitTotal = splitValues.reduce((total, value) => total + (Number.isFinite(value) ? value : 0), 0);
+  const splitIsValid = splitValues.every(value => Number.isInteger(value) && value >= 1 && value <= 98) && splitTotal === 100;
+  const mealCalorieSplit = {
+    breakfastPercent: Number(mealSplit.breakfast),
+    lunchPercent: Number(mealSplit.lunch),
+    dinnerPercent: Number(mealSplit.dinner),
+  };
   const today = weightGoal ? zonedToday(timeZoneId) : utcToday();
   const nextYear = new Date(`${today}T00:00:00Z`);
   const month = nextYear.getUTCMonth();
@@ -48,13 +58,23 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
     event.preventDefault();
     if (busy || checking) return;
     if (!event.currentTarget.checkValidity()) { event.currentTarget.reportValidity(); return; }
+    if (step === 1 && !splitIsValid) {
+      setSplitError('The breakfast, lunch and dinner percentages must add up to 100%.');
+      return;
+    }
     if (step < 2) { setStep(value => value + 1); return; }
     if (loading || !profile || profileError) return;
-    if (!weightGoal) { onGenerate(startDate); return; }
+    if (!weightGoal) {
+      onGenerate({ startDate, mealCalorieSplit, clientPreview: { mode: 'maintenance', profile, mealCalorieSplit } });
+      return;
+    }
     if (!eligibility) return;
     const payload={startDate,mode:'weight_goal',targetWeightKg:Number(targetWeight),targetDate,eligibilityConfirmed:eligibility,timeZoneId,
       remindersEnabled:reminders,...Object.fromEntries(Object.entries(times).map(([key,value])=>[key,`${value}:00`]))};
-    if (safety?.allowed) { onGenerate(payload); return; }
+    if (safety?.allowed) {
+      onGenerate({ ...payload, mealCalorieSplit, clientPreview: { mode: 'weight_goal', profile, safety, mealCalorieSplit } });
+      return;
+    }
     setChecking(true); setSafetyError('');
     try { const result=await previewGoal(payload); if(active.current) setSafety(result); }
     catch(failure) { if(active.current) setSafetyError(failure.message); }
@@ -91,6 +111,23 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
         </>}
         {step === 1 && <div className="wm-schedule-fields">
           <div className="wm-input-group"><label htmlFor="meal-plan-start">When does your week begin?</label><input className="wm-control" id="meal-plan-start" type="date" value={startDate} min={today} max={maxStartDate} required onChange={event => setStartDate(event.target.value)} aria-describedby="start-date-help" /><p id="start-date-help">Seven consecutive days, starting on your chosen date. Plan dates follow {weightGoal ? timeZoneId : 'UTC'}.</p></div>
+          <fieldset className="wm-calorie-split">
+            <legend>Daily calorie split</legend>
+            <p className="wm-calorie-split-help">Preview how you would like to share your daily calorie target across three meals. The saved menu shows the actual calories of its selected dishes.</p>
+            <div className="wm-calorie-split-fields">
+              {[
+                ['breakfast', 'Breakfast'],
+                ['lunch', 'Lunch'],
+                ['dinner', 'Dinner'],
+              ].map(([key, label]) => <label key={key} htmlFor={'meal-split-' + key}>{label} (%)
+                <input id={'meal-split-' + key} className="wm-control" type="number" min="1" max="98" step="1" required value={mealSplit[key]} aria-describedby="meal-split-help meal-split-total" onChange={event => { setMealSplit(current => ({ ...current, [key]: event.target.value })); setSplitError(''); }} />
+              </label>)}
+            </div>
+            <p id="meal-split-help" className="wm-calorie-split-help">Use whole numbers. Each meal must receive at least 1%, and the total must be 100%.</p>
+            <p id="meal-split-total" className={'wm-calorie-split-total ' + (splitIsValid ? 'is-valid' : '')} role="status">Total: {splitTotal}% / 100%</p>
+            {splitError && <p className="wm-inline-error" role="alert">{splitError}</p>}
+            <p className="wm-calorie-split-help">The starting values are editable convenience values, not a medical recommendation.</p>
+          </fieldset>
           {weightGoal && <>
             <div className="wm-input-group"><label htmlFor="goal-weight">Target weight <span>(kg)</span></label><input className="wm-control" id="goal-weight" type="number" min="30" max="200" step="0.1" required value={targetWeight} onChange={event => setTargetWeight(event.target.value)} placeholder="Enter your target weight" /><p>Current weight: {profile?.weightKg ? `${number(profile.weightKg)} kg` : 'Add it in Health & Wellness.'}</p></div>
             <div className="wm-input-group"><label htmlFor="goal-date">Target date</label><input className="wm-control" id="goal-date" type="date" min={startDate} required value={targetDate} onChange={event => setTargetDate(event.target.value)} /><p>Your timeline will need a safety review before a plan can be created.</p></div>
@@ -103,6 +140,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
         </div>}
         {step === 2 && <div className="wm-review">
           <div className="wm-review-summary"><span className="wm-mode-symbol"><PlannerIcon name={weightGoal ? 'target' : 'leaf'} /></span><div><h3>{weightGoal ? 'Weight goal plan' : 'Balanced weekly menu'}</h3><p>Starts {dateLabel(startDate)} · 7 days · 21 meals</p></div></div>
+          <dl className="wm-review-facts wm-meal-split-review"><div><dt>Breakfast</dt><dd>{mealSplit.breakfast}%</dd></div><div><dt>Lunch</dt><dd>{mealSplit.lunch}%</dd></div><div><dt>Dinner</dt><dd>{mealSplit.dinner}%</dd></div></dl>
           {weightGoal && <><dl className="wm-review-facts"><div><dt>Target weight</dt><dd>{number(targetWeight)} kg</dd></div><div><dt>Target date</dt><dd>{dateLabel(targetDate)}</dd></div><div><dt>Daily calorie target</dt><dd>{safety?.allowed ? `${number(safety.targetCalories)} kcal` : 'Safety review required'}</dd></div>{safety?.allowed && <><div><dt>Estimated TDEE</dt><dd>{number(safety.tdee)} kcal</dd></div><div><dt>Daily adjustment</dt><dd>{number(safety.dailyAdjustment)} kcal</dd></div></>}</dl>{safety && !safety.allowed && <div role="alert" className="wm-alert"><strong>This goal needs adjustment.</strong><ul>{safety.reasons?.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Go back and change the goal or choose a longer timeline.</p></div>}</>}
           <div className="wm-profile-review">
             <div className="wm-section-heading"><h3>Your saved health profile</h3><button type="button" className="wm-text-button" onClick={onEditProfile}>Review health profile & allergies <PlannerIcon name="arrow" /></button></div>
