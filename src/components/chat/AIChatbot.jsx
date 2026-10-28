@@ -26,7 +26,7 @@ function errorText(error) {
   return 'Unable to reach the assistant. Please try again.';
 }
 
-export default function AIChatbot() {
+export default function AIChatbot({ className = '' }) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState('');
@@ -120,7 +120,7 @@ export default function AIChatbot() {
   }
 
   return (
-    <aside className="fixed bottom-6 right-6 z-50">
+    <aside className={isOpen ? "fixed bottom-20 right-4 sm:right-6 z-50" : (className || "fixed bottom-20 right-6 z-50")}>
       {isOpen ? (
         <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl">
           <header className="flex items-center justify-between border-b border-[#DCE3D5] px-4 py-3">

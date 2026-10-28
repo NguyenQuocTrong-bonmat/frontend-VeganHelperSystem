@@ -562,11 +562,11 @@ function SearchCore({ isGuest }) {
             <div id="results-section">
               {!queryKeyword ? (
                 /* EMPTY SEARCH INPUT PROMPT */
-                <div className="text-center py-16 px-6 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
-                  <div className="w-20 h-20 bg-[#E9EFE6] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm border border-[#DCE3D5]">
+                <div className="text-center py-10 px-4 sm:py-16 sm:px-6 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#E9EFE6] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm border border-[#DCE3D5]">
                     🌱
                   </div>
-                  <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
+                  <h3 className="font-fraunces text-xl sm:text-2xl font-semibold text-[#2B2A25] mb-2">
                     Search VeganHelper
                   </h3>
                   <p className="text-[#6B6F63] text-[15px] max-w-md mx-auto leading-relaxed mb-6">
@@ -589,7 +589,7 @@ function SearchCore({ isGuest }) {
                 </div>
               ) : activeTab === 'all' ? (
                 /* ================= ALL VIEW (PEOPLE + POSTS) ================= */
-                <div className="flex flex-col gap-10">
+                <div className="flex flex-col gap-8 md:gap-10">
 
                   {/* People Preview Section */}
                   <section aria-labelledby="heading-people-preview" className="flex flex-col gap-4">
@@ -629,13 +629,13 @@ function SearchCore({ isGuest }) {
                         </Link>
                       </div>
                     ) : usersLoading ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {[1, 2, 3, 4].map((n) => (
                           <UserSkeleton key={n} />
                         ))}
                       </div>
                     ) : usersError ? (
-                      <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl flex items-center justify-between text-xs sm:text-sm text-[#991B1B]">
+                      <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl flex flex-wrap gap-2 items-center justify-between text-xs sm:text-sm text-[#991B1B]">
                         <span>Failed to load community members.</span>
                         <button
                           onClick={() => executeSearch(queryKeyword, 'all', 1)}
@@ -649,7 +649,7 @@ function SearchCore({ isGuest }) {
                         No people found matching "{queryKeyword}".
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {users.slice(0, 4).map((user) => (
                           <UserCard
                             key={user.id}
@@ -695,7 +695,7 @@ function SearchCore({ isGuest }) {
                         ))}
                       </div>
                     ) : postsError ? (
-                      <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl flex items-center justify-between text-xs sm:text-sm text-[#991B1B]">
+                      <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl flex flex-wrap gap-2 items-center justify-between text-xs sm:text-sm text-[#991B1B]">
                         <span>{postsError}</span>
                         <button
                           onClick={() => executeSearch(queryKeyword, 'all', 1)}
@@ -788,7 +788,7 @@ function SearchCore({ isGuest }) {
 
                       {/* Pagination Controls */}
                       {totalPostsPages > 1 && (
-                        <nav aria-label="Posts pagination" className="flex items-center justify-center gap-3 mt-6 pt-6 border-t border-[#DCE3D5]">
+                        <nav aria-label="Posts pagination" className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-6 pt-6 border-t border-[#DCE3D5]">
                           <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage <= 1 || postsLoading}
@@ -839,7 +839,7 @@ function SearchCore({ isGuest }) {
                       </Link>
                     </div>
                   ) : usersLoading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                       {[1, 2, 3, 4, 5, 6].map((n) => (
                         <UserSkeleton key={n} />
                       ))}
@@ -878,7 +878,7 @@ function SearchCore({ isGuest }) {
                     </div>
                   ) : (
                     <div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {users.map((user) => (
                           <UserCard
                             key={user.id}
@@ -892,7 +892,7 @@ function SearchCore({ isGuest }) {
 
                       {/* Pagination Controls */}
                       {totalUsersPages > 1 && (
-                        <nav aria-label="People pagination" className="flex items-center justify-center gap-3 mt-6 pt-6 border-t border-[#DCE3D5]">
+                        <nav aria-label="People pagination" className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-6 pt-6 border-t border-[#DCE3D5]">
                           <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage <= 1 || usersLoading}

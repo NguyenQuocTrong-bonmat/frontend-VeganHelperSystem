@@ -343,7 +343,7 @@ html:has(.lp-page) { scroll-behavior: smooth; }
   .lp-promise-strip .lp-container { gap: 15px; }
   .lp-promise-strip span { gap: 8px; font-size: 10px; }
   .lp-promise-strip .lp-promise-divider { display: none; }
-  .lp-recipe-grid { gap: 18px; }
+  .lp-recipe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
   .lp-recipe-copy { padding: 15px; }
   .lp-recipe-copy h3 { font-size: 20px; }
   .lp-recipe-meta { font-size: 8px; }
@@ -369,7 +369,7 @@ html:has(.lp-page) { scroll-behavior: smooth; }
   .lp-map-location-content > div > span { font-size: 9px; }
   .lp-community-intro { gap: 35px; }
   .lp-community-image { height: 370px; }
-  .lp-story-grid { gap: 14px; }
+  .lp-story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .lp-story-author { flex-wrap: wrap; }
   .lp-story-author > span:not(.lp-author-initial) { font-size: 10px; }
   .lp-story h3 { font-size: 21px; }
@@ -417,7 +417,7 @@ html:has(.lp-page) { scroll-behavior: smooth; }
   .lp-recipe-search { width: 100%; }
   .lp-category-filters { gap: 5px; flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 6px; }
   .lp-category-filters button { white-space: nowrap; font-size: 10px; padding: 7px 11px; }
-  .lp-recipe-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px 12px; }
+  .lp-recipe-grid { grid-template-columns: 1fr; gap: 16px; }
   .lp-recipe-copy { padding: 12px; }
   .lp-recipe-meta > span { font-size: 7px; }
   .lp-save-button { min-width: 25px; min-height: 28px; }
@@ -437,8 +437,9 @@ html:has(.lp-page) { scroll-behavior: smooth; }
   .lp-pillars-heading { text-align: left; }
   .lp-pillars-heading .lp-eyebrow { justify-content: flex-start; }
   .lp-pillars-heading > p:last-child { font-size: 13px; }
-  .lp-pillar-grid { margin-top: 30px; }
-  .lp-pillar { padding: 20px 16px; }
+  .lp-pillar-grid { grid-template-columns: 1fr; margin-top: 30px; }
+  .lp-pillar { padding: 20px 16px; border-right: 0 !important; border-bottom: 1px solid #d6dfce; }
+  .lp-pillar:last-child { border-bottom: 0; }
   .lp-pillar h3 { font-size: 21px; margin-top: 22px; }
   .lp-pillar p { font-size: 11px; }
   .lp-pillar a { font-size: 10px; margin-top: 20px; }

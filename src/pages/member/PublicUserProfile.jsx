@@ -217,8 +217,8 @@ function PublicUserProfile() {
     return (
       <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
         <HeaderMember />
-        <div className="flex-grow flex items-center justify-center py-20 px-4">
-          <div className="text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-10 max-w-md w-full">
+        <div className="flex-grow flex items-center justify-center py-12 sm:py-20 px-4">
+          <div className="text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-6 sm:p-10 max-w-md w-full">
             <div className="w-16 h-16 mx-auto mb-4 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
@@ -245,20 +245,20 @@ function PublicUserProfile() {
     <div className="min-h-screen flex flex-col bg-[#FDFBF6]">
       <HeaderMember />
 
-      <main className="flex-grow max-w-[1200px] w-full mx-auto px-6 py-12">
+      <main className="flex-grow max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12">
         {/* Profile Header */}
-        <section className="bg-[#FDFBF6] rounded-3xl mb-16 relative overflow-hidden flex flex-col items-center border border-[#DCE3D5]/60 shadow-sm">
+        <section className="bg-[#FDFBF6] rounded-2xl sm:rounded-3xl mb-10 md:mb-16 relative overflow-hidden flex flex-col items-center border border-[#DCE3D5]/60 shadow-sm">
           {/* Subtle organic cover background */}
-          <div className="absolute top-0 left-0 w-full h-40 md:h-48 bg-gradient-to-b from-[#E9EFE6] to-[#FDFBF6] z-0">
+          <div className="absolute top-0 left-0 w-full h-32 sm:h-40 md:h-48 bg-gradient-to-b from-[#E9EFE6] to-[#FDFBF6] z-0">
             {/* Decorative SVG pattern */}
             <svg className="absolute inset-0 w-full h-full text-[#DCE3D5]/30" preserveAspectRatio="none" viewBox="0 0 100 100" fill="none">
               <path d="M0,0 L100,0 L100,100 Q50,20 0,100 Z" fill="currentColor" />
             </svg>
           </div>
 
-          <div className="relative z-10 w-full flex flex-col items-center pt-24 md:pt-28 pb-12 px-6">
+          <div className="relative z-10 w-full flex flex-col items-center pt-16 sm:pt-24 md:pt-28 pb-8 sm:pb-12 px-4 sm:px-6">
             <div className="mb-5">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#FDFBF6] shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-5xl font-semibold ring-1 ring-[#DCE3D5]">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-[#FDFBF6] shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-4xl md:text-5xl font-semibold ring-1 ring-[#DCE3D5]">
                 {profile.avatarUrl ? (
                   <img src={getImageUrl(profile.avatarUrl)} alt={profile.displayName} className="w-full h-full object-cover" />
                 ) : (
@@ -267,11 +267,11 @@ function PublicUserProfile() {
               </div>
             </div>
 
-            <h1 className="font-fraunces text-3xl md:text-5xl text-[#2B2A25] font-semibold mb-3 text-center tracking-tight">
+            <h1 className="font-fraunces text-2xl sm:text-3xl md:text-5xl text-[#2B2A25] font-semibold mb-3 text-center tracking-tight break-words max-w-full">
               {profile.displayName}
             </h1>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 text-[#6B6F63] font-medium mb-6">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base text-[#6B6F63] font-medium mb-6">
               {profile.username && (
                 <span>@{profile.username}</span>
               )}
@@ -319,7 +319,7 @@ function PublicUserProfile() {
                 </button>
               </div>
             ) : (
-              <div className="mb-8 flex items-center gap-3">
+              <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   to="/profile"
                   className="h-10 px-5 rounded-full font-dm-sans text-sm font-semibold border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] transition-all flex items-center gap-1.5 shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
@@ -340,7 +340,7 @@ function PublicUserProfile() {
             )}
 
             {/* 4-Stat Row: Published, Followers, Following, Likes */}
-            <div className="w-full max-w-xl border-t border-[#DCE3D5]/50 pt-8 mt-2 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+            <div className="w-full max-w-xl border-t border-[#DCE3D5]/50 pt-6 sm:pt-8 mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center">
               <div className="flex flex-col items-center">
                 <span className="font-fraunces font-semibold text-2xl md:text-3xl text-[#2B2A25]">
                   {profile.publishedPostCount || 0}
@@ -392,23 +392,23 @@ function PublicUserProfile() {
 
         {/* User's Posts */}
         <section>
-          <div className="flex items-center gap-4 mb-10">
-            <h2 className="font-fraunces text-2xl md:text-3xl text-[#2B2A25] font-semibold">
+          <div className="flex items-center gap-4 mb-6 md:mb-10">
+            <h2 className="font-fraunces text-xl sm:text-2xl md:text-3xl text-[#2B2A25] font-semibold">
               Published Recipes
             </h2>
             <div className="flex-1 h-px bg-[#DCE3D5]"></div>
           </div>
 
           {(!profile.posts || profile.posts.length === 0) ? (
-            <div className="py-24 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl flex flex-col items-center shadow-sm">
-              <div className="w-20 h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-4xl mb-5 shadow-inner border border-[#DCE3D5]/30">
+            <div className="py-14 px-4 sm:py-20 md:py-24 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl flex flex-col items-center shadow-sm">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#F3F6EE] text-[#2F5233] rounded-full flex items-center justify-center text-3xl sm:text-4xl mb-5 shadow-inner border border-[#DCE3D5]/30">
                 🌿
               </div>
               <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">No published recipes yet</h3>
               <p className="text-[#6B6F63] max-w-md mx-auto text-[15px]">This author is still exploring and hasn't published any recipes to the community.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 md:gap-y-10">
               {profile.posts.map(post => (
                 <div
                   key={post.id}
@@ -422,7 +422,7 @@ function PublicUserProfile() {
                   className="flex flex-col bg-transparent group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 rounded-2xl p-1"
                   onClick={() => navigate(`/posts/${post.id}`)}
                 >
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1 motion-reduce:transform-none">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4 md:mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1 motion-reduce:transform-none">
                     {post.thumbnailUrl ? (
                       <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
                     ) : (
@@ -437,7 +437,7 @@ function PublicUserProfile() {
                       </span>
                     </div>
 
-                    <h3 className="font-fraunces text-[22px] md:text-[24px] font-semibold text-[#2B2A25] mb-2.5 leading-tight group-hover:text-[#2F5233] transition-colors line-clamp-2">
+                    <h3 className="font-fraunces text-xl md:text-[22px] lg:text-xl xl:text-[22px] font-semibold text-[#2B2A25] mb-2.5 leading-tight group-hover:text-[#2F5233] transition-colors line-clamp-2">
                       {post.title}
                     </h3>
 

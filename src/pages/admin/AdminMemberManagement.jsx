@@ -397,7 +397,7 @@ export default function AdminMemberManagement() {
         )}
 
         {/* 2. Top Summary KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Card 1: Total Members */}
           <div className="bg-white border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between">
@@ -560,18 +560,31 @@ export default function AdminMemberManagement() {
           </div>
         </div>
 
-        {/* 4. Members Table Card */}
+        {/* 4. Members Table Card with Horizontal Scroll on Mobile */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse table-fixed">
+          {/* Mobile scroll hint - thông báo cuộn ngang trên điện thoại */}
+          <div className="sm:hidden px-4 py-2 bg-[#F4F6F1] border-b border-[#DCE3D5] text-[11px] text-[#6B6F63] flex items-center justify-between font-medium">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Cuộn ngang để xem đầy đủ cột
+            </span>
+            <span className="text-[10px] bg-white px-2 py-0.5 rounded-full border border-[#DCE3D5] text-[#2F5233] font-semibold">
+              ↔ Swipe
+            </span>
+          </div>
+
+          <div className="overflow-x-auto scrollbar-thin touch-pan-x [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-[#F4F6F1] [&::-webkit-scrollbar-thumb]:bg-[#DCE3D5] hover:[&::-webkit-scrollbar-thumb]:bg-[#2F5233] [&::-webkit-scrollbar-thumb]:rounded-full">
+            <table className="w-full min-w-[840px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[56%]">Member</th>
-                  <th className="py-3.5 px-4 font-semibold w-[44%]">Contact & Email</th>
-                  <th className="py-3.5 px-3 font-semibold w-[90px]">Role</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Status</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Joined Date</th>
-                  <th className="py-3.5 px-2.5 font-semibold text-left w-[138px]">Actions</th>
+                  <th className="py-3.5 px-4 font-semibold min-w-[220px] w-[26%]">Member</th>
+                  <th className="py-3.5 px-4 font-semibold min-w-[200px] w-[24%]">Contact & Email</th>
+                  <th className="py-3.5 px-3 font-semibold min-w-[90px] w-[12%]">Role</th>
+                  <th className="py-3.5 px-3 font-semibold min-w-[105px] w-[13%]">Status</th>
+                  <th className="py-3.5 px-3 font-semibold min-w-[105px] w-[13%]">Joined Date</th>
+                  <th className="py-3.5 px-2.5 font-semibold text-left min-w-[140px] w-[12%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">

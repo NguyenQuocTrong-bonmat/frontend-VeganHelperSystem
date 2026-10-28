@@ -87,8 +87,8 @@ function BmiDashboard({ isComponent = false }) {
       {/* PAGE HEADER */}
       {!isComponent && (
       <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
-        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-10 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
             BMI Dashboard
           </h1>
           <p className="text-[#6B6F63] text-[15px]">
@@ -98,25 +98,25 @@ function BmiDashboard({ isComponent = false }) {
       </div>
       )}
 
-      <main className={`flex-grow w-full max-w-4xl mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'} space-y-12`}>
+      <main className={`flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 ${!isComponent ? 'py-8 md:py-12' : 'py-6'} space-y-8 md:space-y-12`}>
         
         {/* SECTION 1: CURRENT BMI */}
-        <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-10 shadow-sm flex flex-col md:flex-row items-center gap-10">
+        <section className="bg-white border border-[#DCE3D5] rounded-2xl p-5 sm:p-6 md:p-10 shadow-sm flex flex-col md:flex-row items-center gap-6 md:gap-10">
           <div className="flex-1 text-center md:text-left">
-            <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-6">Current BMI</h2>
+            <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-[#2B2A25] mb-4 sm:mb-6">Current BMI</h2>
             
             {bmiResult ? (
               <div>
-                <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
-                  <div className="text-6xl font-fraunces font-bold text-[#2B2A25]">
+                <div className="flex flex-col md:flex-row items-center md:items-end gap-2 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="text-5xl sm:text-6xl font-fraunces font-bold text-[#2B2A25]">
                     {bmiResult.bmi.toFixed(1)}
                   </div>
-                  <div className={`text-xl font-medium mb-1 ${getCategoryColor(bmiResult.category)}`}>
+                  <div className={`text-lg sm:text-xl font-medium mb-1 ${getCategoryColor(bmiResult.category)}`}>
                     {bmiResult.category}
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 max-w-sm">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm mx-auto md:mx-0">
                   <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-4 rounded-xl text-center">
                     <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1">Height</div>
                     <div className="font-semibold text-lg text-[#2B2A25]">{healthProfile?.heightCm || '--'} cm</div>
@@ -134,7 +134,7 @@ function BmiDashboard({ isComponent = false }) {
                 )}
               </div>
             ) : (
-              <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-6 rounded-xl text-center md:text-left">
+              <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-4 sm:p-6 rounded-xl text-center md:text-left">
                 <p className="text-[#A63446] font-medium mb-2">Insufficient Health Data</p>
                 <p className="text-[#A63446]/80 text-sm mb-4">Please update your height and weight in the Health Profile to calculate your BMI.</p>
                 <button 
@@ -156,13 +156,13 @@ function BmiDashboard({ isComponent = false }) {
         </section>
 
         {/* SECTION 2: BMI HISTORY */}
-        <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-10 shadow-sm">
+        <section className="bg-white border border-[#DCE3D5] rounded-2xl p-5 sm:p-6 md:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
-            <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">History</h2>
+            <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-[#2B2A25]">History</h2>
           </div>
 
           {bmiHistory.length === 0 ? (
-            <div className="py-12 text-center text-[#6B6F63]">
+            <div className="py-8 sm:py-12 text-center text-[#6B6F63]">
               <div className="w-16 h-16 mx-auto mb-4 bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] rounded-full flex items-center justify-center text-2xl">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />

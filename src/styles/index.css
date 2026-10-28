@@ -37,6 +37,20 @@ body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+/* Responsive guard: prevent accidental horizontal scrolling on small screens.
+   `clip` (unlike `hidden`) does not create a scroll container, so sticky headers keep working. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#root {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Custom font utility classes */

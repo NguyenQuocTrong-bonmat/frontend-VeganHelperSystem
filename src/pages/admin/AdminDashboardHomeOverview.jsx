@@ -420,7 +420,7 @@ function AdminDashboardHomeOverview() {
                   </div>
                 </div>
                 {/* Component 2: Quick Stats Grid (4 columns, gap-6, 1px border-sage-mist, shadow-none) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   {/* Stat Card 1: Total Members */}
                   <div className="bg-surface-paper rounded-xl border border-border-sage-mist p-5 flex flex-col justify-between shadow-none transition-colors hover:border-primary-moss/40">
                     <div className="flex items-start justify-between">

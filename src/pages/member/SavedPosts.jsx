@@ -55,19 +55,19 @@ function SavedPosts({ isComponent = false }) {
       {/* PAGE HEADER */}
       {!isComponent && (
         <div className="w-full bg-gradient-to-br from-[#E9EFE6]/40 to-[#FDFBF6] border-b border-[#DCE3D5]/50">
-          <div className="max-w-[1200px] mx-auto px-6 py-12 md:py-16 flex flex-col items-center text-center">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 flex flex-col items-center text-center">
             <div className="relative mb-6">
-              <div className="w-24 h-24 rounded-full border-4 border-white shadow-md flex items-center justify-center bg-[#2F5233] text-white">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-md flex items-center justify-center bg-[#2F5233] text-white">
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"></path>
                 </svg>
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-fraunces font-semibold text-[#2B2A25] mb-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-fraunces font-semibold text-[#2B2A25] mb-2">
               Saved Recipes
             </h1>
-            <p className="text-[16px] text-[#6B6F63]">
+            <p className="text-[15px] sm:text-[16px] text-[#6B6F63]">
               Your personal collection of culinary inspirations
             </p>
           </div>
@@ -75,15 +75,15 @@ function SavedPosts({ isComponent = false }) {
       )}
 
       {/* MAIN CONTENT */}
-      <main className={`flex-1 w-full max-w-[1200px] mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'}`}>
+      <main className={`flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 ${!isComponent ? 'py-8 md:py-12' : 'py-6'}`}>
         {loading ? (
           <div className="w-full py-20 flex flex-col items-center justify-center text-[#6B6F63] gap-4">
             <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
             <p className="font-medium">Loading saved recipes...</p>
           </div>
         ) : posts.length === 0 ? (
-          <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-[#FDFBF6] rounded-xl border border-[#DCE3D5]/50">
-            <div className="w-20 h-20 mb-6 bg-[#E9EFE6] rounded-full flex items-center justify-center text-4xl">🔖</div>
+          <div className="w-full py-14 px-4 sm:py-20 md:py-24 flex flex-col items-center justify-center text-center bg-[#FDFBF6] rounded-xl border border-[#DCE3D5]/50">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 bg-[#E9EFE6] rounded-full flex items-center justify-center text-3xl sm:text-4xl">🔖</div>
             <h3 className="font-fraunces font-semibold text-2xl text-[#2B2A25] mb-2">No saved recipes yet</h3>
             <p className="text-[#6B6F63] mb-8 max-w-md">You haven't saved any recipes yet. Browse the community and bookmark your favorites!</p>
             <button
@@ -94,14 +94,14 @@ function SavedPosts({ isComponent = false }) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
             {posts.map(post => (
               <div
                 key={post.postId}
                 className="flex flex-col bg-[#FDFBF6] border border-[#DCE3D5] hover:border-[#2F5233]/40 rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 group"
               >
                 <div
-                  className="relative w-full h-56 bg-[#E9EFE6] overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2"
+                  className="relative w-full h-48 sm:h-56 lg:h-44 xl:h-48 bg-[#E9EFE6] overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -117,7 +117,7 @@ function SavedPosts({ isComponent = false }) {
                   </div>
                 </div>
 
-                <div className="flex-1 flex flex-col justify-between p-5">
+                <div className="flex-1 flex flex-col justify-between p-4 sm:p-5">
                   <div
                     onClick={() => navigate(`/posts/${post.postId}`)}
                     onKeyDown={(e) => {
@@ -129,7 +129,7 @@ function SavedPosts({ isComponent = false }) {
                     tabIndex={0}
                     className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-0.5 active:opacity-80"
                   >
-                    <h3 className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-2">
+                    <h3 className="font-fraunces text-lg sm:text-xl lg:text-lg xl:text-xl font-semibold text-[#2B2A25] mb-2 leading-snug group-hover:text-[#2F5233] transition-colors line-clamp-2">
                       {post.title}
                     </h3>
                   </div>

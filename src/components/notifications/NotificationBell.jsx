@@ -104,7 +104,7 @@ export default function NotificationBell({ userId }) {
   const activeVariants = shouldReduceMotion ? reducedMotionVariants : dropdownVariants;
 
   return (
-    <div ref={container} className="relative flex items-center">
+    <div ref={container} className="relative z-20 flex items-center">
       <button
         type="button"
         ref={trigger}
@@ -119,7 +119,7 @@ export default function NotificationBell({ userId }) {
             load();
           }
         }}
-        className="relative w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] bg-[#FDFBF6] focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none transition-all cursor-pointer"
+        className="relative w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] bg-[#FDFBF6] focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none transition-all cursor-pointer pointer-events-auto"
       >
         <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
@@ -136,7 +136,7 @@ export default function NotificationBell({ userId }) {
           <motion.section
             id="notification-inbox"
             aria-label="Notification inbox"
-            className="fixed right-3 top-[4.5rem] w-[calc(100vw-1.5rem)] max-w-96 max-h-[calc(100dvh-5rem)] sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-96 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl shadow-lg z-50 overflow-y-auto origin-top-right"
+            className="fixed right-3 bottom-20 max-h-[calc(100dvh-6rem)] w-[calc(100vw-1.5rem)] max-w-96 md:absolute md:bottom-auto md:right-0 md:top-full md:mt-2 md:w-96 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl shadow-lg z-[60] overflow-y-auto origin-bottom-right md:origin-top-right"
             initial="hidden"
             animate="visible"
             exit="exit"

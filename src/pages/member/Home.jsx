@@ -229,7 +229,7 @@ function Home() {
       <HeaderMember />
 
       {/* IMMERSIVE HERO */}
-      <div className="relative w-full min-h-[650px] h-auto lg:h-[700px] py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-8 md:mb-10 bg-vh-cream">
+      <div className="relative w-full min-h-[560px] sm:min-h-[650px] h-auto lg:h-[700px] py-12 sm:py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-8 md:mb-10 bg-vh-cream">
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -242,17 +242,17 @@ function Home() {
         </div>
 
         {/* Content Container */}
-        <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 h-full flex flex-col md:flex-row items-center justify-between gap-12 mt-12 md:mt-0">
+        <div className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 mt-8 sm:mt-12 md:mt-0">
 
           {/* Left Side: Text and Search */}
           <div className="w-full md:w-5/12 flex flex-col items-start text-left">
             <span className={`font-dm-sans text-vh-forest font-bold tracking-[0.15em] text-[11px] md:text-xs mb-4 uppercase transform transition-all duration-700 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               PLANT-BASED FOOD · HO CHI MINH CITY
             </span>
-            <h1 className={`font-dm-serif text-5xl md:text-[64px] text-vh-text-primary mb-6 leading-[1.05] drop-shadow-sm transform transition-all duration-700 delay-100 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <h1 className={`font-dm-serif text-4xl sm:text-5xl md:text-[64px] text-vh-text-primary mb-4 sm:mb-6 leading-[1.05] drop-shadow-sm transform transition-all duration-700 delay-100 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               Discover the <br className="hidden md:block" /> Taste of Vietnam
             </h1>
-            <p className={`font-dm-sans text-vh-text-secondary text-[16px] md:text-lg max-w-[400px] mb-10 font-light leading-relaxed transform transition-all duration-700 delay-200 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <p className={`font-dm-sans text-vh-text-secondary text-[15px] sm:text-[16px] md:text-lg max-w-[400px] mb-6 sm:mb-10 font-light leading-relaxed transform transition-all duration-700 delay-200 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               Explore the vibrant world of Vietnamese plant-based cuisine, starting in Ho Chi Minh City.
             </p>
 
@@ -270,7 +270,7 @@ function Home() {
                 }
               }}
               style={{ transitionDelay: isMounted ? '400ms' : '0ms' }}
-              className={`mt-2 px-8 py-3.5 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 transition-all duration-500 shadow-sm flex items-center gap-2 transform ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`mt-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-vh-forest text-white rounded-full font-dm-sans text-[15px] font-medium hover:bg-vh-sage hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 transition-all duration-500 shadow-sm flex items-center gap-2 transform ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
               Explore Vegan Recipes
               <svg className="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
@@ -280,7 +280,7 @@ function Home() {
           {/* Right Side: Collage */}
           <div
             ref={collageRef}
-            className={`w-full md:w-7/12 flex items-center justify-center relative h-[350px] md:h-[500px] transform transition-all duration-1000 delay-[400ms] ease-out mt-8 md:mt-0 ${isMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
+            className={`w-full md:w-7/12 flex items-center justify-center relative h-[290px] sm:h-[350px] md:h-[500px] transform transition-all duration-1000 delay-[400ms] ease-out mt-8 md:mt-0 ${isMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
           >
             {/* Secondary Image - Spring Rolls */}
             <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * -1), calc(var(--mouse-y, 0px) * -1))' }} className="absolute top-16 left-8 z-10 transition-transform duration-300 ease-out hidden md:block">
@@ -294,7 +294,7 @@ function Home() {
             {/* Primary Image - Pho */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:top-8 md:left-auto md:right-0 lg:right-8 z-20">
               <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * 0.5), calc(var(--mouse-y, 0px) * 0.5))' }} className="transition-transform duration-300 ease-out">
-                <div className="w-[260px] h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
+                <div className="w-[210px] h-[260px] sm:w-[260px] sm:h-[320px] md:w-[280px] md:h-[340px] lg:w-[320px] lg:h-[380px] bg-white p-4 rounded-2xl shadow-2xl shadow-black/15 rotate-0 md:rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-500 border border-black/5 group">
                   <div className="w-full h-full overflow-hidden rounded-xl shadow-inner">
                     <img src={heroPho} alt="Vegan Pho" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   </div>

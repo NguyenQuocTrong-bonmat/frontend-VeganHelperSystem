@@ -183,7 +183,7 @@ describe('GLOBAL-MOTION-IMPLEMENT-03: Dropdown & Popover Motion', () => {
       expect(container.textContent).not.toContain('My Profile');
     });
 
-    it('opens mobile navigation drawer and closes on Escape', async () => {
+    it('renders primary navigation icons directly across all screen sizes without hamburger menu', async () => {
       await act(async () => {
         root.render(
           <MemoryRouter>
@@ -192,28 +192,22 @@ describe('GLOBAL-MOTION-IMPLEMENT-03: Dropdown & Popover Motion', () => {
         );
       });
 
+      // No hamburger menu button on mobile
       const hamburgerBtn = container.querySelector('button[aria-label="Open navigation menu"]');
-      expect(hamburgerBtn).not.toBeNull();
+      expect(hamburgerBtn).toBeNull();
 
-      // Open mobile drawer
-      await act(async () => {
-        hamburgerBtn.click();
-      });
-
-      expect(hamburgerBtn.getAttribute('aria-label')).toBe('Close navigation menu');
-      expect(hamburgerBtn.getAttribute('aria-expanded')).toBe('true');
-
-      // Close via Escape
-      await act(async () => {
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      });
-
-      expect(hamburgerBtn.getAttribute('aria-expanded')).toBe('false');
+      // Navigation bar is always visible with all primary items
+      const nav = container.querySelector('nav[aria-label="Primary Navigation"]');
+      expect(nav).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Home"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Weekly Menu"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Find Vegan Stores"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="My Posts"]')).not.toBeNull();
     });
   });
 
-  describe('HeaderGuest Mobile Menu', () => {
-    it('toggles mobile drawer with AnimatePresence and closes on Escape', async () => {
+  describe('HeaderGuest Navigation', () => {
+    it('renders primary navigation icons directly across all screen sizes without hamburger menu', async () => {
       await act(async () => {
         root.render(
           <MemoryRouter>
@@ -222,21 +216,17 @@ describe('GLOBAL-MOTION-IMPLEMENT-03: Dropdown & Popover Motion', () => {
         );
       });
 
+      // No hamburger menu button on mobile
       const hamburgerBtn = container.querySelector('button[aria-label="Open navigation menu"]');
-      expect(hamburgerBtn).not.toBeNull();
+      expect(hamburgerBtn).toBeNull();
 
-      await act(async () => {
-        hamburgerBtn.click();
-      });
-
-      expect(hamburgerBtn.getAttribute('aria-expanded')).toBe('true');
-
-      await act(async () => {
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      });
-
-      expect(hamburgerBtn.getAttribute('aria-expanded')).toBe('false');
-      expect(document.activeElement).toBe(hamburgerBtn);
+      // Navigation bar is always visible with all primary items
+      const nav = container.querySelector('nav[aria-label="Primary Navigation"]');
+      expect(nav).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Home"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Weekly Menu"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Find Vegan Stores"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="My Posts"]')).not.toBeNull();
     });
   });
 
@@ -270,6 +260,29 @@ describe('GLOBAL-MOTION-IMPLEMENT-03: Dropdown & Popover Motion', () => {
       expect(profileBtn.getAttribute('aria-expanded')).toBe('false');
       expect(container.textContent).not.toContain('ADMINISTRATOR');
       expect(document.activeElement).toBe(profileBtn);
+    });
+
+    it('renders primary navigation icons directly across all screen sizes without hamburger menu', async () => {
+      await act(async () => {
+        root.render(
+          <MemoryRouter>
+            <AdminNavbar />
+          </MemoryRouter>
+        );
+      });
+
+      // No hamburger menu button on mobile
+      const hamburgerBtn = container.querySelector('button[aria-label="Open navigation menu"]');
+      expect(hamburgerBtn).toBeNull();
+
+      // Navigation bar is always visible with all primary items
+      const nav = container.querySelector('nav[aria-label="Admin Navigation"]');
+      expect(nav).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Dashboard"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Members"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Categories"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Moderation"]')).not.toBeNull();
+      expect(container.querySelector('a[aria-label="Audit Logs"]')).not.toBeNull();
     });
   });
 });

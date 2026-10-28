@@ -355,7 +355,7 @@ function FindVeganStores() {
         )}
 
         {/* My Location Floating Button */}
-        <div className="absolute bottom-[200px] right-4 md:top-24 md:bottom-auto z-10 flex flex-col gap-2 items-end">
+        <div className="absolute bottom-[208px] right-4 md:top-24 md:bottom-auto z-10 flex flex-col gap-2 items-end">
           {locationError && (
             <div className="bg-[#FFF5F5] border border-[#FFE0E0] px-3 py-2 rounded-lg text-xs text-[#A63446] shadow-sm mb-2 mr-2 animate-fade-in">
               {locationError}
@@ -563,7 +563,7 @@ function FindVeganStores() {
         </div>
       </main>
 
-      <AIChatbot />
+      <AIChatbot className="fixed bottom-[146px] right-4 md:bottom-20 md:right-6 z-40" />
     </div>
   );
 }

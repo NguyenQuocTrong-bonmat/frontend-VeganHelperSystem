@@ -587,11 +587,11 @@ function MyPosts({ notifications = [] } = {}) {
               <p className="font-fraunces text-sm text-[#2F5233] font-medium tracking-wide">Gathering your recipe journal...</p>
             </div>
           ) : posts.length === 0 ? (
-            <div className="w-full py-20 px-6 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-[#DCE5D9] shadow-xs">
-              <div className="w-20 h-20 mb-5 bg-[#F3F6EE] rounded-full flex items-center justify-center text-4xl shadow-inner border border-[#DCE3D5]">
+            <div className="w-full py-14 sm:py-20 px-4 sm:px-6 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-[#DCE5D9] shadow-xs">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mb-5 bg-[#F3F6EE] rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-inner border border-[#DCE3D5]">
                 🪴
               </div>
-              <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
+              <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-[#2B2A25] mb-2">
                 Your garden is ready to bloom
               </h2>
               <p className="font-dm-sans text-[#6B6F63] text-sm mb-7 max-w-md">
@@ -606,7 +606,7 @@ function MyPosts({ notifications = [] } = {}) {
               </button>
             </div>
           ) : filteredPosts.length === 0 ? (
-            <div className="w-full py-16 px-6 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-[#DCE5D9] shadow-xs">
+            <div className="w-full py-12 sm:py-16 px-4 sm:px-6 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-[#DCE5D9] shadow-xs">
               <p className="font-dm-sans text-[#6B6F63] text-sm mb-4">
                 No recipes found matching the "{statusFilter.replace('_', ' ')}" filter.
               </p>
@@ -619,7 +619,7 @@ function MyPosts({ notifications = [] } = {}) {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
               {filteredPosts.map((post) => {
                 const statusInfo = resolvePostStatus(post);
                 const reason = extractModerationReason(post, notifications);
@@ -659,7 +659,7 @@ function MyPosts({ notifications = [] } = {}) {
                       />
 
                       {/* Category Overlay Tag */}
-                      <div className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-white/60 text-[#2F5233] font-dm-sans text-[11px] font-semibold shadow-xs select-none">
+                      <div className="absolute top-3 left-3 max-w-[45%] truncate px-2.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-white/60 text-[#2F5233] font-dm-sans text-[11px] font-semibold shadow-xs select-none">
                         {categories[post.categoryId] || post.categoryName || post.category?.name || 'Recipe'}
                       </div>
 

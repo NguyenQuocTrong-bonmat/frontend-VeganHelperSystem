@@ -381,16 +381,29 @@ export default function AdminCategoryManagement() {
           </div>
         </div>
 
-        {/* 4. Categories Table */}
+        {/* 4. Categories Table with Horizontal Scroll on Mobile */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse table-fixed">
+          {/* Mobile scroll hint */}
+          <div className="sm:hidden px-4 py-2 bg-[#F4F6F1] border-b border-[#DCE3D5] text-[11px] text-[#6B6F63] flex items-center justify-between font-medium">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Cuộn ngang để xem đầy đủ cột
+            </span>
+            <span className="text-[10px] bg-white px-2 py-0.5 rounded-full border border-[#DCE3D5] text-[#2F5233] font-semibold">
+              ↔ Swipe
+            </span>
+          </div>
+
+          <div className="overflow-x-auto scrollbar-thin touch-pan-x [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-[#F4F6F1] [&::-webkit-scrollbar-thumb]:bg-[#DCE3D5] hover:[&::-webkit-scrollbar-thumb]:bg-[#2F5233] [&::-webkit-scrollbar-thumb]:rounded-full">
+            <table className="w-full min-w-[650px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-5 font-semibold w-[45%]">Category</th>
-                  <th className="py-3.5 px-4 font-semibold w-[20%]">Type</th>
-                  <th className="py-3.5 px-4 font-semibold text-left w-[20%]">Associated Recipes</th>
-                  <th className="py-3.5 px-5 font-semibold text-left w-[15%]">Actions</th>
+                  <th className="py-3.5 px-5 font-semibold min-w-[220px] w-[45%]">Category</th>
+                  <th className="py-3.5 px-4 font-semibold min-w-[130px] w-[20%]">Type</th>
+                  <th className="py-3.5 px-4 font-semibold text-left min-w-[140px] w-[20%]">Associated Recipes</th>
+                  <th className="py-3.5 px-5 font-semibold text-left min-w-[120px] w-[15%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
