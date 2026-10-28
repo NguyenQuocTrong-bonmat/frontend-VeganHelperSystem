@@ -47,7 +47,7 @@ function MealDetailPanel({ meal, onClose }) {
   </section>;
 }
 
-export default function WeeklyCalendar({ plan, opening, onRoutineChanged }) {
+export default function WeeklyCalendar({ plan, opening, onRoutineChanged, children }) {
   const today = zonedToday(plan.routine?.timeZoneId);
   const [view, setView] = useState('day');
   const [wideScreen, setWideScreen] = useState(() => window.matchMedia?.('(min-width: 1101px)').matches ?? true);
@@ -78,6 +78,7 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged }) {
     return () => clearInterval(timer);
   }, [trackable]);
   const day = days.find(item => item.dayIndex === dayIndex) || days[0];
+  const calendarHeading = <div className="wm-calendar-heading"><div><h2>Your weekly calendar</h2><p><PlannerIcon name="calendar" />{dateLabel(plan.startDate)} – {dateLabel(plan.endDate)}</p></div></div>;
   function openMeal(meal, button) { trigger.current = button; setSelectedMeal(meal); }
   function closeMeal() { setSelectedMeal(null); trigger.current?.focus(); }
   async function record(entry, status) {
@@ -106,11 +107,12 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged }) {
       disabled={Boolean(saving) || opening || future || !onRoutineChanged || !['active', 'continued'].includes(routine.state)} onChange={status => record(entry, status)} />;
   }
 
-  if (!days.length) return <div className="wm-empty"><h2>No scheduled meals in this menu</h2><p>Create another weekly menu to see its saved meals.</p></div>;
+  const planHeader = typeof children === 'function' ? children({ calendarView, setView }) : children;
+  if (!days.length) return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>{planHeader}{calendarHeading}<div className="wm-empty"><h2>No scheduled meals in this menu</h2><p>Create another weekly menu to see its saved meals.</p></div></section>;
 
   return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>
-    <div className="wm-calendar-heading"><div><h2>Your weekly calendar</h2><p><PlannerIcon name="calendar" />{dateLabel(plan.startDate)} – {dateLabel(plan.endDate)}</p></div><div className="wm-view-switch" role="group" aria-label="Calendar view"><button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" />Week view</button><button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" />Day view</button></div></div>
-    <div className="wm-calendar-note"><PlannerIcon name="calendar" /><span>{trackable ? 'Weight goal · Record meals on your calendar' : 'Balanced menu · View only'}</span><span className="wm-calendar-note-end">One dish per meal</span></div>
+    {planHeader}
+    {calendarHeading}
     {trackingError && <div role="alert" className="wm-alert wm-calendar-feedback">{trackingError}<button type="button" className="wm-text-button" disabled={Boolean(saving)} onClick={reloadRoutine}>Reload calendar</button></div>}
     <p role="status" className={trackingMessage ? 'wm-status wm-calendar-feedback' : 'sr-only'}>{trackingMessage}</p>
     {selectedMeal && <MealDetailPanel meal={selectedMeal} onClose={closeMeal} />}

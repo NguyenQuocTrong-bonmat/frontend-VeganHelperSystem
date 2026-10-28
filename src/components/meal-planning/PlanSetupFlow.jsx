@@ -4,10 +4,39 @@ import { dateLabel, dietLabel, number, utcToday, zonedToday } from './plannerFor
 import PlannerIcon from './PlannerIcon';
 import { previewGoal } from '../../services/mealPlanService';
 
+function parseDayFirstDate(value) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  if (!match) return '';
+
+  const [, dayText, monthText, yearText] = match;
+  const day = Number(dayText);
+  const month = Number(monthText);
+  const year = Number(yearText);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) return '';
+
+  return `${yearText}-${monthText}-${dayText}`;
+}
+
+function formatDayFirstDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
+}
+
+function formatDateInput(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
 export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfile, error, profileRevision }) {
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState('balanced');
   const [startDate, setStartDate] = useState(utcToday);
+  const [menuName, setMenuName] = useState(() => `Week of ${formatDayFirstDate(utcToday())}`);
+  const [menuNameEdited, setMenuNameEdited] = useState(false);
+  const menuNameField = useRef(null);
   const [targetWeight, setTargetWeight] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [profile, setProfile] = useState(null);
@@ -23,6 +52,9 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
   const [safety, setSafety] = useState(null);
   const [checking, setChecking] = useState(false);
   const [safetyError, setSafetyError] = useState('');
+  const [targetDateText, setTargetDateText] = useState('');
+  const targetDateField = useRef(null);
+  const targetDatePicker = useRef(null);
   const active = useRef(true);
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   useEffect(() => { setSafety(null); setSafetyError(''); }, [startDate, targetWeight, targetDate, eligibility, timeZoneId, profileRevision]);
@@ -44,6 +76,23 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
   const maxStartDate = nextYear.toISOString().slice(0, 10);
 
   useEffect(() => {
+    menuNameField.current?.setCustomValidity(menuName.trim() ? '' : 'Enter a name for this weekly menu.');
+  }, [menuName]);
+
+  useEffect(() => {
+    const parsedDate = parseDayFirstDate(targetDateText);
+    const message = !targetDateText
+      ? ''
+      : !parsedDate
+        ? 'Enter a valid date in dd/mm/yyyy format.'
+        : parsedDate < startDate
+          ? 'Target date must be on or after the week start date.'
+          : '';
+    targetDateField.current?.setCustomValidity(message);
+    setTargetDate(parsedDate && parsedDate >= startDate ? parsedDate : '');
+  }, [startDate, targetDateText]);
+
+  useEffect(() => {
     let active = true;
     setLoading(true); setProfileError('');
     getHealthProfile().then(data => { if (active) setProfile(data); })
@@ -57,6 +106,11 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
   async function submit(event) {
     event.preventDefault();
     if (busy || checking) return;
+    if (step >= 1 && !menuName.trim()) {
+      menuNameField.current?.setCustomValidity('Enter a name for this weekly menu.');
+      menuNameField.current?.reportValidity();
+      return;
+    }
     if (!event.currentTarget.checkValidity()) { event.currentTarget.reportValidity(); return; }
     if (step === 1 && !splitIsValid) {
       setSplitError('The breakfast, lunch and dinner percentages must add up to 100%.');
@@ -65,11 +119,11 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
     if (step < 2) { setStep(value => value + 1); return; }
     if (loading || !profile || profileError) return;
     if (!weightGoal) {
-      onGenerate({ startDate, mealCalorieSplit, clientPreview: { mode: 'maintenance', profile, mealCalorieSplit } });
+      onGenerate({ name: menuName.trim(), startDate, mealCalorieSplit, clientPreview: { mode: 'maintenance', profile, mealCalorieSplit } });
       return;
     }
     if (!eligibility) return;
-    const payload={startDate,mode:'weight_goal',targetWeightKg:Number(targetWeight),targetDate,eligibilityConfirmed:eligibility,timeZoneId,
+    const payload={name:menuName.trim(),startDate,mode:'weight_goal',targetWeightKg:Number(targetWeight),targetDate,eligibilityConfirmed:eligibility,timeZoneId,
       remindersEnabled:reminders,...Object.fromEntries(Object.entries(times).map(([key,value])=>[key,`${value}:00`]))};
     if (safety?.allowed) {
       onGenerate({ ...payload, mealCalorieSplit, clientPreview: { mode: 'weight_goal', profile, safety, mealCalorieSplit } });
@@ -110,7 +164,8 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
           {weightGoal && <p className="wm-notice"><PlannerIcon name="info" /><span>A server safety check reviews your goal, timeline and calorie adjustment before creation. Weight change is estimated and cannot be guaranteed.</span></p>}
         </>}
         {step === 1 && <div className="wm-schedule-fields">
-          <div className="wm-input-group"><label htmlFor="meal-plan-start">When does your week begin?</label><input className="wm-control" id="meal-plan-start" type="date" value={startDate} min={today} max={maxStartDate} required onChange={event => setStartDate(event.target.value)} aria-describedby="start-date-help" /><p id="start-date-help">Seven consecutive days, starting on your chosen date. Plan dates follow {weightGoal ? timeZoneId : 'UTC'}.</p></div>
+          <div className="wm-input-group"><label htmlFor="meal-plan-name">Menu name</label><input ref={menuNameField} className="wm-control" id="meal-plan-name" name="name" type="text" maxLength={100} required value={menuName} onChange={event => { setMenuName(event.target.value); setMenuNameEdited(true); menuNameField.current?.setCustomValidity(''); }} aria-describedby="meal-plan-name-help" /><p id="meal-plan-name-help">Give this menu a name you can recognize later. You can rename it after saving.</p></div>
+          <div className="wm-input-group"><label htmlFor="meal-plan-start">When does your week begin?</label><input className="wm-control" id="meal-plan-start" type="date" value={startDate} min={today} max={maxStartDate} required onChange={event => { const nextDate = event.target.value; setStartDate(nextDate); if (!menuNameEdited) setMenuName(`Week of ${formatDayFirstDate(nextDate)}`); }} aria-describedby="start-date-help" /><p id="start-date-help">Seven consecutive days, starting on your chosen date. Plan dates follow {weightGoal ? timeZoneId : 'UTC'}.</p></div>
           <fieldset className="wm-calorie-split">
             <legend>Daily calorie split</legend>
             <p className="wm-calorie-split-help">Preview how you would like to share your daily calorie target across three meals. The saved menu shows the actual calories of its selected dishes.</p>
@@ -130,16 +185,33 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
           </fieldset>
           {weightGoal && <>
             <div className="wm-input-group"><label htmlFor="goal-weight">Target weight <span>(kg)</span></label><input className="wm-control" id="goal-weight" type="number" min="30" max="200" step="0.1" required value={targetWeight} onChange={event => setTargetWeight(event.target.value)} placeholder="Enter your target weight" /><p>Current weight: {profile?.weightKg ? `${number(profile.weightKg)} kg` : 'Add it in Health & Wellness.'}</p></div>
-            <div className="wm-input-group"><label htmlFor="goal-date">Target date</label><input className="wm-control" id="goal-date" type="date" min={startDate} required value={targetDate} onChange={event => setTargetDate(event.target.value)} /><p>Your timeline will need a safety review before a plan can be created.</p></div>
+            <div className="wm-input-group"><label htmlFor="goal-date">Target date</label><div className="wm-date-field"><input ref={targetDateField} className="wm-control" id="goal-date" name="goalDateDisplay" type="text" inputMode="numeric" autoComplete="off" placeholder="DD/MM/YYYY" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" required value={targetDateText} onChange={event => {
+              const input = event.currentTarget;
+              const rawValue = input.value;
+              const cursor = input.selectionStart ?? rawValue.length;
+              const digitsBeforeCursor = rawValue.slice(0, cursor).replace(/\D/g, '').length;
+              const digits = rawValue.replace(/\D/g, '').slice(0, 8);
+              const formattedValue = formatDateInput(rawValue);
+              setTargetDateText(formattedValue);
+
+              const nextCursor = digitsBeforeCursor
+                + (digits.length > 2 && digitsBeforeCursor >= 2 ? 1 : 0)
+                + (digits.length > 4 && digitsBeforeCursor >= 4 ? 1 : 0);
+              requestAnimationFrame(() => {
+                if (targetDateField.current) {
+                  targetDateField.current.setSelectionRange(nextCursor, nextCursor);
+                }
+              });
+            }} aria-describedby="goal-date-help" /><span className="wm-date-picker-icon" aria-hidden="true"><PlannerIcon name="calendar" /></span><input ref={targetDatePicker} className="wm-date-picker-overlay" type="date" lang="en-GB" min={startDate} value={targetDate} aria-label="Choose target date" onChange={event => { setTargetDateText(formatDayFirstDate(event.target.value)); targetDateField.current?.setCustomValidity(''); }} /></div><p id="goal-date-help">Type the date as numbers; slashes are added automatically. You can also choose a date from the calendar.</p></div>
             <div className="wm-input-group"><label htmlFor="goal-timezone">Timezone</label><input id="goal-timezone" className="wm-control" required value={timeZoneId} onChange={event=>setTimeZoneId(event.target.value)} placeholder="Asia/Ho_Chi_Minh" /><p>Goal plan dates and reminder times use this timezone.</p></div>
             <label className="wm-check-label"><input id="goal-eligibility" type="checkbox" required checked={eligibility} onChange={event=>setEligibility(event.target.checked)} />I am aged 20–65, not pregnant or breastfeeding, and do not need clinician-managed nutrition.</label>
             <label className="wm-check-label"><input type="checkbox" checked={reminders} onChange={event=>setReminders(event.target.checked)} />Remind me at meal times</label>
             {reminders && <div className="wm-reminder-preview">{Object.entries(times).map(([key,value])=><label key={key}>{key.replace('Time','')}<input type="time" required value={value} onChange={event=>setTimes(current=>({...current,[key]:event.target.value}))} /></label>)}</div>}
           </>}
-          <p className="wm-notice"><PlannerIcon name="calendar" /><span>{weightGoal ? 'A weight goal can span several weekly menus. Future adjustments will require your confirmation.' : 'One dish per meal. Your saved diet, allergies and estimated maintenance calories guide the menu.'}</span></p>
+          <p className="wm-notice"><PlannerIcon name="calendar" /><span>{weightGoal ? 'A weight goal can span several weekly menus. Future adjustments will require your confirmation.' : 'One dish per meal. Your saved diet, allergies and estimated maintenance calories guide the menu.'} Only one active menu can cover any date. Delete or regenerate an overlapping menu before creating another.</span></p>
         </div>}
         {step === 2 && <div className="wm-review">
-          <div className="wm-review-summary"><span className="wm-mode-symbol"><PlannerIcon name={weightGoal ? 'target' : 'leaf'} /></span><div><h3>{weightGoal ? 'Weight goal plan' : 'Balanced weekly menu'}</h3><p>Starts {dateLabel(startDate)} · 7 days · 21 meals</p></div></div>
+          <div className="wm-review-summary"><span className="wm-mode-symbol"><PlannerIcon name={weightGoal ? 'target' : 'leaf'} /></span><div><h3>{menuName.trim()}</h3><p>{weightGoal ? 'Weight goal plan' : 'Balanced weekly menu'} · Starts {dateLabel(startDate)} · 7 days · 21 meals</p></div></div>
           <dl className="wm-review-facts wm-meal-split-review"><div><dt>Breakfast</dt><dd>{mealSplit.breakfast}%</dd></div><div><dt>Lunch</dt><dd>{mealSplit.lunch}%</dd></div><div><dt>Dinner</dt><dd>{mealSplit.dinner}%</dd></div></dl>
           {weightGoal && <><dl className="wm-review-facts"><div><dt>Target weight</dt><dd>{number(targetWeight)} kg</dd></div><div><dt>Target date</dt><dd>{dateLabel(targetDate)}</dd></div><div><dt>Daily calorie target</dt><dd>{safety?.allowed ? `${number(safety.targetCalories)} kcal` : 'Safety review required'}</dd></div>{safety?.allowed && <><div><dt>Estimated TDEE</dt><dd>{number(safety.tdee)} kcal</dd></div><div><dt>Daily adjustment</dt><dd>{number(safety.dailyAdjustment)} kcal</dd></div></>}</dl>{safety && !safety.allowed && <div role="alert" className="wm-alert"><strong>This goal needs adjustment.</strong><ul>{safety.reasons?.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Go back and change the goal or choose a longer timeline.</p></div>}</>}
           <div className="wm-profile-review">
@@ -149,7 +221,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
               <p className="wm-allergy-line"><strong>Allergies:</strong> {allergies.length ? [...new Set(allergies)].join(', ') : 'None declared'}</p>
             </> : <p>Create your health profile to continue.</p>}
           </div>
-          <p className="wm-notice"><PlannerIcon name="info" /><span>{weightGoal ? 'Your goal is checked again when you create the menu. A failed safety check never saves a plan. Future adjustments require the same checks and your confirmation.' : 'The server checks your profile and calculates maintenance calories when you create the plan. Each creation is saved separately; existing menus keep their original information.'}</span></p>
+          <p className="wm-notice"><PlannerIcon name="info" /><span>{weightGoal ? 'Your goal is checked again when you create the menu. A failed safety check never saves a plan. Future adjustments require the same checks and your confirmation.' : 'The server checks your profile and calculates maintenance calories when you create the plan.'} Only one active menu can cover the same dates.</span></p>
         </div>}
       </fieldset>
       {(error || safetyError) && <div role="alert" className="wm-alert">{error || safetyError}</div>}

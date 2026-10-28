@@ -63,24 +63,35 @@ function stageStatus(index, stage, busy, saved) {
   return 'Coming up';
 }
 
-export default function MenuJourney({ profile, allergies = [], mode = 'maintenance', safety, split, step = 0, busy = false, menu, startDate, targetWeight, targetDate }) {
+export default function MenuJourney({ plan, profile, allergies = [], mode = 'maintenance', safety, split, step = 0, busy = false, menu: menuProp, startDate, targetWeight, targetDate }) {
+  const menu = menuProp || plan?.menu;
   const saved = Boolean(menu);
-  const [activeStage, setActiveStage] = useState(saved ? 3 : 0);
+  const [activeStage, setActiveStage] = useState(0);
   useEffect(() => {
     if (!saved) setActiveStage(busy ? 3 : step === 0 ? 0 : step === 1 ? 2 : 3);
   }, [busy, saved, step]);
 
-  const effectiveProfile = menu?.energyProfile || profile;
-  const energy = useMemo(() => estimateEnergy(effectiveProfile, menu?.energyProfile?.estimatedOn || utcToday()), [effectiveProfile, menu?.energyProfile?.estimatedOn]);
+  const savedProfile = menu?.energyProfile;
+  const hasSavedProfile = Boolean(savedProfile?.birthDate && Number(savedProfile.weightKg) > 0 && Number(savedProfile.heightCm) > 0);
+  const effectiveProfile = saved ? hasSavedProfile ? savedProfile : null : profile;
+  const savedMode = plan?.routine?.mode || menu?.goal || 'maintenance';
+  const effectiveMode = saved ? savedMode : mode;
+  const effectiveStartDate = saved ? plan?.startDate : startDate;
+  const effectiveTargetWeight = saved ? plan?.routine?.targetWeightKg : targetWeight;
+  const effectiveTargetDate = saved ? plan?.routine?.targetDate : targetDate;
+  const energy = useMemo(() => saved && (!hasSavedProfile || !menu?.energyProfile?.estimatedOn)
+    ? null
+    : estimateEnergy(effectiveProfile, menu?.energyProfile?.estimatedOn || utcToday()), [effectiveProfile, hasSavedProfile, menu?.energyProfile?.estimatedOn, saved]);
   const tdee = saved ? energy?.tdee : safety?.allowed ? Number(safety.tdee) : energy?.tdee;
-  const dailyTarget = saved ? Number(menu.targetDailyCalories) : mode === 'weight_goal' ? safety?.allowed ? Number(safety.targetCalories) : null : energy?.tdee;
-  const goalDays = targetDate && startDate ? Math.round((Date.parse(`${targetDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) / 86400000) : 0;
-  const goalDelta = Number(targetWeight) - Number(profile?.weightKg);
-  const provisionalAdjustment = mode === 'weight_goal' && !saved && goalDays > 0 && Number.isFinite(goalDelta) && Number(targetWeight) > 0 && Number(profile?.weightKg) > 0
+  const dailyTarget = saved ? menu?.targetDailyCalories == null ? null : Number(menu.targetDailyCalories) : mode === 'weight_goal' ? safety?.allowed ? Number(safety.targetCalories) : null : energy?.tdee;
+  const goalDays = effectiveTargetDate && effectiveStartDate ? Math.round((Date.parse(`${effectiveTargetDate}T00:00:00Z`) - Date.parse(`${effectiveStartDate}T00:00:00Z`)) / 86400000) : 0;
+  const goalDelta = Number(effectiveTargetWeight) - Number(effectiveProfile?.weightKg);
+  const provisionalAdjustment = effectiveMode === 'weight_goal' && !saved && goalDays > 0 && Number.isFinite(goalDelta) && Number(effectiveTargetWeight) > 0 && Number(effectiveProfile?.weightKg) > 0
     ? goalDelta * 7700 / goalDays : null;
   const selectedMeals = (menu?.days || []).flatMap(day => day.meals || []);
   const uniqueMealCount = new Set(selectedMeals.map(meal => meal.mealId)).size;
   const averageSplit = savedMealAverages(menu);
+  const allergiesRecorded = Array.isArray(menu?.allergies);
   const requestedSplit = split || { breakfast: 25, lunch: 30, dinner: 45 };
   const percentages = MEAL_TIMES.map(time => Number(requestedSplit[time.key]));
   const validSplit = percentages.every(value => Number.isInteger(value) && value >= 1 && value <= 98)
@@ -90,14 +101,19 @@ export default function MenuJourney({ profile, allergies = [], mode = 'maintenan
     percent: saved ? averageSplit?.[time.key]?.percent : Number(requestedSplit[time.key]),
     calories: saved ? averageSplit?.[time.key]?.calories : validSplit && Number.isFinite(dailyTarget) ? dailyTarget * Number(requestedSplit[time.key]) / 100 : null,
   }));
-  const diet = menu?.dietType || profile?.dietType;
+  const diet = saved ? menu?.dietType : profile?.dietType;
   const allergyNames = saved ? menu.allergies || [] : allergies;
+  const dietSummary = saved ? menu?.dietType ? dietLabel(menu.dietType) : 'Not recorded' : dietLabel(diet);
+  const allergySummary = saved && !allergiesRecorded ? 'Not recorded' : allergyNames.length ? allergyNames.join(', ') : 'None declared';
+  const activitySummary = effectiveProfile?.activityLevel?.replaceAll('_', ' ') || (saved ? 'Not recorded' : 'Not set');
+  const initialWeightLabel = effectiveProfile?.weightKg > 0 ? `${number(effectiveProfile.weightKg)} kg` : saved ? 'Not recorded' : '—';
+  const goalWeightLabel = Number(effectiveTargetWeight) > 0 ? `${number(effectiveTargetWeight)} kg` : saved ? 'Not recorded' : '—';
   const stage = saved ? 3 : busy ? 3 : step === 0 ? 0 : step === 1 ? 2 : 3;
 
   const stages = [
-    { label: 'Read your profile', icon: 'leaf', value: effectiveProfile ? `${dietLabel(diet)} · ${allergyNames.length} allergies` : 'Waiting for profile' },
-    { label: 'Estimate daily energy', icon: 'sun', value: Number.isFinite(dailyTarget) ? `${number(dailyTarget)} kcal / day` : energy ? `${number(energy.tdee)} kcal maintenance` : 'Profile needed' },
-    { label: 'Share across meals', icon: 'bowl', value: saved ? 'Actual daily average' : validSplit ? `${percentages.join(' / ')}%` : 'Complete the 100% split' },
+    { label: 'Read your profile', icon: 'leaf', value: effectiveProfile ? `${dietSummary} · ${saved && !allergiesRecorded ? 'allergies not recorded' : `${allergyNames.length} allergies`}` : saved ? 'Profile not recorded' : 'Waiting for profile' },
+    { label: 'Estimate daily energy', icon: 'sun', value: Number.isFinite(dailyTarget) ? `${number(dailyTarget)} kcal / day` : saved ? 'Not recorded' : energy ? `${number(energy.tdee)} kcal maintenance` : 'Profile needed' },
+    { label: 'Share across meals', icon: 'bowl', value: saved ? averageSplit ? 'Actual daily average' : 'Not recorded' : validSplit ? `${percentages.join(' / ')}%` : 'Complete the 100% split' },
     { label: 'Choose 21 dishes', icon: 'calendar', value: saved ? `${uniqueMealCount} distinct dishes` : busy ? 'Matching and saving…' : mode === 'weight_goal' ? 'After your safety check' : 'After menu creation' },
   ];
 
@@ -115,24 +131,25 @@ export default function MenuJourney({ profile, allergies = [], mode = 'maintenan
     <div className="wm-journey-detail" key={activeStage}>
       {activeStage === 0 && <div className="wm-journey-detail-grid">
         <div><span className="wm-journey-detail-label">Your starting point</span><h4>Preferences set the boundaries.</h4><p>The menu uses your saved diet and declared allergies before considering any recipe. Change your health profile to update a future menu.</p></div>
-        <div className="wm-journey-facts"><div><span>Diet</span><strong>{dietLabel(diet)}</strong></div><div><span>Allergens to avoid</span><strong>{allergyNames.length ? allergyNames.join(', ') : 'None declared'}</strong></div><div><span>Activity level</span><strong>{effectiveProfile?.activityLevel?.replaceAll('_', ' ') || 'Not set'}</strong></div></div>
+        <div className="wm-journey-facts">{saved && <div><span>Menu</span><strong>{plan?.name || 'Weekly menu'}</strong></div>}<div><span>Diet</span><strong>{dietSummary}</strong></div><div><span>Allergens to avoid</span><strong>{allergySummary}</strong></div><div><span>Activity level</span><strong>{activitySummary}</strong></div></div>
       </div>}
       {activeStage === 1 && <div className="wm-journey-detail-grid">
-        <div><span className="wm-journey-detail-label">Energy estimate</span><h4>{mode === 'weight_goal' || menu?.goal === 'weight_goal' ? 'Safety first, then a daily target.' : 'A daily maintenance estimate.'}</h4><p>Vegan Helper estimates resting energy with the Mifflin–St Jeor equation, then applies your saved activity level. The server recalculates this before saving a plan.</p></div>
+        <div><span className="wm-journey-detail-label">Energy estimate</span><h4>{effectiveMode === 'weight_goal' ? 'Safety first, then a daily target.' : 'A daily maintenance estimate.'}</h4><p>Vegan Helper estimates resting energy with the Mifflin–St Jeor equation, then applies your saved activity level. The server recalculates this before saving a plan.</p></div>
         <div className="wm-journey-equation">
-          <div><span>Resting energy</span><strong>{energy ? `${number(energy.resting)} kcal` : 'Profile needed'}</strong></div>
-          <span aria-hidden="true">×</span><div><span>Activity factor</span><strong>{energy ? `${number(energy.factor)}×` : '—'}</strong></div>
-          <span aria-hidden="true">=</span><div className="wm-journey-equation-total"><span>Estimated TDEE</span><strong>{Number.isFinite(tdee) ? `${number(tdee)} kcal` : '—'}</strong></div>
+          <div><span>Resting energy</span><strong>{energy ? `${number(energy.resting)} kcal` : saved ? 'Not recorded' : 'Profile needed'}</strong></div>
+          <span aria-hidden="true">×</span><div><span>Activity factor</span><strong>{energy ? `${number(energy.factor)}×` : saved ? 'Not recorded' : '—'}</strong></div>
+          <span aria-hidden="true">=</span><div className="wm-journey-equation-total"><span>Estimated TDEE</span><strong>{Number.isFinite(tdee) ? `${number(tdee)} kcal` : saved ? 'Not recorded' : '—'}</strong></div>
           {energy && <p>Resting estimate = 10 × {number(energy.weight)} kg + 6.25 × {number(energy.height)} cm − 5 × {energy.age} years {effectiveProfile.biologicalSex === 'male' ? '+ 5' : '− 161'} = {number(energy.resting)} kcal/day.</p>}
-          {Number.isFinite(provisionalAdjustment) && <p>Goal adjustment preview: ({number(targetWeight)} − {number(profile.weightKg)}) kg × 7,700 ÷ {goalDays} days ≈ {number(Math.round(provisionalAdjustment))} kcal/day. This is a planning estimate; the server must approve the goal before generating meals.</p>}
-          {(mode === 'weight_goal' || menu?.goal === 'weight_goal') && <p>{Number.isFinite(dailyTarget) ? `Safety-checked daily target: ${number(dailyTarget)} kcal${Number.isFinite(tdee) ? ` (${number(dailyTarget - tdee)} kcal from TDEE)` : ''}.` : 'Enter your goal and run the server safety check to reveal the daily target.'}</p>}
+          {saved && effectiveMode === 'weight_goal' && <p>Saved goal: {initialWeightLabel} at creation → {goalWeightLabel} by {effectiveTargetDate ? new Date(`${effectiveTargetDate}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC' }) : 'a date not recorded'} ({goalDays > 0 ? `${goalDays} days` : 'timeline not recorded'}).</p>}
+          {Number.isFinite(provisionalAdjustment) && <p>Goal adjustment preview: ({number(effectiveTargetWeight)} − {number(effectiveProfile.weightKg)}) kg × 7,700 ÷ {goalDays} days ≈ {number(Math.round(provisionalAdjustment))} kcal/day. This is a planning estimate; the server must approve the goal before generating meals.</p>}
+          {effectiveMode === 'weight_goal' && <p>{Number.isFinite(dailyTarget) ? `Safety-checked daily target: ${number(dailyTarget)} kcal${Number.isFinite(tdee) ? ` (${number(dailyTarget - tdee)} kcal from TDEE)` : ''}.` : saved ? 'Daily calorie target not recorded in this menu.' : 'Enter your goal and run the server safety check to reveal the daily target.'}</p>}
         </div>
       </div>}
       {activeStage === 2 && <div className="wm-journey-detail-grid">
         <div><span className="wm-journey-detail-label">Three meals, one daily target</span><h4>{saved ? 'What the saved dishes actually provide.' : 'Your requested meal split.'}</h4><p>{saved ? 'These are the average calories from the dishes selected across this seven-day menu.' : 'Change the percentages in the form and watch the calorie budget shift. These figures are a preview; the saved menu shows the server’s actual dishes and portions.'}</p></div>
         <div className="wm-journey-allocation">
-          <div className="wm-journey-bar" role="img" aria-label={validSplit || saved ? portions.map(item => `${item.label} ${Number.isFinite(item.percent) ? Math.round(item.percent) : 0}%`).join(', ') : 'Enter a valid 100 percent meal split to see the allocation'}>{portions.map(item => <span key={item.key} className={`wm-journey-bar-${item.key}`} style={{ width: `${saved || validSplit ? Math.max(0, Number.isFinite(item.percent) ? item.percent : 0) : 0}%` }} />)}</div>
-          <div className="wm-journey-meals">{portions.map(item => <div key={item.key}><span className={`wm-journey-meal-dot is-${item.key}`} /><span>{item.label}</span><strong>{Number.isFinite(item.calories) ? `${number(Math.round(item.calories))} kcal` : '—'}</strong><small>{Number.isFinite(item.percent) ? `${number(Math.round(item.percent * 10) / 10)}%` : '—'}</small></div>)}</div>
+          <div className="wm-journey-bar" role="img" aria-label={validSplit || saved ? portions.map(item => `${item.label} ${Number.isFinite(item.percent) ? `${Math.round(item.percent)}%` : 'not recorded'}`).join(', ') : 'Enter a valid 100 percent meal split to see the allocation'}>{portions.map(item => <span key={item.key} className={`wm-journey-bar-${item.key}`} style={{ width: `${saved || validSplit ? Math.max(0, Number.isFinite(item.percent) ? item.percent : 0) : 0}%` }} />)}</div>
+          <div className="wm-journey-meals">{portions.map(item => <div key={item.key}><span className={`wm-journey-meal-dot is-${item.key}`} /><span>{item.label}</span><strong>{Number.isFinite(item.calories) ? `${number(Math.round(item.calories))} kcal` : saved ? 'Not recorded' : '—'}</strong><small>{Number.isFinite(item.percent) ? `${number(Math.round(item.percent * 10) / 10)}%` : saved ? 'Not recorded' : '—'}</small></div>)}</div>
           {!saved && !validSplit && <p role="status">Enter whole percentages that add up to 100% to preview calories per meal.</p>}
           {!saved && mode === 'weight_goal' && !safety?.allowed && <p>The calorie amounts appear after your goal passes the server safety check.</p>}
         </div>
