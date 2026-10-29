@@ -178,3 +178,164 @@ body {
   pointer-events: none;
   animation: storePinPulse 0.75s ease-out both;
 }
+
+/* ---- Responsive Fluid Typography Utilities (VEGANHELPER-RESPONSIVE-SPEC-FINAL) ---- */
+.text-clamp-hero-h1 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.75rem, 1.2rem + 2.75vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-clamp-page-h1 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.text-clamp-section-h2 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.text-clamp-card-h3 {
+  font-family: 'Be Vietnam Pro', 'DM Sans', sans-serif;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+  line-height: 1.35;
+}
+
+.text-clamp-minor-h4 {
+  font-family: 'Be Vietnam Pro', 'DM Sans', sans-serif;
+  font-size: clamp(0.875rem, 0.85rem + 0.125vw, 1rem);
+  line-height: 1.4;
+}
+
+/* ---- Standard Container Architecture (5-Tier) ---- */
+.vh-container-feed {
+  width: 100%;
+  max-width: 1640px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-feed {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-feed {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-feed {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-dashboard {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-dashboard {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-dashboard {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-dashboard {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-editorial {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-editorial {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-editorial {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-editorial {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-form {
+  width: 100%;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-form {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.vh-container-settings {
+  width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-settings {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Line-length limit for optimal reading comfort */
+.max-w-reading {
+  max-width: 65ch;
+}
+
+/* Touch-target minimum floor */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

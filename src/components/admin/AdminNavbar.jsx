@@ -83,7 +83,7 @@ export default function AdminNavbar() {
             alt="Vegan Helper Logo"
             className="h-10 md:h-11 w-auto object-contain"
           />
-          <span className="hidden sm:inline-flex items-center text-[10px] font-bold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="hidden lg:inline-flex items-center text-[10px] font-bold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
             Admin Suite
           </span>
         </Link>
@@ -97,7 +97,7 @@ export default function AdminNavbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`relative px-5 py-2 text-sm rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${active
+              className={`relative px-3 lg:px-5 py-1.5 lg:py-2 text-xs lg:text-sm rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${active
                   ? 'text-white font-semibold'
                   : 'text-[#555A4E] hover:text-[#2F5233] hover:bg-[#FDFBF6]/70 font-medium'
                 }`}
