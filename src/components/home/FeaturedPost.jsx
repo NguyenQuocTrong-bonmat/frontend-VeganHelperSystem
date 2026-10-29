@@ -14,6 +14,7 @@ function isVideoMedia(url) {
 
 export default function FeaturedPost({ 
   post, 
+  isTrending = false,
   isGuest = false,
   onOpenProfilePreview,
   onAuthRequired,
@@ -77,7 +78,7 @@ export default function FeaturedPost({
     <section ref={ref} className={`mb-12 transform transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-dm-serif text-2xl sm:text-3xl font-medium text-vh-text-primary">
-          Editor's Pick
+          {isTrending ? 'Trending Now' : "Editor's Pick"}
         </h2>
       </div>
       
@@ -144,7 +145,7 @@ export default function FeaturedPost({
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[13px] font-semibold font-dm-sans text-vh-forest uppercase tracking-wider">
-                Featured
+                {isTrending ? 'Popular in the last 3 days' : 'Featured'}
               </span>
               <span className="text-xs text-vh-text-secondary">•</span>
               <time dateTime={post.createdAt} className="text-[13px] font-dm-sans text-vh-text-secondary">

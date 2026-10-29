@@ -10,6 +10,7 @@ import { getAccessToken } from '../utils/authStorage';
  * @param {string} [params.difficultyLevel] Độ khó (tùy chọn)
  * @param {string} [params.dietType] Chế độ ăn (tùy chọn)
  * @param {number} [params.prepTimeMax] Thời gian chuẩn bị tối đa (tùy chọn)
+ * @param {string} [params.sortBy] latest hoặc trending
  */
 export async function getPostsFeed(params = {}) {
   const {
@@ -19,12 +20,14 @@ export async function getPostsFeed(params = {}) {
     difficultyLevel,
     dietType,
     prepTimeMax,
+    sortBy = 'latest',
   } = params;
 
   // Tạo URLSearchParams để tự động build query string hợp lệ
   const queryParams = new URLSearchParams();
   queryParams.append('PageIndex', pageIndex);
   queryParams.append('PageSize', pageSize);
+  queryParams.append('SortBy', sortBy);
 
   if (categoryId !== undefined && categoryId !== null) {
     queryParams.append('CategoryId', categoryId);

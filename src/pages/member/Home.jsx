@@ -24,13 +24,13 @@ function Home() {
 
   const [featuredPost, setFeaturedPost] = useState(null);
   const [exploreRecipes, setExploreRecipes] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [sortBy, setSortBy] = useState('latest');
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
 
   // Social Composer Modal state
@@ -76,6 +76,8 @@ function Home() {
   const postsPoolRef = useRef([]);
   const apiPageRef = useRef(1);
   const totalItemsRef = useRef(0);
+  const feedGenerationRef = useRef(0);
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -93,13 +95,16 @@ function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Initial load: Fetch 1 featured post + fixed initial Explore recipes
+  // Reset pagination when the category, sorting, or feed contents change.
   useEffect(() => {
     let isCancelled = false;
+    const generation = ++feedGenerationRef.current;
 
     async function loadInitialFeed() {
       setLoading(true);
       setLoadMoreError(null);
+      setLoadingMore(false);
+      loadingMoreRef.current = false;
       postsPoolRef.current = [];
       apiPageRef.current = 1;
       totalItemsRef.current = 0;
@@ -108,19 +113,19 @@ function Home() {
         const data = await getPostsFeed({
           pageIndex: 1,
           pageSize: 6,
-          categoryId: selectedCategoryId
+          categoryId: selectedCategoryId,
+          sortBy,
         });
-        if (isCancelled) return;
+        if (isCancelled || generation !== feedGenerationRef.current) return;
 
         const items = data.items || [];
         const total = data.totalItems ?? data.totalCount ?? items.length;
         totalItemsRef.current = total;
-        setTotalCount(total);
         postsPoolRef.current = [...items];
 
         if (items.length > 0) {
           setFeaturedPost(items[0]);
-          const initialGrid = items.slice(1, 4);
+          const initialGrid = items.slice(1);
           setExploreRecipes(initialGrid);
 
           const totalExplore = Math.max(0, total - 1);
@@ -131,14 +136,14 @@ function Home() {
           setHasMore(false);
         }
       } catch (err) {
-        if (!isCancelled) {
+        if (!isCancelled && generation === feedGenerationRef.current) {
           console.error('Failed to load initial feed:', err);
           setFeaturedPost(null);
           setExploreRecipes([]);
           setHasMore(false);
         }
       } finally {
-        if (!isCancelled) {
+        if (!isCancelled && generation === feedGenerationRef.current) {
           setLoading(false);
         }
       }
@@ -149,12 +154,14 @@ function Home() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategoryId, feedRefreshKey]);
+  }, [selectedCategoryId, sortBy, feedRefreshKey]);
 
-  // Load More: Fetch exactly 6 additional recipe cards per click until all items are loaded
-  const handleLoadMore = async () => {
-    if (loadingMore || !hasMore) return;
+  // The list requests the next page when its end enters the viewport.
+  const handleLoadMore = useCallback(async () => {
+    if (loadingMoreRef.current || !hasMore || loadMoreError) return;
 
+    const generation = feedGenerationRef.current;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     setLoadMoreError(null);
 
@@ -172,8 +179,10 @@ function Home() {
         const data = await getPostsFeed({
           pageIndex: nextPage,
           pageSize: 6,
-          categoryId: selectedCategoryId
+          categoryId: selectedCategoryId,
+          sortBy,
         });
+        if (generation !== feedGenerationRef.current) return;
         apiPageRef.current = nextPage;
 
         const newItems = data.items || [];
@@ -205,12 +214,20 @@ function Home() {
         nextExplore.length >= (postsPoolRef.current.length - startIndex);
       setHasMore(nextExplore.length < totalExplore && !noMoreAvailable);
     } catch (err) {
-      console.error('Failed to load more recipes:', err);
-      setLoadMoreError('Failed to load additional recipes');
+      if (generation !== feedGenerationRef.current) return;
+      console.error('Failed to load more posts:', err);
+      setLoadMoreError('Failed to load additional posts');
     } finally {
-      setLoadingMore(false);
+      if (generation === feedGenerationRef.current) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
     }
-  };
+  }, [hasMore, loadMoreError, exploreRecipes.length, featuredPost, selectedCategoryId, sortBy]);
+
+  const retryLoadMore = useCallback(() => {
+    setLoadMoreError(null);
+  }, []);
 
   useEffect(() => {
     async function loadCategories() {
@@ -374,13 +391,13 @@ function Home() {
             {loading ? (
               <div className="w-full py-16 flex flex-col items-center justify-center text-vh-text-secondary gap-3 bg-vh-surface/50 rounded-card border border-vh-border/40">
                 <div className="w-9 h-9 border-3 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
-                <p className="font-dm-sans text-sm">Harvesting delicious recipes...</p>
+                <p className="font-dm-sans text-sm">Loading posts...</p>
               </div>
             ) : !featuredPost && exploreRecipes.length === 0 ? (
               <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card border border-vh-border/50 p-6">
                 <div className="w-16 h-16 mb-4 bg-vh-mint rounded-full flex items-center justify-center text-3xl">🌱</div>
                 <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">The garden is still growing</h3>
-                <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md text-sm">We couldn't find any recipes matching your current filters. Try exploring other categories.</p>
+                <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md text-sm">We couldn't find any posts matching your current filters. Try exploring other categories.</p>
                 <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage transition-colors shadow-sm cursor-pointer">
                   Clear Filters
                 </button>
@@ -391,6 +408,8 @@ function Home() {
                   <FeaturedPost
                     post={featuredPost}
                     isGuest={false}
+                    key={featuredPost.id}
+                    isTrending={sortBy === 'trending'}
                     onOpenProfilePreview={handleOpenProfilePreview}
                   />
                 )}
@@ -398,6 +417,9 @@ function Home() {
                   posts={exploreRecipes}
                   isGuest={false}
                   onLoadMore={handleLoadMore}
+                  onRetryLoadMore={retryLoadMore}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
                   hasMore={hasMore}
                   loadingMore={loadingMore}
                   loadMoreError={loadMoreError}

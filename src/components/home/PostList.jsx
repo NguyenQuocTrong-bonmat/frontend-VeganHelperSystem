@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
 import InlinePostCard from './InlinePostCard';
 import CommentModal from './CommentModal';
@@ -13,6 +13,9 @@ export default function PostList({
   posts = [], 
   isGuest = false, 
   onLoadMore,
+  onRetryLoadMore,
+  sortBy = 'latest',
+  onSortChange,
   hasMore = false,
   loadingMore = false,
   loadMoreError = null,
@@ -20,6 +23,18 @@ export default function PostList({
   onOpenProfilePreview: externalOpenProfilePreview,
 }) {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.05 });
+  const loadSentinelRef = useRef(null);
+
+  useEffect(() => {
+    if (!hasMore || loadingMore || loadMoreError || !onLoadMore || !loadSentinelRef.current ||
+        typeof IntersectionObserver === 'undefined') return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) onLoadMore();
+    }, { rootMargin: '400px 0px' });
+    observer.observe(loadSentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMoreError, onLoadMore, posts.length]);
 
   // Comment Modal state
   const [activeCommentPost, setActiveCommentPost] = useState(null);
@@ -93,8 +108,6 @@ export default function PostList({
     });
   }, []);
 
-  if (!posts || posts.length === 0) return null;
-
   return (
     <section ref={ref} aria-labelledby="explore-recipes-heading" className="w-full">
       {/* Feed Heading */}
@@ -107,15 +120,14 @@ export default function PostList({
           Community Feed
         </h2>
         <div className="flex items-center gap-4 text-[14px] font-dm-sans text-vh-text-secondary">
-          <span className="text-vh-forest font-semibold border-b-2 border-vh-forest pb-1">
+          <button type="button" onClick={() => onSortChange?.('latest')} aria-pressed={sortBy === 'latest'}
+            className={`pb-1 cursor-pointer focus-ring-vh ${sortBy === 'latest' ? 'text-vh-forest font-semibold border-b-2 border-vh-forest' : 'hover:text-vh-forest'}`}>
             Latest Posts
-          </span>
-          <span
-            className="text-vh-text-secondary/50 cursor-not-allowed pb-1 select-none hidden sm:inline"
-            title="Trending feed is planned for a future update"
-          >
-            Trending (Coming soon)
-          </span>
+          </button>
+          <button type="button" onClick={() => onSortChange?.('trending')} aria-pressed={sortBy === 'trending'}
+            className={`pb-1 cursor-pointer focus-ring-vh ${sortBy === 'trending' ? 'text-vh-forest font-semibold border-b-2 border-vh-forest' : 'hover:text-vh-forest'}`}>
+            Trending
+          </button>
         </div>
       </div>
       
@@ -134,38 +146,18 @@ export default function PostList({
         ))}
       </div>
       
-      {/* Load More Section */}
+      {/* Automatically request the next page near the end of the feed. */}
       {hasMore && (
-        <div 
-          className={`mt-10 flex flex-col items-center justify-center gap-3 transform transition-all duration-700 ease-out ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
+        <div ref={loadSentinelRef} className="mt-10 flex flex-col items-center justify-center gap-3 min-h-14" role="status" aria-live="polite">
           {loadMoreError && (
-            <p className="text-sm font-dm-sans text-vh-error">
-              {loadMoreError} — please try again.
-            </p>
+            <>
+              <p className="text-sm font-dm-sans text-vh-error">{loadMoreError}</p>
+              <button type="button" onClick={onRetryLoadMore} className="text-vh-forest underline font-dm-sans text-sm focus-ring-vh">Try again</button>
+            </>
           )}
-
-          <button 
-            type="button"
-            onClick={onLoadMore}
-            disabled={loadingMore}
-            className={`h-12 px-8 rounded-full border border-vh-forest font-dm-sans text-[15px] font-medium transition-all duration-300 focus-ring-vh flex items-center justify-center gap-2.5 ${
-              loadingMore 
-                ? 'bg-vh-mint/40 text-vh-forest cursor-wait border-vh-sage' 
-                : 'bg-transparent text-vh-forest hover:bg-vh-forest hover:text-white hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none cursor-pointer'
-            }`}
-          >
-            {loadingMore ? (
-              <>
-                <span className="w-4 h-4 border-2 border-vh-forest border-t-transparent rounded-full animate-spin" />
-                <span>Harvesting Recipes...</span>
-              </>
-            ) : (
-              <span>Load More Recipes</span>
-            )}
-          </button>
+          {loadingMore && <span className="flex items-center gap-2 text-sm font-dm-sans text-vh-forest"><span className="w-4 h-4 border-2 border-vh-forest border-t-transparent rounded-full animate-spin" /> Loading posts...</span>}
+          {!loadMoreError && !loadingMore && typeof IntersectionObserver === 'undefined' &&
+            <button type="button" onClick={onLoadMore} className="text-vh-forest underline font-dm-sans text-sm focus-ring-vh">Load more posts</button>}
         </div>
       )}
 
