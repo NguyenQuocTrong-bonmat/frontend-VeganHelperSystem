@@ -10,7 +10,9 @@ import CategoryFilterRow from '../../components/home/CategoryFilterRow';
 import CreatePostModal from '../../components/home/CreatePostModal';
 import UserProfilePreview from '../../components/home/UserProfilePreview';
 import AIChatbot from '../../components/chat/AIChatbot';
+import LandingAuthDialog from '../../components/landing/LandingAuthDialog';
 import { getPostsFeed, getCategories } from '../../services/postService';
+import { getFollowing, getPublicProfile } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 
@@ -27,10 +29,13 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(null);
+  const [feedError, setFeedError] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [sortBy, setSortBy] = useState('latest');
+  const [sortBy, setSortBy] = useState('trending');
+  const [isFollowingEmpty, setIsFollowingEmpty] = useState(false);
+  const [authReason, setAuthReason] = useState('');
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
 
   // Social Composer Modal state
@@ -102,6 +107,7 @@ function Home() {
 
     async function loadInitialFeed() {
       setLoading(true);
+      setFeedError(null);
       setLoadMoreError(null);
       setLoadingMore(false);
       loadingMoreRef.current = false;
@@ -110,30 +116,102 @@ function Home() {
       totalItemsRef.current = 0;
 
       try {
-        const data = await getPostsFeed({
-          pageIndex: 1,
-          pageSize: 6,
-          categoryId: selectedCategoryId,
-          sortBy,
-        });
-        if (isCancelled || generation !== feedGenerationRef.current) return;
+        if (sortBy === 'following') {
+          // If guest, do not make protected follow API calls
+          if (!user?.id) {
+            if (isCancelled || generation !== feedGenerationRef.current) return;
+            setIsFollowingEmpty(true);
+            setFeaturedPost(null);
+            setExploreRecipes([]);
+            setHasMore(false);
+            setAuthReason('Log in to follow creators and see their latest posts.');
+            return;
+          }
 
-        const items = data.items || [];
-        const total = data.totalItems ?? data.totalCount ?? items.length;
-        totalItemsRef.current = total;
-        postsPoolRef.current = [...items];
+          // Fetch accounts the authenticated user follows
+          const followResult = await getFollowing(user.id, 1, 50);
+          if (isCancelled || generation !== feedGenerationRef.current) return;
 
-        if (items.length > 0) {
-          setFeaturedPost(items[0]);
-          const initialGrid = items.slice(1);
-          setExploreRecipes(initialGrid);
+          const followedUsers = followResult?.items || [];
+          if (followedUsers.length === 0) {
+            setIsFollowingEmpty(true);
+            setFeaturedPost(null);
+            setExploreRecipes([]);
+            setHasMore(false);
+            return;
+          }
 
-          const totalExplore = Math.max(0, total - 1);
-          setHasMore(initialGrid.length < totalExplore);
+          setIsFollowingEmpty(false);
+
+          // Fetch posts published by followed users
+          const profilePromises = followedUsers.map((fu) =>
+            getPublicProfile(fu.id || fu.userId).catch((err) => {
+              console.warn(`Failed to fetch profile for user ${fu.id || fu.userId}:`, err);
+              return null;
+            })
+          );
+          const profiles = await Promise.all(profilePromises);
+          if (isCancelled || generation !== feedGenerationRef.current) return;
+
+          const allFollowedPosts = [];
+          const seenPostIds = new Set();
+          for (const profile of profiles) {
+            if (profile && Array.isArray(profile.posts)) {
+              for (const post of profile.posts) {
+                if (post && post.id && !seenPostIds.has(post.id)) {
+                  seenPostIds.add(post.id);
+                  if (!selectedCategoryId || post.categoryId === selectedCategoryId) {
+                    allFollowedPosts.push(post);
+                  }
+                }
+              }
+            }
+          }
+
+          // Descending chronological order by publication timestamp
+          allFollowedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+          postsPoolRef.current = allFollowedPosts;
+          totalItemsRef.current = allFollowedPosts.length;
+
+          if (allFollowedPosts.length > 0) {
+            setFeaturedPost(allFollowedPosts[0]);
+            const initialGrid = allFollowedPosts.slice(1, 7);
+            setExploreRecipes(initialGrid);
+            setHasMore(allFollowedPosts.length > 7);
+          } else {
+            setFeaturedPost(null);
+            setExploreRecipes([]);
+            setHasMore(false);
+          }
         } else {
-          setFeaturedPost(null);
-          setExploreRecipes([]);
-          setHasMore(false);
+          // Trending or Latest feed
+          setIsFollowingEmpty(false);
+          const data = await getPostsFeed({
+            pageIndex: 1,
+            pageSize: 6,
+            categoryId: selectedCategoryId,
+            sortBy,
+          });
+          if (isCancelled || generation !== feedGenerationRef.current) return;
+
+          const items = data.items || [];
+          const total = data.totalItems ?? data.totalCount ?? items.length;
+          totalItemsRef.current = total;
+          postsPoolRef.current = [...items];
+
+          if (items.length > 0) {
+            setFeaturedPost(items[0]);
+            const initialGrid = items.slice(1);
+            setExploreRecipes(initialGrid);
+
+            const totalExplore = Math.max(0, total - 1);
+            setHasMore(initialGrid.length < totalExplore);
+          } else {
+            setFeaturedPost(null);
+            setExploreRecipes([]);
+            setHasMore(false);
+          }
         }
       } catch (err) {
         if (!isCancelled && generation === feedGenerationRef.current) {
@@ -141,6 +219,7 @@ function Home() {
           setFeaturedPost(null);
           setExploreRecipes([]);
           setHasMore(false);
+          setFeedError('Failed to load posts. Please try again.');
         }
       } finally {
         if (!isCancelled && generation === feedGenerationRef.current) {
@@ -154,7 +233,7 @@ function Home() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategoryId, sortBy, feedRefreshKey]);
+  }, [selectedCategoryId, sortBy, feedRefreshKey, user?.id]);
 
   // The list requests the next page when its end enters the viewport.
   const handleLoadMore = useCallback(async () => {
@@ -166,6 +245,18 @@ function Home() {
     setLoadMoreError(null);
 
     try {
+      if (sortBy === 'following') {
+        const currentExploreCount = exploreRecipes.length;
+        const startIndex = featuredPost ? 1 : 0;
+        const targetExploreCount = currentExploreCount + 6;
+        const nextExplore = postsPoolRef.current.slice(startIndex, startIndex + targetExploreCount);
+        if (generation !== feedGenerationRef.current) return;
+        setExploreRecipes(nextExplore);
+        const totalExplore = Math.max(0, totalItemsRef.current - startIndex);
+        setHasMore(nextExplore.length < totalExplore);
+        return;
+      }
+
       const currentExploreCount = exploreRecipes.length;
       const targetExploreCount = currentExploreCount + 6;
       const startIndex = featuredPost ? 1 : 0;
@@ -388,45 +479,36 @@ function Home() {
             />
 
             {/* Feed State Display */}
-            {loading ? (
-              <div className="w-full py-16 flex flex-col items-center justify-center text-vh-text-secondary gap-3 bg-vh-surface/50 rounded-card border border-vh-border/40">
-                <div className="w-9 h-9 border-3 border-vh-mint border-t-vh-forest rounded-full animate-spin"></div>
-                <p className="font-dm-sans text-sm">Loading posts...</p>
-              </div>
-            ) : !featuredPost && exploreRecipes.length === 0 ? (
-              <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-vh-surface/50 rounded-card border border-vh-border/50 p-6">
-                <div className="w-16 h-16 mb-4 bg-vh-mint rounded-full flex items-center justify-center text-3xl">🌱</div>
-                <h3 className="font-dm-serif text-2xl text-vh-text-primary mb-2">The garden is still growing</h3>
-                <p className="font-dm-sans text-vh-text-secondary mb-6 max-w-md text-sm">We couldn't find any posts matching your current filters. Try exploring other categories.</p>
-                <button onClick={() => setSelectedCategoryId(null)} className="px-6 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage transition-colors shadow-sm cursor-pointer">
-                  Clear Filters
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {featuredPost && (
-                  <FeaturedPost
-                    post={featuredPost}
-                    isGuest={false}
-                    key={featuredPost.id}
-                    isTrending={sortBy === 'trending'}
-                    onOpenProfilePreview={handleOpenProfilePreview}
-                  />
-                )}
-                <PostList
-                  posts={exploreRecipes}
-                  isGuest={false}
-                  onLoadMore={handleLoadMore}
-                  onRetryLoadMore={retryLoadMore}
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                  hasMore={hasMore}
-                  loadingMore={loadingMore}
-                  loadMoreError={loadMoreError}
+            <div className="space-y-8">
+              {!loading && !feedError && featuredPost && !(sortBy === 'following' && isFollowingEmpty) && (
+                <FeaturedPost
+                  post={featuredPost}
+                  isGuest={!user}
+                  key={featuredPost.id}
+                  isTrending={sortBy === 'trending'}
                   onOpenProfilePreview={handleOpenProfilePreview}
                 />
-              </div>
-            )}
+              )}
+              <PostList
+                posts={exploreRecipes}
+                loading={loading}
+                feedError={feedError}
+                onRetryFeed={() => setFeedRefreshKey((k) => k + 1)}
+                isGuest={!user}
+                isAuthenticated={!!user}
+                onLoadMore={handleLoadMore}
+                onRetryLoadMore={retryLoadMore}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                isFollowingEmpty={isFollowingEmpty}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                loadMoreError={loadMoreError}
+                onAuthRequired={(reason) => setAuthReason(reason || 'Log in to follow creators and see their latest posts.')}
+                onClearFilters={() => setSelectedCategoryId(null)}
+                onOpenProfilePreview={handleOpenProfilePreview}
+              />
+            </div>
 
           </section>
 
@@ -460,6 +542,17 @@ function Home() {
         initialUser={profilePreviewState.user}
         triggerEl={profilePreviewState.triggerEl}
         isGuest={false}
+      />
+
+      {/* Guest Authentication Dialog */}
+      <LandingAuthDialog
+        reason={authReason}
+        onClose={() => {
+          setAuthReason('');
+          if (sortBy === 'following' && !user?.id) {
+            setSortBy('trending');
+          }
+        }}
       />
 
       <AIChatbot />

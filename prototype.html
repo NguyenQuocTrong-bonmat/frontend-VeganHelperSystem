@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeganHelper — High-Fidelity Landing Page Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. DESIGN SYSTEM & TOKENS (Direction A: Botanical Editorial as default)
+       ========================================================================== */
+    :root {
+      /* Palette A: Botanical Editorial */
+      --bg-canvas: #FAF7F2;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F2F5EE;
+      --bg-dark: #162E22;
+      --bg-dark-surface: #1E3B2C;
+      --primary: #244C38;
+      --primary-hover: #1A3929;
+      --primary-light: #E7EFE5;
+      --accent-warm: #C86641;
+      --accent-soft: #EFE4D6;
+      --border-color: #DDE5D9;
+      --border-subtle: #EBEFE8;
+      --text-main: #22241F;
+      --text-muted: #647060;
+      --text-light: #FBFBF9;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --header-height: 76px;
+      --container-max: 1280px;
+    }
+
+    /* Palette B: Cinematic Food Story */
+    [data-direction="cinematic"] {
+      --bg-canvas: #0F1612;
+      --bg-surface: #18241D;
+      --bg-subtle: #1E2D24;
+      --bg-dark: #0A0F0C;
+      --bg-dark-surface: #131E17;
+      --primary: #388458;
+      --primary-hover: #459E6B;
+      --primary-light: #22372A;
+      --accent-warm: #E07A5F;
+      --border-color: #26382D;
+      --border-subtle: #1C2B22;
+      --text-main: #EDEDE8;
+      --text-muted: #9BA89C;
+      --text-light: #FFFFFF;
+    }
+
+    /* Palette C: Contemporary Culinary Platform */
+    [data-direction="platform"] {
+      --bg-canvas: #F8F9FA;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #EDF1F4;
+      --bg-dark: #1B242B;
+      --bg-dark-surface: #24303A;
+      --primary: #1C4436;
+      --primary-hover: #133328;
+      --primary-light: #E3EDE8;
+      --accent-warm: #D9603B;
+      --border-color: #DCE3E8;
+      --border-subtle: #E8ECEF;
+      --text-main: #181C1F;
+      --text-muted: #5E6973;
+      --text-light: #FFFFFF;
+      --font-display: 'DM Sans', sans-serif;
+    }
+
+    /* ==========================================================================
+       2. GLOBAL RESET & SCROLL SNAPPING
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+      scroll-padding-top: var(--header-height);
+      color-scheme: light;
+      font-size: 15px;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    .container {
+      width: min(var(--container-max), calc(100% - 64px));
+      margin-inline: auto;
+    }
+
+    /* Full-screen Chapter Architecture */
+    .chapter-section {
+      min-height: calc(100vh - var(--header-height));
+      scroll-snap-align: start;
+      scroll-snap-stop: normal;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding: 48px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 900px) {
+      .chapter-section {
+        min-height: auto;
+        padding: 56px 0;
+      }
+
+      html {
+        scroll-snap-type: y proximity;
+      }
+
+      .container {
+        width: calc(100% - 32px);
+      }
+    }
+
+    /* Isolated chapter preview mode for inspection and capturing */
+    body[data-isolated-view] .chapter-section {
+      display: none !important;
+    }
+
+    body[data-isolated-view="hero"] #chapter-hero,
+    body[data-isolated-view="platform"] #chapter-platform,
+    body[data-isolated-view="recipes"] #chapter-recipes,
+    body[data-isolated-view="menu"] #chapter-menu,
+    body[data-isolated-view="stores"] #chapter-stores,
+    body[data-isolated-view="community"] #chapter-community,
+    body[data-isolated-view="closing"] #chapter-closing {
+      display: flex !important;
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* ==========================================================================
+       3. TOP NAVIGATION & PROTOTYPE CONTROL BAR
+       ========================================================================== */
+    .prototype-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 38px;
+      background: #111B14;
+      color: #9FB5A3;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .prototype-bar {
+        position: static;
+        height: auto;
+        padding: 8px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .main-header {
+        top: 0;
+      }
+    }
+
+    .prototype-tag {
+      color: #E2ECE3;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prototype-tag::before {
+      content: '';
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ADE80;
+    }
+
+    .concept-switchers {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .concept-btn {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: #9FB5A3;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .concept-btn:hover {
+      color: white;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .concept-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Header */
+    .main-header {
+      position: sticky;
+      top: 38px;
+      height: var(--header-height);
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 90;
+      backdrop-filter: blur(8px);
+      background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--primary);
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 7px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 4px;
+    }
+
+    .nav-chapters {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .nav-chapters a {
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-chapters a:hover {
+      color: var(--primary);
+    }
+
+    .header-ctas {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      background: var(--bg-surface);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-subtle);
+      border-color: var(--primary);
+    }
+
+    /* Chapter Navigation Sidebar */
+    .story-nav {
+      position: fixed;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: color-mix(in srgb, var(--bg-surface) 90%, transparent);
+      backdrop-filter: blur(8px);
+      padding: 10px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    @media (max-width: 1100px) {
+      .story-nav {
+        display: none;
+      }
+    }
+
+    .story-nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-color);
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .story-nav-dot:hover,
+    .story-nav-dot.active {
+      background: var(--primary);
+      transform: scale(1.4);
+    }
+
+    .story-nav-dot::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%) translateX(6px);
+      background: var(--bg-dark);
+      color: white;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .story-nav-dot:hover::before {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* Common Micro-Components */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .eyebrow-pip {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+    }
+
+    /* ==========================================================================
+       4. CHAPTER 01: HERO
+       ========================================================================== */
+    #chapter-hero {
+      background: radial-gradient(circle at 80% 20%, var(--primary-light) 0%, transparent 45%), var(--bg-canvas);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 56px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+    }
+
+    .hero-title {
+      font-size: clamp(40px, 4.4vw, 64px);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--primary);
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 32px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta-strip {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .hero-meta-item strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--text-main);
+    }
+
+    /* Hero Visual Composition */
+    .hero-visual {
+      position: relative;
+    }
+
+    .hero-arch-frame {
+      width: 100%;
+      max-width: 480px;
+      height: 520px;
+      margin-left: auto;
+      border-radius: 240px 240px 24px 24px;
+      overflow: hidden;
+      border: 8px solid var(--bg-surface);
+      box-shadow: 0 24px 60px rgba(36, 76, 56, 0.12);
+      position: relative;
+      background: var(--bg-subtle);
+    }
+
+    .hero-arch-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+
+    .hero-arch-frame:hover img {
+      transform: scale(1.03);
+    }
+
+    .hero-floating-card {
+      position: absolute;
+      left: -20px;
+      bottom: 30px;
+      width: 200px;
+      background: var(--bg-surface);
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hero-floating-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .hero-floating-card span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .hero-floating-badge {
+      position: absolute;
+      right: -10px;
+      top: 40px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 1px dashed var(--accent-warm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--accent-warm);
+      transform: rotate(10deg);
+    }
+
+    /* ==========================================================================
+       5. CHAPTER 02: PLATFORM OVERVIEW (Distinctive Editorial Index)
+       ========================================================================== */
+    #chapter-platform {
+      background: var(--bg-subtle);
+    }
+
+    .chapter-heading {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 48px;
+    }
+
+    .chapter-heading h2 {
+      font-size: clamp(32px, 3.2vw, 48px);
+      margin-bottom: 14px;
+    }
+
+    .chapter-heading p {
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Asymmetric 4-Pillar Layout */
+    .platform-index-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .platform-index-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .platform-index-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .platform-tile {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 340px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .platform-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(36, 76, 56, 0.08);
+      border-color: var(--primary);
+    }
+
+    .tile-number {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .tile-title {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .tile-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .tile-visual-cue {
+      height: 100px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: auto;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tile-visual-cue img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .tile-link {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* ==========================================================================
+       6. CHAPTER 03: RECIPES (Editorial Spread)
+       ========================================================================== */
+    #chapter-recipes {
+      background: var(--bg-canvas);
+    }
+
+    .recipes-spread-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 40px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 960px) {
+      .recipes-spread-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .recipe-spotlight-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
+    }
+
+    .spotlight-media {
+      position: relative;
+      height: 320px;
+      overflow: hidden;
+      background: #E8ECE6;
+    }
+
+    .spotlight-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .spotlight-tag {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .spotlight-body {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .spotlight-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .spotlight-title {
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+
+    .spotlight-quote {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .spotlight-footer {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .author-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* Supporting Side Recipes */
+    .recipes-side-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .category-pills-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .cat-pill {
+      padding: 6px 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .cat-pill.active,
+    .cat-pill:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .side-recipe-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .side-recipe-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(36, 76, 56, 0.06);
+    }
+
+    .side-recipe-img {
+      width: 120px;
+      height: 96px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #E8ECE6;
+    }
+
+    .side-recipe-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .side-recipe-content h4 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .side-recipe-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-warm);
+    }
+
+    .side-recipe-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ==========================================================================
+       7. CHAPTER 04: WEEKLY MENU (Personalized Routine & Visual Clarity)
+       ========================================================================== */
+    #chapter-menu {
+      background: var(--bg-subtle);
+    }
+
+    .menu-cockpit {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.03);
+    }
+
+    .menu-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .days-ribbon {
+      display: flex;
+      gap: 10px;
+      background: var(--bg-subtle);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .day-selector-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .day-selector-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(36, 76, 56, 0.15);
+    }
+
+    .menu-triad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .menu-triad-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meal-slot-card {
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      background: var(--bg-canvas);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 220px;
+    }
+
+    .meal-time-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .meal-dish-name {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .meal-ingredients-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .meal-macros-badge {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .menu-summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg-subtle);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    /* ==========================================================================
+       8. CHAPTER 05: VEGAN STORES (Neighborhood Discovery)
+       ========================================================================== */
+    #chapter-stores {
+      background: var(--bg-canvas);
+    }
+
+    .stores-layout-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .stores-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .store-feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 28px 0;
+    }
+
+    .store-spotlight-item {
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .store-spotlight-item:hover,
+    .store-spotlight-item.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .store-spotlight-name {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .store-spotlight-loc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .store-badge-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 3px 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--primary);
+    }
+
+    /* Map Graphic Canvas */
+    .map-canvas-card {
+      height: 480px;
+      background: #E3EDE4;
+      border-radius: 20px;
+      border: 6px solid var(--bg-surface);
+      box-shadow: 0 16px 40px rgba(36, 76, 56, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .map-svg-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .map-interactive-pin {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50% 50% 50% 4px;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      background: var(--primary);
+      color: white;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s;
+    }
+
+    .map-interactive-pin:hover,
+    .map-interactive-pin.active {
+      transform: translate(-50%, -50%) rotate(-45deg) scale(1.15);
+      background: var(--accent-warm);
+    }
+
+    .map-interactive-pin span {
+      transform: rotate(45deg);
+      font-size: 13px;
+    }
+
+    .map-floating-venue {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ==========================================================================
+       9. CHAPTER 06: COMMUNITY (Authentic Warmth & Stories)
+       ========================================================================== */
+    #chapter-community {
+      background: var(--bg-subtle);
+    }
+
+    .community-spread {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    @media (max-width: 960px) {
+      .community-spread {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .community-story-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+    }
+
+    .story-card-top {
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .story-user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .story-user-info strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .story-user-info span {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .story-media-box {
+      height: 220px;
+      overflow: hidden;
+      background: #E8ECE6;
+    }
+
+    .story-media-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .community-story-card:hover .story-media-box img {
+      transform: scale(1.04);
+    }
+
+    .story-card-body {
+      padding: 22px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .story-card-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .story-card-snippet {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-style: italic;
+      margin-bottom: 18px;
+    }
+
+    .story-card-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       10. CHAPTER 07: CLOSING & ACCESSIBLE FOOTER
+       ========================================================================== */
+    #chapter-closing {
+      background: var(--bg-dark);
+      color: var(--text-light);
+      padding: 72px 0 32px;
+      border-bottom: none;
+    }
+
+    .closing-centerpiece {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 64px;
+    }
+
+    .closing-leaf-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: #92B98E;
+    }
+
+    .closing-title {
+      font-size: clamp(36px, 4vw, 56px);
+      line-height: 1.1;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .closing-title em {
+      color: #A3CCA0;
+      font-style: italic;
+    }
+
+    .closing-desc {
+      font-size: 16px;
+      color: #A4B2A8;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .closing-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-light {
+      background: #FAF7F2;
+      color: #162E22;
+      font-weight: 600;
+    }
+
+    .btn-light:hover {
+      background: #EFE8DC;
+    }
+
+    .btn-ghost-dark {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: white;
+    }
+
+    .btn-ghost-dark:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Integrated Footer within Chapter 7 */
+    .integrated-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #8C9E92;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+  </style>
+</head>
+
+<body data-direction="botanical">
+
+  <!-- PROTOTYPE CONTROLLER BAR -->
+  <div class="prototype-bar">
+    <div class="prototype-tag">PROTOTYPE: VEGANHELPER HIGH-FIDELITY ART DIRECTION</div>
+    <div class="concept-switchers">
+      <span>SWITCH CONCEPT:</span>
+      <button type="button" class="concept-btn active" onclick="setConcept('botanical', this)">A · Botanical
+        Editorial</button>
+      <button type="button" class="concept-btn" onclick="setConcept('cinematic', this)">B · Cinematic Story</button>
+      <button type="button" class="concept-btn" onclick="setConcept('platform', this)">C · Culinary Platform</button>
+    </div>
+  </div>
+
+  <!-- STICKY MAIN HEADER -->
+  <header class="main-header">
+    <div class="container header-inner">
+      <div class="brand-mark">
+        <span class="brand-name">VeganHelper</span>
+        <span class="brand-badge">Sài Gòn Edition</span>
+      </div>
+
+      <nav class="nav-chapters">
+        <a href="#chapter-hero">01 Discover</a>
+        <a href="#chapter-platform">02 Platform</a>
+        <a href="#chapter-recipes">03 Recipes</a>
+        <a href="#chapter-menu">04 Weekly Menu</a>
+        <a href="#chapter-stores">05 Stores</a>
+        <a href="#chapter-community">06 Community</a>
+      </nav>
+
+      <div class="header-ctas">
+        <a href="#chapter-closing" class="btn btn-outline">Sign In</a>
+        <a href="#chapter-closing" class="btn btn-primary">Join Community</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- RIGHT VERTICAL PROGRESS INDICATOR -->
+  <nav class="story-nav" aria-label="Story chapter progress">
+    <a href="#chapter-hero" class="story-nav-dot active" data-tooltip="01 Discover"></a>
+    <a href="#chapter-platform" class="story-nav-dot" data-tooltip="02 Platform"></a>
+    <a href="#chapter-recipes" class="story-nav-dot" data-tooltip="03 Recipes"></a>
+    <a href="#chapter-menu" class="story-nav-dot" data-tooltip="04 Weekly Menu"></a>
+    <a href="#chapter-stores" class="story-nav-dot" data-tooltip="05 Stores"></a>
+    <a href="#chapter-community" class="story-nav-dot" data-tooltip="06 Community"></a>
+    <a href="#chapter-closing" class="story-nav-dot" data-tooltip="07 Begin"></a>
+  </nav>
+
+  <!-- =========================================================================
+       CHAPTER 01: HERO
+       ========================================================================= -->
+  <section id="chapter-hero" class="chapter-section">
+    <div class="container hero-grid">
+      <!-- Copy Column -->
+      <div class="hero-copy">
+        <div class="eyebrow">
+          <span class="eyebrow-pip"></span>
+          Plant-Based Living in Vietnam
+        </div>
+        <h1 class="hero-title">
+          A gentler way to eat.<br>
+          A <em>richer table</em> to share.
+        </h1>
+        <p class="hero-desc">
+          Vietnamese culinary heritage reimagined with mindful plant craft. Explore seasonal recipes, discover
+          neighborhood vegan gems, and compose a week around your body.
+        </p>
+        <div class="hero-actions">
+          <a href="#chapter-recipes" class="btn btn-primary">
+            Explore Curated Recipes
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a href="#chapter-platform" class="btn btn-outline">How the Platform Works</a>
+        </div>
+        <div class="hero-meta-strip">
+          <div class="hero-meta-item">
+            <strong>180+</strong>
+            <span>Verified Recipes</span>
+          </div>
+          <div class="hero-meta-item">
+            <strong>140+</strong>
+            <span>Local Stores</span>
+          </div>
+          <div class="hero-meta-item">
+            <strong>100%</strong>
+            <span>Plant-Based & Free</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Food Photography Artwork -->
+      <div class="hero-visual">
+        <div class="hero-arch-frame">
+          <img src="/src/assets/images/hero/hero-vietnamese-vegan-pho.webp"
+            alt="Vietnamese Vegan Phở with golden tofu and wild herbs">
+        </div>
+        <div class="hero-floating-card">
+          <img src="/src/assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp" alt="Fresh summer rolls">
+          <span>Fresh Herb Rolls · 15m</span>
+        </div>
+        <div class="hero-floating-badge">
+          BOTANICAL<br>HEARTH<br>★ 2026
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 02: PLATFORM OVERVIEW (4 Asymmetric Pillars)
+       ========================================================================= -->
+  <section id="chapter-platform" class="chapter-section">
+    <div class="container">
+      <div class="chapter-heading">
+        <div class="eyebrow">
+          <span class="eyebrow-pip"></span>
+          The Living Ecosystem
+        </div>
+        <h2>Everything you need to thrive.<br>Nothing you don't.</h2>
+        <p>Four interconnected culinary practices designed to make vibrant plant-based eating second nature.</p>
+      </div>
+
+      <div class="platform-index-grid">
+        <!-- Pillar 1 -->
+        <article class="platform-tile">
+          <div>
+            <span class="tile-number">01 / DISCOVERY</span>
+            <h3 class="tile-title">Seasonal Kitchen</h3>
+            <p class="tile-desc">Curated Vietnamese recipes with authentic regional flavor, step-by-step guidance, and
+              substitutions for everyday ingredients.</p>
+          </div>
+          <div class="tile-visual-cue">
+            <img src="/src/assets/images/categories/category-braised-dishes.jpg" alt="Braised dishes">
+          </div>
+          <a href="#chapter-recipes" class="tile-link">Explore recipes →</a>
+        </article>
+
+        <!-- Pillar 2 -->
+        <article class="platform-tile">
+          <div>
+            <span class="tile-number">02 / ROUTINE</span>
+            <h3 class="tile-title">Mindful Menu</h3>
+            <p class="tile-desc">Seven-day balanced meal blueprints calibrated to your declared allergies, calorie
+              goals, and weekly market shopping habits.</p>
+          </div>
+          <div class="tile-visual-cue">
+            <img src="/src/assets/images/categories/category-nutritional-knowledge.jpg" alt="Nutritional knowledge">
+          </div>
+          <a href="#chapter-menu" class="tile-link">Explore planning →</a>
+        </article>
+
+        <!-- Pillar 3 -->
+        <article class="platform-tile">
+          <div>
+            <span class="tile-number">03 / GEOGRAPHY</span>
+            <h3 class="tile-title">Neighborhood Map</h3>
+            <p class="tile-desc">Verified plant-based eateries, local tofu artisans, fresh morning markets, and
+              zero-waste pantries across Vietnam.</p>
+          </div>
+          <div class="tile-visual-cue">
+            <img src="/src/assets/images/categories/category-soups.jpg" alt="Fresh market herbal soups">
+          </div>
+          <a href="#chapter-stores" class="tile-link">Discover stores →</a>
+        </article>
+
+        <!-- Pillar 4 -->
+        <article class="platform-tile">
+          <div>
+            <span class="tile-number">04 / FELLOWSHIP</span>
+            <h3 class="tile-title">Community Table</h3>
+            <p class="tile-desc">A space for home cooks and chefs to share their breakthroughs, family reinventions, and
+              recommendations.</p>
+          </div>
+          <div class="tile-visual-cue">
+            <img src="/src/assets/images/categories/category-hot-pots.jpg" alt="Warm soup at community table">
+          </div>
+          <a href="#chapter-community" class="tile-link">Join fellowship →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 03: RECIPES (Editorial Spread Layout)
+       ========================================================================= -->
+  <section id="chapter-recipes" class="chapter-section">
+    <div class="container">
+      <div class="chapter-heading" style="text-align: left; margin-bottom: 36px; max-width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <div class="eyebrow">
+              <span class="eyebrow-pip"></span>
+              The Community Kitchen
+            </div>
+            <h2>Good food. Even better shared.</h2>
+          </div>
+          <a href="#chapter-recipes" class="btn btn-outline" style="font-size: 12px;">Browse All 180+ Posts →</a>
+        </div>
+      </div>
+
+      <div class="recipes-spread-grid">
+        <!-- Spotlight Recipe Card (Dominant Image) -->
+        <article class="recipe-spotlight-card">
+          <div class="spotlight-media">
+            <img src="/src/assets/images/hero/hero-vietnamese-vegan-food.webp"
+              alt="Lemongrass Braised Tofu with King Oyster Mushrooms">
+            <span class="spotlight-tag">★ Harvest Spotlight</span>
+          </div>
+          <div class="spotlight-body">
+            <div class="spotlight-meta-row">
+              <span style="font-family: var(--font-mono); font-size: 11px;">Vietnamese Claypot Special</span>
+              <span>35 Mins · 480 kcal</span>
+            </div>
+            <h3 class="spotlight-title">Lemongrass Braised Tofu with King Oyster Mushrooms</h3>
+            <p class="spotlight-quote">
+              “Slow-simmered in coconut water with crushed star anise, fresh chili, and charred shallots. The broth is
+              rich, savory, and restorative.”
+            </p>
+            <div class="spotlight-footer">
+              <div class="author-info">
+                <div class="author-avatar">L</div>
+                <div>
+                  <strong>Lê Hoàng Mai</strong>
+                  <span style="color: var(--text-muted); font-size: 11px;">Community Chef · Đà Nẵng</span>
+                </div>
+              </div>
+              <button class="btn btn-outline" style="padding: 6px 14px; font-size: 11px;"
+                onclick="alert('Viewing recipe details')">Read Recipe</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Supporting Editorial Previews -->
+        <div class="recipes-side-stack">
+          <!-- Category Quick Filter Bar -->
+          <div class="category-pills-bar">
+            <button class="cat-pill active">All Recipes</button>
+            <button class="cat-pill">Claypots & Braised</button>
+            <button class="cat-pill">Broths & Phở</button>
+            <button class="cat-pill">Fresh Rolls</button>
+            <button class="cat-pill">Pastries</button>
+          </div>
+
+          <!-- Micro-feature 1 -->
+          <article class="side-recipe-card">
+            <div class="side-recipe-img">
+              <img src="/src/assets/images/categories/category-soups.jpg" alt="Lotus root claypot">
+            </div>
+            <div class="side-recipe-content">
+              <span class="side-recipe-tag">COMFORT SOUP</span>
+              <h4>Lotus Root & Sweet Corn Claypot</h4>
+              <p style="font-size: 12px; color: var(--text-muted);">Clear slow-simmered broth with young ginger and
+                dried shiitake.</p>
+              <div class="side-recipe-time">25 Mins · Chef Alex Green</div>
+            </div>
+          </article>
+
+          <!-- Micro-feature 2 -->
+          <article class="side-recipe-card">
+            <div class="side-recipe-img">
+              <img src="/src/assets/images/categories/category-stir-fried.jpg" alt="Crispy turmeric crepe">
+            </div>
+            <div class="side-recipe-content">
+              <span class="side-recipe-tag">CRISPY HERB DISH</span>
+              <h4>Sizzling Turmeric Crepe with Wild Herbs</h4>
+              <p style="font-size: 12px; color: var(--text-muted);">Crisped rice flour crepe filled with bean sprouts,
+                wood ear, and oyster mushrooms.</p>
+              <div class="side-recipe-time">20 Mins · Chef Jamie Le</div>
+            </div>
+          </article>
+
+          <!-- Micro-feature 3 -->
+          <article class="side-recipe-card">
+            <div class="side-recipe-img">
+              <img src="/src/assets/images/categories/category-western-vegan-foods.jpg" alt="Avocado herb salad">
+            </div>
+            <div class="side-recipe-content">
+              <span class="side-recipe-tag">MORNING NOURISH</span>
+              <h4>Charred Tempeh & Sóc Trăng Avocado Bowl</h4>
+              <p style="font-size: 12px; color: var(--text-muted);">Steamed brown jasmine rice with toasted sesame and
+                lime dressing.</p>
+              <div class="side-recipe-time">15 Mins · Minh Anh</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 04: WEEKLY MENU (Personalized Routine & Clarity)
+       ========================================================================= -->
+  <section id="chapter-menu" class="chapter-section">
+    <div class="container">
+      <div class="menu-cockpit">
+        <div class="menu-header-row">
+          <div>
+            <div class="eyebrow">
+              <span class="eyebrow-pip"></span>
+              Nourishment Without Guesswork
+            </div>
+            <h2>Your week, thoughtfully composed.</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
+              Personalized to your biometric profile, declared allergies, and energy targets.
+            </p>
+          </div>
+
+          <!-- 7-Day Selector -->
+          <div class="days-ribbon">
+            <button class="day-selector-btn" onclick="selectDay(0, this)">Mon 01</button>
+            <button class="day-selector-btn active" onclick="selectDay(1, this)">Tue 02</button>
+            <button class="day-selector-btn" onclick="selectDay(2, this)">Wed 03</button>
+            <button class="day-selector-btn" onclick="selectDay(3, this)">Thu 04</button>
+            <button class="day-selector-btn" onclick="selectDay(4, this)">Fri 05</button>
+            <button class="day-selector-btn" onclick="selectDay(5, this)">Sat 06</button>
+            <button class="day-selector-btn" onclick="selectDay(6, this)">Sun 07</button>
+          </div>
+        </div>
+
+        <!-- 3 Distinct Meals of the Selected Day -->
+        <div class="menu-triad-grid" id="day-meals-container">
+          <!-- Breakfast -->
+          <div class="meal-slot-card">
+            <div>
+              <div class="meal-time-tag">
+                <span>Breakfast · 07:30</span>
+                <span>☀️ Gentle Energy</span>
+              </div>
+              <h4 class="meal-dish-name">Coconut Chia Pudding & Ripe Mango</h4>
+              <p class="meal-ingredients-preview">Chia seeds steeped in rich coconut water, ripe mango slices, toasted
+                pumpkin seeds, and fresh mint.</p>
+            </div>
+            <div class="meal-macros-badge">
+              <span>380 kcal</span>
+              <span>·</span>
+              <span>12g Protein</span>
+              <span>·</span>
+              <span style="color: var(--primary); font-weight: 600;">Soy-Free</span>
+            </div>
+          </div>
+
+          <!-- Lunch -->
+          <div class="meal-slot-card"
+            style="border-color: var(--primary); background: var(--bg-surface); box-shadow: 0 8px 24px rgba(36, 76, 56, 0.06);">
+            <div>
+              <div class="meal-time-tag">
+                <span>Lunch · 12:30</span>
+                <span style="color: var(--accent-warm);">⭐ Main Sustenance</span>
+              </div>
+              <h4 class="meal-dish-name">Lemongrass Tofu & Herb Rice Bowl</h4>
+              <p class="meal-ingredients-preview">Seared spiced tofu cubes, steamed jasmine brown rice, pickled daikon
+                carrots, and roasted peanuts.</p>
+            </div>
+            <div class="meal-macros-badge">
+              <span>560 kcal</span>
+              <span>·</span>
+              <span>28g Protein</span>
+              <span>·</span>
+              <span style="color: var(--primary); font-weight: 600;">Gluten-Free</span>
+            </div>
+          </div>
+
+          <!-- Dinner -->
+          <div class="meal-slot-card">
+            <div>
+              <div class="meal-time-tag">
+                <span>Dinner · 19:00</span>
+                <span>🌙 Restorative Broth</span>
+              </div>
+              <h4 class="meal-dish-name">Mushroom & Charred Scallion Phở</h4>
+              <p class="meal-ingredients-preview">Handmade flat rice noodles in an 8-hour star anise vegetable broth
+                with wood ear and fresh coriander.</p>
+            </div>
+            <div class="meal-macros-badge">
+              <span>420 kcal</span>
+              <span>·</span>
+              <span>18g Protein</span>
+              <span>·</span>
+              <span style="color: var(--primary); font-weight: 600;">Low Sodium</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary & CTA Footer -->
+        <div class="menu-summary-bar">
+          <div style="display: flex; gap: 20px; align-items: center;">
+            <span><strong>Day Total:</strong> 1,360 kcal</span>
+            <span><strong>Protein:</strong> 58g</span>
+            <span style="color: var(--primary);">✓ Verified Allergen Safe</span>
+          </div>
+          <button class="btn btn-primary" onclick="alert('Creating your personalized weekly plan')">
+            Generate Your 7-Day Plan →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 05: VEGAN STORES (Neighborhood Discovery & Illustrated Map)
+       ========================================================================= -->
+  <section id="chapter-stores" class="chapter-section">
+    <div class="container stores-layout-grid">
+      <!-- Store Description & List -->
+      <div class="stores-content">
+        <div class="eyebrow">
+          <span class="eyebrow-pip"></span>
+          Where to Eat & Gather
+        </div>
+        <h2>Your next favorite spot is around the corner.</h2>
+        <p style="font-size: 16px; color: var(--text-muted); margin: 16px 0;">
+          Over 140 curated plant-based restaurants, neighborhood tofu artisans, organic produce stands, and zero-waste
+          pantries across Vietnam.
+        </p>
+
+        <div class="store-feature-list">
+          <!-- Spotlight 1 -->
+          <div class="store-spotlight-item active" onclick="highlightStore('Bếp Chay Hoa Khai')">
+            <div>
+              <div class="store-spotlight-name">Bếp Chay Hoa Khai</div>
+              <div class="store-spotlight-loc">Quận 1 · Family Kitchen · Claypot Specialties</div>
+            </div>
+            <span class="store-badge-tag">VERIFIED</span>
+          </div>
+
+          <!-- Spotlight 2 -->
+          <div class="store-spotlight-item" onclick="highlightStore('The Organik Pantry')">
+            <div>
+              <div class="store-spotlight-name">The Organik Pantry</div>
+              <div class="store-spotlight-loc">Thảo Điền · Artisan Tempeh & Kombucha</div>
+            </div>
+            <span class="store-badge-tag">STORE</span>
+          </div>
+
+          <!-- Spotlight 3 -->
+          <div class="store-spotlight-item" onclick="highlightStore('Mãn Tự Chay')">
+            <div>
+              <div class="store-spotlight-name">Mãn Tự Chay</div>
+              <div class="store-spotlight-loc">Quận 5 · Community Buffet & Tea House</div>
+            </div>
+            <span class="store-badge-tag">COMMUNITY</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="alert('Opening Full Vegan Store Directory')">
+          Explore City Directory & Map →
+        </button>
+      </div>
+
+      <!-- Illustrated Map Canvas with Interactive Pins -->
+      <div class="map-canvas-card">
+        <!-- SVG Map Background Art -->
+        <svg class="map-svg-art" viewBox="0 0 720 540" preserveAspectRatio="xMidYMid slice">
+          <rect width="720" height="540" fill="#E2EDE3" />
+          <path d="M-20,180 C240,120 480,260 760,180 L760,250 C480,330 240,190 -20,250 Z" fill="#C5DFD0"
+            opacity="0.6" />
+          <!-- River Curve -->
+          <path d="M680,-40 C420,90 690,230 440,340 S520,510 400,600" fill="none" stroke="#B2D4C2" stroke-width="54" />
+          <!-- Road Grids -->
+          <g fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round">
+            <path d="M0,120 L720,80" />
+            <path d="M0,320 L720,280" />
+            <path d="M0,450 L720,410" />
+            <path d="M160,-20 L280,560" />
+            <path d="M420,-20 L510,560" />
+          </g>
+          <text x="80" y="80" font-family="'IBM Plex Mono', monospace" font-size="12" letter-spacing="3"
+            fill="#698572">SÀI GÒN VEGAN GUIDE</text>
+        </svg>
+
+        <!-- Interactive Map Pins -->
+        <div class="map-interactive-pin active" style="left: 35%; top: 38%;" title="Bếp Chay Hoa Khai">
+          <span>🍜</span>
+        </div>
+        <div class="map-interactive-pin" style="left: 65%; top: 52%;" title="The Organik Pantry">
+          <span>🌿</span>
+        </div>
+        <div class="map-interactive-pin" style="left: 28%; top: 72%;" title="Mãn Tự Chay">
+          <span>🍵</span>
+        </div>
+
+        <!-- Floating Venue Card -->
+        <div class="map-floating-venue" id="floating-venue-card">
+          <div>
+            <strong id="venue-title" style="font-family: var(--font-display); font-size: 16px;">Bếp Chay Hoa
+              Khai</strong>
+            <div id="venue-sub" style="font-size: 12px; color: var(--text-muted);">142 Nguyễn Thị Minh Khai, Quận 1 ·
+              Open 08:00 - 21:00</div>
+          </div>
+          <button class="btn btn-outline" style="font-size: 11px; padding: 6px 14px;"
+            onclick="alert('Viewing directions')">Directions</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 06: COMMUNITY (Authentic Warmth & Real Stories)
+       ========================================================================= -->
+  <section id="chapter-community" class="chapter-section">
+    <div class="container">
+      <div class="chapter-heading">
+        <div class="eyebrow">
+          <span class="eyebrow-pip"></span>
+          The Living Fellowship
+        </div>
+        <h2>Come for the food.<br>Stay for the people.</h2>
+        <p>Your first tofu experiment. Your family recipe, reimagined. There is room for all of it here.</p>
+      </div>
+
+      <div class="community-spread">
+        <!-- Story Card 1 -->
+        <article class="community-story-card">
+          <div class="story-card-top">
+            <div class="story-user-avatar">M</div>
+            <div class="story-user-info">
+              <strong>Trần Mai Linh (@linh_cooks)</strong>
+              <span>Hà Nội · 2 hours ago</span>
+            </div>
+          </div>
+          <div class="story-media-box">
+            <img src="/src/assets/images/categories/category-all-recipes.jpg" alt="Braised jackfruit claypot">
+          </div>
+          <div class="story-card-body">
+            <h4 class="story-card-title">Recreating Grandmother's Braised Jackfruit Without Fish Sauce</h4>
+            <p class="story-card-snippet">
+              “The secret is slow-caramelizing young coconut water with shallots and black pepper before adding the
+              young jackfruit chunks. My family couldn't believe it was 100% vegan.”
+            </p>
+            <div class="story-card-footer">
+              <span>❤️ 48 Cook Cheers</span>
+              <span>Read story →</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Story Card 2 -->
+        <article class="community-story-card">
+          <div class="story-card-top">
+            <div class="story-user-avatar" style="background: #F2E4D8; color: #9A5B32;">Q</div>
+            <div class="story-user-info">
+              <strong>Minh Quân (@quan_veg)</strong>
+              <span>Sài Gòn · Yesterday</span>
+            </div>
+          </div>
+          <div class="story-media-box">
+            <img src="/src/assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp" alt="Fresh summer spring rolls">
+          </div>
+          <div class="story-card-body">
+            <h4 class="story-card-title">Week 3 of Plant-Based Living: Finally Perfected My Fresh Rolls</h4>
+            <p class="story-card-snippet">
+              “Adding perilla leaves and pickled daikon gave the rolls that fresh morning crunch. Prepared 20 rolls for
+              the weekend potluck with friends!”
+            </p>
+            <div class="story-card-footer">
+              <span>❤️ 92 Cook Cheers</span>
+              <span>Read story →</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Story Card 3 -->
+        <article class="community-story-card">
+          <div class="story-card-top">
+            <div class="story-user-avatar" style="background: #E5E9E2; color: #436A49;">A</div>
+            <div class="story-user-info">
+              <strong>An Nguyễn (@an_herbs)</strong>
+              <span>Đà Lạt · 3 days ago</span>
+            </div>
+          </div>
+          <div class="story-media-box">
+            <img src="/src/assets/images/categories/category-stir-fried.jpg" alt="Fresh market vegetables and greens">
+          </div>
+          <div class="story-card-body">
+            <h4 class="story-card-title">Five Morning Market Greens Every Cook in Vietnam Should Know</h4>
+            <p class="story-card-snippet">
+              “From rau đắng to lá lốt, here is how to pick the sweetest tender bunches at the morning market before 7
+              AM.”
+            </p>
+            <div class="story-card-footer">
+              <span>❤️ 134 Cook Cheers</span>
+              <span>Read story →</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       CHAPTER 07: CLOSING & INTEGRATED ACCESSIBLE FOOTER
+       ========================================================================= -->
+  <section id="chapter-closing" class="chapter-section">
+    <div class="container">
+      <div class="closing-centerpiece">
+        <div class="closing-leaf-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <h2 class="closing-title">
+          One small shift at the table.<br>
+          A <em>world of difference</em> for tomorrow.
+        </h2>
+        <p class="closing-desc">
+          Join thousands of curious home cooks, seasoned vegans, and conscious eaters shaping everyday plant-based
+          living across Vietnam.
+        </p>
+        <div class="closing-actions">
+          <button class="btn btn-light" onclick="alert('Proceeding to Sign Up')">
+            Create Free Account
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button class="btn btn-ghost-dark" onclick="alert('Proceeding to Sign In')">
+            Log In to Your Account
+          </button>
+        </div>
+      </div>
+
+      <!-- Integrated Accessible Footer -->
+      <footer class="integrated-footer">
+        <div>
+          <strong style="color: white; font-family: var(--font-display); font-size: 15px;">VeganHelper</strong>
+          <span style="display: block; margin-top: 4px;">© 2026 VeganHelper System. Rooted in Vietnam.</span>
+        </div>
+
+        <nav class="footer-links" aria-label="Footer Navigation">
+          <a href="#chapter-hero">Discover</a>
+          <a href="#chapter-platform">Platform</a>
+          <a href="#chapter-recipes">Recipes</a>
+          <a href="#chapter-menu">Weekly Menu</a>
+          <a href="#chapter-stores">Stores</a>
+          <a href="#chapter-community">Community</a>
+        </nav>
+
+        <a href="#chapter-hero" style="color: #A3CCA0; text-decoration: underline;">Back to top ↑</a>
+      </footer>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       11. INTERACTIVE PROTOTYPE SCRIPTING
+       ========================================================================= -->
+  <script>
+    // Concept Switching Mechanism
+    function setConcept(concept, btn) {
+      document.body.setAttribute('data-direction', concept);
+      document.querySelectorAll('.concept-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Interactive Day Selector in Chapter 04
+    const sampleDays = [
+      {
+        day: 'Mon',
+        meals: [
+          { time: 'Breakfast · 07:30', tag: '☀️ Gentle Energy', name: 'Warm Rolled Oats with Crushed Peanuts & Banana', desc: 'Toasted oats with coconut milk, caramelized banana, and roasted sesame.', kcal: '360 kcal · 10g Protein · Nut-Free option' },
+          { time: 'Lunch · 12:30', tag: '⭐ Sustenance', name: 'Lemongrass Claypot Tofu & Jasmine Rice', desc: 'Slow-braised firm tofu with black pepper, fresh lemongrass, and steamed bok choy.', kcal: '520 kcal · 24g Protein · 100% Vegan' },
+          { time: 'Dinner · 19:00', tag: '🌙 Light Balance', name: 'Fresh Spring Herb Rolls & Sweet Bean Dip', desc: 'Rice paper rolls packed with water spinach, mint, cucumber, and braised mushroom.', kcal: '380 kcal · 14g Protein · Gluten-Free' }
+        ]
+      },
+      {
+        day: 'Tue',
+        meals: [
+          { time: 'Breakfast · 07:30', tag: '☀️ Gentle Energy', name: 'Coconut Chia Pudding & Ripe Mango', desc: 'Chia seeds steeped in rich coconut water, ripe mango slices, and roasted pumpkin seeds.', kcal: '380 kcal · 12g Protein · Soy-Free' },
+          { time: 'Lunch · 12:30', tag: '⭐ Main Sustenance', name: 'Lemongrass Tofu & Herb Rice Bowl', desc: 'Seared spiced tofu cubes, steamed jasmine brown rice, and pickled daikon carrots.', kcal: '560 kcal · 28g Protein · Gluten-Free' },
+          { time: 'Dinner · 19:00', tag: '🌙 Restorative Broth', name: 'Mushroom & Charred Scallion Phở', desc: 'Handmade flat rice noodles in an 8-hour star anise broth with wood ear mushrooms.', kcal: '420 kcal · 18g Protein · Low Sodium' }
+        ]
+      },
+      {
+        day: 'Wed',
+        meals: [
+          { time: 'Breakfast · 07:30', tag: '☀️ Gentle Energy', name: 'Toasted Bánh Mì with Pâté Chay & Pickles', desc: 'Crispy baguette with mushroom walnut pâté, pickled daikon, and fresh coriander.', kcal: '410 kcal · 13g Protein · High Fiber' },
+          { time: 'Lunch · 12:30', tag: '⭐ Sustenance', name: 'Claypot Caramelized Eggplant & Crispy Tempeh', desc: 'Japanese eggplant simmered in rich soy glaze with golden fried tempeh slices.', kcal: '540 kcal · 22g Protein · Iron-Rich' },
+          { time: 'Dinner · 19:00', tag: '🌙 Light Balance', name: 'Lotus Seed & Sweet Corn Clear Soup', desc: 'Fresh lotus seeds from Đồng Tháp simmered with sweet corn and shiitake caps.', kcal: '350 kcal · 12g Protein · Gentle Digestion' }
+        ]
+      }
+    ];
+
+    function selectDay(index, btn) {
+      document.querySelectorAll('.day-selector-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const data = sampleDays[index % sampleDays.length];
+      const container = document.getElementById('day-meals-container');
+      container.innerHTML = data.meals.map(m => `
+        <div class="meal-slot-card">
+          <div>
+            <div class="meal-time-tag">
+              <span>${m.time}</span>
+              <span>${m.tag}</span>
+            </div>
+            <h4 class="meal-dish-name">${m.name}</h4>
+            <p class="meal-ingredients-preview">${m.desc}</p>
+          </div>
+          <div class="meal-macros-badge">
+            <span>${m.kcal}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Interactive Store Spotlight in Chapter 05
+    const storeVenues = {
+      'Bếp Chay Hoa Khai': { sub: '142 Nguyễn Thị Minh Khai, Quận 1 · Open 08:00 - 21:00' },
+      'The Organik Pantry': { sub: '54 Xuân Thủy, Thảo Điền, TP. Thủ Đức · Open 09:00 - 20:00' },
+      'Mãn Tự Chay': { sub: '201 Nguyễn Tri Phương, Quận 5 · Open 11:00 - 20:30' }
+    };
+
+    function highlightStore(name) {
+      document.querySelectorAll('.store-spotlight-item').forEach(el => {
+        el.classList.toggle('active', el.textContent.includes(name));
+      });
+      document.getElementById('venue-title').innerText = name;
+      document.getElementById('venue-sub').innerText = storeVenues[name]?.sub || 'Ho Chi Minh City';
+    }
+
+    // Scroll Progress Spy for Right Story Nav
+    const chapters = document.querySelectorAll('.chapter-section');
+    const navDots = document.querySelectorAll('.story-nav-dot');
+
+    window.addEventListener('scroll', () => {
+      let currentId = '';
+      const offset = window.innerHeight * 0.35;
+      chapters.forEach(sec => {
+        const top = sec.getBoundingClientRect().top;
+        if (top <= offset) currentId = sec.id;
+      });
+
+      navDots.forEach(dot => {
+        dot.classList.toggle('active', dot.getAttribute('href') === '#' + currentId);
+      });
+    }, { passive: true });
+
+    // Handle ?view= url query parameter for chapter-specific viewing and captures
+    const urlParams = new URLSearchParams(window.location.search);
+    const isolatedView = urlParams.get('view');
+    if (isolatedView) {
+      document.body.setAttribute('data-isolated-view', isolatedView);
+    }
+
+    // Handle initial hash jumps instantly
+    if (window.location.hash) {
+      const target = document.querySelector(window.location.hash);
+      if (target) {
+        setTimeout(() => {
+          window.scrollTo({ top: target.offsetTop - 76, behavior: 'instant' });
+        }, 100);
+      }
+    }
+  </script>
+</body>
+
+</html>

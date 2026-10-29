@@ -15,7 +15,14 @@ function RecipeMedia({ post }) {
     <div className="lp-recipe-media">
       {url && !failed ? (
         video ? (
-          <video src={url} muted playsInline preload="metadata" onError={() => setFailed(true)} aria-label={`Video preview: ${post.title}`} />
+          <video
+            src={url}
+            muted
+            playsInline
+            preload="metadata"
+            onError={() => setFailed(true)}
+            aria-label={`Video preview: ${post.title}`}
+          />
         ) : (
           <img src={url} alt={post.title} loading="lazy" onError={() => setFailed(true)} />
         )
@@ -42,53 +49,93 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
 
   useEffect(() => {
     let cancelled = false;
-    getCategories().then(data => { if (!cancelled) setCategories(Array.isArray(data) ? data : data?.items ?? []); }).catch(() => {});
-    return () => { cancelled = true; };
+    getCategories()
+      .then(data => {
+        if (!cancelled) setCategories(Array.isArray(data) ? data : data?.items ?? []);
+      })
+      .catch(() => { });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    const timer = setTimeout(async () => {
-      try {
-        const data = keyword.trim()
-          ? await searchPosts({ keyword: keyword.trim(), pageSize: 6 })
-          : await getPostsFeed({ pageSize: 6, categoryId });
-        if (cancelled) return;
-        setPosts(data.items ?? []);
-        if (!keyword.trim() && categoryId === null) {
-          const count = data.totalItems ?? data.totalCount;
-          onCommunityLoaded({ items: data.items ?? [], total: typeof count === 'number' ? count : null });
+    const timer = setTimeout(
+      async () => {
+        try {
+          const data = keyword.trim()
+            ? await searchPosts({ keyword: keyword.trim(), pageSize: 6 })
+            : await getPostsFeed({ pageSize: 6, categoryId });
+          if (cancelled) return;
+          setPosts(data.items ?? []);
+          if (!keyword.trim() && categoryId === null) {
+            const count = data.totalItems ?? data.totalCount;
+            onCommunityLoaded({
+              items: data.items ?? [],
+              total: typeof count === 'number' ? count : null,
+            });
+          }
+        } catch {
+          if (!cancelled) {
+            setPosts([]);
+            setError(true);
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } catch {
-        if (!cancelled) { setPosts([]); setError(true); }
-      } finally { if (!cancelled) setLoading(false); }
-    }, keyword.trim() ? 350 : 0);
-    return () => { cancelled = true; clearTimeout(timer); };
+      },
+      keyword.trim() ? 350 : 0
+    );
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [keyword, categoryId, retry, onCommunityLoaded]);
 
   return (
-    <section id="recipes" data-landing-chapter="recipes" className="lp-section lp-recipes" aria-labelledby="landing-recipes-title">
+    <section
+      id="recipes"
+      data-landing-chapter="recipes"
+      className="lp-section lp-section-chapter lp-recipes"
+      aria-labelledby="landing-recipes-title"
+    >
       <div className="lp-container">
         <LandingReveal className="lp-section-heading">
           <div>
-            <p className="lp-eyebrow"><span />From our community kitchens</p>
-            <h2 id="landing-recipes-title">Good food.<br className="lp-mobile-only" /> Even better shared.</h2>
+            <p className="lp-eyebrow">
+              <span />03 / Food Takes The Stage · Community Kitchens
+            </p>
+            <h2 id="landing-recipes-title">
+              Good food.<br className="lp-mobile-only" /> Even better shared.
+            </h2>
           </div>
-          <Link to="/search-guest" className="lp-text-link">Explore all posts <LandingIcon name="arrow" /></Link>
+          <Link to="/search-guest" className="lp-text-link">
+            Explore all posts <LandingIcon name="arrow" />
+          </Link>
         </LandingReveal>
 
         <div className="lp-recipe-toolbar">
-          <form className="lp-recipe-search" role="search" onSubmit={event => event.preventDefault()}>
+          <form
+            className="lp-recipe-search"
+            role="search"
+            onSubmit={event => event.preventDefault()}
+          >
             <LandingIcon name="search" width="19" height="19" />
-            <label htmlFor="landing-recipe-search" className="sr-only">Search community recipes and posts</label>
+            <label htmlFor="landing-recipe-search" className="sr-only">
+              Search community recipes and posts
+            </label>
             <input
               id="landing-recipe-search"
               type="search"
               value={keyword}
-              placeholder="What would you like to cook?"
-              onChange={event => { setKeyword(event.target.value); setCategoryId(null); }}
+              placeholder="What would you like to cook today?"
+              onChange={event => {
+                setKeyword(event.target.value);
+                setCategoryId(null);
+              }}
             />
           </form>
 
@@ -98,7 +145,10 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
               aria-pressed={categoryId === null && !keyword}
               className={categoryId === null && !keyword ? 'is-active' : ''}
               whileTap={reducedMotion ? undefined : { scale: 0.95 }}
-              onClick={() => { setCategoryId(null); setKeyword(''); }}
+              onClick={() => {
+                setCategoryId(null);
+                setKeyword('');
+              }}
             >
               All posts
             </motion.button>
@@ -109,7 +159,10 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
                 aria-pressed={categoryId === category.id}
                 className={categoryId === category.id ? 'is-active' : ''}
                 whileTap={reducedMotion ? undefined : { scale: 0.95 }}
-                onClick={() => { setCategoryId(category.id); setKeyword(''); }}
+                onClick={() => {
+                  setCategoryId(category.id);
+                  setKeyword('');
+                }}
               >
                 {category.name}
               </motion.button>
@@ -118,13 +171,21 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
         </div>
 
         <div className="lp-recipe-status" role="status" aria-live="polite">
-          {loading ? 'Finding fresh inspiration…' : keyword.trim() ? `Showing results for “${keyword.trim()}”` : ''}
+          {loading
+            ? 'Finding fresh inspiration…'
+            : keyword.trim()
+              ? `Showing results for “${keyword.trim()}”`
+              : ''}
         </div>
 
         {loading ? (
           <div className="lp-recipe-grid" aria-hidden="true">
             {Array.from({ length: 6 }, (_, index) => (
-              <div className="lp-recipe-skeleton" key={index}><div /><span /><span /></div>
+              <div className="lp-recipe-skeleton" key={index}>
+                <div />
+                <span />
+                <span />
+              </div>
             ))}
           </div>
         ) : error ? (
@@ -132,14 +193,29 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
             <LandingIcon name="bowl" width="36" height="36" />
             <h3>The kitchen is taking a moment.</h3>
             <p>We could not load community posts. Please try again.</p>
-            <button className="lp-button lp-button-outline" type="button" onClick={() => setRetry(value => value + 1)}>Try again</button>
+            <button
+              className="lp-button lp-button-outline"
+              type="button"
+              onClick={() => setRetry(value => value + 1)}
+            >
+              Try again
+            </button>
           </div>
         ) : !posts.length ? (
           <div className="lp-data-message">
             <LandingIcon name="search" width="36" height="36" />
             <h3>A new discovery is around the corner.</h3>
             <p>No posts match this selection. Try another search or category.</p>
-            <button type="button" className="lp-button lp-button-outline" onClick={() => { setKeyword(''); setCategoryId(null); }}>Show all posts</button>
+            <button
+              type="button"
+              className="lp-button lp-button-outline"
+              onClick={() => {
+                setKeyword('');
+                setCategoryId(null);
+              }}
+            >
+              Show all posts
+            </button>
           </div>
         ) : (
           <div className="lp-recipe-grid">
@@ -147,9 +223,17 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
               <LandingReveal className="lp-recipe-entrance" key={post.id} delay={index * 0.055}>
                 <motion.article
                   className="lp-recipe-card"
-                  whileHover={reducedMotion ? undefined : { y: -4, transition: { duration: 0.22, ease: easeEditorial } }}
+                  whileHover={
+                    reducedMotion
+                      ? undefined
+                      : { y: -4, transition: { duration: 0.22, ease: easeEditorial } }
+                  }
                 >
-                  <Link to={`/posts/${post.id}/guest`} className="lp-recipe-cover" aria-label={`Read ${post.title}`}>
+                  <Link
+                    to={`/posts/${post.id}/guest`}
+                    className="lp-recipe-cover"
+                    aria-label={`Read ${post.title}`}
+                  >
                     <RecipeMedia key={`${post.id}-${post.thumbnailUrl}`} post={post} />
                   </Link>
                   <div className="lp-recipe-copy">
@@ -160,21 +244,33 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
                         className="lp-save-button"
                         whileTap={reducedMotion ? undefined : { scale: 0.88 }}
                         aria-label={`Save ${post.title}`}
-                        onClick={() => onAuthRequired('Create an account or log in to save your favorite posts and return to them anytime.')}
+                        onClick={() =>
+                          onAuthRequired(
+                            'Create an account or log in to save your favorite posts and return to them anytime.'
+                          )
+                        }
                       >
                         <LandingIcon name="bookmark" width="18" height="18" />
                       </motion.button>
                     </div>
-                    <h3><Link to={`/posts/${post.id}/guest`}>{post.title}</Link></h3>
+                    <h3>
+                      <Link to={`/posts/${post.id}/guest`}>{post.title}</Link>
+                    </h3>
                     <div className="lp-recipe-bottom">
-                      <span className="lp-author-initial" aria-hidden="true">{post.authorName?.charAt(0)?.toUpperCase() || 'V'}</span>
+                      <span className="lp-author-initial" aria-hidden="true">
+                        {post.authorName?.charAt(0)?.toUpperCase() || 'V'}
+                      </span>
                       <span className="lp-recipe-author">{post.authorName || 'Community member'}</span>
                       <motion.button
                         type="button"
                         className="lp-like-button"
                         whileTap={reducedMotion ? undefined : { scale: 0.88 }}
                         aria-label={`Like ${post.title}`}
-                        onClick={() => onAuthRequired('Log in to like posts, leave a comment and cheer on your fellow cooks.')}
+                        onClick={() =>
+                          onAuthRequired(
+                            'Log in to like posts, leave a comment and cheer on your fellow cooks.'
+                          )
+                        }
                       >
                         <LandingIcon name="heart" width="18" height="18" />
                       </motion.button>
@@ -185,7 +281,9 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
             ))}
           </div>
         )}
-        <p className="lp-section-note"><LandingIcon name="leaf" width="16" height="16" /> Browse freely. Join when you are ready to save, share and connect.</p>
+        <p className="lp-section-note">
+          <LandingIcon name="leaf" width="16" height="16" /> Browse freely. Join when you are ready to save, share and connect.
+        </p>
       </div>
     </section>
   );

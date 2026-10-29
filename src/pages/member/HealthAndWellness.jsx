@@ -295,17 +295,15 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
         </div>
       )}
 
-      {/* MAIN CONTENT CONTAINER — Balanced 2-Column Responsive Layout */}
+      {/* MAIN CONTENT CONTAINER — Balanced 2-Row, 2-Column Responsive Layout */}
       <main className={`flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 ${!isComponent ? 'py-10' : 'py-8'}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 
           {/* ======================================================== */}
-          {/* LEFT COLUMN: Health Profile followed by Food Allergies   */}
+          {/* ROW 1 LEFT: Health Profile                               */}
           {/* ======================================================== */}
-          <div className="space-y-8 flex flex-col">
-
-            {/* SECTION 1: HEALTH PROFILE */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
                 <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -318,7 +316,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                 </div>
               </div>
 
-              <form onSubmit={handleHealthSubmit} className="space-y-5">
+              <form id="health-profile-form" onSubmit={handleHealthSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Height (cm)</label>
@@ -409,27 +407,94 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                     </select>
                   </div>
                 </div>
-
-                <div className="pt-3 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={savingHealth}
-                    className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
-                  >
-                    {savingHealth && (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                      </svg>
-                    )}
-                    Save Health Profile
-                  </button>
-                </div>
               </form>
-            </section>
+            </div>
 
-            {/* SECTION 2: FOOD ALLERGIES */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="pt-5 flex justify-end">
+              <button
+                type="submit"
+                form="health-profile-form"
+                disabled={savingHealth}
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
+              >
+                {savingHealth && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                )}
+                Save Health Profile
+              </button>
+            </div>
+          </section>
+
+          {/* ======================================================== */}
+          {/* ROW 1 RIGHT: Current BMI                                 */}
+          {/* ======================================================== */}
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
+                <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Current BMI</h2>
+                  <p className="text-xs text-[#6B6F63] mt-0.5">Calculated body mass index based on current profile</p>
+                </div>
+              </div>
+
+              {bmiResult ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-4 text-center sm:text-left">
+                    <div className="text-5xl sm:text-6xl font-fraunces font-bold text-[#2B2A25]">
+                      {bmiResult.bmi.toFixed(1)}
+                    </div>
+                    <div className={`text-lg sm:text-xl font-semibold ${getCategoryColor(bmiResult.category)}`}>
+                      {bmiResult.category}
+                    </div>
+                  </div>
+
+                  {/* Biometric Snapshot Card */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-3.5 rounded-xl text-center">
+                      <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1 font-medium">Height used</div>
+                      <div className="font-semibold text-lg text-[#2B2A25]">{healthData.heightCm || '--'} cm</div>
+                    </div>
+                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-3.5 rounded-xl text-center">
+                      <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1 font-medium">Weight used</div>
+                      <div className="font-semibold text-lg text-[#2B2A25]">{healthData.weightKg || '--'} kg</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-6 rounded-xl text-center">
+                  <p className="text-[#A63446] font-semibold mb-1.5">Insufficient Health Data</p>
+                  <p className="text-[#A63446]/80 text-sm">
+                    Enter valid height and weight in the Health Profile to calculate your BMI and ideal weight range.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Ideal Weight Range */}
+            {bmiResult?.idealWeightRange && (
+              <div className="mt-6 p-3.5 bg-[#F3F6EE] border border-[#DCE3D5]/60 rounded-xl text-sm text-[#4A4D44] flex items-center gap-2">
+                <span className="text-[#2F5233] font-semibold text-base">🎯</span>
+                <span>
+                  <strong className="font-semibold text-[#2B2A25]">Ideal Weight Range:</strong>{' '}
+                  {bmiResult.idealWeightRange.minKg.toFixed(1)}kg – {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
+                </span>
+              </div>
+            )}
+          </section>
+
+          {/* ======================================================== */}
+          {/* ROW 2 LEFT: Food Allergies                                */}
+          {/* ======================================================== */}
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
                 <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -442,7 +507,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                 </div>
               </div>
 
-              <form onSubmit={handleAllergiesSubmit} className="space-y-6">
+              <form id="food-allergies-form" onSubmit={handleAllergiesSubmit} className="space-y-6">
 
                 {/* Search System Ingredients */}
                 <div className="space-y-2.5">
@@ -576,143 +641,82 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                     </div>
                   )}
                 </div>
-
-                <div className="pt-2 flex justify-end border-t border-[#DCE3D5]/50">
-                  <button
-                    type="submit"
-                    disabled={savingAllergies}
-                    className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
-                  >
-                    {savingAllergies && (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                      </svg>
-                    )}
-                    Save Allergies
-                  </button>
-                </div>
               </form>
-            </section>
-          </div>
+            </div>
+
+            <div className="pt-4 flex justify-end border-t border-[#DCE3D5]/50 mt-6">
+              <button
+                type="submit"
+                form="food-allergies-form"
+                disabled={savingAllergies}
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
+              >
+                {savingAllergies && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                )}
+                Save Allergies
+              </button>
+            </div>
+          </section>
 
           {/* ======================================================== */}
-          {/* RIGHT COLUMN: Current BMI followed by BMI History        */}
+          {/* ROW 2 RIGHT: BMI History                                  */}
           {/* ======================================================== */}
-          <div className="space-y-8 flex flex-col">
-
-            {/* SECTION 3: CURRENT BMI */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
-                <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Current BMI</h2>
-                  <p className="text-xs text-[#6B6F63] mt-0.5">Calculated body mass index based on current profile</p>
-                </div>
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col h-full">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
+              <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
               </div>
-
-              {bmiResult ? (
-                <div>
-                  <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-4 mb-6 text-center sm:text-left">
-                    <div className="text-5xl sm:text-6xl font-fraunces font-bold text-[#2B2A25]">
-                      {bmiResult.bmi.toFixed(1)}
-                    </div>
-                    <div className={`text-lg sm:text-xl font-semibold ${getCategoryColor(bmiResult.category)}`}>
-                      {bmiResult.category}
-                    </div>
-                  </div>
-
-                  {/* Biometric Snapshot Card */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-3.5 rounded-xl text-center">
-                      <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1 font-medium">Height used</div>
-                      <div className="font-semibold text-lg text-[#2B2A25]">{healthData.heightCm || '--'} cm</div>
-                    </div>
-                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-3.5 rounded-xl text-center">
-                      <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1 font-medium">Weight used</div>
-                      <div className="font-semibold text-lg text-[#2B2A25]">{healthData.weightKg || '--'} kg</div>
-                    </div>
-                  </div>
-
-                  {/* Ideal Weight Range */}
-                  {bmiResult.idealWeightRange && (
-                    <div className="mt-5 p-3.5 bg-[#F3F6EE] border border-[#DCE3D5]/60 rounded-xl text-sm text-[#4A4D44] flex items-center gap-2">
-                      <span className="text-[#2F5233] font-semibold text-base">🎯</span>
-                      <span>
-                        <strong className="font-semibold text-[#2B2A25]">Ideal Weight Range:</strong>{' '}
-                        {bmiResult.idealWeightRange.minKg.toFixed(1)}kg – {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-6 rounded-xl text-center">
-                  <p className="text-[#A63446] font-semibold mb-1.5">Insufficient Health Data</p>
-                  <p className="text-[#A63446]/80 text-sm">
-                    Enter valid height and weight in the Health Profile to calculate your BMI and ideal weight range.
-                  </p>
-                </div>
-              )}
-            </section>
-
-            {/* SECTION 4: BMI HISTORY */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex-1 flex flex-col">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
-                <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">BMI History</h2>
-                  <p className="text-xs text-[#6B6F63] mt-0.5">Chronological record of weight changes and progress</p>
-                </div>
+              <div>
+                <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">BMI History</h2>
+                <p className="text-xs text-[#6B6F63] mt-0.5">Chronological record of weight changes and progress</p>
               </div>
+            </div>
 
-              {bmiHistory.length === 0 ? (
-                <div className="py-12 text-center text-[#6B6F63] my-auto">
-                  <div className="w-14 h-14 mx-auto mb-3 bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] rounded-full flex items-center justify-center text-xl">
-                    ⏱️
-                  </div>
-                  <p className="font-medium text-[#2B2A25]">No BMI history records yet</p>
-                  <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
-                    New historical records are logged automatically each time you update your weight in the Health Profile.
-                  </p>
+            {bmiHistory.length === 0 ? (
+              <div className="py-12 text-center text-[#6B6F63] my-auto flex-1 flex flex-col items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] rounded-full flex items-center justify-center text-xl">
+                  ⏱️
                 </div>
-              ) : (
-                <div className="overflow-x-auto w-full">
-                  <table className="w-full text-left border-collapse min-w-[280px]">
-                    <thead>
-                      <tr className="border-b border-[#DCE3D5]">
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider">Date</th>
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">Weight</th>
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">BMI</th>
+                <p className="font-medium text-[#2B2A25]">No BMI history records yet</p>
+                <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
+                  New historical records are logged automatically each time you update your weight in the Health Profile.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto overflow-y-auto max-h-[380px] w-full flex-1 pr-1 custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[280px]">
+                  <thead className="sticky top-0 bg-white z-10">
+                    <tr className="border-b border-[#DCE3D5]">
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider">Date</th>
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">Weight</th>
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">BMI</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#FDFBF6]">
+                    {bmiHistory.map((record, index) => (
+                      <tr key={index} className="hover:bg-[#F3F6EE]/50 transition-colors">
+                        <td className="py-3 px-3 text-sm text-[#2B2A25] font-medium whitespace-nowrap">
+                          {formatDate(record.timestamp)}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-[#2B2A25] text-right font-medium whitespace-nowrap">
+                          {record.weightKg?.toFixed ? `${record.weightKg.toFixed(1)} kg` : `${record.weightKg} kg`}
+                        </td>
+                        <td className="py-3 px-3 text-sm font-semibold text-[#2F5233] text-right whitespace-nowrap">
+                          {record.bmi?.toFixed ? record.bmi.toFixed(1) : record.bmi}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#FDFBF6]">
-                      {bmiHistory.map((record, index) => (
-                        <tr key={index} className="hover:bg-[#F3F6EE]/50 transition-colors">
-                          <td className="py-3 px-3 text-sm text-[#2B2A25] font-medium whitespace-nowrap">
-                            {formatDate(record.timestamp)}
-                          </td>
-                          <td className="py-3 px-3 text-sm text-[#2B2A25] text-right font-medium whitespace-nowrap">
-                            {record.weightKg?.toFixed ? `${record.weightKg.toFixed(1)} kg` : `${record.weightKg} kg`}
-                          </td>
-                          <td className="py-3 px-3 text-sm font-semibold text-[#2F5233] text-right whitespace-nowrap">
-                            {record.bmi?.toFixed ? record.bmi.toFixed(1) : record.bmi}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-          </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
 
         </div>
       </main>

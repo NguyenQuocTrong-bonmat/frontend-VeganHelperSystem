@@ -28,7 +28,7 @@ function WeeklyMenu() {
   return (
     <div className="wm-page min-h-screen flex flex-col">
       <HeaderMember />
-      
+
       {/* PAGE HEADER */}
       <div className="wm-page-header">
         <img className="wm-header-backdrop" src={weeklyMenuImage} alt="" aria-hidden="true" />
@@ -43,24 +43,24 @@ function WeeklyMenu() {
       {/* TABS NAVIGATION — Unified 2-Tab Navigation */}
       <div className="wm-page-tabs">
         <div role="tablist" aria-label="Meal planning and health">
-            <button
-              type="button"
-              id="weekly-menu-tab" role="tab" aria-selected={activeTab === 'weekly'} aria-controls="weekly-menu-panel" tabIndex={activeTab === 'weekly' ? 0 : -1}
-              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
-              onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'End'].includes(event.key)) { event.preventDefault(); setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); } }}
-              onClick={() => setActiveTab('weekly')}
-            >
-              <PlannerIcon name="calendar" />Weekly Menu
-            </button>
-            <button
-              type="button"
-              id="wellness-tab" role="tab" aria-selected={activeTab === 'wellness'} aria-controls="wellness-panel" tabIndex={activeTab === 'wellness' ? 0 : -1}
-              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
-              onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'Home'].includes(event.key)) { event.preventDefault(); setActiveTab('weekly'); document.getElementById('weekly-menu-tab')?.focus(); } }}
-              onClick={() => setActiveTab('wellness')}
-            >
-              <PlannerIcon name="leaf" />Health & Wellness
-            </button>
+          <button
+            type="button"
+            id="weekly-menu-tab" role="tab" aria-selected={activeTab === 'weekly'} aria-controls="weekly-menu-panel" tabIndex={activeTab === 'weekly' ? 0 : -1}
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
+            onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'End'].includes(event.key)) { event.preventDefault(); setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); } }}
+            onClick={() => setActiveTab('weekly')}
+          >
+            <PlannerIcon name="calendar" />Weekly Menu
+          </button>
+          <button
+            type="button"
+            id="wellness-tab" role="tab" aria-selected={activeTab === 'wellness'} aria-controls="wellness-panel" tabIndex={activeTab === 'wellness' ? 0 : -1}
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.99] motion-reduce:transform-none"
+            onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'Home'].includes(event.key)) { event.preventDefault(); setActiveTab('weekly'); document.getElementById('weekly-menu-tab')?.focus(); } }}
+            onClick={() => setActiveTab('wellness')}
+          >
+            <PlannerIcon name="leaf" />Health & Wellness
+          </button>
         </div>
       </div>
 

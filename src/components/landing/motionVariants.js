@@ -1,6 +1,6 @@
 /**
  * VeganHelper Landing Motion Design System
- * Aesthetic: Cinematic Botanical × Premium Food Editorial × Smooth Scroll Storytelling
+ * Aesthetic: Cinematic Botanical × Premium Food Editorial × Natural Smooth Scroll Storytelling
  */
 
 export const easeEditorial = [0.22, 1, 0.36, 1];
@@ -18,13 +18,20 @@ export const springBrisk = {
   damping: 32,
 };
 
+/**
+ * Standard scroll-triggered fade-in reveal variant:
+ * - Initial state: opacity 0, vertical offset 16px
+ * - Revealed state: opacity 1, vertical offset 0
+ * - Duration: ~550ms (within 450-650ms recommended range)
+ * - Easing: smooth ease-out curve
+ */
 export const fadeUpVariants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.75,
+      duration: 0.55,
       ease: easeEditorial,
     },
   },
@@ -35,7 +42,7 @@ export const lineRevealVariants = {
   visible: {
     y: '0%',
     transition: {
-      duration: 0.85,
+      duration: 0.65,
       ease: easeEditorial,
     },
   },
@@ -46,26 +53,26 @@ export const fadeInVariants = {
   visible: {
     opacity: 1,
     transition: {
-      duration: 0.6,
+      duration: 0.5,
       ease: easeEditorial,
     },
   },
 };
 
 export const scaleUpVariants = {
-  hidden: { opacity: 0, scale: 0.94, y: 16 },
+  hidden: { opacity: 0, scale: 0.96, y: 16 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      duration: 0.8,
+      duration: 0.6,
       ease: easeEditorial,
     },
   },
 };
 
-export const createStaggerContainer = (staggerChildren = 0.09, delayChildren = 0.05) => ({
+export const createStaggerContainer = (staggerChildren = 0.08, delayChildren = 0.04) => ({
   hidden: {},
   visible: {
     transition: {
@@ -81,11 +88,11 @@ export const buttonHoverTap = {
 };
 
 export const cardHoverTap = {
-  whileHover: { y: -4, transition: { duration: 0.24, ease: easeEditorial } },
+  whileHover: { y: -4, transition: { duration: 0.22, ease: easeEditorial } },
 };
 
 export const defaultViewport = {
   once: true,
-  amount: 0.15,
+  amount: 0.18,
   margin: '0px 0px -40px 0px',
 };

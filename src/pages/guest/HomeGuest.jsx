@@ -10,7 +10,7 @@ import LandingPillars from '../../components/landing/LandingPillars';
 import LandingReveal from '../../components/landing/LandingReveal';
 import useLandingSectionScroll from '../../components/landing/useLandingSectionScroll';
 import { WeeklyMenuPreview, VeganStorePreview } from '../../components/landing/LandingPreviews';
-import { easeEditorial, defaultViewport } from '../../components/landing/motionVariants';
+import { easeEditorial } from '../../components/landing/motionVariants';
 import heroFood from '../../assets/images/hero/hero-vietnamese-vegan-food.webp';
 import './landing-page.css';
 
@@ -29,70 +29,62 @@ export default function HomeGuest() {
     description.name = 'description';
     description.content = 'Discover plant-based recipes, explore vegan living in Vietnam and preview personalized weekly menus with the Vegan Helper community.';
     document.head.appendChild(description);
-    return () => { document.title = previousTitle; description.remove(); };
+    return () => {
+      document.title = previousTitle;
+      description.remove();
+    };
   }, []);
-
-  const hasObserver = typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function';
-  const animatePromise = hasObserver && !reducedMotion;
 
   return (
     <div className="lp-page">
       <a className="lp-skip-link" href="#landing-main">Skip to content</a>
       <LandingHeader />
+
       <main id="landing-main">
+        {/* CHAPTER 01: Hero — The First Bite */}
         <LandingHero />
 
-        {/* Promise Strip Entrance */}
-        {animatePromise ? (
-          <motion.div
-            className="lp-promise-strip"
-            aria-label="Explore the Vegan Helper platform"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={defaultViewport}
-            transition={{ duration: 0.7, ease: easeEditorial }}
-          >
-            <div className="lp-container">
-              <span><LandingIcon name="bowl" />Discover something delicious</span>
-              <span className="lp-promise-divider" aria-hidden="true">✳</span>
-              <span><LandingIcon name="calendar" />Make room for a good week</span>
-              <span className="lp-promise-divider" aria-hidden="true">✳</span>
-              <span><LandingIcon name="people" />Grow with a community</span>
-            </div>
-          </motion.div>
-        ) : (
-          <div className="lp-promise-strip" aria-label="Explore the Vegan Helper platform">
-            <div className="lp-container">
-              <span><LandingIcon name="bowl" />Discover something delicious</span>
-              <span className="lp-promise-divider" aria-hidden="true">✳</span>
-              <span><LandingIcon name="calendar" />Make room for a good week</span>
-              <span className="lp-promise-divider" aria-hidden="true">✳</span>
-              <span><LandingIcon name="people" />Grow with a community</span>
-            </div>
-          </div>
-        )}
-
+        {/* CHAPTER 02: Platform — More Than Recipes */}
         <LandingPillars />
 
+        {/* CHAPTER 03: Recipes — Food Takes the Stage */}
         <LandingRecipes onAuthRequired={setAuthReason} onCommunityLoaded={handleCommunityLoaded} />
 
+        {/* CHAPTER 04: Weekly Menu — A Week in Motion */}
         <WeeklyMenuPreview onAuthRequired={setAuthReason} />
+
+        {/* CHAPTER 05: Vegan Stores — Good Things, Closer to Home */}
         <VeganStorePreview onAuthRequired={setAuthReason} />
 
-        {/* Community Story Section */}
-        <section id="community" data-landing-chapter="community" className="lp-section lp-community" aria-labelledby="landing-community-title">
+        {/* CHAPTER 06: Community — Food Brings Us Together */}
+        <section
+          id="community"
+          data-landing-chapter="community"
+          className="lp-section lp-section-chapter lp-community"
+          aria-labelledby="landing-community-title"
+        >
           <div className="lp-container">
             <div className="lp-community-intro">
               <LandingReveal depth className="lp-community-image">
                 <img src={heroFood} alt="A colorful Vietnamese plant-based meal ready to share" loading="lazy" />
                 <span>Something good is always growing.</span>
               </LandingReveal>
+
               <LandingReveal className="lp-community-copy">
-                <p className="lp-eyebrow"><span />A seat at the table for everyone</p>
-                <h2 id="landing-community-title">Come for the food.<br /><em>Stay for the people.</em></h2>
-                <p>Your first tofu experiment. Your family recipe, reimagined. Your favorite neighborhood find. There is room for all of it here.</p>
+                <p className="lp-eyebrow">
+                  <span />06 / Food Brings Us Together · The Shared Table
+                </p>
+                <h2 id="landing-community-title">
+                  Come for the food.<br />
+                  <em>Stay for the people.</em>
+                </h2>
+                <p>
+                  Your first tofu experiment. Your family recipe, reimagined. Your favorite neighborhood find. There is room for all of it here.
+                </p>
                 <p>Read what others are sharing, then add your own story when you are ready.</p>
-                <Link to="/sign-up" className="lp-text-link">Join the Community <LandingIcon name="arrow" /></Link>
+                <Link to="/sign-up" className="lp-text-link">
+                  Join the Community <LandingIcon name="arrow" />
+                </Link>
               </LandingReveal>
             </div>
 
@@ -118,30 +110,38 @@ export default function HomeGuest() {
                   <span>Real posts. Everyday inspiration.</span>
                 </div>
                 <div className="lp-story-grid">
-                  {community.items.slice(0, 3).map(post => (
-                    <motion.article
-                      key={post.id}
-                      className="lp-story"
-                      whileHover={reducedMotion ? undefined : { y: -4, transition: { duration: 0.22, ease: easeEditorial } }}
-                    >
-                      <div className="lp-story-author">
-                        <span className="lp-author-initial" aria-hidden="true">{post.authorName?.charAt(0)?.toUpperCase() || 'V'}</span>
-                        <span>{post.authorName || 'Community member'}<small>Shared a community post</small></span>
-                        <motion.button
-                          type="button"
-                          className="lp-follow-button"
-                          whileTap={reducedMotion ? undefined : { scale: 0.94 }}
-                          onClick={() => setAuthReason('Log in to follow creators and keep up with the people who inspire your cooking.')}
-                          aria-label={`Follow ${post.authorName || 'this creator'}`}
-                        >
-                          Follow
-                        </motion.button>
-                      </div>
-                      <h3><Link to={`/posts/${post.id}/guest`}>{post.title}</Link></h3>
-                      <Link to={`/posts/${post.id}/guest`} className="lp-text-link">
-                        Read their post <LandingIcon name="arrow" width="17" height="17" />
-                      </Link>
-                    </motion.article>
+                  {community.items.slice(0, 3).map((post, index) => (
+                    <LandingReveal key={post.id} delay={index * 0.06}>
+                      <motion.article
+                        className="lp-story"
+                        whileHover={reducedMotion ? undefined : { y: -4, transition: { duration: 0.22, ease: easeEditorial } }}
+                      >
+                        <div className="lp-story-author">
+                          <span className="lp-author-initial" aria-hidden="true">
+                            {post.authorName?.charAt(0)?.toUpperCase() || 'V'}
+                          </span>
+                          <span>
+                            {post.authorName || 'Community member'}
+                            <small>Shared a community post</small>
+                          </span>
+                          <motion.button
+                            type="button"
+                            className="lp-follow-button"
+                            whileTap={reducedMotion ? undefined : { scale: 0.94 }}
+                            onClick={() => setAuthReason('Log in to follow creators and keep up with the people who inspire your cooking.')}
+                            aria-label={`Follow ${post.authorName || 'this creator'}`}
+                          >
+                            Follow
+                          </motion.button>
+                        </div>
+                        <h3>
+                          <Link to={`/posts/${post.id}/guest`}>{post.title}</Link>
+                        </h3>
+                        <Link to={`/posts/${post.id}/guest`} className="lp-text-link">
+                          Read their post <LandingIcon name="arrow" width="17" height="17" />
+                        </Link>
+                      </motion.article>
+                    </LandingReveal>
                   ))}
                 </div>
               </div>
@@ -149,8 +149,13 @@ export default function HomeGuest() {
           </div>
         </section>
 
-        {/* Final CTA Section */}
-        <section className="lp-final-cta" aria-labelledby="landing-final-title">
+        {/* CHAPTER 07: Closing — A Greener Tomorrow */}
+        <section
+          id="closing"
+          data-landing-chapter="closing"
+          className="lp-section lp-section-chapter lp-final-cta"
+          aria-labelledby="landing-final-title"
+        >
           <LandingReveal className="lp-container">
             <motion.span
               className="lp-final-leaf"
@@ -159,23 +164,33 @@ export default function HomeGuest() {
             >
               <LandingIcon name="leaf" width="38" height="38" />
             </motion.span>
-            <p className="lp-eyebrow">One small step. So many good possibilities.</p>
-            <h2 id="landing-final-title">Start your plant-based<br /><em>journey today.</em></h2>
-            <p>Find a recipe. Make a plan. Meet your people.<br />A greener everyday starts wherever you are.</p>
+            <p className="lp-eyebrow">07 / A Greener Tomorrow · One small step</p>
+            <h2 id="landing-final-title">
+              Start your plant-based<br />
+              <em>journey today.</em>
+            </h2>
+            <p>
+              Find a recipe. Make a plan. Meet your people.<br />
+              A greener everyday starts wherever you are.
+            </p>
             <div className="lp-final-actions">
               <motion.div
                 style={{ display: 'inline-flex' }}
                 whileHover={reducedMotion ? undefined : { y: -2, scale: 1.02 }}
                 whileTap={reducedMotion ? undefined : { scale: 0.98 }}
               >
-                <Link className="lp-button lp-button-light" to="/sign-up">Create an Account <LandingIcon name="arrow" /></Link>
+                <Link className="lp-button lp-button-light" to="/sign-up">
+                  Create an Account <LandingIcon name="arrow" />
+                </Link>
               </motion.div>
               <motion.div
                 style={{ display: 'inline-flex' }}
                 whileHover={reducedMotion ? undefined : { y: -2, scale: 1.02 }}
                 whileTap={reducedMotion ? undefined : { scale: 0.98 }}
               >
-                <Link className="lp-button lp-button-on-dark" to="/login">Log in</Link>
+                <Link className="lp-button lp-button-on-dark" to="/login">
+                  Log in
+                </Link>
               </motion.div>
             </div>
             <span className="lp-final-note">Explore freely. Join when it feels right.</span>
@@ -183,11 +198,17 @@ export default function HomeGuest() {
         </section>
       </main>
 
+      {/* Footer */}
       <footer className="lp-footer">
         <div className="lp-container">
           <div className="lp-footer-main">
-            <Link className="lp-logo" to="/" aria-label="Vegan Helper home"><img src="/logo.png" alt="Vegan Helper" /></Link>
-            <p>Rooted in good food.<br />Growing together.</p>
+            <Link className="lp-logo" to="/" aria-label="Vegan Helper home">
+              <img src="/logo.png" alt="Vegan Helper" />
+            </Link>
+            <p>
+              Rooted in good food.<br />
+              Growing together.
+            </p>
             <nav aria-label="Footer navigation">
               <a href="#recipes">Recipes</a>
               <a href="#weekly-menu-preview">Weekly Menu</a>
@@ -202,6 +223,7 @@ export default function HomeGuest() {
           </div>
         </div>
       </footer>
+
       <LandingAuthDialog reason={authReason} onClose={closeAuth} />
     </div>
   );

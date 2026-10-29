@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import LandingIcon from './LandingIcon';
@@ -11,19 +11,39 @@ import {
 } from './motionVariants';
 import heroPho from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
 import heroSpringRolls from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
+import heroHerbs from '../../assets/images/hero/hero-herbs-cutout.png';
 
 const MotionLink = motion.create ? motion.create(Link) : motion(Link);
 
-function HeroStage({ reducedMotion, cinematic, layers = {} }) {
+export default function LandingHero() {
+  const sectionRef = useRef(null);
+  const mediaReducedMotion = useLandingMedia('(prefers-reduced-motion: reduce)');
+  const framerReducedMotion = useReducedMotion();
+  const reducedMotion = mediaReducedMotion || Boolean(framerReducedMotion);
+  const desktop = useLandingMedia('(min-width: 1024px)');
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+
+  // 2.5D Parallax layers driven by scroll without state re-renders
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -40]);
+  const foregroundY = useTransform(scrollYProgress, [0, 1], [0, -70]);
+  const foregroundRotate = useTransform(scrollYProgress, [0, 1], [-6, -1]);
+  const herbsRotate = useTransform(scrollYProgress, [0, 1], [3, 10]);
+  const stampRotate = useTransform(scrollYProgress, [0, 1], [12, 28]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -25]);
+
   const itemTransition = { duration: reducedMotion ? 0 : 0.8, ease: easeEditorial };
 
-  // Copy entrance orchestrator
   const copyContainerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: reducedMotion ? 0 : 0.1,
+        staggerChildren: reducedMotion ? 0 : 0.09,
         delayChildren: reducedMotion ? 0 : 0.05,
       },
     },
@@ -52,37 +72,28 @@ function HeroStage({ reducedMotion, cinematic, layers = {} }) {
   };
 
   return (
-    <div className="lp-hero-stage">
-      {/* Botanical backdrop layer */}
-      <motion.div
-        className="lp-hero-botanical lp-hero-botanical-back"
-        aria-hidden="true"
-        style={layers.backLeaf}
-        initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 0.45, scale: 1 }}
-        transition={{ duration: reducedMotion ? 0 : 1.2, ease: easeEditorial }}
-      >
-        <LandingIcon name="leaf" width="400" height="400" />
-      </motion.div>
-
-      <motion.div
-        className="lp-hero-mist"
-        aria-hidden="true"
-        style={layers.mist}
-      />
+    <section
+      ref={sectionRef}
+      id="landing-hero"
+      data-landing-chapter="hero"
+      className="lp-section lp-section-chapter lp-hero"
+      aria-labelledby="landing-hero-title"
+    >
+      {/* Background organic halo */}
+      <div className="lp-hero-bg-halo" aria-hidden="true" />
 
       <div className="lp-container lp-hero-layout">
-        {/* Editorial Copy */}
+        {/* Editorial Narrative Column */}
         <motion.div
           className="lp-hero-copy"
-          style={layers.copy}
+          style={desktop && !reducedMotion ? { y: textY } : undefined}
           initial={reducedMotion ? false : 'hidden'}
           animate="visible"
           variants={copyContainerVariants}
         >
-          {/* Eyebrow */}
+          {/* Editorial Eyebrow */}
           <motion.p className="lp-eyebrow" variants={fadeUpVariants} transition={itemTransition}>
-            <span />Rooted in Vietnam. Open to everyone.
+            <span />01 / The First Bite · Rooted in Vietnam
           </motion.p>
 
           {/* Masked Headline */}
@@ -113,11 +124,8 @@ function HeroStage({ reducedMotion, cinematic, layers = {} }) {
             The flavors you love. The balance you are looking for. Discover plant-based cooking, plan your week and find your people — all in one place.
           </motion.p>
 
-          {/* Staggered CTAs with refined tactile feedback */}
-          <motion.div
-            className="lp-hero-actions"
-            variants={actionGroupVariants}
-          >
+          {/* CTAs with tactile interaction feedback */}
+          <motion.div className="lp-hero-actions" variants={actionGroupVariants}>
             <motion.a
               href="#recipes"
               className="lp-button lp-button-primary"
@@ -140,7 +148,7 @@ function HeroStage({ reducedMotion, cinematic, layers = {} }) {
             </MotionLink>
           </motion.div>
 
-          {/* Supporting Note */}
+          {/* Supporting Micro-Proof Note */}
           <motion.div className="lp-hero-note" variants={fadeUpVariants} transition={itemTransition}>
             <span className="lp-mini-leaves" aria-hidden="true">
               <LandingIcon name="leaf" />
@@ -154,157 +162,101 @@ function HeroStage({ reducedMotion, cinematic, layers = {} }) {
           </motion.div>
         </motion.div>
 
-        {/* Visual Composition */}
-        <motion.div
-          className="lp-hero-visual"
-          initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reducedMotion ? 0 : 0.85, delay: reducedMotion ? 0 : 0.15, ease: easeEditorial }}
-        >
-          {/* Main Pho Arch */}
-          <motion.div className="lp-hero-image" style={layers.image}>
-            <motion.img
-              src={heroPho}
-              alt="Vietnamese vegan pho with golden tofu, noodles and fresh herbs"
-              fetchpriority="high"
-              initial={reducedMotion ? false : { scale: 1.07 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: reducedMotion ? 0 : 1.4, ease: easeEditorial }}
-            />
-            <motion.div
-              className="lp-hero-image-caption"
-              initial={reducedMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reducedMotion ? 0 : 0.8, delay: reducedMotion ? 0 : 0.4 }}
-            >
-              <span>THE EVERYDAY, REIMAGINED</span>
-              <strong>Comfort in a bowl.</strong>
-            </motion.div>
+        {/* Signature 2.5D "Food Beyond the Frame" Visual Stage */}
+        <div className="lp-hero-stage">
+          {/* Ceramic textured backdrop circle */}
+          <div className="lp-hero-plate-backing" aria-hidden="true" />
+
+          {/* Dominant Dish Layer: Pho bursting out of its frame */}
+          <motion.div
+            className="lp-hero-main-dish-wrap"
+            style={desktop && !reducedMotion ? { y: heroY, scale: heroScale } : undefined}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.95, ease: easeEditorial }}
+          >
+            <div className="lp-hero-dish-frame">
+              <img
+                src={heroPho}
+                alt="Authentic Vietnamese vegan pho with golden tofu, noodles, and aromatic herbs"
+                className="lp-hero-pho-img"
+                fetchpriority="high"
+                loading="eager"
+              />
+              <div className="lp-hero-dish-tag">
+                <span>COMFORT IN A BOWL</span>
+                <strong>Vegan Phở Cổ Truyền</strong>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Side Plate with subtle float */}
+          {/* Foreground Supporting Layer: Summer Spring Rolls with dipping sauce */}
           <motion.div
-            className="lp-hero-side-image"
-            style={layers.foreground}
-            initial={reducedMotion ? false : { opacity: 0, x: -16, y: 16 }}
+            className="lp-hero-foreground-dish"
+            style={desktop && !reducedMotion ? { y: foregroundY, rotate: foregroundRotate } : undefined}
+            initial={reducedMotion ? false : { opacity: 0, x: -25, y: 30 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: reducedMotion ? 0 : 0.9, delay: reducedMotion ? 0 : 0.28, ease: easeEditorial }}
+            transition={{ duration: reducedMotion ? 0 : 0.9, delay: reducedMotion ? 0 : 0.25, ease: easeEditorial }}
           >
-            <img src={heroSpringRolls} alt="Fresh vegetable spring rolls with dipping sauce" />
+            <div className="lp-hero-spring-rolls-card">
+              <img
+                src={heroSpringRolls}
+                alt="Fresh Vietnamese vegetable spring rolls with peanut dipping sauce"
+                className="lp-hero-spring-rolls-img"
+                loading="eager"
+              />
+              <div className="lp-hero-spring-rolls-badge">
+                <span>Crisp & Fresh</span>
+                <strong>Gỏi Cuốn Chay</strong>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Foreground Fresh Herbs & Lime Accent */}
+          <motion.div
+            className="lp-hero-herbs-accent"
+            style={desktop && !reducedMotion ? { y: foregroundY, rotate: herbsRotate } : undefined}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.88, y: 35 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.85, delay: reducedMotion ? 0 : 0.3, ease: easeEditorial }}
+            aria-hidden="true"
+          >
+            <img
+              src={heroHerbs}
+              alt=""
+              className="lp-hero-herbs-img"
+              loading="eager"
+            />
           </motion.div>
 
           {/* Editorial Stamp */}
           <motion.div
             className="lp-hero-stamp"
-            style={layers.stamp}
-            initial={reducedMotion ? false : { opacity: 0, scale: 0.85, rotate: 0 }}
-            animate={{ opacity: 1, scale: 1, rotate: 12 }}
+            style={desktop && !reducedMotion ? { rotate: stampRotate } : undefined}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={reducedMotion ? { duration: 0 } : { ...springGentle, delay: 0.35 }}
           >
-            <LandingIcon name="leaf" width="28" height="28" />
-            <span>GOOD FOOD.<br />GENTLER LIVING.</span>
+            <LandingIcon name="leaf" width="24" height="24" />
+            <span>ORIGINAL TASTE<br />100% PLANT-BASED</span>
           </motion.div>
 
-          <span className="lp-hero-vertical" aria-hidden="true">A FRESH TAKE ON EVERYDAY LIVING</span>
-          <span className="lp-hero-photo-note">Plant-based inspiration · serving suggestion</span>
-        </motion.div>
+          {/* Editorial Margin Notes */}
+          <span className="lp-hero-vertical-meta" aria-hidden="true">
+            A FRESH TAKE ON EVERYDAY LIVING
+          </span>
+        </div>
       </div>
 
-      {/* Front Botanical Leaf */}
-      <motion.div
-        className="lp-hero-botanical lp-hero-botanical-front"
-        aria-hidden="true"
-        style={layers.frontLeaf}
-        initial={reducedMotion ? false : { opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 0.3, scale: 1 }}
-        transition={{ duration: reducedMotion ? 0 : 1, delay: reducedMotion ? 0 : 0.2, ease: easeEditorial }}
-      >
-        <LandingIcon name="leaf" width="180" height="180" />
-      </motion.div>
-
-      {/* Cinematic Scroll Guide */}
-      {cinematic && (
-        <div className="lp-hero-scroll-guide">
-          <span>01 / DISCOVER</span>
-          <div className="lp-hero-scroll-line" aria-hidden="true">
-            <motion.span style={{ scaleX: layers.progress }} />
-          </div>
-          <a href="#recipes">
-            Scroll to find your flavor{' '}
-            <motion.span
-              aria-hidden="true"
-              animate={reducedMotion ? undefined : { y: [0, 3, 0] }}
-              transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
-            >
-              ↓
-            </motion.span>
-          </a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ScrollHeroStage({ sectionRef }) {
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
-
-  // One progress value drives every layer. Scroll never updates React state.
-  const imageY = useTransform(scrollYProgress, [0, 0.2, 1], [40, 0, -28]);
-  const imageScale = useTransform(scrollYProgress, [0, 0.22, 1], [0.95, 1, 1.08]);
-  const imageRotate = useTransform(scrollYProgress, [0, 1], [-2, 2]);
-  const frontY = useTransform(scrollYProgress, [0, 1], [14, -95]);
-  const frontRotate = useTransform(scrollYProgress, [0, 1], [-10, 2]);
-  const stampY = useTransform(scrollYProgress, [0, 1], [0, -65]);
-  const stampRotate = useTransform(scrollYProgress, [0, 1], [12, 26]);
-  const copyY = useTransform(scrollYProgress, [0, 1], [0, -20]);
-  const backY = useTransform(scrollYProgress, [0, 1], [0, -65]);
-  const frontLeafY = useTransform(scrollYProgress, [0, 1], [30, -140]);
-  const mistOpacity = useTransform(scrollYProgress, [0, 0.18, 1], [0.75, 0, 0]);
-  const mistY = useTransform(scrollYProgress, [0, 0.18, 1], [0, -90, -90]);
-
-  return (
-    <HeroStage
-      cinematic
-      reducedMotion={false}
-      layers={{
-        progress: scrollYProgress,
-        image: { y: imageY, scale: imageScale, rotate: imageRotate },
-        foreground: { y: frontY, rotate: frontRotate },
-        stamp: { y: stampY, rotate: stampRotate },
-        copy: { y: copyY },
-        backLeaf: { y: backY },
-        frontLeaf: { y: frontLeafY },
-        mist: { opacity: mistOpacity, y: mistY },
-      }}
-    />
-  );
-}
-
-export default function LandingHero() {
-  const sectionRef = useRef(null);
-  const [visible, setVisible] = useState(false);
-  const mediaReducedMotion = useLandingMedia('(prefers-reduced-motion: reduce)');
-  const framerReducedMotion = useReducedMotion();
-  const reducedMotion = mediaReducedMotion || Boolean(framerReducedMotion);
-  const desktop = useLandingMedia('(min-width: 901px) and (min-height: 700px)');
-  const cinematic = desktop && !reducedMotion;
-  const canObserve = typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function';
-
-  return (
-    <motion.section
-      ref={sectionRef}
-      className={`lp-hero lp-hero-cinematic ${cinematic ? 'is-pinned' : ''}`}
-      aria-labelledby="landing-hero-title"
-      data-motion-active={!reducedMotion && visible}
-      onViewportEnter={canObserve ? () => setVisible(true) : undefined}
-      onViewportLeave={canObserve ? () => setVisible(false) : undefined}
-      viewport={{ amount: 0.05 }}
-    >
-      {cinematic ? (
-        <ScrollHeroStage sectionRef={sectionRef} />
-      ) : (
-        <HeroStage reducedMotion={reducedMotion} cinematic={false} />
-      )}
-    </motion.section>
+      {/* Chapter 01 Bottom Settle Guide */}
+      <div className="lp-hero-chapter-guide" aria-hidden="true">
+        <span className="lp-hero-chapter-index">01 / 07 · DISCOVER</span>
+        <div className="lp-hero-guide-line" />
+        <a href="#platform" className="lp-hero-guide-prompt">
+          <span>Scroll to explore platform</span>
+          <span className="lp-hero-guide-arrow">↓</span>
+        </a>
+      </div>
+    </section>
   );
 }

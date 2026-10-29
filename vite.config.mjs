@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    pool: 'threads',
+    pool: 'forks',
     environmentOptions: { jsdom: { url: 'http://localhost:3000' } },
   },
 });

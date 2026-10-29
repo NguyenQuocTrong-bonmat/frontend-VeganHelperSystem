@@ -1,85 +1,157 @@
-import { useLayoutEffect, useRef, useState } from 'react';
-import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import LandingIcon from './LandingIcon';
 import LandingReveal from './LandingReveal';
-import useLandingMedia from './useLandingMedia';
+import { easeEditorial } from './motionVariants';
+import heroSpringRolls from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
 
 const pillars = [
-  { icon: 'bowl', number: '01', label: 'Discover', title: 'A world of plant-based flavor.', description: 'Discover cooking ideas, familiar Vietnamese flavors and new favorites from community kitchens.', link: 'Explore recipes', href: '#recipes' },
-  { icon: 'pin', number: '02', label: 'Explore', title: 'Find your local green spots.', description: 'Get to know vegan kitchens and stores, and make everyday plant-based choices a little easier.', link: 'Discover stores', href: '#stores' },
-  { icon: 'calendar', number: '03', label: 'Plan', title: 'A week made around you.', description: 'Bring your health profile, allergies and calorie target into a varied seven-day menu.', link: 'Meet your weekly menu', href: '#weekly-menu-preview' },
-  { icon: 'people', number: '04', label: 'Connect', title: 'Better with good company.', description: 'Share what you cook, follow inspiring creators and learn from people on the same journey.', link: 'Find your community', href: '#community' },
+  {
+    number: '01',
+    label: 'Recipes',
+    title: 'A world of plant-based flavor.',
+    description: 'Explore curated culinary recipes, familiar Vietnamese flavors and creative favorites from home kitchens across the country.',
+    link: 'Explore recipes',
+    href: '#recipes',
+    tag: 'Community Kitchen',
+  },
+  {
+    number: '02',
+    label: 'Vegan Stores',
+    title: 'Find your local green spots.',
+    description: 'Discover nearby vegan restaurants, organic markets and plant-based ingredient shops in your neighborhood.',
+    link: 'Discover stores',
+    href: '#stores',
+    tag: 'Local Map',
+  },
+  {
+    number: '03',
+    label: 'Weekly Menu',
+    title: 'A week made around you.',
+    description: 'Harmonize your health profile, declared allergies, and nutrition targets into an effortless, balanced 7-day meal plan.',
+    link: 'Meet your weekly menu',
+    href: '#weekly-menu-preview',
+    tag: 'Smart Planning',
+  },
+  {
+    number: '04',
+    label: 'Community',
+    title: 'Better with good company.',
+    description: 'Share what you cook, follow inspiring creators, exchange tips and grow together with people on the same lifestyle journey.',
+    link: 'Find your community',
+    href: '#community',
+    tag: 'Shared Table',
+  },
 ];
 
-function PillarHeading() {
-  return <><p className="lp-eyebrow"><span />More than a recipe collection</p><h2 id="landing-pillars-title">Everything you need.<br /><em>A little more connected.</em></h2><p>Good food is just the beginning. Build everyday habits with tools and people that belong together.</p></>;
-}
-
-function ReelCard({ pillar, index, progress, onFocus }) {
-  const opacity = useTransform(progress, value => 1 - Math.min(1, Math.abs(value * 3 - index)) * 0.53);
-  const scale = useTransform(progress, value => 1 - Math.min(1, Math.abs(value * 3 - index)) * 0.07);
-  const iconX = useTransform(progress, value => (value * 3 - index) * -13);
-  const iconRotate = useTransform(progress, value => (value * 3 - index) * 4);
-  return <motion.article className={`lp-reel-card lp-reel-card-${index}`} style={{ opacity, scale }} data-pillar-index={index} onFocusCapture={onFocus}>
-    <div className="lp-reel-art" aria-hidden="true"><span className="lp-reel-orbit lp-reel-orbit-one" /><span className="lp-reel-orbit lp-reel-orbit-two" /><motion.span style={{ x: iconX, rotate: iconRotate }}><LandingIcon name={pillar.icon} width="85" height="85" /></motion.span><span className="lp-reel-art-label">{pillar.number} / {pillar.label}</span></div>
-    <div className="lp-reel-card-copy"><h3>{pillar.title}</h3><p>{pillar.description}</p><a href={pillar.href}>{pillar.link}<LandingIcon name="arrow" width="18" height="18" /></a></div>
-  </motion.article>;
-}
-
-function PillarReel({ sectionRef }) {
-  const frameRef = useRef(null);
-  const trackRef = useRef(null);
-  const countRef = useRef(null);
-  const stepRefs = useRef([]);
-  const nearestRef = useRef(0);
-  const [travel, setTravel] = useState(0);
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
-  const progress = useTransform(scrollYProgress, [0, 0.04, 0.96, 1], [0, 0, 1, 1]);
-  const x = useTransform(progress, value => -value * travel);
-  const { scrollYProgress: passage } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  const stageY = useTransform(passage, [0, 0.22, 0.78, 1], [60, 0, 0, -60]);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const card = trackRef.current?.querySelector('.lp-reel-card');
-      if (card) setTravel((card.offsetWidth + 24) * (pillars.length - 1));
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(frameRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  useMotionValueEvent(progress, 'change', value => {
-    const nearest = Math.round(value * (pillars.length - 1));
-    if (nearest === nearestRef.current) return;
-    nearestRef.current = nearest;
-    if (countRef.current) countRef.current.textContent = `0${nearest + 1}`;
-    stepRefs.current.forEach((button, index) => {
-      if (index === nearest) button?.setAttribute('aria-current', 'step');
-      else button?.removeAttribute('aria-current');
-    });
-  });
-
-  const showCard = (index, smooth = true) => {
-    const section = sectionRef.current;
-    const start = window.scrollY + section.getBoundingClientRect().top;
-    const sceneProgress = index === 0 ? 0 : index === pillars.length - 1 ? 1 : 0.04 + (index / (pillars.length - 1)) * 0.92;
-    window.scrollTo({ top: start + sceneProgress * (section.offsetHeight - window.innerHeight), behavior: smooth ? 'smooth' : 'instant' });
-  };
-
-  return <div className="lp-pillar-sticky"><motion.div className="lp-container lp-pillar-stage" style={{ y: stageY }}>
-    <div className="lp-pillar-reel-intro"><PillarHeading /><div className="lp-reel-readout" aria-hidden="true"><span ref={countRef}>01</span><span>/ 04</span><div><motion.span style={{ scaleX: progress }} /></div></div><p className="lp-reel-help">Scroll to explore, or choose a chapter.</p><div className="lp-reel-steps" role="group" aria-label="Choose a platform feature">{pillars.map((pillar, index) => <button type="button" key={pillar.number} ref={node => { stepRefs.current[index] = node; }} aria-current={index === 0 ? 'step' : undefined} aria-label={`Show ${pillar.label.toLowerCase()} feature`} onClick={() => showCard(index)}>{pillar.number}</button>)}</div></div>
-    <div ref={frameRef} className="lp-pillar-window"><motion.div ref={trackRef} className="lp-pillar-track" style={{ x }}>{pillars.map((pillar, index) => <ReelCard key={pillar.number} pillar={pillar} index={index} progress={progress} onFocus={() => showCard(index, false)} />)}</motion.div></div>
-  </motion.div></div>;
-}
-
 export default function LandingPillars() {
-  const sectionRef = useRef(null);
-  const desktop = useLandingMedia('(min-width: 901px) and (min-height: 700px)');
-  const reducedMotion = useLandingMedia('(prefers-reduced-motion: reduce)');
-  const cinematic = desktop && !reducedMotion;
-  return <section id="platform" data-landing-chapter="platform" ref={sectionRef} className={`lp-section lp-pillars lp-pillars-cinematic ${cinematic ? 'is-pinned' : ''}`} aria-labelledby="landing-pillars-title">
-    {cinematic ? <PillarReel sectionRef={sectionRef} /> : <div className="lp-container"><LandingReveal className="lp-pillars-heading"><PillarHeading /></LandingReveal><div className="lp-pillar-grid">{pillars.map((pillar, index) => <LandingReveal as="article" className="lp-pillar" key={pillar.number} delay={index * 0.06}><div className="lp-pillar-top"><LandingIcon name={pillar.icon} width="30" height="30" /><span>{pillar.number}</span></div><h3>{pillar.title}</h3><p>{pillar.description}</p><a href={pillar.href}>{pillar.link}<LandingIcon name="arrow" width="18" height="18" /></a></LandingReveal>)}</div></div>}
-  </section>;
+  const [activePillar, setActivePillar] = useState(0);
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <section
+      id="platform"
+      data-landing-chapter="platform"
+      className="lp-section lp-section-chapter lp-platform"
+      aria-labelledby="landing-pillars-title"
+    >
+      <div className="lp-container lp-platform-container">
+        {/* Editorial Section Header */}
+        <LandingReveal className="lp-platform-heading">
+          <div className="lp-platform-heading-copy">
+            <p className="lp-eyebrow">
+              <span />02 / More than a recipe collection
+            </p>
+            <h2 id="landing-pillars-title">
+              Everything you need.<br />
+              <em>A little more connected.</em>
+            </h2>
+            <p className="lp-platform-subtitle">
+              Good food is just the beginning. Build everyday habits with tools, local spots, and people that belong together.
+            </p>
+          </div>
+
+          <div className="lp-platform-pagers" role="group" aria-label="Platform pillars navigation">
+            {pillars.map((p, idx) => (
+              <button
+                key={p.number}
+                type="button"
+                className={`lp-pillar-step-btn ${activePillar === idx ? 'is-active' : ''}`}
+                aria-current={activePillar === idx ? 'step' : undefined}
+                aria-label={`Highlight feature ${p.number}: ${p.label}`}
+                onClick={() => setActivePillar(idx)}
+              >
+                <span>{p.number}</span>
+                <span className="lp-step-name">{p.label}</span>
+              </button>
+            ))}
+          </div>
+        </LandingReveal>
+
+        {/* Asymmetrical Editorial Composition */}
+        <div className="lp-platform-editorial-grid">
+          {/* Dominant Hero Feature Box (Left) */}
+          <LandingReveal as="article" className="lp-platform-hero-card" delay={0.05}>
+            <div className="lp-hero-card-media" aria-hidden="true">
+              <img
+                src={heroSpringRolls}
+                alt="Plant-based ingredients and dishes"
+                className="lp-hero-card-img"
+                loading="lazy"
+              />
+              <div className="lp-hero-card-overlay" />
+            </div>
+
+            <div className="lp-hero-card-content">
+              <div className="lp-hero-card-tag">
+                <LandingIcon name="bowl" width="20" height="20" />
+                <span>{pillars[0].tag} · 01</span>
+              </div>
+              <h3>{pillars[0].title}</h3>
+              <p>{pillars[0].description}</p>
+              <a href={pillars[0].href} className="lp-hero-card-cta">
+                <span>{pillars[0].link}</span>
+                <LandingIcon name="arrow" width="18" height="18" />
+              </a>
+            </div>
+          </LandingReveal>
+
+          {/* Staggered Secondary Pillars (Right Stack) */}
+          <div className="lp-platform-secondary-stack">
+            {pillars.slice(1).map((pillar, index) => {
+              const actualIdx = index + 1;
+              const isSelected = activePillar === actualIdx;
+              return (
+                <LandingReveal key={pillar.number} delay={0.06 + index * 0.06}>
+                  <motion.article
+                    className={`lp-pillar-tile ${isSelected ? 'is-highlighted' : ''}`}
+                    whileHover={reducedMotion ? undefined : { y: -3, transition: { duration: 0.2, ease: easeEditorial } }}
+                    onClick={() => setActivePillar(actualIdx)}
+                  >
+                    <div className="lp-pillar-tile-top">
+                      <span className="lp-pillar-tile-num">{pillar.number}</span>
+                      <span className="lp-pillar-tile-tag">{pillar.tag}</span>
+                      <LandingIcon
+                        name={actualIdx === 1 ? 'pin' : actualIdx === 2 ? 'calendar' : 'people'}
+                        width="22"
+                        height="22"
+                      />
+                    </div>
+
+                    <h3 className="lp-pillar-tile-title">{pillar.title}</h3>
+                    <p className="lp-pillar-tile-desc">{pillar.description}</p>
+
+                    <a href={pillar.href} className="lp-pillar-tile-link">
+                      <span>{pillar.link}</span>
+                      <LandingIcon name="arrow" width="16" height="16" />
+                    </a>
+                  </motion.article>
+                </LandingReveal>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -20,7 +20,7 @@ export async function getPostsFeed(params = {}) {
     difficultyLevel,
     dietType,
     prepTimeMax,
-    sortBy = 'latest',
+    sortBy = 'trending',
   } = params;
 
   // Tạo URLSearchParams để tự động build query string hợp lệ
