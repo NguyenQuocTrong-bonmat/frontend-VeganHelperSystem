@@ -6,10 +6,55 @@ import ChatMarkdown from './ChatMarkdown';
 
 const welcome = 'Hello! Ask me about plant-based meals, ingredients, or balanced nutrition.';
 const guestIdentityKey = 'veganhelper-ai-chat-guest-id';
+const guestStateKey = 'veganhelper-ai-chat-guest-state';
+const guestConversationKey = 'veganhelper-ai-chat-guest';
+const memberConversationPrefix = 'veganhelper-ai-chat-member-';
+
+function clearConversationOnReload() {
+  try {
+    const navigation = performance.getEntriesByType('navigation')?.[0];
+    if (navigation?.type !== 'reload') return;
+
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (key === guestConversationKey || key?.startsWith(memberConversationPrefix)) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Storage may be unavailable in restricted browser contexts.
+  }
+}
+
+clearConversationOnReload();
+
+function readGuestRemaining() {
+  try {
+    const guestSessionId = localStorage.getItem(guestIdentityKey);
+    const state = JSON.parse(localStorage.getItem(guestStateKey) || 'null');
+    if (guestSessionId && state?.guestSessionId === guestSessionId && Number.isInteger(state.remaining)) {
+      return Math.max(0, Math.min(3, state.remaining));
+    }
+  } catch {
+    // Fall back to the trial allowance when browser storage is unavailable.
+  }
+  return 3;
+}
+
+function saveGuestRemaining(guestSessionId, remaining) {
+  try {
+    localStorage.setItem(guestStateKey, JSON.stringify({
+      guestSessionId,
+      remaining: Math.max(0, Math.min(3, remaining)),
+    }));
+  } catch {
+    // The server remains authoritative for the guest trial limit.
+  }
+}
 
 function readSession(key) {
   try {
-    const value = JSON.parse(localStorage.getItem(key) || 'null');
+    const value = JSON.parse(sessionStorage.getItem(key) || 'null');
     return value && Number.isSafeInteger(value.sessionId) && value.sessionId > 0 ? value : null;
   } catch {
     return null;
@@ -33,14 +78,14 @@ export default function AIChatbot() {
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState([]);
   const [session, setSession] = useState(null);
-  const [remaining, setRemaining] = useState(3);
+  const [remaining, setRemaining] = useState(readGuestRemaining);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [limitReached, setLimitReached] = useState(false);
   const endRef = useRef(null);
   const activeScope = useRef('');
   const skipHistoryForSession = useRef(null);
-  const storageKey = authLoading ? null : isAuthenticated ? `veganhelper-ai-chat-member-${user?.id}` : 'veganhelper-ai-chat-guest';
+  const storageKey = authLoading ? null : isAuthenticated ? `${memberConversationPrefix}${user?.id}` : guestConversationKey;
 
   useEffect(() => {
     if (!storageKey || storageKey === activeScope.current) return;
@@ -50,9 +95,10 @@ export default function AIChatbot() {
     setMessages([]);
     setDraft('');
     setError('');
-    setRemaining(3);
-    setLimitReached(false);
-  }, [storageKey]);
+    const guestRemaining = isAuthenticated ? 3 : readGuestRemaining();
+    setRemaining(guestRemaining);
+    setLimitReached(!isAuthenticated && guestRemaining === 0);
+  }, [storageKey, isAuthenticated]);
 
   useEffect(() => {
     if (!isOpen || !storageKey || !session?.sessionId) return;
@@ -66,16 +112,11 @@ export default function AIChatbot() {
       .then((history) => {
         if (cancelled) return;
         setMessages(history.messages || []);
-        if (!isAuthenticated) {
-          const used = (history.messages || []).filter((message) => message.senderType === 'ai').length;
-          setRemaining(Math.max(0, 3 - used));
-          setLimitReached(used >= 3);
-        }
       })
       .catch((cause) => {
         if (cancelled) return;
         if (cause.response?.status === 404) {
-          localStorage.removeItem(storageKey);
+          sessionStorage.removeItem(storageKey);
           setSession(null);
         }
         setError(errorText(cause));
@@ -99,7 +140,7 @@ export default function AIChatbot() {
       const result = await aiChatService.send(message, session?.sessionId || null, guestSessionId);
       if (activeScope.current !== scope) return;
       const nextSession = { sessionId: result.sessionId, guestSessionId: result.guestSessionId || null };
-      localStorage.setItem(scope, JSON.stringify(nextSession));
+      sessionStorage.setItem(scope, JSON.stringify(nextSession));
       skipHistoryForSession.current = result.sessionId;
       setSession(nextSession);
       setMessages((previous) => [...previous,
@@ -113,13 +154,19 @@ export default function AIChatbot() {
       ]);
       setDraft('');
       if (!isAuthenticated && typeof result.guestQuestionsRemaining === 'number') {
-        setRemaining(result.guestQuestionsRemaining);
-        setLimitReached(result.guestQuestionsRemaining === 0);
+        const guestRemaining = Math.max(0, Math.min(3, result.guestQuestionsRemaining));
+        setRemaining(guestRemaining);
+        setLimitReached(guestRemaining === 0);
+        saveGuestRemaining(guestSessionId, guestRemaining);
       }
     } catch (cause) {
       if (activeScope.current !== scope) return;
       setError(errorText(cause));
-      if (cause.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') setLimitReached(true);
+      if (cause.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') {
+        setLimitReached(true);
+        setRemaining(0);
+        if (guestSessionId) saveGuestRemaining(guestSessionId, 0);
+      }
     } finally {
       if (activeScope.current === scope) setBusy(false);
     }
