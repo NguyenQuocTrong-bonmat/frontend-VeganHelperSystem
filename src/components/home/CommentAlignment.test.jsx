@@ -525,6 +525,53 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
     expect(toast.success).toHaveBeenCalledWith('Comment updated.');
   });
 
+  it.each([
+    ['member', false, false, 1, 0],
+    ['member', true, false, 3, 0],
+    ['admin', false, false, 3, 2],
+    ['admin', true, false, 3, 0],
+    ['member', false, true, 0, 0],
+  ])('shows delete actions for role=%s postAuthor=%s guest=%s', async (role, isPostAuthor, isGuest, count, adminCount) => {
+    useAuth.mockReturnValue({ user: { id: 'user-101', role }, isAuthenticated: !isGuest });
+    interactionService.getComments.mockResolvedValueOnce([
+      { id: 'own', userId: 'user-101', content: 'Own comment', depth: 1, replies: [] },
+      { id: 'member', userId: 'other-member', content: 'Member comment', depth: 1, replies: [] },
+      { id: 'admin', userId: 'other-admin', content: 'Admin comment', depth: 1, replies: [] },
+    ]);
+    await act(async () => root.render(<CommentModal isOpen={true} onClose={() => {}}
+      post={{ ...mockPost, authorId: isPostAuthor ? 'user-101' : mockPost.authorId }} isGuest={isGuest} />));
+    const actions = [...container.querySelectorAll('button')].filter((button) => /^Delete(?: \(Admin\))?$/.test(button.textContent.trim()));
+    expect(actions).toHaveLength(count);
+    expect(actions.filter((button) => button.textContent.trim() === 'Delete (Admin)')).toHaveLength(adminCount);
+  });
+
+  it('places delete confirmation above the comment popup and Escape closes only confirmation', async () => {
+    const onClose = vi.fn();
+    interactionService.getComments.mockResolvedValueOnce([
+      { id: 'own', userId: 'user-101', content: 'Own comment', depth: 1, replies: [] },
+    ]);
+    await act(async () => root.render(<CommentModal isOpen={true} onClose={onClose} post={mockPost} />));
+    const deleteButton = [...container.querySelectorAll('button')].find((button) => button.textContent.trim() === 'Delete');
+    deleteButton.focus();
+    await act(async () => deleteButton.click());
+    const confirmation = document.querySelector('[aria-labelledby="comment-delete-modal-title"]');
+    const comments = container.querySelector('[aria-labelledby="comment-modal-title"]');
+    expect(confirmation.parentElement).toBe(document.body);
+    expect(confirmation.className).toContain('z-[120]');
+    expect(comments.inert).toBe(true);
+    expect(comments.getAttribute('aria-modal')).toBeNull();
+    const controls = confirmation.querySelectorAll('button:not(:disabled), textarea:not(:disabled)');
+    controls[controls.length - 1].focus();
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', cancelable: true })));
+    expect(document.activeElement).toBe(controls[0]);
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })));
+    expect(document.querySelector('[aria-labelledby="comment-delete-modal-title"]')).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(comments.inert).toBe(false);
+    expect(comments.getAttribute('aria-modal')).toBe('true');
+    expect(document.activeElement).toBe(deleteButton);
+  });
+
   it('Case 14: supports owner self-deletion after confirmation', async () => {
     interactionService.getComments.mockResolvedValueOnce([
       {
@@ -566,7 +613,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       deleteBtn.click();
     });
 
-    const confirmModalDeleteBtn = container.querySelector('[data-testid="confirm-delete-button"]');
+    const confirmModalDeleteBtn = document.querySelector('[data-testid="confirm-delete-button"]');
     expect(confirmModalDeleteBtn).not.toBeNull();
 
     await act(async () => {
@@ -612,7 +659,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       adminDeleteBtn.click();
     });
 
-    const reasonTextarea = container.querySelector('textarea#comment-delete-reason');
+    const reasonTextarea = document.querySelector('textarea#comment-delete-reason');
     expect(reasonTextarea).not.toBeNull();
 
     await act(async () => {
@@ -622,7 +669,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       reasonTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    const confirmModalDeleteBtn = container.querySelector('[data-testid="confirm-delete-button"]');
+    const confirmModalDeleteBtn = document.querySelector('[data-testid="confirm-delete-button"]');
     expect(confirmModalDeleteBtn.disabled).toBe(false);
 
     await act(async () => {

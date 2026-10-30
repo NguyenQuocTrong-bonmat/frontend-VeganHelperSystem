@@ -296,7 +296,7 @@ describe('CommentDeleteModal', () => {
     expect(handleConfirm).toHaveBeenCalledWith(null);
   });
 
-  it('preserves post author permissions (post author deletes comment on their post without reason)', async () => {
+  it.each(['member', 'admin'])('preserves post author permissions for role %s without a reason', async (role) => {
     const handleConfirm = vi.fn();
 
     const trollComment = {
@@ -313,7 +313,7 @@ describe('CommentDeleteModal', () => {
           onClose={() => {}}
           onConfirm={handleConfirm}
           comment={trollComment}
-          currentUser={postAuthorUser} // id: 3, which matches post.authorId: 3
+          currentUser={{ ...postAuthorUser, role }}
           post={testPost}
         />
       );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { COMMENT_DELETE_REASON_MAX_LENGTH } from '../../services/interactionService';
 
 function getCommentDeletionImpact(comment) {
@@ -31,6 +32,7 @@ export default function CommentDeleteModal({
   const [validationError, setValidationError] = useState('');
   const [touched, setTouched] = useState(false);
   const textareaRef = useRef(null);
+  const dialogRef = useRef(null);
 
   const currentUserId = currentUser?.id != null ? String(currentUser.id) : null;
   const commentAuthorId = (comment?.userId ?? comment?.UserId) != null
@@ -56,8 +58,8 @@ export default function CommentDeleteModal({
     currentUserId === postAuthorId
   );
 
-  // When admin deletes another user's comment, reason is strictly required.
-  const isReasonRequired = isAdmin && !isOwnComment;
+  // Comment owners and post authors act under their ownership permissions.
+  const isReasonRequired = isAdmin && !isOwnComment && !isPostAuthor;
 
   useEffect(() => {
     if (isOpen) {
@@ -70,24 +72,47 @@ export default function CommentDeleteModal({
   useEffect(() => {
     if (!isOpen) return;
 
+    const previousFocus = document.activeElement;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusTimer = setTimeout(() => {
+      const target = textareaRef.current || dialogRef.current?.querySelector('button:not(:disabled)');
+      target?.focus();
+    }, 50);
+
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !isSubmitting) {
-        onClose();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (!isSubmitting) onClose();
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const controls = dialogRef.current.querySelectorAll('button:not(:disabled), textarea:not(:disabled)');
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (!first) {
+          e.preventDefault();
+          dialogRef.current.focus();
+        } else if (e.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      queueMicrotask(() => {
+        if (previousFocus?.isConnected) previousFocus.focus();
+      });
+    };
   }, [isOpen, isSubmitting, onClose]);
-
-  useEffect(() => {
-    if (isOpen && isReasonRequired) {
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, isReasonRequired]);
 
   if (!isOpen || !comment) return null;
 
@@ -145,9 +170,11 @@ export default function CommentDeleteModal({
 
   const authorDisplayName = comment.authorName || (isOwnComment ? 'You' : 'Commenter');
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
           onClose();
@@ -157,7 +184,7 @@ export default function CommentDeleteModal({
       aria-modal="true"
       aria-labelledby="comment-delete-modal-title"
     >
-      <div className="bg-white border border-[#DCE3D5] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-[#2B2A25]">
+      <div className="bg-white border border-[#DCE3D5] rounded-2xl max-w-lg w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 shadow-2xl relative text-[#2B2A25]">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-[#DCE3D5] pb-4 mb-4">
           <div>
@@ -266,6 +293,7 @@ export default function CommentDeleteModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

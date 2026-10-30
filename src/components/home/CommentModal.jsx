@@ -68,7 +68,7 @@ export default function CommentModal({
   try {
     const auth = useAuth();
     authUser = auth?.user;
-    isAdmin = String(auth?.user?.role || auth?.user?.roleName || '').toLowerCase() === 'admin';
+    isAdmin = !isGuest && String(auth?.user?.role || auth?.user?.roleName || '').toLowerCase() === 'admin';
   } catch {
     authUser = null;
     isAdmin = false;
@@ -91,12 +91,18 @@ export default function CommentModal({
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [deleteModalError, setDeleteModalError] = useState(null);
+  const deleteModalOpenRef = useRef(deleteModalOpen);
+  deleteModalOpenRef.current = deleteModalOpen;
 
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const textareaRef = useRef(null);
 
   const postId = post?.id;
+
+  useEffect(() => {
+    if (modalRef.current) modalRef.current.inert = deleteModalOpen;
+  }, [deleteModalOpen]);
 
   const loadCommentsList = useCallback(async () => {
     if (!postId) return;
@@ -126,6 +132,7 @@ export default function CommentModal({
 
     // Trap focus and handle Escape on window
     const handleKeyDown = (e) => {
+      if (deleteModalOpenRef.current) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
@@ -159,6 +166,7 @@ export default function CommentModal({
 
     // Focus close button or composer after rendering
     const timer = setTimeout(() => {
+      if (deleteModalOpenRef.current) return;
       if (textareaRef.current && !isGuest) {
         textareaRef.current.focus();
       } else if (closeButtonRef.current) {
@@ -291,7 +299,7 @@ export default function CommentModal({
       const postAuthorId = post?.authorId ?? post?.author?.id;
       const isPostAuthor = !isMine && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId);
 
-      if (isAdmin && !isMine) {
+      if (isAdmin && !isMine && !isPostAuthor) {
         toast.success('Comment deleted by administrator.');
       } else if (isPostAuthor && !isMine) {
         toast.success('Comment deleted by post author.');
@@ -365,7 +373,7 @@ export default function CommentModal({
     const status = String(comment.status ?? comment.Status ?? '').toLowerCase();
     const depth = Number(comment.depth ?? comment.Depth) || 1;
     const isMine = Boolean(
-      comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id))
+      !isGuest && (comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id)))
     );
     const postAuthorId = post?.authorId ?? post?.author?.id;
     const isPostAuthor = Boolean(!isMine && !isGuest && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId));
@@ -555,7 +563,7 @@ export default function CommentModal({
                   )}
 
                   {/* Admin Delete (Only for other users' comments) */}
-                  {isAdmin && !isMine && (
+                  {isAdmin && !isMine && !isPostAuthor && (
                     <button
                       type="button"
                       onClick={() => handleDelete(comment)}
@@ -568,7 +576,7 @@ export default function CommentModal({
                   )}
 
                   {/* Post Author Delete */}
-                  {!isMine && isPostAuthor && !isAdmin && (
+                  {!isMine && isPostAuthor && (
                     <button
                       type="button"
                       onClick={() => handleDelete(comment)}
@@ -663,6 +671,7 @@ export default function CommentModal({
         backdropClassName="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4"
         dialogClassName="relative w-full sm:max-w-xl md:max-w-2xl bg-vh-surface border-t sm:border border-vh-border/80 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[86vh] overflow-hidden"
         ariaLabelledBy="comment-modal-title"
+        ariaModal={!deleteModalOpen}
         dialogRef={modalRef}
         closeOnEscape={false}
       >

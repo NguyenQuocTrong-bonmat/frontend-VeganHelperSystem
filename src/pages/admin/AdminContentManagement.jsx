@@ -116,9 +116,14 @@ export default function AdminContentManagement() {
         if (activeQueue === 'posts') response = await getAdminPostReports({ pageIndex: page, pageSize: PAGE_SIZE, status: 'pending' });
         if (activeQueue === 'comments') response = await getAdminCommentReports({ pageIndex: page, pageSize: PAGE_SIZE, status: 'pending' });
         if (!active) return;
+        const nextTotalPages = Math.max(1, response?.totalPages || 1);
+        if (page > nextTotalPages) {
+          setPage(nextTotalPages);
+          return;
+        }
         const nextItems = Array.isArray(response?.items) ? response.items : [];
         setItems(nextItems);
-        setTotalPages(Math.max(1, response?.totalPages || 1));
+        setTotalPages(nextTotalPages);
         if (nextItems.length > 0) setSelected(nextItems[0]);
       } catch (loadError) {
         if (active) {

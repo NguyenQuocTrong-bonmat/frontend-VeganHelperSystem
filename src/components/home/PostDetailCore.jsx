@@ -59,7 +59,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   try {
     const auth = useAuth();
     authUser = auth?.user;
-    isAdmin = String(auth?.user?.role || auth?.user?.roleName || '').toLowerCase() === 'admin';
+    isAdmin = !isGuest && String(auth?.user?.role || auth?.user?.roleName || '').toLowerCase() === 'admin';
   } catch {
     authUser = null;
     isAdmin = false;
@@ -390,7 +390,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       const postAuthorId = post?.authorId ?? post?.author?.id;
       const isPostAuthor = !isMine && authUser?.id != null && postAuthorId != null && String(authUser.id) === String(postAuthorId);
 
-      if (isAdmin && !isMine) {
+      if (isAdmin && !isMine && !isPostAuthor) {
         toast.success('Comment deleted by administrator.');
       } else if (isPostAuthor && !isMine) {
         toast.success('Comment deleted by post author.');
@@ -462,7 +462,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     const status = String(comment.status ?? comment.Status ?? '').toLowerCase();
     const depth = Number(comment.depth ?? comment.Depth) || 1;
     const isMine = Boolean(
-      comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id))
+      !isGuest && (comment.isMine ?? comment.IsMine ?? (authUser?.id != null && String(comment.userId ?? comment.UserId) === String(authUser.id)))
     );
     const postAuthorId = post?.authorId ?? post?.author?.id;
     const isPostAuthor = Boolean(
@@ -686,7 +686,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   )}
 
                   {/* Admin Delete (Only for other users' comments) */}
-                  {isAdmin && !isMine && (
+                  {isAdmin && !isMine && !isPostAuthor && (
                     <button
                       type="button"
                       onClick={() => handleCommentDelete(comment)}
@@ -699,7 +699,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   )}
 
                   {/* Post Author Delete */}
-                  {!isMine && isPostAuthor && !isAdmin && (
+                  {!isMine && isPostAuthor && (
                     <button
                       type="button"
                       onClick={() => handleCommentDelete(comment)}

@@ -80,16 +80,24 @@ export default function AIChatbot() {
   const [session, setSession] = useState(null);
   const [remaining, setRemaining] = useState(readGuestRemaining);
   const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [limitReached, setLimitReached] = useState(false);
   const endRef = useRef(null);
   const activeScope = useRef('');
   const skipHistoryForSession = useRef(null);
+  const pendingRequest = useRef(null);
+  const hasLocalMessages = useRef(false);
   const storageKey = authLoading ? null : isAuthenticated ? `${memberConversationPrefix}${user?.id}` : guestConversationKey;
 
   useEffect(() => {
     if (!storageKey || storageKey === activeScope.current) return;
     activeScope.current = storageKey;
+    pendingRequest.current?.controller.abort();
+    pendingRequest.current = null;
+    hasLocalMessages.current = false;
+    setBusy(false);
+    setSending(false);
     skipHistoryForSession.current = null;
     setSession(readSession(storageKey));
     setMessages([]);
@@ -101,16 +109,17 @@ export default function AIChatbot() {
   }, [storageKey, isAuthenticated]);
 
   useEffect(() => {
-    if (!isOpen || !storageKey || !session?.sessionId) return;
+    if (!isOpen || !storageKey || !session?.sessionId || hasLocalMessages.current) return;
     if (skipHistoryForSession.current === session.sessionId) {
       skipHistoryForSession.current = null;
       return;
     }
     let cancelled = false;
+    const controller = new AbortController();
     setBusy(true);
-    aiChatService.history(session.sessionId, isAuthenticated ? null : session.guestSessionId)
+    aiChatService.history(session.sessionId, isAuthenticated ? null : session.guestSessionId, { signal: controller.signal })
       .then((history) => {
-        if (cancelled) return;
+        if (cancelled || hasLocalMessages.current) return;
         setMessages(history.messages || []);
       })
       .catch((cause) => {
@@ -122,29 +131,52 @@ export default function AIChatbot() {
         setError(errorText(cause));
       })
       .finally(() => { if (!cancelled) setBusy(false); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; controller.abort(); };
   }, [isOpen, isAuthenticated, session?.sessionId, session?.guestSessionId, storageKey]);
 
   useEffect(() => { endRef.current?.scrollIntoView?.({ behavior: 'smooth' }); }, [messages, busy, isOpen]);
 
+  useEffect(() => () => {
+    pendingRequest.current?.controller.abort();
+    pendingRequest.current = null;
+  }, []);
+
+  function stopResponse() {
+    const request = pendingRequest.current;
+    if (!request) return;
+    pendingRequest.current = null;
+    request.controller.abort();
+    setMessages((previous) => [...previous.map((item) => item.id === request.messageId ? { ...item, delivery: 'stopped' } : item),
+      { id: `stopped-${request.messageId}`, senderType: 'system', messageText: 'You stopped this request before a reply was received.' },
+    ]);
+    setBusy(false);
+    setSending(false);
+    setError('');
+  }
+
   async function send(event) {
     event.preventDefault();
     const message = draft.trim();
-    if (!message || busy || authLoading || !storageKey || limitReached) return;
+    if (!message || busy || pendingRequest.current || authLoading || !storageKey || limitReached) return;
     const scope = storageKey;
     const guestSessionId = isAuthenticated ? null : session?.guestSessionId || localStorage.getItem(guestIdentityKey) || crypto.randomUUID();
     if (!isAuthenticated) localStorage.setItem(guestIdentityKey, guestSessionId);
+    const request = { controller: new AbortController(), messageId: crypto.randomUUID() };
+    pendingRequest.current = request;
+    hasLocalMessages.current = true;
     setBusy(true);
+    setSending(true);
     setError('');
+    setDraft('');
+    setMessages((previous) => [...previous, { id: request.messageId, senderType: 'user', messageText: message, delivery: 'pending' }]);
     try {
-      const result = await aiChatService.send(message, session?.sessionId || null, guestSessionId);
-      if (activeScope.current !== scope) return;
+      const result = await aiChatService.send(message, session?.sessionId || null, guestSessionId, { signal: request.controller.signal });
+      if (activeScope.current !== scope || pendingRequest.current !== request || request.controller.signal.aborted) return;
       const nextSession = { sessionId: result.sessionId, guestSessionId: result.guestSessionId || null };
       sessionStorage.setItem(scope, JSON.stringify(nextSession));
       skipHistoryForSession.current = result.sessionId;
       setSession(nextSession);
-      setMessages((previous) => [...previous,
-      { id: `user-${Date.now()}`, senderType: 'user', messageText: message },
+      setMessages((previous) => [...previous.map((item) => item.id === request.messageId ? { ...item, delivery: 'sent' } : item),
       {
         id: `ai-${Date.now()}`,
         senderType: 'ai',
@@ -152,7 +184,6 @@ export default function AIChatbot() {
         recommendedPosts: Array.isArray(result.recommendedPosts) ? result.recommendedPosts.slice(0, 3) : [],
       },
       ]);
-      setDraft('');
       if (!isAuthenticated && typeof result.guestQuestionsRemaining === 'number') {
         const guestRemaining = Math.max(0, Math.min(3, result.guestQuestionsRemaining));
         setRemaining(guestRemaining);
@@ -160,7 +191,9 @@ export default function AIChatbot() {
         saveGuestRemaining(guestSessionId, guestRemaining);
       }
     } catch (cause) {
-      if (activeScope.current !== scope) return;
+      if (activeScope.current !== scope || pendingRequest.current !== request || request.controller.signal.aborted) return;
+      setMessages((previous) => previous.map((item) => item.id === request.messageId ? { ...item, delivery: 'failed' } : item));
+      setDraft((current) => current || message);
       setError(errorText(cause));
       if (cause.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') {
         setLimitReached(true);
@@ -168,7 +201,11 @@ export default function AIChatbot() {
         if (guestSessionId) saveGuestRemaining(guestSessionId, 0);
       }
     } finally {
-      if (activeScope.current === scope) setBusy(false);
+      if (activeScope.current === scope && pendingRequest.current === request) {
+        pendingRequest.current = null;
+        setBusy(false);
+        setSending(false);
+      }
     }
   }
 
@@ -193,7 +230,8 @@ export default function AIChatbot() {
             <p className="max-w-[88%] rounded-xl border border-[#DCE3D5] bg-white p-3 text-[#2B2A25]">{welcome}</p>
             {messages.map((item, index) => (
               <div key={item.id || index} className={`max-w-[88%] break-words rounded-xl p-3 ${item.senderType === 'user' ? 'ml-auto whitespace-pre-wrap bg-[#2F5233] text-white' : 'border border-[#DCE3D5] bg-white text-[#2B2A25]'}`}>
-                {item.senderType === 'ai' ? <ChatMarkdown content={item.messageText} /> : item.messageText}
+                {item.senderType === 'ai' ? <ChatMarkdown content={item.messageText} /> : item.senderType === 'system' ? <p role="status" className="text-xs text-[#6B6F63]">{item.messageText}</p> : item.messageText}
+                {item.delivery === 'failed' && <p className="mt-1 text-xs">Not sent successfully. Please try again.</p>}
                 {item.senderType === 'ai' && Array.isArray(item.recommendedPosts) && item.recommendedPosts.length > 0 && (
                   <div aria-label="Suggested VeganHelper posts" className="mt-3 space-y-2">
                     {item.recommendedPosts.slice(0, 3).map((post) => {
@@ -234,7 +272,12 @@ export default function AIChatbot() {
           {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
           <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
             <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder="Ask about plant-based food…" className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
-            <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>
+            {sending ? (
+              <button type="button" onClick={stopResponse} aria-label="Stop AI response" className="flex min-h-11 items-center gap-2 rounded-xl bg-[#2F5233] px-3 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
+                <svg aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+                Stop
+              </button>
+            ) : <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="min-h-11 rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>}
           </form>
           {limitReached && !isAuthenticated && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">

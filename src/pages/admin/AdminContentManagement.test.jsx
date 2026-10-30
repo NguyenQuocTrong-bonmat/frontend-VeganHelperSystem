@@ -47,3 +47,33 @@ test('reported posts use their own queue, evidence and Admin decision endpoint',
   expect(service.decidePostReport).toHaveBeenCalledWith(901, { action: 'remove', reason: 'Spam confirmed by Admin', expectedRevision: 3 });
   expect(service.decideAiFlag).not.toHaveBeenCalled();
 });
+
+test('keyword comments use the existing queue and return to the last valid page after review', async () => {
+  let reviewed = false;
+  const keyword = { id: 1001, commentId: 2001, postId: 44, postTitle: 'Keyword review post',
+    commentContent: 'Filtered content', reporterName: 'Keyword filter', reporterId: null,
+    reason: 'Keyword filter matched a term.', reportCount: 1, createdAt: '2026-10-31T00:00:00Z' };
+  const earlier = { ...keyword, id: 1000, commentId: 2000, postTitle: 'Earlier pending comment' };
+  service.getAdminCommentReports.mockImplementation(async ({ pageIndex }) => ({
+    items: pageIndex === 2 ? reviewed ? [] : [keyword] : [earlier],
+    totalCount: reviewed ? 10 : 11, totalPages: reviewed ? 1 : 2,
+  }));
+  service.getAdminCommentReportDetail.mockImplementation(async (id) => id === keyword.id ? keyword : earlier);
+  service.decideCommentReport.mockImplementation(async () => { reviewed = true; return { ...keyword, status: 'dismissed' }; });
+  await act(async () => root.render(<AdminContentManagement />));
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('Reported comments')).click());
+  expect(service.getAdminCommentReports).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 10, status: 'pending' });
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent === 'Next').click());
+  expect(service.getAdminCommentReports).toHaveBeenLastCalledWith({ pageIndex: 2, pageSize: 10, status: 'pending' });
+  expect(container.textContent).toContain('Keyword filter');
+  await act(async () => container.querySelector('input[value="keep"]').click());
+  await act(async () => {
+    const input = container.querySelector('textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, 'Reviewed by admin');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  expect(service.decideCommentReport).toHaveBeenCalledWith(keyword.id, { action: 'keep', reason: 'Reviewed by admin' });
+  expect(service.getAdminCommentReports).toHaveBeenLastCalledWith({ pageIndex: 1, pageSize: 10, status: 'pending' });
+  expect(container.textContent).toContain('Earlier pending comment');
+});
