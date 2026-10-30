@@ -262,254 +262,254 @@ function Login() {
           ) : (
             <>
               <div className="mb-3.5 sm:mb-4">
-            <motion.div variants={logoVariants} className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-moss/10 text-primary-moss mb-2 sm:mb-2.5">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </motion.div>
-            <motion.h1 variants={itemVariants} className="font-fraunces text-2xl sm:text-3xl leading-tight font-medium text-text-charcoal mb-1 tracking-tight">
-              Welcome back
-            </motion.h1>
-            <motion.p variants={itemVariants} className="text-text-stem-gray text-xs sm:text-[13px] tracking-wide">
-              Please enter your details to access your kitchen
-            </motion.p>
-          </div>
-
-          <form className="space-y-2.5 sm:space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <motion.div variants={itemVariants}>
-              <label className="block text-[11px] sm:text-[11.5px] font-semibold text-text-charcoal mb-1 uppercase tracking-wider" htmlFor="username">
-                Username or email
-              </label>
-              <input
-                {...register('username')}
-                className={getInputClasses(!!errors.username)}
-                id="username"
-                placeholder="Enter your username or email"
-                type="text"
-                autoComplete="username"
-                disabled={isSuccess || isSubmitting}
-              />
-              <AnimatePresence>
-                {errors.username && (
-                  <motion.p
-                    variants={errorVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    role="alert"
-                    className="text-red-500 text-[11px] font-medium leading-tight overflow-hidden"
-                  >
-                    {errors.username.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[11px] sm:text-[11.5px] font-semibold text-text-charcoal uppercase tracking-wider" htmlFor="password">
-                  Password
-                </label>
-                <Link className="text-[11.5px] text-text-stem-gray hover:text-primary-moss transition-colors font-medium focus-ring-vh rounded active:opacity-80" to="/forgot-password">
-                  Forgot password?
-                </Link>
+                <motion.div variants={logoVariants} className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-moss/10 text-primary-moss mb-2 sm:mb-2.5">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </motion.div>
+                <motion.h1 variants={itemVariants} className="font-fraunces text-2xl sm:text-3xl leading-tight font-medium text-text-charcoal mb-1 tracking-tight">
+                  Welcome back
+                </motion.h1>
+                <motion.p variants={itemVariants} className="text-text-stem-gray text-xs sm:text-[13px] tracking-wide">
+                  Please enter your details to access your kitchen
+                </motion.p>
               </div>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  className={`${getInputClasses(!!errors.password)} auth-password-input pr-10`}
-                  id="password"
-                  placeholder="Enter your password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  disabled={isSuccess || isSubmitting}
-                />
-                <button
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  aria-controls="password"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:rounded active:scale-95 motion-reduce:transform-none"
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isSuccess || isSubmitting}
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    {showPassword ? (
-                      <motion.svg
-                        key="hide"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24"
+
+              <form className="space-y-2.5 sm:space-y-3" onSubmit={handleSubmit(onSubmit)}>
+                <motion.div variants={itemVariants}>
+                  <label className="block text-[11px] sm:text-[11.5px] font-semibold text-text-charcoal mb-1 uppercase tracking-wider" htmlFor="username">
+                    Username or email
+                  </label>
+                  <input
+                    {...register('username')}
+                    className={getInputClasses(!!errors.username)}
+                    id="username"
+                    placeholder="Enter your username or email"
+                    type="text"
+                    autoComplete="username"
+                    disabled={isSuccess || isSubmitting}
+                  />
+                  <AnimatePresence>
+                    {errors.username && (
+                      <motion.p
+                        variants={errorVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        role="alert"
+                        className="text-red-500 text-[11px] font-medium leading-tight overflow-hidden"
                       >
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                        <line x1="2" y1="2" x2="22" y2="22"></line>
-                      </motion.svg>
-                    ) : (
-                      <motion.svg
-                        key="show"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24"
-                      >
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </motion.svg>
+                        {errors.username.message}
+                      </motion.p>
                     )}
                   </AnimatePresence>
-                </button>
-              </div>
-              <AnimatePresence>
-                {errors.password && (
-                  <motion.p
-                    variants={errorVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    role="alert"
-                    className="text-red-500 text-[11px] font-medium leading-tight overflow-hidden"
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] sm:text-[11.5px] font-semibold text-text-charcoal uppercase tracking-wider" htmlFor="password">
+                      Password
+                    </label>
+                    <Link className="text-[11.5px] text-text-stem-gray hover:text-primary-moss transition-colors font-medium focus-ring-vh rounded active:opacity-80" to="/forgot-password">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      {...register('password')}
+                      className={`${getInputClasses(!!errors.password)} auth-password-input pr-10`}
+                      id="password"
+                      placeholder="Enter your password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      disabled={isSuccess || isSubmitting}
+                    />
+                    <button
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
+                      aria-controls="password"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-stem-gray hover:text-primary-moss transition-colors duration-200 p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:rounded active:scale-95 motion-reduce:transform-none"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isSuccess || isSubmitting}
+                    >
+                      <AnimatePresence mode="wait" initial={false}>
+                        {showPassword ? (
+                          <motion.svg
+                            key="hide"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24"
+                          >
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                          </motion.svg>
+                        ) : (
+                          <motion.svg
+                            key="show"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24"
+                          >
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </motion.svg>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  </div>
+                  <AnimatePresence>
+                    {errors.password && (
+                      <motion.p
+                        variants={errorVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        role="alert"
+                        className="text-red-500 text-[11px] font-medium leading-tight overflow-hidden"
+                      >
+                        {errors.password.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="flex items-center gap-2 pt-0.5 pb-0.5">
+                  <input
+                    {...register('rememberMe')}
+                    className="w-4 h-4 rounded border-border-sage-mist hover:border-primary-moss/50 text-primary-moss focus:ring-2 focus:ring-primary-moss/20 transition-all duration-200 cursor-pointer accent-[#2F5233]"
+                    id="remember"
+                    type="checkbox"
+                    disabled={isSuccess || isSubmitting}
+                  />
+                  <label className="text-xs sm:text-[13px] text-text-stem-gray select-none cursor-pointer hover:text-text-charcoal transition-colors duration-200" htmlFor="remember">
+                    Remember me on this device
+                  </label>
+                </motion.div>
+
+                <motion.div variants={buttonVariants} className="pt-1">
+                  <motion.button
+                    whileTap={isSubmitting || isSuccess || prefersReducedMotion ? {} : { scale: scale.press }}
+                    disabled={isSubmitting || isSuccess}
+                    className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh active:scale-[0.98] motion-reduce:transform-none cursor-pointer"
+                    type="submit"
                   >
-                    {errors.password.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+                    <AnimatePresence mode="wait">
+                      {isSuccess ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
+                          transition={{ duration: duration.micro }}
+                          className="flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                          Success
+                        </motion.div>
+                      ) : isSubmitting ? (
+                        <motion.div
+                          key="loading"
+                          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
+                          transition={{ duration: duration.micro }}
+                          className="flex items-center gap-2"
+                        >
+                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Logging in...
+                        </motion.div>
+                      ) : (
+                        <motion.span
+                          key="text"
+                          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
+                          transition={{ duration: duration.micro }}
+                        >
+                          Log In
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                </motion.div>
 
-            <motion.div variants={itemVariants} className="flex items-center gap-2 pt-0.5 pb-0.5">
-              <input
-                {...register('rememberMe')}
-                className="w-4 h-4 rounded border-border-sage-mist hover:border-primary-moss/50 text-primary-moss focus:ring-2 focus:ring-primary-moss/20 transition-all duration-200 cursor-pointer accent-[#2F5233]"
-                id="remember"
-                type="checkbox"
-                disabled={isSuccess || isSubmitting}
-              />
-              <label className="text-xs sm:text-[13px] text-text-stem-gray select-none cursor-pointer hover:text-text-charcoal transition-colors duration-200" htmlFor="remember">
-                Remember me on this device
-              </label>
-            </motion.div>
+                <motion.div variants={itemVariants} className="relative flex items-center justify-center my-2.5 sm:my-3">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border-sage-mist"></div>
+                  </div>
+                  <span className="relative bg-surface-paper px-3 text-[11.5px] sm:text-xs text-text-stem-gray font-medium tracking-wide">
+                    OR
+                  </span>
+                </motion.div>
 
-            <motion.div variants={buttonVariants} className="pt-1">
-              <motion.button
-                whileTap={isSubmitting || isSuccess || prefersReducedMotion ? {} : { scale: scale.press }}
-                disabled={isSubmitting || isSuccess}
-                className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh active:scale-[0.98] motion-reduce:transform-none cursor-pointer"
-                type="submit"
-              >
-                <AnimatePresence mode="wait">
-                  {isSuccess ? (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
-                      transition={{ duration: duration.micro }}
-                      className="flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Success
-                    </motion.div>
-                  ) : isSubmitting ? (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
-                      transition={{ duration: duration.micro }}
-                      className="flex items-center gap-2"
-                    >
-                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Logging in...
-                    </motion.div>
-                  ) : (
-                    <motion.span
-                      key="text"
-                      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -5 }}
-                      transition={{ duration: duration.micro }}
-                    >
-                      Log In
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </motion.div>
+                <motion.div variants={itemVariants} className="flex justify-center w-full min-h-[40px]">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        setIsSubmitting(true);
+                        await loginWithGoogle(credentialResponse.credential);
 
-            <motion.div variants={itemVariants} className="relative flex items-center justify-center my-2.5 sm:my-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border-sage-mist"></div>
-              </div>
-              <span className="relative bg-surface-paper px-3 text-[11.5px] sm:text-xs text-text-stem-gray font-medium tracking-wide">
-                OR
-              </span>
-            </motion.div>
+                        // Trigger success animation for Google Login too
+                        setIsSuccess(true);
+                        await new Promise(resolve => setTimeout(resolve, duration.short * 1000));
 
-            <motion.div variants={itemVariants} className="flex justify-center w-full min-h-[40px]">
-              <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  try {
-                    setIsSubmitting(true);
-                    await loginWithGoogle(credentialResponse.credential);
+                        const from = location.state?.from?.pathname || '/home';
+                        navigate(from, { replace: true });
+                      } catch (err) {
+                        const status = err.response?.status;
+                        const errorData = err.response?.data || {};
+                        const errorText = typeof errorData === 'string' ? errorData : errorData.error || errorData.message || '';
+                        const lowerError = errorText.toLowerCase();
+                        const banReason = errorData.banReason || errorData.reason || null;
 
-                    // Trigger success animation for Google Login too
-                    setIsSuccess(true);
-                    await new Promise(resolve => setTimeout(resolve, duration.short * 1000));
+                        if (status === 403 && (lowerError.includes('banned') || lowerError.includes('suspended') || Boolean(banReason) || lowerError.includes('inactive'))) {
+                          setBanInfo({
+                            isBanned: true,
+                            reason: banReason,
+                            rawError: errorText,
+                          });
+                        } else if (status === 409) {
+                          toast.error('This email is already registered. Please log in with email/password to link Google.');
+                        } else {
+                          toast.error(errorText || 'Google login failed. Please try again.');
+                        }
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    onError={() => {
+                      toast.error('Google login was unsuccessful.');
+                    }}
+                    size="large"
+                    theme="outline"
+                    text="signin_with"
+                    shape="rectangular"
+                    width="100%"
+                  />
+                </motion.div>
+              </form>
 
-                    const from = location.state?.from?.pathname || '/home';
-                    navigate(from, { replace: true });
-                  } catch (err) {
-                    const status = err.response?.status;
-                    const errorData = err.response?.data || {};
-                    const errorText = typeof errorData === 'string' ? errorData : errorData.error || errorData.message || '';
-                    const lowerError = errorText.toLowerCase();
-                    const banReason = errorData.banReason || errorData.reason || null;
-
-                    if (status === 403 && (lowerError.includes('banned') || lowerError.includes('suspended') || Boolean(banReason) || lowerError.includes('inactive'))) {
-                      setBanInfo({
-                        isBanned: true,
-                        reason: banReason,
-                        rawError: errorText,
-                      });
-                    } else if (status === 409) {
-                      toast.error('This email is already registered. Please log in with email/password to link Google.');
-                    } else {
-                      toast.error(errorText || 'Google login failed. Please try again.');
-                    }
-                    setIsSubmitting(false);
-                  }
-                }}
-                onError={() => {
-                  toast.error('Google login was unsuccessful.');
-                }}
-                size="large"
-                theme="outline"
-                text="signin_with"
-                shape="rectangular"
-                width="100%"
-              />
-            </motion.div>
-          </form>
-
-          <motion.div variants={itemVariants} className="mt-3.5 sm:mt-4 pt-2.5 sm:pt-3 border-t border-border-sage-mist/50 text-center">
-            <p className="text-xs sm:text-[13px] text-text-stem-gray">
-              Don't have an account?
-              <Link className="font-semibold text-text-charcoal hover:text-primary-moss transition-colors duration-200 ml-1.5 focus-ring-vh rounded active:opacity-80" to="/sign-up">
-                Sign up now
-              </Link>
-            </p>
-          </motion.div>
-        </>
-      )}
-    </motion.div>
+              <motion.div variants={itemVariants} className="mt-3.5 sm:mt-4 pt-2.5 sm:pt-3 border-t border-border-sage-mist/50 text-center">
+                <p className="text-xs sm:text-[13px] text-text-stem-gray">
+                  Don't have an account?
+                  <Link className="font-semibold text-text-charcoal hover:text-primary-moss transition-colors duration-200 ml-1.5 focus-ring-vh rounded active:opacity-80" to="/sign-up">
+                    Sign up now
+                  </Link>
+                </p>
+              </motion.div>
+            </>
+          )}
+        </motion.div>
       </main>
 
       {/* Footer - Visible on all screens */}

@@ -295,8 +295,8 @@ function PublicUserProfile() {
                   onClick={handleToggleFollow}
                   disabled={isFollowUpdating}
                   className={`h-11 px-7 rounded-full font-dm-sans text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed ${followStatus?.isFollowing
-                      ? 'border-2 border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
-                      : 'bg-[#2F5233] text-white hover:bg-[#25401F]'
+                    ? 'border-2 border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
+                    : 'bg-[#2F5233] text-white hover:bg-[#25401F]'
                     }`}
                 >
                   {isFollowUpdating ? (

@@ -337,9 +337,9 @@ function Home() {
       <HeaderMember />
 
       {/* IMMERSIVE HERO */}
-      <div className="relative w-full min-h-[650px] h-auto lg:h-[700px] py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-8 md:mb-10 bg-vh-cream">
+      <div className="vh-hero-section relative w-full min-h-0 min-[480px]:min-h-[650px] h-auto lg:h-[700px] py-6 pb-8 min-[480px]:py-16 lg:py-0 flex items-center justify-center overflow-hidden mb-4 min-[480px]:mb-8 md:mb-10 bg-vh-cream">
         {/* Background Image & Overlay */}
-        <div className="absolute inset-0 z-0">
+        <div className="vh-hero-backdrop absolute inset-0 z-0 hidden min-[480px]:block">
           <img
             src={heroBg}
             alt=""
@@ -350,17 +350,17 @@ function Home() {
         </div>
 
         {/* Content Container */}
-        <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 h-full flex flex-col md:flex-row items-center justify-between gap-12 mt-12 md:mt-0">
+        <div className="vh-hero-content relative z-10 w-full max-w-[1200px] mx-auto px-4 min-[480px]:px-6 h-full flex flex-col md:flex-row items-center justify-between gap-0 min-[480px]:gap-12 mt-2 min-[480px]:mt-12 md:mt-0">
 
           {/* Left Side: Text and Search */}
-          <div className="w-full md:w-5/12 flex flex-col items-start text-left">
-            <span className={`font-dm-sans text-vh-forest font-bold tracking-[0.15em] text-[11px] md:text-xs mb-4 uppercase transform transition-all duration-700 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className="vh-hero-copy w-full md:w-5/12 flex flex-col items-start text-left">
+            <span className={`font-dm-sans text-vh-forest font-bold tracking-[0.15em] text-[11px] md:text-xs mb-3 min-[480px]:mb-4 uppercase transform transition-all duration-700 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               PLANT-BASED FOOD · HO CHI MINH CITY
             </span>
-            <h1 className={`font-dm-serif text-5xl md:text-[64px] text-vh-text-primary mb-6 leading-[1.05] drop-shadow-sm transform transition-all duration-700 delay-100 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <h1 className={`vh-hero-title font-dm-serif text-3xl min-[380px]:text-4xl min-[480px]:text-5xl md:text-[64px] text-vh-text-primary mb-4 min-[480px]:mb-6 leading-[1.15] md:leading-[1.05] drop-shadow-sm transform transition-all duration-700 delay-100 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               Discover the <br className="hidden md:block" /> Taste of Vietnam
             </h1>
-            <p className={`font-dm-sans text-vh-text-secondary text-[16px] md:text-lg max-w-[400px] mb-10 font-light leading-relaxed transform transition-all duration-700 delay-200 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <p className={`vh-hero-desc font-dm-sans text-vh-text-secondary text-[15px] min-[480px]:text-[16px] md:text-lg max-w-[400px] mb-6 min-[480px]:mb-10 font-light leading-relaxed transform transition-all duration-700 delay-200 ease-out ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               Explore the vibrant world of Vietnamese plant-based cuisine, starting in Ho Chi Minh City.
             </p>
 
@@ -388,7 +388,7 @@ function Home() {
           {/* Right Side: Collage */}
           <div
             ref={collageRef}
-            className={`w-full md:w-7/12 flex items-center justify-center relative h-[350px] md:h-[500px] transform transition-all duration-1000 delay-[400ms] ease-out mt-8 md:mt-0 ${isMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
+            className={`vh-hero-decorative-visual hidden min-[480px]:flex w-full md:w-7/12 items-center justify-center relative h-[350px] md:h-[500px] transform transition-all duration-1000 delay-[400ms] ease-out mt-8 md:mt-0 ${isMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
           >
             {/* Secondary Image - Spring Rolls */}
             <div style={{ transform: 'translate(calc(var(--mouse-x, 0px) * -1), calc(var(--mouse-y, 0px) * -1))' }} className="absolute top-16 left-8 z-10 transition-transform duration-300 ease-out hidden md:block">
@@ -422,7 +422,7 @@ function Home() {
         </div>
 
         {/* Bottom Organic Wave */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10" style={{ transform: 'translateY(1px)' }}>
+        <div className="vh-hero-organic-wave absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 hidden min-[480px]:block" style={{ transform: 'translateY(1px)' }}>
           <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[50px] md:h-[90px]">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C69.74,52.34,204.34,78.85,321.39,56.44Z" className="fill-vh-cream"></path>
           </svg>

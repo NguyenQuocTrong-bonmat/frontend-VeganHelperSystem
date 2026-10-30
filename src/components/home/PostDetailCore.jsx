@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import UserProfilePreview from './UserProfilePreview';
 import PostVideoSummary from './PostVideoSummary';
+import PostDetailAdaptiveMedia from './PostDetailAdaptiveMedia';
 
 const asArray = (value) => {
   if (Array.isArray(value)) return value;
@@ -873,72 +874,13 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
         </div>
 
         {post.media && post.media.length > 0 && (
-          <div className="space-y-3">
-            <div className="w-full bg-[#1e2d21] border border-[#DCE3D5] rounded-xl aspect-video sm:aspect-auto sm:h-[420px] max-h-[420px] flex flex-col items-center justify-center text-white relative overflow-hidden group select-none">
-              {post.media[activeMediaIndex].mediaType === 'video' ? (
-                <video className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.media[activeMediaIndex].mediaUrl)} controls />
-              ) : (
-                <div
-                  className="w-full h-full cursor-zoom-in group/img relative"
-                  onClick={() => setIsLightboxOpen(true)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Enlarge image"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setIsLightboxOpen(true);
-                    }
-                  }}
-                >
-                  <img
-                    src={getImageUrl(post.media[activeMediaIndex].mediaUrl)}
-                    alt={post.title || "Recipe photo"}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover/img:scale-[1.01]"
-                  />
-                  <div className="absolute bottom-4 right-4 z-10 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs text-xs flex items-center gap-1.5 opacity-90 group-hover/img:opacity-100 transition-opacity">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                    </svg>
-                    <span>Enlarge</span>
-                  </div>
-                </div>
-              )}
-
-              {post.media.length > 1 && (
-                <>
-                  <button onClick={() => setActiveMediaIndex(prev => prev === 0 ? post.media.length - 1 : prev - 1)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
-                  </button>
-                  <button onClick={() => setActiveMediaIndex(prev => prev === post.media.length - 1 ? 0 : prev + 1)} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
-                  </button>
-                  <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded text-xs font-medium text-white flex items-center gap-1.5 border border-white/20">
-                    <span>{activeMediaIndex + 1} / {post.media.length}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {post.media.length > 1 && (
-              <div className="flex items-center gap-3 pt-1 overflow-x-auto pb-1 scrollbar-none">
-                {post.media.map((item, index) => (
-                  <button key={index} onClick={() => setActiveMediaIndex(index)} className={`relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all opacity-90 hover:opacity-100 ${activeMediaIndex === index ? 'border-[#2F5233]' : 'border-transparent'}`}>
-                    {item.mediaType === 'video' ? (
-                      <>
-                        <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        </div>
-                      </>
-                    ) : (
-                      <img src={getImageUrl(item.mediaUrl)} alt={`Thumb ${index}`} className="w-full h-full object-cover" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <PostDetailAdaptiveMedia
+            media={post.media}
+            postTitle={post.title}
+            activeMediaIndex={activeMediaIndex}
+            onActiveMediaChange={setActiveMediaIndex}
+            onEnlargeImage={() => setIsLightboxOpen(true)}
+          />
         )}
 
         {post.media?.some((item) => item.mediaType === 'video') && (

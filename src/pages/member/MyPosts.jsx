@@ -432,8 +432,8 @@ function MyPosts({ notifications = [] } = {}) {
               aria-selected={activeTab === 'my-posts'}
               onClick={() => setActiveTab('my-posts')}
               className={`relative px-4 sm:px-5 py-2.5 rounded-xl font-dm-sans font-semibold text-sm flex items-center gap-2.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none shrink-0 ${activeTab === 'my-posts'
-                  ? 'text-white'
-                  : 'text-[#556052] hover:text-[#2B2A25]'
+                ? 'text-white'
+                : 'text-[#556052] hover:text-[#2B2A25]'
                 }`}
             >
               {activeTab === 'my-posts' && (
@@ -450,8 +450,8 @@ function MyPosts({ notifications = [] } = {}) {
                 <span>My Posts</span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${activeTab === 'my-posts'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-white/80 text-[#2F5233] border border-[#DCE3D5]'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white/80 text-[#2F5233] border border-[#DCE3D5]'
                     }`}
                 >
                   {displayPostCount}
@@ -465,8 +465,8 @@ function MyPosts({ notifications = [] } = {}) {
               aria-selected={activeTab === 'saved'}
               onClick={() => setActiveTab('saved')}
               className={`relative px-4 sm:px-5 py-2.5 rounded-xl font-dm-sans font-semibold text-sm flex items-center gap-2.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none shrink-0 ${activeTab === 'saved'
-                  ? 'text-white'
-                  : 'text-[#556052] hover:text-[#2B2A25]'
+                ? 'text-white'
+                : 'text-[#556052] hover:text-[#2B2A25]'
                 }`}
             >
               {activeTab === 'saved' && (
@@ -483,8 +483,8 @@ function MyPosts({ notifications = [] } = {}) {
                 <span>Saved Recipes</span>
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${activeTab === 'saved'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-[#E8EEE4] text-[#4A7A4D]'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-[#E8EEE4] text-[#4A7A4D]'
                     }`}
                 >
                   Private
@@ -506,8 +506,8 @@ function MyPosts({ notifications = [] } = {}) {
                   type="button"
                   onClick={() => setStatusFilter('all')}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none ${statusFilter === 'all'
-                      ? 'bg-[#2F5233] text-white shadow-xs'
-                      : 'bg-white text-[#6B6F63] hover:text-[#2B2A25] border border-[#DCE5D9]'
+                    ? 'bg-[#2F5233] text-white shadow-xs'
+                    : 'bg-white text-[#6B6F63] hover:text-[#2B2A25] border border-[#DCE5D9]'
                     }`}
                 >
                   All ({posts.length})
@@ -517,8 +517,8 @@ function MyPosts({ notifications = [] } = {}) {
                   type="button"
                   onClick={() => setStatusFilter('published')}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none ${statusFilter === 'published'
-                      ? 'bg-[#2F5233] text-white shadow-xs'
-                      : 'bg-white text-[#2F5233] hover:bg-[#F3F6EE] border border-[#DCE5D9]'
+                    ? 'bg-[#2F5233] text-white shadow-xs'
+                    : 'bg-white text-[#2F5233] hover:bg-[#F3F6EE] border border-[#DCE5D9]'
                     }`}
                 >
                   Published ({statusCounts.published})
@@ -529,8 +529,8 @@ function MyPosts({ notifications = [] } = {}) {
                     type="button"
                     onClick={() => setStatusFilter('under_review')}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'under_review'
-                        ? 'bg-red-600 text-white shadow-xs'
-                        : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                      ? 'bg-red-600 text-white shadow-xs'
+                      : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
                       }`}
                   >
                     Under Review ({statusCounts.underReview})
@@ -542,8 +542,8 @@ function MyPosts({ notifications = [] } = {}) {
                     type="button"
                     onClick={() => setStatusFilter('restricted')}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'restricted'
-                        ? 'bg-red-700 text-white shadow-xs'
-                        : 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'
+                      ? 'bg-red-700 text-white shadow-xs'
+                      : 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'
                       }`}
                   >
                     Hidden / Restricted ({statusCounts.restricted})
@@ -555,8 +555,8 @@ function MyPosts({ notifications = [] } = {}) {
                     type="button"
                     onClick={() => setStatusFilter('draft')}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-dm-sans transition-all cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 active:scale-95 motion-reduce:transform-none ${statusFilter === 'draft'
-                        ? 'bg-amber-700 text-white shadow-xs'
-                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                      ? 'bg-amber-700 text-white shadow-xs'
+                      : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
                       }`}
                   >
                     Drafts ({statusCounts.draft})

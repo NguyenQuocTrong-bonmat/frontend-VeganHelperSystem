@@ -9,7 +9,7 @@ import { formatDate } from '../../utils/dateUtils';
 
 function BmiDashboard({ isComponent = false }) {
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [healthProfile, setHealthProfile] = useState(null);
   const [bmiResult, setBmiResult] = useState(null);
@@ -29,7 +29,7 @@ function BmiDashboard({ isComponent = false }) {
           }),
           getBmiHistory().catch(e => ({ history: [] }))
         ]);
-        
+
         setHealthProfile(profile);
         setBmiResult(bmiData);
         setBmiHistory(historyData?.history || []);
@@ -83,28 +83,28 @@ function BmiDashboard({ isComponent = false }) {
   return (
     <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
       {!isComponent && <HeaderMember />}
-      
+
       {/* PAGE HEADER */}
       {!isComponent && (
-      <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
-        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-            BMI Dashboard
-          </h1>
-          <p className="text-[#6B6F63] text-[15px]">
-            Track your body mass index and healthy weight progress
-          </p>
+        <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
+          <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
+              BMI Dashboard
+            </h1>
+            <p className="text-[#6B6F63] text-[15px]">
+              Track your body mass index and healthy weight progress
+            </p>
+          </div>
         </div>
-      </div>
       )}
 
       <main className={`flex-grow w-full max-w-4xl mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'} space-y-12`}>
-        
+
         {/* SECTION 1: CURRENT BMI */}
         <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-10 shadow-sm flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 text-center md:text-left">
             <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-6">Current BMI</h2>
-            
+
             {bmiResult ? (
               <div>
                 <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
@@ -115,7 +115,7 @@ function BmiDashboard({ isComponent = false }) {
                     {bmiResult.category}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 max-w-sm">
                   <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-4 rounded-xl text-center">
                     <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1">Height</div>
@@ -126,7 +126,7 @@ function BmiDashboard({ isComponent = false }) {
                     <div className="font-semibold text-lg text-[#2B2A25]">{healthProfile?.weightKg || '--'} kg</div>
                   </div>
                 </div>
-                
+
                 {bmiResult.idealWeightRange && (
                   <div className="mt-6 text-sm text-[#6B6F63]">
                     <span className="font-medium text-[#2B2A25]">Ideal Weight Range:</span> {bmiResult.idealWeightRange.minKg.toFixed(1)}kg - {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
@@ -137,7 +137,7 @@ function BmiDashboard({ isComponent = false }) {
               <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-6 rounded-xl text-center md:text-left">
                 <p className="text-[#A63446] font-medium mb-2">Insufficient Health Data</p>
                 <p className="text-[#A63446]/80 text-sm mb-4">Please update your height and weight in the Health Profile to calculate your BMI.</p>
-                <button 
+                <button
                   onClick={() => navigate('/health')}
                   className="px-5 py-2 bg-[#A63446] text-white rounded-lg text-sm font-medium hover:bg-[#8B2A3A] transition-colors"
                 >
@@ -146,7 +146,7 @@ function BmiDashboard({ isComponent = false }) {
               </div>
             )}
           </div>
-          
+
           <div className="hidden md:flex items-center justify-center w-48 h-48 rounded-full bg-[#F3F6EE] border-8 border-[#E9EFE6]">
             <svg className="w-20 h-20 text-[#2F5233]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -194,7 +194,7 @@ function BmiDashboard({ isComponent = false }) {
             </div>
           )}
         </section>
-        
+
       </main>
 
       {!isComponent && <AIChatbot />}
