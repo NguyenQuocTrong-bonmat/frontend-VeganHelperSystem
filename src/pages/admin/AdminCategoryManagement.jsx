@@ -383,33 +383,44 @@ export default function AdminCategoryManagement() {
 
         {/* 4. Categories Table */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse table-fixed">
+          {/* Mobile Horizontal Scroll Cue */}
+          <div className="md:hidden flex items-center justify-between px-4 py-2 text-[11px] text-[#6B6F63] bg-[#FAFBF9] border-b border-[#DCE3D5]">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Swipe horizontally to view full categories
+            </span>
+            <span className="text-[10px] font-mono text-[#8A9080]">680px</span>
+          </div>
+
+          <div tabIndex={0} role="region" aria-label="Taxonomy categories table" className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]/40">
+            <table className="w-full min-w-[680px] text-left text-xs border-separate border-spacing-0 table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-5 font-semibold w-[45%]">Category</th>
-                  <th className="py-3.5 px-4 font-semibold w-[20%]">Type</th>
-                  <th className="py-3.5 px-4 font-semibold text-left w-[20%]">Associated Recipes</th>
-                  <th className="py-3.5 px-5 font-semibold text-left w-[15%]">Actions</th>
+                  <th scope="col" className="py-3.5 px-5 font-semibold w-[240px] sm:sticky sm:left-0 bg-[#FAFBF9] z-20 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Category</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold w-[140px] border-b border-[#DCE3D5]">Type</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold text-left w-[140px] border-b border-[#DCE3D5]">Associated Recipes</th>
+                  <th scope="col" className="py-3.5 px-5 font-semibold text-left w-[160px] md:sticky md:right-0 bg-[#FAFBF9] z-20 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
+              <tbody className="text-[#2B2A25]">
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skel-cat-${idx}`} className="animate-pulse">
-                      <td className="py-4 px-5">
+                      <td className="py-4 px-5 sm:sticky sm:left-0 bg-white z-10 sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="space-y-1.5">
                           <div className="w-36 h-3.5 bg-[#EAF0E9] rounded" />
                           <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 border-b border-[#EAF0E9]">
                         <div className="w-20 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-4 text-left">
+                      <td className="py-4 px-4 text-left border-b border-[#EAF0E9]">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-5 text-left">
+                      <td className="py-4 px-5 text-left md:sticky md:right-0 bg-white z-10 md:border-l md:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="w-16 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
@@ -419,15 +430,15 @@ export default function AdminCategoryManagement() {
                     const hasLinkedPosts = cat.postsCount > 0;
 
                     return (
-                      <tr key={cat.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
+                      <tr key={cat.id} className="group hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         {/* Name & Slug */}
-                        <td className="py-4 px-5 overflow-hidden">
+                        <td className="py-4 px-5 overflow-hidden border-b border-[#EAF0E9] sm:sticky sm:left-0 bg-white group-hover:bg-[#F7F9F5] z-10 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 transition-colors">
                           <p className="font-semibold text-sm text-[#2B2A25] truncate" title={cat.name}>{cat.name}</p>
                           <p className="text-[11px] text-[#6B6F63] font-mono mt-0.5 truncate" title={cat.slug}>{cat.slug}</p>
                         </td>
 
                         {/* Type Badge */}
-                        <td className="py-4 px-4 overflow-hidden">
+                        <td className="py-4 px-4 overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border max-w-full truncate ${
                               cat.type === 'Food Type'
@@ -441,7 +452,7 @@ export default function AdminCategoryManagement() {
                         </td>
 
                         {/* Linked Posts count */}
-                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-4 text-left whitespace-nowrap overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
                               hasLinkedPosts
@@ -454,7 +465,7 @@ export default function AdminCategoryManagement() {
                         </td>
 
                         {/* Actions (FN40: Lock delete if linked to posts) */}
-                        <td className="py-4 px-5 text-left whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-5 text-left whitespace-nowrap overflow-hidden border-b border-[#EAF0E9] md:sticky md:right-0 bg-white group-hover:bg-[#F7F9F5] z-10 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 transition-colors">
                           <div className="inline-flex items-center justify-start gap-2">
                             {/* Edit Button */}
                             <button
@@ -500,7 +511,7 @@ export default function AdminCategoryManagement() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="4" className="py-12 text-center text-[#6B6F63]">
+                    <td colSpan="4" className="py-12 text-center text-[#6B6F63] border-b border-[#EAF0E9]">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-10 h-10 text-[#A8BDA2] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

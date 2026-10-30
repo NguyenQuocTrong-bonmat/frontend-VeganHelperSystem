@@ -145,6 +145,15 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
     <ol className="wm-steps" aria-label="Plan setup progress">
       {['Your approach', 'Your schedule', 'Review & create'].map((label, index) => <li key={label} aria-current={step === index ? 'step' : undefined} className={step >= index ? 'is-reached' : ''}><span>{step > index ? <PlannerIcon name="check" /> : `0${index + 1}`}</span><span>{label}</span></li>)}
     </ol>
+    <div className="wm-steps-compact" aria-label={`Plan setup progress: Step ${step + 1} of 3, ${['Your approach', 'Your schedule', 'Review & create'][step]}`}>
+      <div className="wm-steps-compact-header">
+        <span className="wm-steps-compact-badge">Step {step + 1} of 3</span>
+        <span className="wm-steps-compact-title">{['Your approach', 'Your schedule', 'Review & create'][step]}</span>
+      </div>
+      <div className="wm-steps-compact-track" role="progressbar" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={3}>
+        <div className="wm-steps-compact-fill" style={{ width: `${((step + 1) / 3) * 100}%` }} />
+      </div>
+    </div>
     <form id="plan-setup-form" onSubmit={submit}>
       <fieldset disabled={busy || checking} className="wm-fields">
         <legend className="sr-only">{['Choose your plan type', 'Set your dates and goal', 'Review your plan'][step]}</legend>

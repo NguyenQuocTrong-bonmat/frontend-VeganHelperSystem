@@ -125,7 +125,7 @@ export default function NotificationBell({ userId }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
         </svg>
         {unread > 0 && (
-          <span aria-hidden="true" className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#A63446] text-white text-[10px] font-bold">
+          <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#A63446] text-white text-[10px] font-bold flex items-center justify-center leading-none">
             {unread > 99 ? '99+' : unread}
           </span>
         )}

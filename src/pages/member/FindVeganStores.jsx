@@ -339,7 +339,7 @@ function FindVeganStores() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#FDFBF6] overflow-hidden">
+    <div className="h-screen h-[100dvh] flex flex-col bg-[#FDFBF6] overflow-hidden">
       <HeaderMember />
 
       <main className="flex-grow relative w-full h-full">
@@ -355,7 +355,7 @@ function FindVeganStores() {
         )}
 
         {/* My Location Floating Button */}
-        <div className="absolute bottom-[200px] right-4 md:top-24 md:bottom-auto z-10 flex flex-col gap-2 items-end">
+        <div className={`absolute bottom-[160px] right-4 lg:top-[122px] lg:bottom-auto lg:right-4 z-10 flex flex-col gap-2 items-end ${isPanelExpanded ? 'hidden lg:flex' : 'flex'}`}>
           {locationError && (
             <div className="bg-[#FFF5F5] border border-[#FFE0E0] px-3 py-2 rounded-lg text-xs text-[#A63446] shadow-sm mb-2 mr-2 animate-fade-in">
               {locationError}
@@ -364,7 +364,7 @@ function FindVeganStores() {
           <button
             onClick={handleGetMyLocation}
             disabled={isLocating}
-            className="w-10 h-10 bg-white rounded-lg shadow-md border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-white rounded-lg shadow-md border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer touch-target"
             title="My Location"
           >
             {isLocating ? (
@@ -377,38 +377,48 @@ function FindVeganStores() {
 
         {/* Search This Area Button */}
         {showSearchThisArea && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 hidden md:block">
+          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-10 ${isPanelExpanded ? 'hidden lg:block' : 'block'}`}>
             <button
               onClick={handleSearchThisArea}
-              className="px-4 py-2 bg-white rounded-full shadow-md text-sm font-medium text-[#2F5233] hover:bg-[#FDFBF6] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+              className="px-4 py-2.5 min-h-[44px] inline-flex items-center justify-center bg-white rounded-full shadow-md text-sm font-medium text-[#2F5233] hover:bg-[#FDFBF6] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer whitespace-nowrap touch-target"
             >
               Search this area
             </button>
           </div>
         )}
 
-        {/* Floating Panel */}
-        <div className={`absolute z-10 transition-all duration-300 ease-in-out flex flex-col bg-white
-          md:top-6 md:left-6 md:bottom-6 md:w-[400px] md:rounded-2xl md:shadow-xl md:border md:border-[#DCE3D5]
+        {/* Floating Panel / Bottom Sheet Drawer */}
+        <div className={`absolute z-10 transition-all duration-300 ease-in-out flex flex-col bg-white overflow-hidden
+          lg:top-6 lg:left-6 lg:bottom-6 lg:w-[400px] lg:rounded-2xl lg:shadow-xl lg:border lg:border-[#DCE3D5]
           bottom-0 left-0 right-0 w-full rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)]
-          ${isPanelExpanded ? 'h-[85vh] md:h-auto' : 'h-[140px] md:h-auto'}
+          ${isPanelExpanded ? 'h-[85vh] lg:h-auto' : 'h-[140px] lg:h-auto'}
         `}>
           {/* Header */}
-          <div className="p-5 border-b border-[#DCE3D5] flex flex-col gap-4 bg-white md:rounded-t-2xl rounded-t-3xl cursor-pointer md:cursor-auto shrink-0"
-            onClick={() => setIsPanelExpanded(!isPanelExpanded)}>
-            <div className="w-12 h-1.5 bg-[#E9EFE6] rounded-full mx-auto mb-1 md:hidden" />
+          <div
+            className="p-4 sm:p-5 border-b border-[#DCE3D5] flex flex-col gap-2.5 sm:gap-3.5 lg:gap-4 bg-white lg:rounded-t-2xl rounded-t-3xl cursor-pointer lg:cursor-auto shrink-0 select-none"
+            onClick={() => setIsPanelExpanded(!isPanelExpanded)}
+            role="region"
+            aria-label="Vegan Stores Panel Header"
+          >
+            <div className="w-12 h-1.5 bg-[#E9EFE6] rounded-full mx-auto mb-0.5 lg:hidden" aria-hidden="true" />
 
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="font-fraunces text-2xl font-semibold text-[#2F5233]">Vegan Stores</h1>
+                <h1 className="font-fraunces text-xl sm:text-2xl font-semibold text-[#2F5233]">Vegan Stores</h1>
                 {locationStatus === 'granted' && coordinates && (
-                  <div className="flex items-start gap-1.5 mt-1.5 text-[13px] text-[#6B6F63]">
-                    <svg className="w-4 h-4 mt-[3px] text-[#3B82F6] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    <span className="line-clamp-2 leading-tight pr-4">{userAddress || "Đang xác định vị trí..."}</span>
+                  <div className="flex items-start gap-1.5 mt-1 text-[13px] text-[#6B6F63]">
+                    <svg className="w-4 h-4 mt-[2px] text-[#3B82F6] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span className="line-clamp-1 lg:line-clamp-2 leading-tight pr-4">{userAddress || "Đang xác định vị trí..."}</span>
                   </div>
                 )}
               </div>
-              <button className="md:hidden text-[#6B6F63] shrink-0 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none" onClick={(e) => { e.stopPropagation(); setIsPanelExpanded(!isPanelExpanded); }}>
+              <button
+                type="button"
+                aria-label={isPanelExpanded ? "Collapse store list" : "Expand store list"}
+                aria-expanded={isPanelExpanded}
+                className="lg:hidden text-[#6B6F63] shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-[#F3F6EE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none touch-target"
+                onClick={(e) => { e.stopPropagation(); setIsPanelExpanded(!isPanelExpanded); }}
+              >
                 <svg className={`w-6 h-6 transition-transform ${isPanelExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
               </button>
             </div>
@@ -431,19 +441,23 @@ function FindVeganStores() {
                   }
                 }}
                 placeholder="Search by store name..."
-                className="w-full pl-11 pr-4 py-3 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[14px] text-[#2B2A25] placeholder:text-[#6B6F63] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all"
+                className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[14px] text-[#2B2A25] placeholder:text-[#6B6F63] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all"
               />
             </div>
 
-            {showSearchThisArea && (
-              <button onClick={(e) => { e.stopPropagation(); handleSearchThisArea(); }} className="w-full md:hidden py-2 bg-[#FDFBF6] rounded-xl shadow-sm text-sm font-medium text-[#2F5233] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">
+            {showSearchThisArea && isPanelExpanded && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleSearchThisArea(); }}
+                className="w-full lg:hidden py-2.5 min-h-[44px] inline-flex items-center justify-center bg-[#FDFBF6] rounded-xl shadow-sm text-sm font-medium text-[#2F5233] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer touch-target"
+              >
                 Search this area
               </button>
             )}
           </div>
 
           {/* List */}
-          <div className={`flex-1 overflow-y-auto p-5 bg-[#FDFBF6] md:rounded-b-2xl flex flex-col gap-4 ${!isPanelExpanded ? 'hidden md:flex' : 'flex'}`}>
+          <div className={`flex-1 overflow-y-auto p-4 sm:p-5 bg-[#FDFBF6] lg:rounded-b-2xl flex flex-col gap-3.5 sm:gap-4 ${!isPanelExpanded ? 'hidden lg:flex' : 'flex'}`}>
             {errorMsg && (
               <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-4 rounded-xl flex items-start gap-3 shadow-sm">
                 <svg className="w-5 h-5 shrink-0 text-[#A63446] mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -525,19 +539,19 @@ function FindVeganStores() {
                     <h3 className="font-semibold text-[#2B2A25] line-clamp-1">{shop.name}</h3>
                   </div>
                   <p className="text-xs text-[#6B6F63] line-clamp-2 mb-2">{shop.address}</p>
-                  <div className="flex items-center justify-between mt-auto">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-1">
                     {shop.distanceKm !== undefined && (
                       <div className="text-xs font-medium text-[#2F5233]">{Number(shop.distanceKm).toFixed(1)} km away</div>
                     )}
                     
                     {isSelected && (
-                      <div className="flex gap-2 ml-auto" onClick={e => e.stopPropagation()}>
+                      <div className="flex flex-wrap gap-2 ml-auto" onClick={e => e.stopPropagation()}>
                         {mapsDirUrl && (
                           <a 
                             href={mapsDirUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 bg-[#2F5233] text-white rounded-lg text-xs font-medium hover:bg-[#223d26] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-[#2F5233] text-white rounded-lg text-xs font-medium hover:bg-[#223d26] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none min-h-[44px] min-w-[44px] touch-target"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                             Directions
@@ -548,7 +562,7 @@ function FindVeganStores() {
                             href={mapsSearchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#2F5233] border border-[#2F5233] rounded-lg text-xs font-medium hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white text-[#2F5233] border border-[#2F5233] rounded-lg text-xs font-medium hover:bg-[#F3F6EE] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none min-h-[44px] min-w-[44px] touch-target"
                           >
                             Google Maps
                           </a>

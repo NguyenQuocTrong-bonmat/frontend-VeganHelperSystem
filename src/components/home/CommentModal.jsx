@@ -380,15 +380,20 @@ export default function CommentModal({
     const isEditing = editingCommentId === comment.id;
     const isActionLoading = actionLoadingId === comment.id;
     const isReporting = reportingId === comment.id;
-    const indentStyle = { marginLeft: `${Math.min(depth - 1, 3) * 1}rem` };
+    const indentClasses = [
+      'ml-0',
+      'ml-3 sm:ml-4',
+      'ml-6 sm:ml-8',
+      'ml-9 sm:ml-12',
+    ][Math.min(depth - 1, 3)] || 'ml-0';
+    const avatarSizeClass = depth > 1 ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8';
 
     // Tombstone row for deleted comments
     if (isDeleted) {
       return (
         <div key={comment.id} className="space-y-2.5">
           <div
-            className="py-1 text-[11px] text-vh-text-secondary italic break-words"
-            style={indentStyle}
+            className={`py-1 text-[11px] text-vh-text-secondary italic break-words ${indentClasses}`}
             data-testid={`comment-tombstone-${comment.id}`}
           >
             <span>{content || 'This comment has been deleted.'}</span>
@@ -403,11 +408,10 @@ export default function CommentModal({
     return (
       <div key={comment.id} className="space-y-2.5">
         <div
-          className="bg-white/80 border border-vh-border/70 rounded-xl p-3.5 sm:p-4 text-left shadow-2xs transition-colors"
-          style={indentStyle}
+          className={`bg-white/80 border border-vh-border/70 rounded-xl p-3 sm:p-4 text-left shadow-2xs transition-colors ${indentClasses}`}
         >
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 rounded-full bg-vh-mint/60 border border-vh-border flex items-center justify-center shrink-0 overflow-hidden">
+            <div className={`${avatarSizeClass} rounded-full bg-vh-mint/60 border border-vh-border flex items-center justify-center shrink-0 overflow-hidden`}>
               {comment.avatarUrl ? (
                 <img src={getImageUrl(comment.avatarUrl)} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -594,7 +598,7 @@ export default function CommentModal({
 
           {/* Nested Reply Composer */}
           {replyingTo === comment.id && (
-            <form onSubmit={(e) => handleCommentSubmit(e, comment.id)} className="mt-3 pl-8 sm:pl-10 space-y-2">
+            <form onSubmit={(e) => handleCommentSubmit(e, comment.id)} className="mt-3 pl-0 sm:pl-10 space-y-2">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
@@ -691,7 +695,7 @@ export default function CommentModal({
         </div>
 
         {/* Scrollable Comments Thread */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-gradient-to-b from-vh-surface to-vh-cream/20 overscroll-contain">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3.5 bg-gradient-to-b from-vh-surface to-vh-cream/20 overscroll-contain">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2.5 text-vh-text-secondary">
               <div className="w-7 h-7 border-2 border-vh-mint border-t-vh-forest rounded-full animate-spin" />

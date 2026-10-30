@@ -562,23 +562,34 @@ export default function AdminMemberManagement() {
 
         {/* 4. Members Table Card */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse table-fixed">
+          {/* Mobile Horizontal Scroll Cue */}
+          <div className="md:hidden flex items-center justify-between px-4 py-2 text-[11px] text-[#6B6F63] bg-[#FAFBF9] border-b border-[#DCE3D5]">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Swipe horizontally to view full member columns
+            </span>
+            <span className="text-[10px] font-mono text-[#8A9080]">880px</span>
+          </div>
+
+          <div tabIndex={0} role="region" aria-label="Members directory table" className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]/40">
+            <table className="w-full min-w-[880px] text-left text-xs border-separate border-spacing-0 table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[56%]">Member</th>
-                  <th className="py-3.5 px-4 font-semibold w-[44%]">Contact & Email</th>
-                  <th className="py-3.5 px-3 font-semibold w-[90px]">Role</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Status</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Joined Date</th>
-                  <th className="py-3.5 px-2.5 font-semibold text-left w-[138px]">Actions</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold w-[220px] sm:sticky sm:left-0 bg-[#FAFBF9] z-20 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Member</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold w-[200px] border-b border-[#DCE3D5]">Contact & Email</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[100px] border-b border-[#DCE3D5]">Role</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[110px] border-b border-[#DCE3D5]">Status</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[110px] border-b border-[#DCE3D5]">Joined Date</th>
+                  <th scope="col" className="py-3.5 px-2.5 font-semibold text-left w-[140px] md:sticky md:right-0 bg-[#FAFBF9] z-20 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
+              <tbody className="text-[#2B2A25]">
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skel-member-${idx}`} className="animate-pulse">
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 sm:sticky sm:left-0 bg-white z-10 sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-full bg-[#EAF0E9] shrink-0" />
                           <div className="space-y-1.5 flex-1 min-w-0">
@@ -587,20 +598,20 @@ export default function AdminMemberManagement() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 border-b border-[#EAF0E9]">
                         <div className="w-36 h-3 bg-[#EAF0E9] rounded mb-1" />
                         <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-20 h-3 bg-[#EAF0E9] rounded" />
                       </td>
-                      <td className="py-4 px-2.5 text-left">
+                      <td className="py-4 px-2.5 text-left md:sticky md:right-0 bg-white z-10 md:border-l md:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="w-24 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
@@ -617,9 +628,9 @@ export default function AdminMemberManagement() {
                     const isBanned = member.status === 'Banned';
 
                     return (
-                      <tr key={member.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
+                      <tr key={member.id} className="group hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         {/* Member Identity Column */}
-                        <td className="py-4 px-4 overflow-hidden">
+                        <td className="py-4 px-4 overflow-hidden border-b border-[#EAF0E9] sm:sticky sm:left-0 bg-white group-hover:bg-[#F7F9F5] z-10 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 transition-colors">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-xs bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
                               {member.avatarUrl ? (
@@ -644,7 +655,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Email & Contact */}
-                        <td className="py-4 px-4 text-[#6B6F63] overflow-hidden">
+                        <td className="py-4 px-4 text-[#6B6F63] overflow-hidden border-b border-[#EAF0E9]">
                           <div className="min-w-0">
                             <p className="font-medium text-[#2B2A25] truncate" title={member.email}>
                               {member.email}
@@ -665,7 +676,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                               member.role === 'Admin'
@@ -678,7 +689,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                               isBanned
@@ -696,12 +707,12 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Joined Date */}
-                        <td className="py-4 px-3 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono">
+                        <td className="py-4 px-3 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono border-b border-[#EAF0E9]">
                           {member.joinedDate}
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-2.5 text-left whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-2.5 text-left whitespace-nowrap overflow-hidden border-b border-[#EAF0E9] md:sticky md:right-0 bg-white group-hover:bg-[#F7F9F5] z-10 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 transition-colors">
                           <div className="inline-flex items-center justify-start gap-1.5">
                             {/* Inspect Details Button */}
                             <button
@@ -757,7 +768,7 @@ export default function AdminMemberManagement() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-[#6B6F63]">
+                    <td colSpan="6" className="py-12 text-center text-[#6B6F63] border-b border-[#EAF0E9]">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-10 h-10 text-[#A8BDA2] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

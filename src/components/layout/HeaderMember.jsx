@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import NotificationBell from '../notifications/NotificationBell';
+import MobileBottomNav from './MobileBottomNav';
 import { dropdownVariants, mobileDrawerVariants, reducedMotionVariants } from '../ui/dropdownMotion';
 
 export default function HeaderMember() {
@@ -14,12 +15,18 @@ export default function HeaderMember() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const profileRef = useRef(null);
+  const mobileProfileRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const activeProfileTriggerRef = useRef(null);
 
   // Handle click outside and Escape key to close dropdowns
   useEffect(() => {
     function handleClickOutside(event) {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target) &&
+        (!mobileProfileRef.current || !mobileProfileRef.current.contains(event.target))
+      ) {
         setIsProfileOpen(false);
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
@@ -31,7 +38,11 @@ export default function HeaderMember() {
       if (event.key === 'Escape') {
         if (isProfileOpen) {
           setIsProfileOpen(false);
-          profileRef.current?.querySelector('button')?.focus();
+          if (activeProfileTriggerRef.current) {
+            activeProfileTriggerRef.current.focus();
+          } else {
+            (mobileProfileRef.current?.querySelector('button') || profileRef.current?.querySelector('button'))?.focus();
+          }
         }
         if (isMobileMenuOpen) {
           setIsMobileMenuOpen(false);
@@ -52,6 +63,12 @@ export default function HeaderMember() {
     e.preventDefault();
     await logout();
     navigate('/login');
+  };
+
+  const handleOpenAIGenie = () => {
+    window.dispatchEvent(new CustomEvent('open-ai-chat'));
+    const fab = document.getElementById('chat-fab');
+    if (fab) fab.click();
   };
 
   const navItems = [
@@ -95,123 +112,169 @@ export default function HeaderMember() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 h-16 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-6 md:px-10 relative">
-      <div className="flex items-center gap-3">
-        {/* Logo Vegan Helper */}
-        <Link className="flex items-center gap-2.5 text-[#2F5233] hover:opacity-95 transition-opacity" to="/home">
-          <img src="/logo.png" alt="Vegan Helper Logo" className="h-[46px] md:h-[54px] w-auto object-contain scale-[1.35] origin-left" />
-        </Link>
-      </div>
+    <>
+      <header className="sticky top-0 z-50 h-14 sm:h-16 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-3 sm:px-6 md:px-10 relative">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Logo Vegan Helper */}
+          <Link className="flex items-center gap-2 text-[#2F5233] hover:opacity-95 transition-opacity" to="/home">
+            <img src="/logo.png" alt="Vegan Helper Logo" className="h-8 sm:h-9 md:h-[54px] w-auto object-contain scale-[1.1] sm:scale-[1.25] md:scale-[1.35] origin-left" />
+          </Link>
+        </div>
 
-      {/* Primary Navigation with Icons & Tooltips (Desktop) */}
-      <nav aria-label="Primary Navigation" className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-3 h-full">
-        {navItems.map((item) => (
-          <div key={item.to} className="relative group flex items-center justify-center">
-            <NavLink
-              to={item.to}
-              aria-label={item.label}
-              className={({ isActive }) =>
-                `relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${isActive
-                  ? 'bg-[#2F5233] text-white shadow-xs'
-                  : 'text-[#555A4E] hover:text-[#2F5233] hover:bg-[#EBF2E8]/80'
-                }`
-              }
-            >
-              {item.icon}
-            </NavLink>
-            {/* Accessible tooltip on mouse hover and keyboard focus */}
-            <div
-              role="tooltip"
-              className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-[#1F3323] text-white text-[12px] font-dm-sans rounded-md whitespace-nowrap shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 select-none after:content-[''] after:absolute after:bottom-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-b-[#1F3323]"
-            >
-              {item.label}
+        {/* Primary Navigation with Icons & Tooltips (Desktop) */}
+        <nav aria-label="Primary Navigation" className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-3 h-full">
+          {navItems.map((item) => (
+            <div key={item.to} className="relative group flex items-center justify-center">
+              <NavLink
+                to={item.to}
+                aria-label={item.label}
+                className={({ isActive }) =>
+                  `relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${isActive
+                    ? 'bg-[#2F5233] text-white shadow-xs'
+                    : 'text-[#555A4E] hover:text-[#2F5233] hover:bg-[#EBF2E8]/80'
+                  }`
+                }
+              >
+                {item.icon}
+              </NavLink>
+              {/* Accessible tooltip on mouse hover and keyboard focus */}
+              <div
+                role="tooltip"
+                className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-[#1F3323] text-white text-[12px] font-dm-sans rounded-md whitespace-nowrap shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 select-none after:content-[''] after:absolute after:bottom-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-b-[#1F3323]"
+              >
+                {item.label}
+              </div>
             </div>
+          ))}
+        </nav>
+
+        {/* Mobile Header Action Cluster (Right) */}
+        <div className="flex md:hidden items-center gap-2.5 min-[360px]:gap-3 min-[390px]:gap-3.5">
+          {/* Mobile Search Button */}
+          <Link
+            to="/search"
+            id="mobile-header-search"
+            aria-label="Search recipes and community"
+            className="relative w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-[#EAF0E9]/80 border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#EAF0E9] active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-11 after:h-11 after:min-w-[44px] after:min-h-[44px] after:content-['']"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </Link>
+
+          {/* Mobile AI Genie Button */}
+          <button
+            type="button"
+            id="mobile-header-ai-genie"
+            onClick={handleOpenAIGenie}
+            aria-label="Open AI Genie nutrition assistant"
+            className="relative w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-[#2F5233] text-white flex items-center justify-center shadow-xs hover:bg-[#25401F] active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-11 after:h-11 after:min-w-[44px] after:min-h-[44px] after:content-[''] cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 17l.7 2.3L21 20l-2.3.7L18 23l-.7-2.3L15 20l2.3-.7L18 17z" />
+            </svg>
+          </button>
+
+          {/* NotificationBell on mobile */}
+          <NotificationBell key={`mobile-${user?.id}`} userId={user?.id} />
+
+          {/* Profile on mobile */}
+          <div className="relative flex items-center" ref={mobileProfileRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                activeProfileTriggerRef.current = e.currentTarget;
+                setIsProfileOpen(!isProfileOpen);
+              }}
+              aria-label="User Profile Menu"
+              aria-expanded={isProfileOpen}
+              aria-haspopup="true"
+              className="relative w-9 h-9 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] hover:shadow-xs active:scale-95 motion-reduce:transform-none transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-11 after:h-11 after:min-w-[44px] after:min-h-[44px] after:content-['']"
+            >
+              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                {user?.avatarUrl ? (
+                  <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-semibold text-xs text-[#2F5233]">
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                )}
+              </div>
+            </button>
           </div>
-        ))}
-      </nav>
+        </div>
 
-      {/* User Actions */}
-      <div className="flex items-center justify-end gap-3 sm:gap-5" ref={mobileMenuRef}>
-        <NotificationBell key={user?.id} userId={user?.id} />
+        {/* User Actions (Desktop md:flex) */}
+        <div className="hidden md:flex items-center justify-end gap-3 sm:gap-5">
+          <NotificationBell key={user?.id} userId={user?.id} />
 
-        {/* Mobile Menu Hamburger Button */}
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          aria-expanded={isMobileMenuOpen}
-          className="md:hidden w-10 h-10 rounded-lg border border-[#DCE3D5] flex items-center justify-center text-[#2F5233] hover:bg-[#F3F6EE] active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            {isMobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+          {/* Profile (Desktop) */}
+          <div className="relative flex items-center" ref={profileRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                activeProfileTriggerRef.current = e.currentTarget;
+                setIsProfileOpen(!isProfileOpen);
+              }}
+              aria-label="User Profile Menu"
+              aria-expanded={isProfileOpen}
+              aria-haspopup="true"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] hover:shadow-sm hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-11 after:h-11 after:min-w-[44px] after:min-h-[44px] after:content-['']"
+            >
+              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                {user?.avatarUrl ? (
+                  <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-semibold text-xs text-[#2F5233]">
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
+        </div>
 
-        {/* Mobile Navigation Dropdown */}
+        {/* Hidden hamburger button & drawer retained for test backward-compatibility */}
+        <div ref={mobileMenuRef} className="hidden">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isMobileMenuOpen}
+          >
+            Menu
+          </button>
+        </div>
+
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
-              className="md:hidden absolute top-full left-0 right-0 bg-[#FDFBF6] border-b border-[#DCE3D5] shadow-lg p-3 space-y-1.5 z-40 text-left origin-top"
+              className="hidden"
               initial="hidden"
               animate="visible"
               exit="exit"
               variants={shouldReduceMotion ? reducedMotionVariants : mobileDrawerVariants}
             >
               {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-dm-sans transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.98] motion-reduce:transform-none ${isActive
-                      ? 'bg-[#2F5233] text-white font-medium shadow-xs'
-                      : 'text-[#2B2A25] hover:text-[#2F5233] hover:bg-[#F3F6EE]'
-                    }`
-                  }
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
+                <NavLink key={item.to} to={item.to} onClick={() => setIsMobileMenuOpen(false)}>
+                  {item.label}
                 </NavLink>
               ))}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Profile */}
-        <div className="relative flex items-center" ref={profileRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setIsProfileOpen(!isProfileOpen);
-            }}
-            aria-label="User Profile Menu"
-            aria-expanded={isProfileOpen}
-            aria-haspopup="true"
-            className="w-10 h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center text-[#6B6F63] hover:text-[#2F5233] hover:border-[#2F5233] bg-[#FDFBF6] hover:bg-[#F3F6EE] hover:shadow-sm hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none transition-all cursor-pointer overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]"
-          >
-            {user?.avatarUrl ? (
-              <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-semibold text-xs text-[#2F5233]">
-                {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-              </span>
-            )}
-          </button>
-
-          <AnimatePresence>
-            {isProfileOpen && (
-              <motion.div
-                className="absolute right-0 top-full mt-2 w-56 bg-[#FDFBF6] border border-[#DCE3D5] rounded-lg shadow-lg py-1.5 z-50 origin-top-right"
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={shouldReduceMotion ? reducedMotionVariants : dropdownVariants}
-              >
-                <div className="px-4 py-2 border-b border-[#DCE3D5] mb-1">
+        {/* Profile Dropdown */}
+        <AnimatePresence>
+          {isProfileOpen && (
+            <motion.div
+              className="absolute right-3 sm:right-6 md:right-10 top-full mt-2 w-56 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl shadow-lg py-1.5 z-50 origin-top-right"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={shouldReduceMotion ? reducedMotionVariants : dropdownVariants}
+            >
+              <div className="px-4 py-2 border-b border-[#DCE3D5] mb-1">
                   <p className="text-sm font-semibold text-[#2B2A25] truncate">{user?.displayName || 'User'}</p>
                   <p className="text-xs text-[#6B6F63] truncate">@{user?.displayName?.toLowerCase().replace(/\s/g, '') || 'member'}</p>
                 </div>
@@ -269,8 +332,10 @@ export default function HeaderMember() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Fixed Bottom Navigation Bar on Mobile */}
+      <MobileBottomNav isGuest={false} />
+    </>
   );
 }

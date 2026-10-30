@@ -482,15 +482,20 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     const isEditing = editingCommentId === comment.id;
     const isActionLoading = commentActionLoadingId === comment.id;
     const isReporting = reportingCommentId === comment.id;
-    const indentStyle = { marginLeft: `${Math.min(depth - 1, 3) * 1.25}rem` };
+    const indentClasses = [
+      'ml-0',
+      'ml-3 sm:ml-5',
+      'ml-6 sm:ml-10',
+      'ml-9 sm:ml-[3.75rem]',
+    ][Math.min(depth - 1, 3)] || 'ml-0';
+    const avatarSizeClass = depth > 1 ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8';
 
     // Tombstone row for deleted comments
     if (isDeleted) {
       return (
         <div key={comment.id} className="space-y-3">
           <div
-            className="py-1 text-xs text-[#6B6F63] italic break-words"
-            style={indentStyle}
+            className={`py-1 text-xs text-[#6B6F63] italic break-words ${indentClasses}`}
             data-testid={`comment-tombstone-${comment.id}`}
           >
             <span>{content || 'This comment has been deleted.'}</span>
@@ -506,8 +511,8 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
     return (
       <div key={comment.id} className="space-y-3">
-        <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-4" style={indentStyle}>
-          <div className="flex items-start gap-3">
+        <div className={`bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl p-3.5 sm:p-4 ${indentClasses}`}>
+          <div className="flex items-start gap-2.5 sm:gap-3">
             {commentAuthorId ? (
               <button
                 type="button"
@@ -522,24 +527,24 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     e
                   )
                 }
-                className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] hover:border-[#2F5233] flex items-center justify-center overflow-hidden cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+                className={`${avatarSizeClass} shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] hover:border-[#2F5233] flex items-center justify-center overflow-hidden cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none`}
                 aria-label={`View profile of ${comment.authorName || 'commenter'}`}
               >
                 {comment.avatarUrl ? (
                   <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
                 ) : (
-                  <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <circle cx="12" cy="7" r="4"></circle>
                     <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
                   </svg>
                 )}
               </button>
             ) : (
-              <div className="w-8 h-8 shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden">
+              <div className={`${avatarSizeClass} shrink-0 rounded-full bg-[#E9EFE6] border border-[#DCE3D5] flex items-center justify-center overflow-hidden`}>
                 {comment.avatarUrl ? (
                   <img src={getImageUrl(comment.avatarUrl)} alt={comment.authorName} className="w-full h-full object-cover" />
                 ) : (
-                  <svg className="w-4 h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6B6F63]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <circle cx="12" cy="7" r="4"></circle>
                     <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
                   </svg>
@@ -722,7 +727,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           </div>
 
           {replyingTo === comment.id && (
-            <form onSubmit={(event) => handleCommentSubmit(event, comment.id)} className="mt-4 pl-11 space-y-2">
+            <form onSubmit={(event) => handleCommentSubmit(event, comment.id)} className="mt-4 pl-0 sm:pl-11 space-y-2">
               <textarea
                 value={replyText}
                 onChange={(event) => setReplyText(event.target.value)}
@@ -782,7 +787,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   );
 
   return (
-    <main className="w-full max-w-[1120px] mx-auto px-6 py-8 md:py-12 flex-1">
+    <main className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 flex-1">
       <div className="mb-6 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-medium text-[#6B6F63] hover:text-[#2F5233] transition-colors cursor-pointer">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -869,7 +874,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
 
         {post.media && post.media.length > 0 && (
           <div className="space-y-3">
-            <div className="w-full bg-[#1e2d21] border border-[#DCE3D5] rounded-xl h-72 sm:h-[420px] flex flex-col items-center justify-center text-white relative overflow-hidden group select-none">
+            <div className="w-full bg-[#1e2d21] border border-[#DCE3D5] rounded-xl aspect-video sm:aspect-auto sm:h-[420px] max-h-[420px] flex flex-col items-center justify-center text-white relative overflow-hidden group select-none">
               {post.media[activeMediaIndex].mediaType === 'video' ? (
                 <video className="absolute inset-0 w-full h-full object-cover" src={getImageUrl(post.media[activeMediaIndex].mediaUrl)} controls />
               ) : (

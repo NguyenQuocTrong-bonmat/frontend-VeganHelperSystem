@@ -4643,3 +4643,173 @@
     gap: 10px;
   }
 }
+
+/* ==========================================================================
+   Phase 3 Responsive Rules: Weekly Menu Workspace (VEGANHELPER-RESPONSIVE-SPEC-FINAL)
+   DEF-01: Workspace toolbar wrapping below 480px
+   DEF-02: Compact step-summary pill indicator below 580px
+   DEF-03: Setup footer column-reverse vertical stack below 480px
+   ========================================================================== */
+
+/* Base state for compact progress tracker (hidden on desktop and tablet >= 580px) */
+.wm-steps-compact {
+  display: none;
+}
+
+/* Tablet & Phablet Step Pills: Single-line horizontal alignment (580px to 767px) */
+@media (min-width: 580px) and (max-width: 767px) {
+  .wm-steps li {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .wm-workspace-toolbar h2 {
+    max-width: none;
+    font-size: 24px;
+  }
+
+  .wm-workspace-toolbar > .wm-button {
+    max-width: none;
+    font-size: 13px;
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+}
+
+/* DEF-02: Compact Step Summary Indicator below 580px */
+@media (max-width: 579.98px) {
+  .wm-steps {
+    display: none !important;
+  }
+
+  .wm-steps-compact {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0 20px;
+    padding: 10px 14px;
+    background: #f7f9f5;
+    border: 1px solid #dce5d9;
+    border-radius: 12px;
+  }
+
+  .wm-steps-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wm-steps-compact-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--vh-forest);
+    background: #eaf0e9;
+    border: 1px solid #dce3d5;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .wm-steps-compact-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #26342b;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wm-steps-compact-track {
+    width: 100%;
+    height: 4px;
+    background: #e4ebdf;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .wm-steps-compact-fill {
+    height: 100%;
+    background: var(--vh-forest);
+    border-radius: 9999px;
+    transition: width 0.25s ease;
+  }
+}
+
+/* DEF-01 & DEF-03: Toolbar wrap & Setup footer stack below 480px */
+@media (max-width: 479.98px) {
+  /* Decorative food-image composition below 480px: hide and reclaim spacing */
+  .wm-summary-image {
+    display: none !important;
+  }
+
+  .wm-summary-copy {
+    padding-top: 0 !important;
+  }
+
+  .wm-plan-summary {
+    padding-top: 18px !important;
+  }
+
+  /* DEF-01: Workspace Toolbar Wrap */
+  .wm-workspace-toolbar {
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .wm-workspace-toolbar > div {
+    width: 100% !important;
+  }
+
+  .wm-workspace-toolbar h2 {
+    max-width: 100% !important;
+    font-size: clamp(20px, 5.5vw, 24px) !important;
+    line-height: 1.25 !important;
+  }
+
+  .wm-workspace-toolbar > .wm-button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    padding: 12px 18px !important;
+  }
+
+  /* DEF-03: Setup Footer Stack (Column-reverse: Primary action on top) */
+  .wm-setup-footer {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 24px !important;
+    padding-top: 18px !important;
+  }
+
+  .wm-setup-footer .wm-button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    padding: 12px 18px !important;
+  }
+
+  .wm-setup-footer .wm-text-button {
+    width: 100% !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    color: #667568 !important;
+    padding: 8px 16px !important;
+    text-align: center !important;
+  }
+}

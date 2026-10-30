@@ -97,24 +97,24 @@ function VerifyOTP() {
   };
 
   return (
-    <>
-      <HeaderAuth />
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[440px] bg-surface-paper border border-border-sage-mist rounded-[16px] p-8 md:p-10">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-bg-herb-white border border-border-sage-mist text-primary-moss mb-4">
-              <svg className="w-6 h-6 stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col relative bg-bg-herb-white text-text-charcoal selection:bg-primary-moss/20">
+      <HeaderAuth className="shrink-0" />
+      <main className="flex-1 flex flex-col justify-center items-center w-full px-3.5 sm:px-6 py-4 sm:py-8 md:py-12 relative z-10">
+        <div className="w-full max-w-[440px] bg-surface-paper border border-border-sage-mist rounded-[20px] sm:rounded-[24px] p-5 sm:p-8 md:p-10 shadow-sm my-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-bg-herb-white border border-border-sage-mist text-primary-moss mb-3 sm:mb-4">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M21.5 12H16c-.7 2-3 3-4.5 1.5L10 12H2.5"></path>
                 <path d="M21.5 2v20"></path>
                 <path d="M2.5 2v20"></path>
               </svg>
             </div>
-            <h1 className="font-fraunces text-3xl font-medium text-text-charcoal mb-2">
+            <h1 className="font-fraunces text-2xl sm:text-3xl font-medium text-text-charcoal mb-1.5 sm:mb-2">
               Verify your email
             </h1>
-            <p className="text-text-stem-gray text-sm px-4">
+            <p className="text-text-stem-gray text-xs sm:text-sm px-2 sm:px-4 break-words">
               {codeSent
-                ? <>Enter the 6-digit code sent to <strong className="text-text-charcoal font-semibold">{email}</strong>.</>
+                ? <>Enter the 6-digit code sent to <strong className="text-text-charcoal font-semibold break-all">{email}</strong>.</>
                 : 'Enter your registered email to receive a verification code.'}
             </p>
           </div>
@@ -131,14 +131,14 @@ function VerifyOTP() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="email@example.com"
-                  className="w-full h-11 px-3.5 bg-surface-paper border border-border-sage-mist rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors"
+                  className="w-full h-11 min-h-[44px] px-3.5 bg-surface-paper border border-border-sage-mist rounded-[8px] text-sm text-text-charcoal placeholder:text-text-stem-gray focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors"
                   required
                 />
               </div>
               <button
                 type="submit"
                 disabled={isSending || countdown > 0}
-                className="w-full h-11 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
+                className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer"
               >
                 {isSending ? 'Sending...' : countdown > 0 ? `Code sent (${formatTime(countdown)})` : 'Send verification code'}
               </button>
@@ -147,14 +147,14 @@ function VerifyOTP() {
 
           {codeSent && (
             <>
-              <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+              <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit(onSubmit)}>
                 <div>
                   <label className="block text-xs font-medium text-text-charcoal mb-2 text-center" htmlFor="otp">
                     6-Digit Verification Code
                   </label>
                   <input
                     {...register('otp')}
-                    className={`w-full h-12 px-4 text-center tracking-[0.5em] text-lg bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
+                    className={`w-full h-12 min-h-[44px] px-2 sm:px-4 text-center tracking-[0.35em] sm:tracking-[0.5em] text-lg sm:text-xl font-mono bg-surface-paper border ${errors.otp ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-text-charcoal placeholder:text-text-stem-gray placeholder:tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
                     id="otp"
                     placeholder="000000"
                     maxLength={6}
@@ -167,24 +167,24 @@ function VerifyOTP() {
                 </div>
                 <button
                   disabled={isSubmitting}
-                  className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
+                  className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white text-sm font-medium rounded-[8px] transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer"
                   type="submit"
                 >
                   {isSubmitting ? 'Verifying...' : 'Verify Code'}
                 </button>
               </form>
 
-              <div className="mt-8 pt-6 border-t border-border-sage-mist text-center">
-                <p className="text-sm text-text-stem-gray mb-3">Didn't receive the code?</p>
+              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-border-sage-mist text-center">
+                <p className="text-sm text-text-stem-gray mb-2.5 sm:mb-3">Didn't receive the code?</p>
                 {countdown > 0 ? (
                   <p className="text-sm font-medium text-text-charcoal">
-                    Resend available in <span className="text-primary-moss">{formatTime(countdown)}</span>
+                    Resend available in <span className="text-primary-moss font-semibold">{formatTime(countdown)}</span>
                   </p>
                 ) : (
                   <button
                     onClick={sendCode}
                     disabled={isSending}
-                    className="text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:scale-95 motion-reduce:transform-none disabled:active:scale-100"
+                    className="min-h-[44px] inline-flex items-center justify-center text-sm font-medium text-primary-moss hover:underline hover:text-primary-moss-hover transition-all disabled:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 cursor-pointer"
                   >
                     {isSending ? 'Resending...' : 'Resend Code Now'}
                   </button>
@@ -193,13 +193,13 @@ function VerifyOTP() {
             </>
           )}
 
-          <p className="text-center mt-8 text-sm text-text-stem-gray">
-            Already verified? <Link className="text-primary-moss hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-0.5 active:opacity-80" to="/login">Log in</Link>
+          <p className="text-center mt-6 sm:mt-8 text-sm text-text-stem-gray">
+            Already verified? <Link className="text-primary-moss hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 py-0.5 active:opacity-80 font-semibold" to="/login">Log in</Link>
           </p>
         </div>
       </main>
-      <footer className="w-full py-6 text-center text-xs text-text-stem-gray border-t border-border-sage-mist">
-        <div className="max-w-[1120px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="w-full py-4 sm:py-5 text-center text-xs text-text-stem-gray border-t border-border-sage-mist shrink-0 relative z-10">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
           <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
           <div className="flex items-center gap-4">
             <Link className="hover:text-primary-moss transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:opacity-80" to="#">Terms of Service</Link>
@@ -207,7 +207,7 @@ function VerifyOTP() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
 

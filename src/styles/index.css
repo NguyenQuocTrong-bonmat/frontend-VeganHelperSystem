@@ -339,3 +339,26 @@ body {
   justify-content: center;
 }
 
+/* Goong Map Zoom Controls — Vegan Stores Responsive Positioning */
+.goongjs-ctrl-top-right,
+.mapboxgl-ctrl-top-right {
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 10 !important;
+}
+
+.goongjs-ctrl-top-right .goongjs-ctrl,
+.mapboxgl-ctrl-top-right .goongjs-ctrl {
+  margin: 0 !important;
+}
+
+/* Mobile Bottom Navigation Clearance */
+@media (max-width: 767.98px) {
+  body:has(#mobile-bottom-nav),
+  body:has([data-mobile-bottom-nav]),
+  .has-mobile-bottom-nav {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+

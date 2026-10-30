@@ -430,8 +430,8 @@ function Home() {
       </div>
 
       {/* THREE-COLUMN SOCIAL CONTENT AREA */}
-      <main id="social-feed" className="flex-1 w-full max-w-[1640px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pb-20">
-        <div className="flex flex-col min-[900px]:flex-row items-start justify-center gap-6 xl:gap-7 w-full">
+      <main id="social-feed" className="flex-1 vh-container-feed pb-20">
+        <div className="flex flex-col lg:flex-row items-start justify-center gap-6 xl:gap-7 w-full">
           {/* Left Utility Rail (Navigation) */}
           <HomeSocialNav
             isGuest={false}
@@ -439,15 +439,15 @@ function Home() {
           />
 
           {/* Main Content Column */}
-          <section aria-label="Community Feed" className="flex-1 min-w-0 max-w-[840px] w-full space-y-6">
+          <section aria-label="Community Feed" className="flex-1 min-w-0 max-w-[840px] w-full mx-auto lg:mx-0 space-y-6">
             {/* Quick-Post Composer Widget */}
-            <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 sm:p-5 md:p-6 shadow-sm text-left">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-vh-mint border border-vh-border flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="bg-vh-surface border border-vh-border/70 rounded-card p-3.5 sm:p-5 md:p-6 shadow-sm text-left">
+              <div className="flex items-center gap-2.5 sm:gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-vh-mint border border-vh-border flex items-center justify-center shrink-0 overflow-hidden">
                   {user?.avatarUrl ? (
                     <img src={getImageUrl(user.avatarUrl)} alt={user.displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="font-semibold text-base text-vh-forest">
+                    <span className="font-semibold text-sm sm:text-base text-vh-forest">
                       {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
                     </span>
                   )}
@@ -456,7 +456,7 @@ function Home() {
                   type="button"
                   onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
                   aria-label="Create a post"
-                  className="flex-1 px-5 py-3 sm:py-3.5 bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 rounded-full text-xs sm:text-sm font-dm-sans text-vh-text-secondary transition-all text-left truncate cursor-pointer shadow-2xs focus-ring-vh active:scale-[0.99] motion-reduce:transform-none"
+                  className="flex-1 px-3.5 sm:px-5 py-2.5 sm:py-3.5 bg-vh-cream hover:bg-vh-mint/40 border border-vh-border/60 rounded-full text-xs sm:text-sm font-dm-sans text-vh-text-secondary transition-all text-left truncate cursor-pointer shadow-2xs focus-ring-vh active:scale-[0.99] motion-reduce:transform-none"
                 >
                   What are you sharing today, {user?.displayName || 'friend'}?
                 </button>
@@ -464,7 +464,7 @@ function Home() {
                   type="button"
                   onClick={(e) => handleOpenComposer('post', false, e.currentTarget)}
                   aria-label="Create Post"
-                  className="shrink-0 rounded-full bg-vh-forest px-4 py-3 font-dm-sans text-xs font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1D3D2D] hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 sm:px-5 sm:py-3.5 sm:text-sm cursor-pointer"
+                  className="shrink-0 rounded-full bg-vh-forest px-3.5 sm:px-5 py-2.5 sm:py-3.5 font-dm-sans text-xs sm:text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#1D3D2D] hover:shadow-md active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 cursor-pointer"
                 >
                   <span>Create Post</span>
                 </button>

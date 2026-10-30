@@ -172,8 +172,14 @@ export default function AIChatbot() {
     }
   }
 
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-ai-chat', handleOpen);
+    return () => window.removeEventListener('open-ai-chat', handleOpen);
+  }, []);
+
   return (
-    <aside className="fixed bottom-6 right-6 z-50">
+    <aside className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50">
       {isOpen ? (
         <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl">
           <header className="flex items-center justify-between border-b border-[#DCE3D5] px-4 py-3">
@@ -245,7 +251,7 @@ export default function AIChatbot() {
           )}
         </section>
       ) : (
-        <button id="chat-fab" type="button" onClick={() => setIsOpen(true)} aria-label="Open AI Nutrition Assistant" className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2F5233] text-white shadow-lg transition-all hover:scale-105 hover:bg-[#1E3B21] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">
+        <button id="chat-fab" type="button" onClick={() => setIsOpen(true)} aria-label="Open AI Nutrition Assistant" className="hidden md:flex h-14 w-14 items-center justify-center rounded-full bg-[#2F5233] text-white shadow-lg transition-all hover:scale-105 hover:bg-[#1E3B21] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">
           <svg aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 17l.7 2.3L21 20l-2.3.7L18 23l-.7-2.3L15 20l2.3-.7L18 17z" /></svg>
         </button>
       )}

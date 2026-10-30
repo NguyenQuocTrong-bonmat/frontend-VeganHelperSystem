@@ -38,7 +38,7 @@ export default function HomeUtilityRail({
   return (
     <aside
       aria-label="Community Utilities"
-      className="w-[210px] lg:w-[260px] xl:w-[300px] 2xl:w-[330px] shrink-0 hidden min-[900px]:block space-y-5 select-none text-left sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pl-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="hidden 2xl:block 2xl:w-[300px] shrink-0 space-y-5 select-none text-left sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pl-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       {/* 1. Contextual weekly meal-plan summary */}
       <section className="overflow-hidden rounded-card border border-vh-border/70 bg-vh-surface shadow-sm" aria-labelledby="weekly-plan-summary-heading">

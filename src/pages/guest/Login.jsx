@@ -396,7 +396,7 @@ function Login() {
               <motion.button
                 whileTap={isSubmitting || isSuccess || prefersReducedMotion ? {} : { scale: scale.press }}
                 disabled={isSubmitting || isSuccess}
-                className="w-full h-10 sm:h-10.5 bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh active:scale-[0.98] motion-reduce:transform-none"
+                className="w-full h-11 min-h-[44px] bg-primary-moss hover:bg-primary-moss-hover hover:shadow-sm disabled:opacity-70 disabled:hover:shadow-none text-white text-[14px] font-medium rounded-lg transition-all duration-200 flex items-center justify-center relative overflow-hidden focus-ring-vh active:scale-[0.98] motion-reduce:transform-none cursor-pointer"
                 type="submit"
               >
                 <AnimatePresence mode="wait">

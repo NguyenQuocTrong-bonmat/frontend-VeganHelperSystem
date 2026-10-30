@@ -78,13 +78,13 @@ function ForgotPasswordResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-herb-white">
-      <HeaderAuth />
+    <div className="min-h-screen min-h-[100dvh] flex flex-col relative bg-bg-herb-white text-text-charcoal selection:bg-primary-moss/20">
+      <HeaderAuth className="shrink-0" />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[480px] bg-surface-paper border border-border-sage-mist rounded-[12px] p-8 sm:p-10 flex flex-col items-center shadow-sm">
+      <main className="flex-1 flex flex-col justify-center items-center w-full px-3.5 sm:px-6 py-4 sm:py-8 md:py-12 relative z-10">
+        <div className="w-full max-w-[440px] sm:max-w-[480px] bg-surface-paper border border-border-sage-mist rounded-[20px] sm:rounded-[24px] p-5 sm:p-8 md:p-10 flex flex-col items-center shadow-sm my-auto">
 
-          <div className="w-12 h-12 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss mb-4">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-bg-herb-white border border-border-sage-mist flex items-center justify-center text-primary-moss mb-3 sm:mb-4">
             <svg className="w-5 h-5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -92,17 +92,17 @@ function ForgotPasswordResetPassword() {
             </svg>
           </div>
 
-          <h1 className="font-serif text-[28px] leading-tight font-normal text-text-charcoal text-center mb-2">
+          <h1 className="font-serif text-2xl sm:text-[28px] leading-tight font-normal text-text-charcoal text-center mb-1.5 sm:mb-2">
             {mode === 'forgot' ? 'Reset Password' : 'Set New Password'}
           </h1>
-          <p className="font-sans text-[14px] text-text-stem-gray text-center leading-relaxed max-w-[340px] mb-8">
+          <p className="font-sans text-[13px] sm:text-[14px] text-text-stem-gray text-center leading-relaxed max-w-[340px] mb-6 sm:mb-8">
             {mode === 'forgot'
               ? "Enter your email and we'll send you a recovery link"
               : "Please enter your new password below"}
           </p>
 
           {mode === 'forgot' && !isSuccess && (
-            <form className="w-full space-y-5" onSubmit={forgotForm.handleSubmit(onForgotSubmit)}>
+            <form className="w-full space-y-4 sm:space-y-5" onSubmit={forgotForm.handleSubmit(onForgotSubmit)}>
               <div className="space-y-1.5">
                 <label htmlFor="email" className="block text-[13px] font-medium text-text-charcoal">
                   Email Address
@@ -112,7 +112,7 @@ function ForgotPasswordResetPassword() {
                   type="email"
                   id="email"
                   placeholder="name@example.com"
-                  className={`w-full px-3.5 py-2.5 bg-white border ${forgotForm.formState.errors.email ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors duration-200`}
+                  className={`w-full min-h-[44px] px-3.5 py-2.5 bg-white border ${forgotForm.formState.errors.email ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[14px] sm:text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors duration-200`}
                 />
                 {forgotForm.formState.errors.email && (
                   <p className="text-red-500 text-xs mt-1 font-medium">{forgotForm.formState.errors.email.message}</p>
@@ -122,7 +122,7 @@ function ForgotPasswordResetPassword() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
+                  className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[14px] sm:text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer"
                 >
                   {isSubmitting ? 'Sending...' : 'Send Recovery Link'}
                 </button>
@@ -143,7 +143,7 @@ function ForgotPasswordResetPassword() {
           )}
 
           {mode === 'reset' && (
-            <form className="w-full space-y-5" onSubmit={resetForm.handleSubmit(onResetSubmit)}>
+            <form className="w-full space-y-4 sm:space-y-5" onSubmit={resetForm.handleSubmit(onResetSubmit)}>
               <div className="space-y-1.5">
                 <label htmlFor="newPassword" className="block text-[13px] font-medium text-text-charcoal">
                   New Password
@@ -153,7 +153,7 @@ function ForgotPasswordResetPassword() {
                   type="password"
                   id="newPassword"
                   placeholder="••••••••"
-                  className={`w-full px-3.5 py-2.5 bg-white border ${resetForm.formState.errors.newPassword ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
+                  className={`w-full min-h-[44px] px-3.5 py-2.5 bg-white border ${resetForm.formState.errors.newPassword ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[14px] sm:text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
                 />
                 {resetForm.formState.errors.newPassword && (
                   <p className="text-red-500 text-xs mt-1 font-medium">{resetForm.formState.errors.newPassword.message}</p>
@@ -169,7 +169,7 @@ function ForgotPasswordResetPassword() {
                   type="password"
                   id="confirmPassword"
                   placeholder="••••••••"
-                  className={`w-full px-3.5 py-2.5 bg-white border ${resetForm.formState.errors.confirmPassword ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
+                  className={`w-full min-h-[44px] px-3.5 py-2.5 bg-white border ${resetForm.formState.errors.confirmPassword ? 'border-red-500' : 'border-border-sage-mist'} rounded-[8px] text-[14px] sm:text-[15px] text-text-charcoal placeholder:text-text-stem-gray/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss transition-colors`}
                 />
                 {resetForm.formState.errors.confirmPassword && (
                   <p className="text-red-500 text-xs mt-1 font-medium">{resetForm.formState.errors.confirmPassword.message}</p>
@@ -180,7 +180,7 @@ function ForgotPasswordResetPassword() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100"
+                  className="w-full min-h-[44px] py-2.5 px-4 bg-primary-moss hover:bg-primary-moss-hover disabled:opacity-70 text-white font-medium text-[14px] sm:text-[15px] rounded-[8px] transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100 cursor-pointer"
                 >
                   {isSubmitting ? 'Resetting...' : 'Reset Password'}
                 </button>
@@ -188,8 +188,8 @@ function ForgotPasswordResetPassword() {
             </form>
           )}
 
-          <div className="pt-6 w-full text-center">
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-[14px] text-text-stem-gray hover:text-primary-moss transition-colors duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1.5 py-0.5 active:opacity-80">
+          <div className="pt-4 sm:pt-6 w-full text-center">
+            <Link to="/login" className="min-h-[44px] inline-flex items-center justify-center gap-1.5 text-[14px] text-text-stem-gray hover:text-primary-moss transition-colors duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-2 py-1 active:opacity-80">
               <svg className="w-4 h-4 stroke-current transition-transform duration-200 group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m15 18-6-6 6-6"></path>
               </svg>
@@ -200,6 +200,16 @@ function ForgotPasswordResetPassword() {
           </div>
         </div>
       </main>
+
+      <footer className="w-full py-4 sm:py-5 text-center text-xs text-text-stem-gray border-t border-border-sage-mist shrink-0 relative z-10">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
+          <span>© 2025 Vegan Helper. Plant-based culinary & family nutrition platform.</span>
+          <div className="flex items-center gap-4">
+            <Link className="hover:text-primary-moss transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:opacity-80" to="#">Terms of Service</Link>
+            <Link className="hover:text-primary-moss transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss rounded px-1 active:opacity-80" to="#">Privacy Policy</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

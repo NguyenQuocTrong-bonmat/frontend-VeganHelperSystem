@@ -343,38 +343,49 @@ export default function AdminDashboard() {
                 <p className="text-xs text-[#6B6F63]">Recent platform management actions</p>
               </div>
 
+              {/* Mobile Horizontal Scroll Cue */}
+              <div className="sm:hidden flex items-center justify-between text-[11px] text-[#6B6F63] py-1.5 border-b border-[#DCE3D5]">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Swipe horizontally to view full events
+                </span>
+                <span className="text-[10px] font-mono text-[#8A9080]">560px</span>
+              </div>
+
               {/* Table */}
-              <div className="overflow-x-auto mt-2">
-                <table className="w-full text-left text-xs table-fixed">
+              <div tabIndex={0} role="region" aria-label="Recent activity table" className="overflow-x-auto mt-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]/40">
+                <table className="w-full min-w-[560px] text-left text-xs border-separate border-spacing-0 table-fixed">
                   <thead>
                     <tr className="text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                      <th className="py-3 px-2 font-normal w-[32%]">Name</th>
-                      <th className="py-3 px-2 font-normal w-[18%]">Date</th>
-                      <th className="py-3 px-2 font-normal w-[15%]">Time</th>
-                      <th className="py-3 px-2 font-normal w-[17%]">Status</th>
-                      <th className="py-3 px-2 font-normal text-left w-[18%]">Target</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[180px] sm:sticky sm:left-0 bg-white z-20 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Name</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[95px] border-b border-[#DCE3D5]">Date</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[85px] border-b border-[#DCE3D5]">Time</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[100px] border-b border-[#DCE3D5]">Status</th>
+                      <th scope="col" className="py-3 px-2 font-normal text-left w-[100px] border-b border-[#DCE3D5]">Target</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                    {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">Loading audit events…</td></tr>}
-                    {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
+                  <tbody className="text-[#2B2A25]">
+                    {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63] border-b border-[#EAF0E9]">Loading audit events…</td></tr>}
+                    {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63] border-b border-[#EAF0E9]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
                     {recentEvents.map((row) => (
-                      <tr key={row.id} className="hover:bg-[#F3F6EE]/60 transition-colors duration-150">
-                        <td className="py-3 px-2 overflow-hidden">
+                      <tr key={row.id} className="group hover:bg-[#F3F6EE]/60 transition-colors duration-150">
+                        <td className="py-3 px-2 overflow-hidden border-b border-[#EAF0E9] sm:sticky sm:left-0 bg-white group-hover:bg-[#F7F9F5] z-10 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 transition-colors">
                           <div className="min-w-0">
                             <p className="font-semibold text-[#2B2A25] truncate" title={row.name}>{row.name}</p>
                             <p className="text-[10px] text-[#6B6F63] truncate" title={row.subtext}>{row.subtext}</p>
                           </div>
                         </td>
-                        <td className="py-3 px-2 font-medium text-[#6B6F63] overflow-hidden truncate" title={row.date}>{row.date}</td>
-                        <td className="py-3 px-2 text-[#6B6F63] overflow-hidden truncate" title={row.time}>{row.time}</td>
-                        <td className="py-3 px-2 overflow-hidden">
+                        <td className="py-3 px-2 font-medium text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.date}>{row.date}</td>
+                        <td className="py-3 px-2 text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.time}>{row.time}</td>
+                        <td className="py-3 px-2 overflow-hidden border-b border-[#EAF0E9]">
                           <span className="inline-flex items-center gap-1.5 font-medium text-[#6B6F63] max-w-full truncate" title={row.status}>
                             <span className="w-2 h-2 rounded-full bg-[#9CA3AF] shrink-0" />
                             <span className="truncate">{row.status}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-2 text-left font-medium text-[#6B6F63] overflow-hidden truncate" title={row.detail}>{row.detail}</td>
+                        <td className="py-3 px-2 text-left font-medium text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.detail}>{row.detail}</td>
                       </tr>
                     ))}
                   </tbody>

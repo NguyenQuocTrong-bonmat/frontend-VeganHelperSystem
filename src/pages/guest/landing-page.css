@@ -2397,6 +2397,21 @@ html:has(.lp-page) {
   }
 }
 
+/* Small-screen decorative food visual removal below 480px */
+@media (max-width: 479.98px) {
+  .lp-hero-stage {
+    display: none !important;
+  }
+
+  .lp-hero-layout {
+    gap: 0 !important;
+  }
+
+  .lp-hero-bg-halo {
+    display: none !important;
+  }
+}
+
 @media (max-width: 389px) {
   .lp-container {
     width: calc(100% - 28px);
