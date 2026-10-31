@@ -12,6 +12,7 @@ import {
 } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/dateUtils';
+import DateInput from '../../components/common/DateInput';
 
 /**
  * HealthAndWellness — Unified view integrating Health Profile, Food Allergies, Current BMI, and BMI History.
@@ -366,15 +367,15 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Birth Date</label>
-                    <input
-                      type="date"
+                    <DateInput
                       name="birthDate"
                       value={healthData.birthDate ? healthData.birthDate.split('T')[0] : ''}
                       onChange={handleHealthChange}
                       max={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
+                      inputClassName="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                       required
                     />
+                    <p className="text-xs text-[#6B6F63]">Format: DD/MM/YYYY</p>
                   </div>
                 </div>
 

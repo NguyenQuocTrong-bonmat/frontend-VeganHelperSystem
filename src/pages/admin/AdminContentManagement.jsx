@@ -4,6 +4,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getPaginationPages } from '../../utils/paginationUtils';
+import { formatDateTime } from '../../utils/dateUtils';
 import {
   decideAiFlag,
   decideCommentReport,
@@ -40,9 +41,7 @@ const ACTIONS = {
   ],
 };
 
-const formatDate = (value) => value
-  ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-  : 'Unknown time';
+const formatDate = (value) => formatDateTime(value) || 'Unknown time';
 
 const queueTitle = (queue, item) => {
   if (queue === 'ai') return item.title || `Post #${item.postId}`;

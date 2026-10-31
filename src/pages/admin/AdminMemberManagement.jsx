@@ -6,6 +6,7 @@ import ModalMotion, { toastVariants, reducedToastVariants } from '../../componen
 import { getImageUrl } from '../../utils/imageUtils';
 import { getAdminMembers, getAdminMemberById, banMember, unbanMember } from '../../services/adminService';
 import { getPaginationPages } from '../../utils/paginationUtils';
+import { formatDate, formatDateTime } from '../../utils/dateUtils';
 
 export default function AdminMemberManagement() {
   const [members, setMembers] = useState([]);
@@ -163,15 +164,15 @@ export default function AdminMemberManagement() {
               isActive: m.isActive,
               emailVerifiedAt: m.emailVerifiedAt,
               createdAt: m.createdAt,
-              joinedDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-GB') : '--',
+              joinedDate: formatDate(m.createdAt) || '--',
               lastLoginAt: m.lastLoginAt,
-              lastLoginFormatted: m.lastLoginAt ? new Date(m.lastLoginAt).toLocaleString('en-GB') : 'Never',
+              lastLoginFormatted: m.lastLoginAt ? formatDateTime(m.lastLoginAt) : 'Never',
               lockedUntil: m.lockedUntil,
               avatarUrl: m.avatarUrl || null,
               banId: m.banId,
               banReason: m.banReason || '',
               banExpiresAt: m.banExpiresAt,
-              banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('en-GB') : m.banId ? 'Permanent' : '',
+              banDuration: m.banExpiresAt ? formatDate(m.banExpiresAt) : m.banId ? 'Permanent' : '',
             };
           })
         );
@@ -226,12 +227,12 @@ export default function AdminMemberManagement() {
             banReason: detail.banReason || member.banReason,
             banExpiresAt: detail.banExpiresAt || member.banExpiresAt,
             banDuration: detail.banExpiresAt
-              ? new Date(detail.banExpiresAt).toLocaleDateString('en-GB')
+              ? formatDate(detail.banExpiresAt)
               : detail.banId
               ? 'Permanent'
               : member.banDuration,
             lastLoginFormatted: detail.lastLoginAt
-              ? new Date(detail.lastLoginAt).toLocaleString('en-GB')
+              ? formatDateTime(detail.lastLoginAt)
               : member.lastLoginFormatted,
             emailVerifiedAt: detail.emailVerifiedAt ?? member.emailVerifiedAt,
             createdAt: detail.createdAt ?? member.createdAt,

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { dietLabel, number, utcToday } from './plannerFormat';
+import { formatDate } from '../../utils/dateUtils';
 import PlannerIcon from './PlannerIcon';
 
 const ACTIVITY_FACTORS = {
@@ -140,7 +141,7 @@ export default function MenuJourney({ plan, profile, allergies = [], mode = 'mai
           <span aria-hidden="true">×</span><div><span>Activity factor</span><strong>{energy ? `${number(energy.factor)}×` : saved ? 'Not recorded' : '—'}</strong></div>
           <span aria-hidden="true">=</span><div className="wm-journey-equation-total"><span>Estimated TDEE</span><strong>{Number.isFinite(tdee) ? `${number(tdee)} kcal` : saved ? 'Not recorded' : '—'}</strong></div>
           {energy && <p>Resting estimate = 10 × {number(energy.weight)} kg + 6.25 × {number(energy.height)} cm − 5 × {energy.age} years {effectiveProfile.biologicalSex === 'male' ? '+ 5' : '− 161'} = {number(energy.resting)} kcal/day.</p>}
-          {saved && effectiveMode === 'weight_goal' && <p>Saved goal: {initialWeightLabel} at creation → {goalWeightLabel} by {effectiveTargetDate ? new Date(`${effectiveTargetDate}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC' }) : 'a date not recorded'} ({goalDays > 0 ? `${goalDays} days` : 'timeline not recorded'}).</p>}
+          {saved && effectiveMode === 'weight_goal' && <p>Saved goal: {initialWeightLabel} at creation → {goalWeightLabel} by {effectiveTargetDate ? formatDate(effectiveTargetDate) : 'a date not recorded'} ({goalDays > 0 ? `${goalDays} days` : 'timeline not recorded'}).</p>}
           {Number.isFinite(provisionalAdjustment) && <p>Goal adjustment preview: ({number(effectiveTargetWeight)} − {number(effectiveProfile.weightKg)}) kg × 7,700 ÷ {goalDays} days ≈ {number(Math.round(provisionalAdjustment))} kcal/day. This is a planning estimate; the server must approve the goal before generating meals.</p>}
           {effectiveMode === 'weight_goal' && <p>{Number.isFinite(dailyTarget) ? `Safety-checked daily target: ${number(dailyTarget)} kcal${Number.isFinite(tdee) ? ` (${number(dailyTarget - tdee)} kcal from TDEE)` : ''}.` : saved ? 'Daily calorie target not recorded in this menu.' : 'Enter your goal and run the server safety check to reveal the daily target.'}</p>}
         </div>

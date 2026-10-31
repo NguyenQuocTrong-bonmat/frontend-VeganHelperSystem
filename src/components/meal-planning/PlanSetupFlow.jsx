@@ -3,32 +3,13 @@ import { getHealthProfile } from '../../services/healthProfileService';
 import { dateLabel, dietLabel, number, utcToday, zonedToday } from './plannerFormat';
 import PlannerIcon from './PlannerIcon';
 import { previewGoal } from '../../services/mealPlanService';
+import { formatDate, parseDateDMY, formatDateInput } from '../../utils/dateUtils';
+import DateInput from '../common/DateInput';
 
-function parseDayFirstDate(value) {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
-  if (!match) return '';
+const parseDayFirstDate = parseDateDMY;
+const formatDayFirstDate = formatDate;
 
-  const [, dayText, monthText, yearText] = match;
-  const day = Number(dayText);
-  const month = Number(monthText);
-  const year = Number(yearText);
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) return '';
 
-  return `${yearText}-${monthText}-${dayText}`;
-}
-
-function formatDayFirstDate(value) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
-}
-
-function formatDateInput(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-}
 
 export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfile, error, profileRevision }) {
   const [step, setStep] = useState(0);
@@ -174,7 +155,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
         </>}
         {step === 1 && <div className="wm-schedule-fields">
           <div className="wm-input-group"><label htmlFor="meal-plan-name">Menu name</label><input ref={menuNameField} className="wm-control" id="meal-plan-name" name="name" type="text" maxLength={100} required value={menuName} onChange={event => { setMenuName(event.target.value); setMenuNameEdited(true); menuNameField.current?.setCustomValidity(''); }} aria-describedby="meal-plan-name-help" /><p id="meal-plan-name-help">Give this menu a name you can recognize later. You can rename it after saving.</p></div>
-          <div className="wm-input-group"><label htmlFor="meal-plan-start">When does your week begin?</label><input className="wm-control" id="meal-plan-start" type="date" value={startDate} min={today} max={maxStartDate} required onChange={event => { const nextDate = event.target.value; setStartDate(nextDate); if (!menuNameEdited) setMenuName(`Week of ${formatDayFirstDate(nextDate)}`); }} aria-describedby="start-date-help" /><p id="start-date-help">Seven consecutive days, starting on your chosen date. Plan dates follow {weightGoal ? timeZoneId : 'UTC'}.</p></div>
+          <div className="wm-input-group"><label htmlFor="meal-plan-start">When does your week begin?</label><DateInput id="meal-plan-start" name="startDate" value={startDate} min={today} max={maxStartDate} required onChange={event => { const nextDate = event.target.value; setStartDate(nextDate); if (!menuNameEdited) setMenuName(`Week of ${formatDayFirstDate(nextDate)}`); }} aria-describedby="start-date-help" inputClassName="wm-control" /><p id="start-date-help">Seven consecutive days, starting on your chosen date. Plan dates follow {weightGoal ? timeZoneId : 'UTC'}.</p></div>
           <fieldset className="wm-calorie-split">
             <legend>Daily calorie split</legend>
             <p className="wm-calorie-split-help">Preview how you would like to share your daily calorie target across three meals. The saved menu shows the actual calories of its selected dishes.</p>

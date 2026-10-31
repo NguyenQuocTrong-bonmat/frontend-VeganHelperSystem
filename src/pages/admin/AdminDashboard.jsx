@@ -4,6 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../context/AuthContext';
 import { getAdminDashboardOverview, getAdminDashboardActivity, getAdminDashboardCategories, getAdminAuditLogs } from '../../services/adminService';
+import { formatDate } from '../../utils/dateUtils';
+import DateInput from '../../components/common/DateInput';
 
 const utcDay = (date) => date.toISOString().slice(0, 10);
 const defaultRange = () => {
@@ -110,7 +112,7 @@ export default function AdminDashboard() {
   const metric = (value) => overviewState.loading ? '…' : value == null ? '—' : value.toLocaleString('en-GB');
   const recentEvents = (auditState.data?.items || []).map((item) => ({
     id: item.id, name: item.action, subtext: `Admin #${item.adminId}`,
-    date: auditDate(item.createdAt).toLocaleDateString('en-GB'),
+    date: formatDate(auditDate(item.createdAt)),
     time: auditDate(item.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     status: 'Recorded', detail: `${item.targetType}${item.targetId ? ` #${item.targetId}` : ''}`,
   }));
@@ -137,8 +139,28 @@ export default function AdminDashboard() {
 
           {/* Date Range Selector nicely aligned */}
           <form onSubmit={applyRange} className="flex flex-wrap items-end gap-2 text-xs text-[#2B2A25]">
-            <label className="grid gap-1">From (UTC)<input aria-label="From (UTC)" type="date" required min="2000-01-01" max={utcDay(new Date())} value={draftRange.from} onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all" /></label>
-            <label className="grid gap-1">To (UTC)<input aria-label="To (UTC)" type="date" required min={draftRange.from} max={utcDay(new Date())} value={draftRange.to} onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all" /></label>
+            <label className="grid gap-1">From (UTC)
+              <DateInput
+                aria-label="From (UTC)"
+                required
+                min="2000-01-01"
+                max={utcDay(new Date())}
+                value={draftRange.from}
+                onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })}
+                inputClassName="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all text-xs"
+              />
+            </label>
+            <label className="grid gap-1">To (UTC)
+              <DateInput
+                aria-label="To (UTC)"
+                required
+                min={draftRange.from}
+                max={utcDay(new Date())}
+                value={draftRange.to}
+                onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })}
+                inputClassName="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all text-xs"
+              />
+            </label>
             <button type="submit" className="rounded-xl bg-[#2F5233] hover:bg-[#25401F] px-4 py-2.5 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Apply</button>
           </form>
         </div>

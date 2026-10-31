@@ -5,15 +5,13 @@ import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getMealPlanAccess, getMealPlanPaymentOrder } from '../../services/mealPlanPaymentService';
 import { getMealPlanCheckoutContext } from '../../utils/mealPlanPaymentContext';
+import { formatDate } from '../../utils/dateUtils';
 
 const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
 
 function dateLabel(value) {
   if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? null
-    : new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+  return formatDate(value) || null;
 }
 
 function ResultIcon({ kind }) {

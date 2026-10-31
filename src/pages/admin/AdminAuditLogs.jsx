@@ -4,6 +4,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
 import { getPaginationPages } from '../../utils/paginationUtils';
+import { formatDate } from '../../utils/dateUtils';
 
 export default function AdminAuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -239,14 +240,12 @@ export default function AdminAuditLogs() {
     if (!isoString) return { date: '--/--/----', time: '--:--:--' };
     try {
       const d = new Date(isoString);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
+      if (isNaN(d.getTime())) return { date: '--/--/----', time: '--:--:--' };
       const hours = String(d.getHours()).padStart(2, '0');
       const minutes = String(d.getMinutes()).padStart(2, '0');
       const seconds = String(d.getSeconds()).padStart(2, '0');
       return {
-        date: `${day}/${month}/${year}`,
+        date: formatDate(d),
         time: `${hours}:${minutes}:${seconds}`,
       };
     } catch {

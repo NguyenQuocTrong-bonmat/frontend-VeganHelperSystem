@@ -4397,3 +4397,54 @@ The following application routes exist in `src/App.jsx` and serve critical syste
 | `*` / `/404` | `NotFound.jsx` | Public | Catch-all route displaying a clean, branded 404 page with quick navigation back to `/home` or `/`. |
 
 ---
+
+## 7. Project-Wide Date Format Standardization Policy
+
+To ensure a consistent and locale-resilient user experience across all frontend modules, VeganHelper enforces a project-wide date-format standard.
+
+### 7.1 Core Standards & Conventions
+
+| Context | Format Pattern | Example | Notes |
+|:---|:---|:---|:---|
+| **Frontend Date Display** | `DD/MM/YYYY` | `10/11/2006`, `05/01/2000`, `21/12/2026` | Mandatory for all visible calendar dates across tables, forms, modals, profiles, and lists. Uses two-digit day and month with leading zeros. |
+| **Frontend Date-Time Display** | `DD/MM/YYYY HH:mm` | `31/10/2026 18:30` | Mandatory for full timestamp displays such as audit logs, post metadata, and transaction records. |
+| **API & Database Date-Only** | `YYYY-MM-DD` | `2006-11-10`, `2000-01-05` | Strictly preserved for all API contracts, request payloads, and query filters. Never sent as DD/MM/YYYY. |
+| **API & Database Timestamps** | ISO 8601 UTC / Offset | `2026-10-31T18:30:00.000Z` | Preserves existing backend timestamp precision and timezone semantics. |
+| **Relative Time Labels** | Time ago / Relative | `2 hours ago`, `Yesterday`, `3 days ago` | Allowed for social feeds, activity summaries, and comment timestamps. When expanded or hovered, tooltips display `DD/MM/YYYY HH:mm`. |
+
+### 7.2 Centralized Date Utility (`src/utils/dateUtils.js`)
+
+All date formatting, parsing, live masking, and validation must use the shared utility in `src/utils/dateUtils.js`. Direct inline date manipulations, manual slicing, and unstandardized `toLocaleDateString()` calls are strictly prohibited.
+
+#### Key Utility Functions:
+- `formatDate(value)` / `formatDateDMY(value)`: Formats dates, strings (`YYYY-MM-DD` or ISO 8601), and timestamps to `DD/MM/YYYY`. Implements timezone-safe day extraction preventing timezone-shift offsets.
+- `formatDateTime(value)` / `formatDateTimeDMY(value)`: Formats timestamps to `DD/MM/YYYY HH:mm` using explicit `en-GB` day-first locale configuration.
+- `isValidDateDMY(value)`: Validates full `DD/MM/YYYY` strings, verifying month length, boundary conditions, and leap years (e.g., rejects `31/02/2006` or `29/02/2023`).
+- `parseDateDMY(value)`: Parses `DD/MM/YYYY` into standard `YYYY-MM-DD` for API transmission, returning `null` for invalid input. Also safely normalizes existing `YYYY-MM-DD` values.
+- `toISODateOnly(value)`: Converts any valid Date object, timestamp, or `DD/MM/YYYY` / `YYYY-MM-DD` string to `YYYY-MM-DD` without timezone drift.
+- `formatDateInput(value)`: Live input formatting mask for interactive date typing (`DD/MM/YYYY`), automatically inserting slashes and converting pasted ISO dates.
+
+#### Usage Examples:
+```javascript
+import { formatDate, formatDateTime, parseDateDMY, toISODateOnly, isValidDateDMY } from '@/utils/dateUtils';
+
+// 1. Formatting for UI display
+formatDate('2006-11-10');              // -> "10/11/2006"
+formatDate(new Date('2000-01-05'));    // -> "05/01/2000"
+formatDateTime('2026-10-31T18:30:00Z');// -> "31/10/2026 18:30" (or localized HH:mm)
+
+// 2. Parsing manual user input for API submission
+if (isValidDateDMY(dobInput)) {
+  const apiPayload = { birthDate: toISODateOnly(dobInput) }; // -> "2006-11-10"
+  await updateProfile(apiPayload);
+}
+
+// 3. Fallback handling
+formatDate(null);                      // -> "-"
+formatDateTime(undefined);             // -> "-"
+```
+
+### 7.3 Forms, Inputs, and Browser Locales
+- Native `<input type="date">` elements include `lang="en-GB"` and `placeholder="DD/MM/YYYY"` to guide rendering engines toward day-first formatting.
+- Controlled text inputs with live mask (`formatDateInput`) are paired with hidden date pickers where strict input masking is required.
+- Under all circumstances, API payloads submit standard `YYYY-MM-DD` strings, ensuring complete backend compatibility.

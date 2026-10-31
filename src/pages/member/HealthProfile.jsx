@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getHealthProfile, updateHealthProfile, declareAllergies, searchIngredients } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
+import DateInput from '../../components/common/DateInput';
 
 function HealthProfile({ isComponent = false }) {
   const navigate = useNavigate();
@@ -275,15 +276,15 @@ function HealthProfile({ isComponent = false }) {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#2B2A25]">Birth Date</label>
-                <input
-                  type="date"
+                <DateInput
                   name="birthDate"
                   value={healthData.birthDate}
                   onChange={handleHealthChange}
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
+                  inputClassName="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6]"
                   required
                 />
+                <p className="text-xs text-[#6B6F63]">Format: DD/MM/YYYY</p>
               </div>
             </div>
 

@@ -78,7 +78,17 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged, childr
     return () => clearInterval(timer);
   }, [trackable]);
   const day = days.find(item => item.dayIndex === dayIndex) || days[0];
-  const calendarHeading = <div className="wm-calendar-heading"><div><h2>Your weekly calendar</h2><p><PlannerIcon name="calendar" />{dateLabel(plan.startDate)} – {dateLabel(plan.endDate)}</p></div></div>;
+  const calendarHeading = (
+    <div className="wm-calendar-heading">
+      <div><h2>Your weekly calendar</h2><p><PlannerIcon name="calendar" />{dateLabel(plan.startDate)} – {dateLabel(plan.endDate)}</p></div>
+      {!children && (
+        <div className="wm-view-switch" role="group" aria-label="Calendar view">
+          <button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" />Week view</button>
+          <button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" />Day view</button>
+        </div>
+      )}
+    </div>
+  );
   function openMeal(meal, button) { trigger.current = button; setSelectedMeal(meal); }
   function closeMeal() { setSelectedMeal(null); trigger.current?.focus(); }
   async function record(entry, status) {

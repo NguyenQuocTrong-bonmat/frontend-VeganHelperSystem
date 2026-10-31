@@ -8,6 +8,7 @@ import AIChatbot from '../../components/chat/AIChatbot';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatCalendarDate } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
+import DateInput from '../../components/common/DateInput';
 
 const formatDateInputValue = (date) => {
   const year = date.getFullYear();
@@ -567,15 +568,16 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
                   Date of Birth
                 </label>
-                <input
-                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
+                <DateInput
                   id="modalDob"
-                  type="date"
+                  name="birthDate"
                   value={editForm.birthDate}
                   max={getLatestValidBirthDate()}
                   aria-invalid={Boolean(editErrors.birthDate)}
                   onChange={handleEditChange}
+                  inputClassName={`text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
                 />
+                <p className="text-[11px] text-text-stem-gray mt-0.5">Format: DD/MM/YYYY</p>
                 {editErrors.birthDate && <p className="mt-1 text-xs text-red-600">{editErrors.birthDate}</p>}
               </div>
             </div>
