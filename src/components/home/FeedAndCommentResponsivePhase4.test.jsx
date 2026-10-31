@@ -201,7 +201,7 @@ describe('Phase 4 Responsive Verification — Community Feed & Nested Comments',
     expect(aside.className).toContain('2xl:w-[260px]');
   });
 
-  it('verifies HomeUtilityRail activates at 2xl (1536px) to eliminate abrupt feed shrinkage at 1280px', async () => {
+  it('verifies HomeUtilityRail activates at xl and 1440px to display weekly menu and categories without truncation', async () => {
     await act(async () => {
       root.render(
         <BrowserRouter>
@@ -212,8 +212,9 @@ describe('Phase 4 Responsive Verification — Community Feed & Nested Comments',
 
     const aside = container.querySelector('aside[aria-label="Community Utilities"]');
     expect(aside).not.toBeNull();
-    expect(aside.className).toContain('hidden 2xl:block');
-    expect(aside.className).toContain('2xl:w-[300px]');
+    expect(aside.className).toContain('hidden xl:block');
+    expect(aside.className).toContain('xl:w-[280px]');
+    expect(aside.className).toContain('min-[1400px]:w-[300px]');
   });
 });
 

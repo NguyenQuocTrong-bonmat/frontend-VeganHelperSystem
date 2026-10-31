@@ -37,7 +37,7 @@ const isValidBirthDate = (value) => {
 
 function Profile() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, restoreSession } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,7 +144,17 @@ function Profile() {
       toast.success('Profile updated successfully!');
       setEditErrors({});
       setIsEditOpen(false);
+      setAvatarFile(null);
+      setAvatarPreview(null);
       fetchProfile();
+      if (restoreSession) {
+        await restoreSession();
+      }
+      window.dispatchEvent(
+        new CustomEvent('veganhelper:profile-updated', {
+          detail: { userId: profile?.id },
+        })
+      );
     } catch (err) {
       toast.error('Failed to update profile.');
     }

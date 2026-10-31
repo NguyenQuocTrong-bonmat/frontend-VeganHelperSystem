@@ -521,8 +521,8 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                   handleOpenProfilePreview(
                     {
                       id: commentAuthorId,
-                      displayName: comment.authorName,
-                      avatarUrl: comment.avatarUrl,
+                      displayName: comment.authorName || comment.author?.displayName || comment.AuthorName || 'User',
+                      avatarUrl: comment.avatarUrl || comment.AvatarUrl || comment.avatar || comment.author?.avatarUrl,
                     },
                     e.currentTarget,
                     e
@@ -561,8 +561,8 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                       handleOpenProfilePreview(
                         {
                           id: commentAuthorId,
-                          displayName: comment.authorName,
-                          avatarUrl: comment.avatarUrl,
+                          displayName: comment.authorName || comment.author?.displayName || comment.AuthorName || 'User',
+                          avatarUrl: comment.avatarUrl || comment.AvatarUrl || comment.avatar || comment.author?.avatarUrl,
                         },
                         e.currentTarget,
                         e
@@ -817,7 +817,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
                     {
                       id: post.authorId,
                       displayName: post.authorName,
-                      avatarUrl: post.authorAvatarUrl,
+                      avatarUrl: post.authorAvatarUrl || post.avatarUrl || post.author?.avatarUrl,
                     },
                     e.currentTarget,
                     e

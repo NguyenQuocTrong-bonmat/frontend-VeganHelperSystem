@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import SignUp from './SignUp';
+import { authService } from '../../services/authService';
 
 vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({
@@ -175,5 +176,96 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     expect(container.textContent).toContain('Email is required');
     expect(container.textContent).toContain('Password must be at least 8 characters');
     expect(container.textContent).toContain('You must agree to the Terms of Service');
+  });
+
+  it('displays UnverifiedEmailModal when registering a new account', async () => {
+    authService.register.mockResolvedValueOnce({
+      message: 'Registration successful. Verify your email before logging in.',
+      isExistingUnverified: false,
+    });
+
+    await renderSignUp();
+
+    const fullNameInput = container.querySelector('#fullName');
+    const usernameInput = container.querySelector('#username');
+    const emailInput = container.querySelector('#email');
+    const passwordInput = container.querySelector('#password');
+    const confirmPasswordInput = container.querySelector('#confirmPassword');
+    const termsCheckbox = container.querySelector('#terms');
+
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    ).set;
+
+    await act(async () => {
+      nativeInputValueSetter.call(fullNameInput, 'Nguyen Van A');
+      fullNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(usernameInput, 'nguyenvana');
+      usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(emailInput, 'nguyenvana@example.com');
+      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(passwordInput, 'Password123!');
+      passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(confirmPasswordInput, 'Password123!');
+      confirmPasswordInput.dispatchEvent(new Event('input', { bubbles: true }));
+      termsCheckbox.click();
+    });
+
+    const form = container.querySelector('form');
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog.textContent).toContain('Account Verification Required');
+    expect(dialog.textContent).toContain('nguyenvana@example.com');
+  });
+
+  it('displays UnverifiedEmailModal with existing message when email was already registered but unverified', async () => {
+    authService.register.mockResolvedValueOnce({
+      message: 'This email has already been registered but is not yet verified.',
+      isExistingUnverified: true,
+    });
+
+    await renderSignUp();
+
+    const fullNameInput = container.querySelector('#fullName');
+    const usernameInput = container.querySelector('#username');
+    const emailInput = container.querySelector('#email');
+    const passwordInput = container.querySelector('#password');
+    const confirmPasswordInput = container.querySelector('#confirmPassword');
+    const termsCheckbox = container.querySelector('#terms');
+
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    ).set;
+
+    await act(async () => {
+      nativeInputValueSetter.call(fullNameInput, 'Tran Thi B');
+      fullNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(usernameInput, 'tranthib');
+      usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(emailInput, 'pending@example.com');
+      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(passwordInput, 'Password123!');
+      passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nativeInputValueSetter.call(confirmPasswordInput, 'Password123!');
+      confirmPasswordInput.dispatchEvent(new Event('input', { bubbles: true }));
+      termsCheckbox.click();
+    });
+
+    const form = container.querySelector('form');
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog.textContent).toContain('Email Already Registered');
+    expect(dialog.textContent).toContain('pending@example.com');
+    expect(dialog.textContent).toContain('not been verified yet');
   });
 });

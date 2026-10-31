@@ -687,4 +687,80 @@ describe('FOLLOW-02 — UserProfilePreview & Follow UI', () => {
     expect(previewDialog).toBeDefined();
     expect(previewDialog.getAttribute('aria-label')).toContain('Chef Linh');
   });
+
+  it('renders user avatar image from initialUser without falling back to letter circle when avatarUrl is provided', async () => {
+    userService.getPublicProfile.mockResolvedValueOnce({
+      id: 88,
+      username: 'dongkew',
+      displayName: 'DongKew',
+      avatarUrl: 'https://example.com/dong-avatar.jpg',
+      dietType: 'vegan',
+      joinedAt: '2026-09-30T00:00:00Z',
+      publishedPostCount: 5,
+      receivedLikeCount: 20,
+    });
+    userService.getFollowStatus.mockResolvedValueOnce({
+      userId: 88,
+      isFollowing: false,
+      followersCount: 12,
+      followingCount: 3,
+    });
+
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <UserProfilePreview
+            isOpen={true}
+            onClose={vi.fn()}
+            userId={88}
+            initialUser={{
+              id: 88,
+              displayName: 'DongKew',
+              avatarUrl: 'https://example.com/dong-avatar.jpg',
+            }}
+          />
+        </BrowserRouter>
+      );
+    });
+
+    const img = container.querySelector('img[alt="DongKew"]');
+    expect(img).not.toBeNull();
+    expect(img.getAttribute('src')).toBe('https://example.com/dong-avatar.jpg');
+  });
+
+  it('clears previewCache and refetches when veganhelper:profile-updated is dispatched', async () => {
+    userService.getPublicProfile.mockResolvedValue({
+      id: 5,
+      username: 'cheflinh',
+      displayName: 'Chef Linh',
+      avatarUrl: '/images/new-avatar.jpg',
+      dietType: 'vegan',
+      joinedAt: '2026-01-15T00:00:00Z',
+      publishedPostCount: 14,
+      receivedLikeCount: 88,
+    });
+
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <UserProfilePreview
+            isOpen={true}
+            onClose={vi.fn()}
+            userId={5}
+            initialUser={{ id: 5, displayName: 'Chef Linh' }}
+          />
+        </BrowserRouter>
+      );
+    });
+
+    const callsBefore = userService.getPublicProfile.mock.calls.length;
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent('veganhelper:profile-updated', { detail: { userId: 5 } })
+      );
+    });
+
+    expect(userService.getPublicProfile.mock.calls.length).toBeGreaterThan(callsBefore);
+  });
 });

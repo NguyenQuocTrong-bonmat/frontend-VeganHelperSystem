@@ -8,6 +8,7 @@ import { authService } from '../../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import HeaderAuth from '../../components/layout/HeaderAuth';
+import UnverifiedEmailModal from '../../components/auth/UnverifiedEmailModal';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { motionTokens } from '../../lib/motion';
 import loginMorningLight from '../../assets/login-morning-light.jpg';
@@ -90,6 +91,11 @@ function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [unverifiedModal, setUnverifiedModal] = useState({
+    isOpen: false,
+    email: '',
+    isExisting: false,
+  });
 
   // Setup react-hook-form
   const {
@@ -120,26 +126,41 @@ function SignUp() {
         confirmPassword: data.confirmPassword
       };
 
-      await authService.register(payload);
+      const response = await authService.register(payload);
 
-      setIsSuccess(true);
-      await new Promise(resolve => setTimeout(resolve, duration.short * 1000));
+      const isExistingUnverified = Boolean(response?.isExistingUnverified) ||
+        (typeof response?.message === 'string' && (
+          response.message.toLowerCase().includes('already been registered') ||
+          response.message.toLowerCase().includes('already registered') ||
+          response.message.toLowerCase().includes('not yet verified') ||
+          response.message.toLowerCase().includes('not verified')
+        ));
 
-      toast.success('Registration successful! Please verify your email.');
-      navigate('/verify-otp', {
-        state: {
-          email: data.email
-        }
+      setUnverifiedModal({
+        isOpen: true,
+        email: data.email,
+        isExisting: isExistingUnverified,
       });
     } catch (err) {
-      const errorMsg = err.response?.data?.error?.toLowerCase() || '';
+      const errorData = err.response?.data || {};
+      const errorMsg = (typeof errorData === 'string' ? errorData : errorData.error || errorData.message || '').toLowerCase();
+
+      // If backend explicitly rejected due to unverified existing account
+      if (errorMsg.includes('not verified') || errorMsg.includes('not yet verified') || errorData.isExistingUnverified) {
+        setUnverifiedModal({
+          isOpen: true,
+          email: data.email,
+          isExisting: true,
+        });
+        return;
+      }
 
       if (errorMsg.includes('email') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
         setError('email', { type: 'manual', message: 'Email is already in use' });
       } else if (errorMsg.includes('username') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
         setError('username', { type: 'manual', message: 'Username is already taken' });
       } else {
-        toast.error(err.response?.data?.error || 'Registration failed. Please try again.');
+        toast.error(err.response?.data?.error || err.response?.data?.message || 'Registration failed. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -584,6 +605,14 @@ function SignUp() {
           </div>
         </div>
       </footer>
+
+      {/* Unverified Email Popup */}
+      <UnverifiedEmailModal
+        isOpen={unverifiedModal.isOpen}
+        onClose={() => setUnverifiedModal((prev) => ({ ...prev, isOpen: false }))}
+        email={unverifiedModal.email}
+        isExisting={unverifiedModal.isExisting}
+      />
     </div>
   );
 }

@@ -195,6 +195,7 @@ export default function UserProfilePreview({
         if (profileRes.status === 'fulfilled') {
           fetchedProfile = profileRes.value;
           setProfile(fetchedProfile);
+          setImageError(false);
         }
 
         if (followRes.status === 'fulfilled') {
@@ -388,6 +389,24 @@ export default function UserProfilePreview({
     return () => window.removeEventListener('veganhelper:follow-changed', handleFollowChanged);
   }, [userId]);
 
+  // Synchronize profile updates from Edit Profile
+  useEffect(() => {
+    const handleProfileUpdated = (e) => {
+      const updatedUserId = e?.detail?.userId;
+      if (updatedUserId) {
+        previewCache.delete(String(updatedUserId));
+      } else {
+        previewCache.clear();
+      }
+      if (userId && (String(updatedUserId) === String(userId) || !updatedUserId)) {
+        setImageError(false);
+        fetchUserData(userId);
+      }
+    };
+    window.addEventListener('veganhelper:profile-updated', handleProfileUpdated);
+    return () => window.removeEventListener('veganhelper:profile-updated', handleProfileUpdated);
+  }, [userId, fetchUserData]);
+
   if (!isOpen && !userId) {
     return null;
   }
@@ -395,9 +414,15 @@ export default function UserProfilePreview({
   // Resolve user fields
   const displayName = profile?.displayName || initialUser?.displayName || 'User';
   const username = profile?.username || initialUser?.username || '';
-  const avatarRaw = profile?.avatarUrl || initialUser?.avatarUrl;
-  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=E9EFE6&color=2F5233&size=128`;
-  const avatarUrl = !imageError && avatarRaw ? getImageUrl(avatarRaw) : fallbackAvatar;
+  const avatarRaw =
+    profile?.avatarUrl ??
+    profile?.AvatarUrl ??
+    profile?.avatar ??
+    initialUser?.avatarUrl ??
+    initialUser?.AvatarUrl ??
+    initialUser?.avatar ??
+    (isSelf ? (currentUser?.avatarUrl ?? currentUser?.AvatarUrl) : null);
+  const avatarUrl = !imageError && avatarRaw ? getImageUrl(avatarRaw) : null;
 
   const dietType = profile?.dietType || initialUser?.dietType;
   const joinedAt = profile?.joinedAt;
@@ -434,25 +459,29 @@ export default function UserProfilePreview({
       exit="exit"
       variants={shouldReduceMotion ? reducedMotionVariants : popoverCardVariants}
     >
-      {/* Header Accent & Close */}
-      <div className="relative z-0 h-16 bg-gradient-to-r from-[#E9EFE6] via-[#F3F6EE] to-[#E9EFE6] border-b border-[#DCE3D5]/40 flex items-center justify-between px-4">
+      {/* Header Accent & Close - z-30 ensures close button is above any overlapping negative margin containers */}
+      <div className="relative z-30 h-16 bg-gradient-to-r from-[#E9EFE6] via-[#F3F6EE] to-[#E9EFE6] border-b border-[#DCE3D5]/40 flex items-center justify-between px-4">
         {isSelf && (
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2F5233] bg-white/90 px-2.5 py-0.5 rounded-full border border-[#DCE3D5]">
             You
           </span>
         )}
-        <div className="ml-auto relative z-20">
+        <div className="ml-auto relative z-40">
           <button
             ref={closeBtnRef}
             type="button"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
-              onClose();
+              onClose?.();
             }}
-            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-all shadow-xs border border-[#DCE3D5]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-all shadow-xs border border-[#DCE3D5] hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer relative z-40"
             aria-label="Close profile preview"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -460,9 +489,9 @@ export default function UserProfilePreview({
       </div>
 
       <div className="px-5 pt-0 pb-5">
-        {/* Avatar - positioned overlapping the header banner */}
-        <div className="relative z-10 flex items-end justify-between -mt-9 mb-3">
-          <div className="relative z-10 w-[72px] h-[72px] min-w-[72px] min-h-[72px] max-w-[72px] max-h-[72px] aspect-square rounded-full overflow-hidden border-[3px] border-[#FDFBF6] shadow-md bg-[#E9EFE6] shrink-0 ring-1 ring-[#DCE3D5]">
+        {/* Avatar - positioned overlapping the header banner with pointer-events-none on wrapper so header clicks are not blocked */}
+        <div className="relative z-20 flex items-end justify-between -mt-9 mb-3 pointer-events-none">
+          <div className="pointer-events-auto relative z-20 w-[72px] h-[72px] min-w-[72px] min-h-[72px] max-w-[72px] max-h-[72px] aspect-square rounded-full overflow-hidden border-[3px] border-[#FDFBF6] shadow-md bg-[#E9EFE6] shrink-0 ring-1 ring-[#DCE3D5]">
             {avatarUrl && !imageError ? (
               <img
                 src={avatarUrl}
@@ -478,7 +507,7 @@ export default function UserProfilePreview({
           </div>
 
           {dietType && (
-            <span className="mb-1 text-[11px] font-medium capitalize px-2.5 py-0.5 bg-[#F3F6EE] text-[#2F5233] rounded-full border border-[#DCE3D5]/70">
+            <span className="pointer-events-auto mb-1 text-[11px] font-medium capitalize px-2.5 py-0.5 bg-[#F3F6EE] text-[#2F5233] rounded-full border border-[#DCE3D5]/70">
               {dietType.replace(/_/g, ' ')}
             </span>
           )}
