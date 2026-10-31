@@ -72,8 +72,16 @@ function errorText(error) {
   return 'Unable to reach the assistant. Please try again.';
 }
 
+function useSafeAuth() {
+  try {
+    return useAuth();
+  } catch {
+    return { user: null, isAuthenticated: false, isLoading: false };
+  }
+}
+
 export default function AIChatbot() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useSafeAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState([]);
@@ -221,7 +229,10 @@ export default function AIChatbot() {
         <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl">
           <header className="flex items-center justify-between border-b border-[#DCE3D5] px-4 py-3">
             <div>
-              <h2 className="font-semibold text-[#2B2A25]">AI Nutrition Assistant</h2>
+              <h2 className="font-semibold text-[#2B2A25] flex items-center gap-1.5">
+                <span className="text-[#2F5233]">AI Genie</span>
+                <span className="text-xs font-normal text-[#6B6F63]">• AI Nutrition Assistant</span>
+              </h2>
               <p className="text-xs text-[#6B6F63]">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
             </div>
             <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">×</button>
@@ -271,7 +282,7 @@ export default function AIChatbot() {
           </div>
           {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
           <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
-            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder="Ask about plant-based food…" className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
+            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder={limitReached && !isAuthenticated ? 'Sign in to continue chatting…' : 'Ask about plant-based food…'} className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
             {sending ? (
               <button type="button" onClick={stopResponse} aria-label="Stop AI response" className="flex min-h-11 items-center gap-2 rounded-xl bg-[#2F5233] px-3 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
                 <svg aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>

@@ -156,7 +156,7 @@ export default function HeaderGuest() {
           <Link className="h-9 sm:h-10 px-2.5 sm:px-4 flex items-center justify-center rounded-lg border-[1.5px] border-[#2F5233] text-[#2F5233] text-[12px] sm:text-[14px] font-medium hover:bg-[#F3F6EE] hover:-translate-y-0.5 hover:shadow-sm active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]" to="/login">
             Log In
           </Link>
-          <Link className="h-9 sm:h-10 px-2.5 sm:px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[12px] sm:text-[14px] font-medium hover:bg-[#25401F] hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1" to="/register">
+          <Link className="h-9 sm:h-10 px-2.5 sm:px-4 flex items-center justify-center rounded-lg bg-[#2F5233] text-white text-[12px] sm:text-[14px] font-medium hover:bg-[#25401F] hover:-translate-y-0.5 hover:shadow-md active:scale-95 motion-reduce:transform-none transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1" to="/sign-up">
             Sign Up
           </Link>
         </div>

@@ -2250,6 +2250,38 @@ html:has(.lp-page) {
     border-bottom: 1px solid var(--lp-border-light);
   }
 
+  .lp-mobile-genie-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--lp-border-light);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--lp-forest);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+
+  .lp-mobile-genie-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lp-mobile-genie-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: #EAF0E9;
+    color: #2F5233;
+  }
+
   .lp-hero-layout {
     grid-template-columns: 1fr;
     gap: 40px;

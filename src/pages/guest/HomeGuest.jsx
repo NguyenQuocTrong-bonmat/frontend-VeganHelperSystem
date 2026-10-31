@@ -12,6 +12,7 @@ import useLandingSectionScroll from '../../components/landing/useLandingSectionS
 import { WeeklyMenuPreview, VeganStorePreview } from '../../components/landing/LandingPreviews';
 import { easeEditorial } from '../../components/landing/motionVariants';
 import heroFood from '../../assets/images/hero/hero-vietnamese-vegan-food.webp';
+import AIChatbot from '../../components/chat/AIChatbot';
 import './landing-page.css';
 
 export default function HomeGuest() {
@@ -225,6 +226,7 @@ export default function HomeGuest() {
       </footer>
 
       <LandingAuthDialog reason={authReason} onClose={closeAuth} />
+      <AIChatbot />
     </div>
   );
 }
