@@ -66,6 +66,15 @@ html:has(.lp-page) {
   letter-spacing: -0.04em;
 }
 
+.lp-page aside h1,
+.lp-page aside h2,
+.lp-page aside h3 {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: normal;
+  line-height: inherit;
+}
+
 .lp-page h2 em,
 .lp-page h1 em {
   font-family: 'Fraunces', Georgia, serif;

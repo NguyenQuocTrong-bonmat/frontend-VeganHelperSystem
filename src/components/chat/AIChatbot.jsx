@@ -226,14 +226,14 @@ export default function AIChatbot() {
   return (
     <aside className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50">
       {isOpen ? (
-        <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl">
+        <section aria-label="AI Nutrition Assistant" className="relative flex h-[min(520px,85vh)] w-[calc(100vw-3rem)] sm:w-[380px] flex-col overflow-hidden rounded-2xl border border-[#DCE3D5] bg-[#FDFBF6] shadow-xl font-sans" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
           <header className="flex items-center justify-between border-b border-[#DCE3D5] px-4 py-3">
             <div>
-              <h2 className="font-semibold text-[#2B2A25] flex items-center gap-1.5">
-                <span className="text-[#2F5233]">AI Genie</span>
-                <span className="text-xs font-normal text-[#6B6F63]">• AI Nutrition Assistant</span>
+              <h2 className="font-semibold text-[#244C38]" style={{ fontSize: '15px', lineHeight: '1.25', letterSpacing: 'normal', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                AI Genie
+                <span className="sr-only"> — AI Nutrition Assistant</span>
               </h2>
-              <p className="text-xs text-[#6B6F63]">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
+              <p className="text-xs text-[#6B6F63] mt-0.5">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
             </div>
             <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">×</button>
           </header>
@@ -293,7 +293,7 @@ export default function AIChatbot() {
           {limitReached && !isAuthenticated && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">
               <div className="rounded-2xl bg-white p-5 text-center shadow-xl">
-                <h3 className="font-semibold text-[#2B2A25]">Continue your conversation</h3>
+                <h3 className="font-semibold text-[#2B2A25]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', fontSize: '16px', lineHeight: '1.3', letterSpacing: 'normal' }}>Continue your conversation</h3>
                 <p className="mt-2 text-sm text-[#6B6F63]">You have used your three free questions. Sign in or create an account to keep chatting.</p>
                 <div className="mt-4 flex justify-center gap-3 text-sm">
                   <Link to="/login" className="rounded-lg bg-[#2F5233] px-4 py-2 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Log in</Link>
