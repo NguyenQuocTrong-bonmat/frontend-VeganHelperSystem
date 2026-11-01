@@ -14,6 +14,7 @@ import {
   getFollowers,
   getFollowing,
 } from '../../services/userService';
+import RecipeMediaRenderer from '../../components/posts/RecipeMediaRenderer';
 import { getImageUrl } from '../../utils/imageUtils';
 import { isNotFoundError } from '../../utils/errorUtils';
 import { formatDate, getTimeAgo } from '../../utils/dateUtils';
@@ -36,6 +37,7 @@ function PublicUserProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [avatarError, setAvatarError] = useState(false);
 
   const [followStatus, setFollowStatus] = useState(null);
   const [isFollowUpdating, setIsFollowUpdating] = useState(false);
@@ -259,8 +261,13 @@ function PublicUserProfile() {
           <div className="relative z-10 w-full flex flex-col items-center pt-24 md:pt-28 pb-12 px-6">
             <div className="mb-5">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#FDFBF6] shadow-md overflow-hidden bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] text-5xl font-semibold ring-1 ring-[#DCE3D5]">
-                {profile.avatarUrl ? (
-                  <img src={getImageUrl(profile.avatarUrl)} alt={profile.displayName} className="w-full h-full object-cover" />
+                {profile.avatarUrl && !avatarError ? (
+                  <img
+                    src={getImageUrl(profile.avatarUrl)}
+                    alt={profile.displayName}
+                    onError={() => setAvatarError(true)}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   profile.displayName?.charAt(0).toUpperCase() || 'U'
                 )}
@@ -423,11 +430,7 @@ function PublicUserProfile() {
                   onClick={() => navigate(`/posts/${post.id}`)}
                 >
                   <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-[#E9EFE6] border border-[#DCE3D5]/50 shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:shadow-[#DCE3D5] group-hover:-translate-y-1 motion-reduce:transform-none">
-                    {post.thumbnailUrl ? (
-                      <img src={getImageUrl(post.thumbnailUrl)} alt={post.title} className="w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#6B6F63] text-sm">No Image</div>
-                    )}
+                    <RecipeMediaRenderer post={post} alt={post.title} />
                   </div>
 
                   <div className="flex flex-col flex-grow px-1">

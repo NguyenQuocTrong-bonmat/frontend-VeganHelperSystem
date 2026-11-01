@@ -238,10 +238,17 @@ export default function InlinePostCard({
     }
   };
 
-  // Resolve media URL
-  const rawThumbnail = details?.media?.[0]?.mediaUrl || post.thumbnailUrl;
+  // Resolve media URL (supports video and image, handling details cache and raw feed item)
+  const isExplicitVideo = Boolean(
+    post?.mediaType === 'video' ||
+    details?.mediaType === 'video' ||
+    post?.postType === 'video' ||
+    details?.media?.[0]?.mediaType === 'video'
+  );
+  const rawVideo = post?.videoUrl || (isVideoMedia(post?.thumbnailUrl) || isExplicitVideo ? post?.thumbnailUrl : null) || (isVideoMedia(post?.mediaUrl) || isExplicitVideo ? post?.mediaUrl : null) || details?.media?.find(m => m.mediaType === 'video' || isVideoMedia(m.mediaUrl))?.mediaUrl;
+  const isVideo = Boolean(rawVideo || isExplicitVideo || isVideoMedia(details?.media?.[0]?.mediaUrl) || isVideoMedia(post?.thumbnailUrl) || isVideoMedia(post?.mediaUrl));
+  const rawThumbnail = rawVideo || details?.media?.[0]?.mediaUrl || post?.mediaUrl || post?.thumbnailUrl;
   const resolvedMediaUrl = rawThumbnail ? getImageUrl(rawThumbnail) : null;
-  const isVideo = isVideoMedia(rawThumbnail);
 
   // Content text
   const bodyText = details?.content || post.content || '';
@@ -383,11 +390,22 @@ export default function InlinePostCard({
 
         {/* 4. Media Section */}
         {resolvedMediaUrl && !mediaError && (
-          <div className="mt-2.5 w-full bg-vh-mint/20 border-y border-vh-border/60 relative overflow-hidden flex items-center justify-center max-h-[500px]">
+          <div className="mt-2.5 w-full bg-[#0E1712] border-y border-vh-border/60 relative overflow-hidden flex items-center justify-center min-h-[220px] max-h-[540px]">
+            {/* Ambient image glow */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+              <img
+                src={resolvedMediaUrl}
+                alt=""
+                className="w-full h-full object-cover blur-2xl opacity-20 scale-125"
+                tabIndex="-1"
+              />
+              <div className="absolute inset-0 bg-[#0E1712]/40 backdrop-blur-[1px]" />
+            </div>
+
             {isVideo ? (
               <video
                 src={resolvedMediaUrl}
-                className="w-full max-h-[500px] object-cover sm:object-contain bg-black/5"
+                className="relative z-10 w-full h-auto max-h-[540px] object-contain mx-auto block"
                 controls
                 playsInline
                 preload="metadata"
@@ -398,7 +416,7 @@ export default function InlinePostCard({
               <img
                 src={resolvedMediaUrl}
                 alt={post.title}
-                className="w-full max-h-[500px] object-cover sm:object-contain cursor-zoom-in transition-transform duration-200 ease-out hover:scale-[1.03] motion-reduce:transform-none"
+                className="relative z-10 w-full h-auto max-h-[540px] object-contain cursor-zoom-in transition-transform duration-200 ease-out hover:scale-[1.01] motion-reduce:transform-none mx-auto block"
                 loading="lazy"
                 onError={() => setMediaError(true)}
                 onClick={(e) => {

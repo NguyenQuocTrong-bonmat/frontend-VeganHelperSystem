@@ -6,6 +6,7 @@ import AIChatbot from '../../components/chat/AIChatbot';
 import { getHealthProfile, getBmiResult, getBmiHistory } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/dateUtils';
+import { calculateCalorieAndMacros } from '../../utils/bmiNutritionUtils';
 
 function BmiDashboard({ isComponent = false }) {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ function BmiDashboard({ isComponent = false }) {
     if (lower.includes('overweight')) return 'text-orange-500';
     return 'text-red-600'; // Obese
   };
+
+  const caloriePlan = calculateCalorieAndMacros(bmiResult, healthProfile);
 
   if (loading) {
     return (
@@ -126,6 +129,71 @@ function BmiDashboard({ isComponent = false }) {
                     <div className="font-semibold text-lg text-[#2B2A25]">{healthProfile?.weightKg || '--'} kg</div>
                   </div>
                 </div>
+
+                {/* Daily Calorie Target & Macro Distribution Card (English) */}
+                {caloriePlan && (
+                  <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-5 shadow-xs space-y-4 mt-6">
+                    {/* Top Row: Icon + Target Calorie Header */}
+                    <div className="flex items-center justify-between gap-3 border-b border-[#DCE3D5]/70 pb-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#244527] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5c-4.418 0-8-3.582-8-8 0-3.5 3-7.5 8-11.5 5 4 8 8 8 11.5 0 4.418-3.582 8-8 8z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-xs uppercase tracking-wider text-[#6B6F63] font-semibold">DAILY CALORIE TARGET</div>
+                          <div className="text-sm sm:text-base font-bold text-[#244527]">{caloriePlan.goalLabel}</div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-fraunces font-bold text-2xl sm:text-3xl text-[#244527] leading-none">
+                          {caloriePlan.targetCalories.toLocaleString()} <span className="text-sm sm:text-base font-sans font-medium text-[#6B6F63]">kcal</span>
+                        </div>
+                        {caloriePlan.maintenanceCalories && (
+                          <div className="text-xs text-[#6B6F63] mt-1">
+                            Maintenance TDEE: ~{caloriePlan.maintenanceCalories.toLocaleString()} kcal
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Macronutrient Distribution Bars */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm text-[#2B2A25] font-medium mb-2">
+                        <span>Target Macronutrient Distribution</span>
+                        <span className="text-xs text-[#6B6F63]">Protein · Carbs · Fats</span>
+                      </div>
+                      <div className="h-2.5 w-full bg-[#E5EBE1] rounded-full overflow-hidden flex gap-0.5">
+                        <div style={{ width: `${caloriePlan.macros.proteinPercent}%` }} className="bg-[#244527] h-full" title={`Protein: ${caloriePlan.macros.proteinPercent}%`} />
+                        <div style={{ width: `${caloriePlan.macros.carbsPercent}%` }} className="bg-[#547A53] h-full" title={`Carbs: ${caloriePlan.macros.carbsPercent}%`} />
+                        <div style={{ width: `${caloriePlan.macros.fatPercent}%` }} className="bg-[#93B58D] h-full" title={`Fats: ${caloriePlan.macros.fatPercent}%`} />
+                      </div>
+
+                      {/* 3 Macro Cards */}
+                      <div className="grid grid-cols-3 gap-3 mt-3 text-center">
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Protein</div>
+                          <div className="font-bold text-sm sm:text-base text-[#244527] mt-0.5">
+                            {caloriePlan.macros.proteinPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.proteinGrams}g)</span>
+                          </div>
+                        </div>
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Carbs</div>
+                          <div className="font-bold text-sm sm:text-base text-[#547A53] mt-0.5">
+                            {caloriePlan.macros.carbsPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.carbsGrams}g)</span>
+                          </div>
+                        </div>
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Fats</div>
+                          <div className="font-bold text-sm sm:text-base text-[#6C8567] mt-0.5">
+                            {caloriePlan.macros.fatPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.fatGrams}g)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {bmiResult.idealWeightRange && (
                   <div className="mt-6 text-sm text-[#6B6F63]">

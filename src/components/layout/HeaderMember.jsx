@@ -6,6 +6,7 @@ import { getImageUrl } from '../../utils/imageUtils';
 import NotificationBell from '../notifications/NotificationBell';
 import MobileBottomNav from './MobileBottomNav';
 import { dropdownVariants, mobileDrawerVariants, reducedMotionVariants } from '../ui/dropdownMotion';
+import { navigateHomeAndRefresh } from '../../utils/navigationUtils';
 
 export default function HeaderMember() {
   const { user, logout } = useAuth();
@@ -116,7 +117,12 @@ export default function HeaderMember() {
       <header className="sticky top-0 z-50 h-14 sm:h-16 bg-[#FDFBF6] border-b border-[#DCE3D5] flex items-center justify-between px-3 sm:px-6 md:px-10 relative">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Logo Vegan Helper */}
-          <Link className="flex items-center gap-2 text-[#2F5233] hover:opacity-95 transition-opacity" to="/home">
+          <Link
+            className="flex items-center gap-2 text-[#2F5233] hover:opacity-95 transition-opacity"
+            to="/home"
+            onClick={(e) => navigateHomeAndRefresh(e, '/home')}
+            aria-label="Vegan Helper home"
+          >
             <img src="/logo.png" alt="Vegan Helper Logo" className="h-8 sm:h-9 md:h-[54px] w-auto object-contain scale-[1.1] sm:scale-[1.25] md:scale-[1.35] origin-left" />
           </Link>
         </div>

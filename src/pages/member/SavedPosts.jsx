@@ -39,10 +39,10 @@ function SavedPosts({ isComponent = false }) {
       setIsUnsaving(true);
       await toggleSave(postId);
       setPosts(posts.filter(p => p.postId !== postId));
-      toast.success('Removed from saved recipes');
+      toast.success('Removed from saved posts');
     } catch (err) {
       console.error('Unsave error:', err);
-      toast.error('Failed to remove from saved recipes.');
+      toast.error('Failed to remove from saved posts.');
     } finally {
       setIsUnsaving(false);
     }
@@ -65,10 +65,10 @@ function SavedPosts({ isComponent = false }) {
             </div>
 
             <h1 className="text-4xl md:text-5xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-              Saved Recipes
+              Saved Posts
             </h1>
             <p className="text-[16px] text-[#6B6F63]">
-              Your personal collection of culinary inspirations
+              Your personal collection of saved posts and culinary inspirations
             </p>
           </div>
         </div>
@@ -79,18 +79,18 @@ function SavedPosts({ isComponent = false }) {
         {loading ? (
           <div className="w-full py-20 flex flex-col items-center justify-center text-[#6B6F63] gap-4">
             <div className="w-10 h-10 border-4 border-[#DCE3D5] border-t-[#2F5233] rounded-full animate-spin"></div>
-            <p className="font-medium">Loading saved recipes...</p>
+            <p className="font-medium">Loading saved posts...</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-[#FDFBF6] rounded-xl border border-[#DCE3D5]/50">
             <div className="w-20 h-20 mb-6 bg-[#E9EFE6] rounded-full flex items-center justify-center text-4xl">🔖</div>
-            <h3 className="font-fraunces font-semibold text-2xl text-[#2B2A25] mb-2">No saved recipes yet</h3>
-            <p className="text-[#6B6F63] mb-8 max-w-md">You haven't saved any recipes yet. Browse the community and bookmark your favorites!</p>
+            <h3 className="font-fraunces font-semibold text-2xl text-[#2B2A25] mb-2">No saved posts yet</h3>
+            <p className="text-[#6B6F63] mb-8 max-w-md">You haven't saved any posts yet. Browse the community and bookmark your favorites!</p>
             <button
               onClick={() => navigate('/home')}
               className="px-8 py-3 bg-[#2F5233] text-white rounded-lg text-[15px] font-medium hover:bg-[#25401F] transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer"
             >
-              Explore Recipes
+              Explore Posts
             </button>
           </div>
         ) : (

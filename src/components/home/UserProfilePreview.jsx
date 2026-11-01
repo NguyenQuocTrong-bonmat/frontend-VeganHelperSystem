@@ -459,14 +459,14 @@ export default function UserProfilePreview({
       exit="exit"
       variants={shouldReduceMotion ? reducedMotionVariants : popoverCardVariants}
     >
-      {/* Header Accent & Close - z-30 ensures close button is above any overlapping negative margin containers */}
-      <div className="relative z-30 h-16 bg-gradient-to-r from-[#E9EFE6] via-[#F3F6EE] to-[#E9EFE6] border-b border-[#DCE3D5]/40 flex items-center justify-between px-4">
+      {/* Header Accent & Close - header is z-10, close button is z-30, avatar is z-20 so avatar floats cleanly on top without clipping */}
+      <div className="relative z-10 h-16 bg-gradient-to-r from-[#E9EFE6] via-[#F3F6EE] to-[#E9EFE6] border-b border-[#DCE3D5]/40 flex items-center justify-between px-4">
         {isSelf && (
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2F5233] bg-white/90 px-2.5 py-0.5 rounded-full border border-[#DCE3D5]">
             You
           </span>
         )}
-        <div className="ml-auto relative z-40">
+        <div className="ml-auto relative z-30">
           <button
             ref={closeBtnRef}
             type="button"

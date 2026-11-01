@@ -35,6 +35,19 @@ const isValidBirthDate = (value) => {
   return isRealDate && value < formatDateInputValue(new Date());
 };
 
+const VIETNAMESE_PHONE_REGEX = /^(0|\+84)(3|5|7|8|9)\d{8}$/;
+
+const normalizePhoneNumber = (phone) => {
+  if (!phone) return '';
+  return phone.trim().replace(/[\s.-]/g, '');
+};
+
+const isValidPhoneNumber = (phone) => {
+  const cleaned = normalizePhoneNumber(phone);
+  if (!cleaned) return true; // Phone is optional in profile
+  return VIETNAMESE_PHONE_REGEX.test(cleaned);
+};
+
 function Profile() {
   const navigate = useNavigate();
   const { logout, restoreSession } = useAuth();
@@ -64,6 +77,29 @@ function Profile() {
   const [unlinkOTP, setUnlinkOTP] = useState('');
   const [unlinkMessage, setUnlinkMessage] = useState('');
 
+  const syncEditFormFromProfile = (p = profile) => {
+    if (!p) return;
+    setEditForm({
+      displayName: p.displayName || '',
+      phoneNumber: p.phoneNumber || '',
+      biologicalSex: p.biologicalSex || 'female',
+      birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
+    });
+    setEditErrors({});
+    setAvatarFile(null);
+    setAvatarPreview(null);
+  };
+
+  const handleOpenEditModal = () => {
+    syncEditFormFromProfile(profile);
+    setIsEditOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    syncEditFormFromProfile(profile);
+    setIsEditOpen(false);
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -72,15 +108,9 @@ function Profile() {
     try {
       setIsLoading(true);
       const data = await authService.getProfile();
-      setProfile(data.data || data);
-
       const p = data.data || data;
-      setEditForm({
-        displayName: p.displayName || '',
-        phoneNumber: p.phoneNumber || '',
-        biologicalSex: p.biologicalSex || 'female',
-        birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
-      });
+      setProfile(p);
+      syncEditFormFromProfile(p);
     } catch (err) {
       toast.error('Failed to load profile.');
     } finally {
@@ -116,10 +146,16 @@ function Profile() {
     e.preventDefault();
 
     const displayName = editForm.displayName.trim();
+    const rawPhone = editForm.phoneNumber || '';
+    const cleanedPhone = normalizePhoneNumber(rawPhone);
     const errors = {};
 
     if (displayName.length < 3) {
       errors.displayName = 'Full name must contain at least 3 characters.';
+    }
+
+    if (rawPhone.trim() && !isValidPhoneNumber(rawPhone)) {
+      errors.phoneNumber = 'Phone number must be a valid Vietnamese number (e.g. 0912345678 or +84912345678).';
     }
 
     if (editForm.birthDate && !isValidBirthDate(editForm.birthDate)) {
@@ -135,7 +171,7 @@ function Profile() {
     try {
       const formData = new FormData();
       formData.append('displayName', displayName);
-      if (editForm.phoneNumber) formData.append('phoneNumber', editForm.phoneNumber);
+      formData.append('phoneNumber', cleanedPhone);
       if (editForm.biologicalSex) formData.append('biologicalSex', editForm.biologicalSex);
       if (editForm.birthDate) formData.append('birthDate', editForm.birthDate);
       if (avatarFile) formData.append('avatar', avatarFile);
@@ -146,7 +182,7 @@ function Profile() {
       setIsEditOpen(false);
       setAvatarFile(null);
       setAvatarPreview(null);
-      fetchProfile();
+      await fetchProfile();
       if (restoreSession) {
         await restoreSession();
       }
@@ -156,7 +192,11 @@ function Profile() {
         })
       );
     } catch (err) {
-      toast.error('Failed to update profile.');
+      const serverError = err.response?.data?.error || 'Failed to update profile.';
+      if (serverError.toLowerCase().includes('phone')) {
+        setEditErrors(prev => ({ ...prev, phoneNumber: serverError }));
+      }
+      toast.error(serverError);
     }
   };
 
@@ -299,7 +339,7 @@ function Profile() {
             </div>
             {/* Right: Primary Action Button */}
             <div className="flex-shrink-0 self-start md:self-center">
-              <button onClick={() => setIsEditOpen(true)} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition-all shadow-sm hover:shadow active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-moss cursor-pointer" id="openEditProfileBtn" type="button">
+              <button onClick={handleOpenEditModal} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition-all shadow-sm hover:shadow active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-moss cursor-pointer" id="openEditProfileBtn" type="button">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -485,7 +525,7 @@ function Profile() {
       {/* BEGIN: EditProfileModal */}
       <div className={`fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 ${isEditOpen ? "" : "hidden"}`} id="edit-profile-modal-overlay">
         {/* Sibling 1: Backdrop */}
-        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" id="editModalBackdrop"></div>
+        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" id="editModalBackdrop" onClick={handleCloseEditModal}></div>
         {/* Sibling 2: Modal Content Box */}
         <div className="relative z-10 bg-surface-paper border border-border-sage-mist rounded-xl w-full max-w-md p-6 sm:p-7 shadow-[0_2px_12px_rgba(43,42,37,0.12)] max-h-[90vh] overflow-y-auto" id="edit-profile-modal-container" style={{ boxShadow: '0 2px 12px rgba(43,42,37,0.12)' }}>
           {/* Modal Header */}
@@ -498,7 +538,7 @@ function Profile() {
                 Update your account identity and contact details.
               </p>
             </div>
-            <button onClick={() => setIsEditOpen(false)} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" id="closeEditProfileBtn" type="button">
+            <button onClick={handleCloseEditModal} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" id="closeEditProfileBtn" type="button">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
@@ -564,7 +604,20 @@ function Profile() {
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalPhone">
                 Phone Number
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value={editForm.phoneNumber} onChange={handleEditChange} />
+              <input
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.phoneNumber ? 'border-red-500' : 'border-border-sage-mist'}`}
+                id="modalPhone"
+                type="tel"
+                placeholder="e.g. 0912345678"
+                value={editForm.phoneNumber || ''}
+                aria-invalid={Boolean(editErrors.phoneNumber)}
+                onChange={handleEditChange}
+              />
+              {editErrors.phoneNumber && (
+                <p className="mt-1 text-xs text-red-600" role="alert" id="modalPhoneError">
+                  {editErrors.phoneNumber}
+                </p>
+              )}
             </div>
             {/* 2-Column Grid: Sex & DOB */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -593,7 +646,7 @@ function Profile() {
             </div>
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-2">
-              <button onClick={() => setIsEditOpen(false)} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer" id="cancelEditProfileBtn" type="button">
+              <button onClick={handleCloseEditModal} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer" id="cancelEditProfileBtn" type="button">
                 Cancel
               </button>
               <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer" id="saveEditProfileBtn" type="submit">

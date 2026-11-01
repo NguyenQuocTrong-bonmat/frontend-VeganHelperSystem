@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
@@ -1129,14 +1128,6 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
 
-                {/* Diet preference */}
-                <div>
-                  <span className="font-semibold text-[#2B2A25] block mb-1">Diet Preference</span>
-                  <p className="text-[#6B6F63] bg-[#FAFBF9] p-3 rounded-xl border border-[#DCE3D5] leading-relaxed">
-                    {detailModal.member.bio}
-                  </p>
-                </div>
-
                 {/* Ban info if banned */}
                 {detailModal.member.status === 'Banned' && (
                   <div className="bg-[#FBEAE7] border border-[#F4C2BC] rounded-xl p-3 text-[#A63446]">
@@ -1150,17 +1141,7 @@ export default function AdminMemberManagement() {
                 )}
 
                 {/* Footer action */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#DCE3D5]">
-                  <Link
-                    to={`/users/${detailModal.member.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F5233] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:scale-95 motion-reduce:transform-none"
-                  >
-                    <span>View Public Posts</span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </Link>
-
+                <div className="flex items-center justify-end pt-3 border-t border-[#DCE3D5]">
                   <button
                     type="button"
                     onClick={() => setDetailModal({ isOpen: false, member: null })}

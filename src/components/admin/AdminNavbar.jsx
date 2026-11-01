@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
 import { getImageUrl } from '../../utils/imageUtils';
 import { dropdownVariants, mobileDrawerVariants, reducedMotionVariants } from '../ui/dropdownMotion';
+import { navigateHomeAndRefresh } from '../../utils/navigationUtils';
 
 export default function AdminNavbar() {
   const { user, logout } = useAuth();
@@ -77,7 +78,12 @@ export default function AdminNavbar() {
     <header className="w-full h-16 sm:h-[72px] px-6 sm:px-8 py-3.5 flex items-center justify-between border-b border-[#DCE3D5] bg-[#FDFBF6] sticky top-0 z-50">
       {/* 1. Left: Brand Logo & Title matching Home Header */}
       <div className="flex items-center gap-3">
-        <Link to="/admin" className="flex items-center gap-3 group">
+        <Link
+          to="/admin"
+          onClick={(e) => navigateHomeAndRefresh(e, '/admin')}
+          className="flex items-center gap-3 group"
+          aria-label="Admin Suite home"
+        >
           <img
             src="/logo.png"
             alt="Vegan Helper Logo"

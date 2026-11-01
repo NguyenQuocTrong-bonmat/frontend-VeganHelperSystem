@@ -170,4 +170,29 @@ describe('Admin Ban Flow in AdminMemberManagement', () => {
     // Should NOT call API
     expect(banMemberSpy).not.toHaveBeenCalled();
   });
+
+  it('opens member details modal without Diet Preference and without user profile link', async () => {
+    await renderComponent();
+
+    const detailsBtn = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent.trim() === 'Details'
+    );
+    expect(detailsBtn).toBeDefined();
+
+    await act(async () => {
+      detailsBtn.click();
+    });
+
+    // Verify detail modal is rendered with basic member info
+    expect(container.textContent).toContain('target@example.com');
+    expect(container.textContent).toContain('Platform Role');
+    expect(container.textContent).toContain('Account Status');
+
+    // Verify Diet Preference is removed
+    expect(container.textContent).not.toContain('Diet Preference');
+
+    // Verify View User Profile / View Public Posts link is removed
+    expect(container.textContent).not.toContain('View Public Posts');
+    expect(container.querySelector('a[href*="/users/"]')).toBeNull();
+  });
 });

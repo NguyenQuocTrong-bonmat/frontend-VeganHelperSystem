@@ -5,6 +5,7 @@ import LandingIcon from './LandingIcon';
 import useLandingNavigation from './useLandingNavigation';
 import useLandingMedia from './useLandingMedia';
 import { easeEditorial } from './motionVariants';
+import { navigateHomeAndRefresh } from '../../utils/navigationUtils';
 
 const links = [
   ['Our Platform', '#platform'],
@@ -31,7 +32,8 @@ export default function LandingHeader() {
     <header className="lp-header">
       <div className="lp-header-inner">
         <a
-          href="#landing-main"
+          href="/"
+          onClick={(e) => navigateHomeAndRefresh(e, '/')}
           className="lp-logo"
           aria-label="Vegan Helper home"
           aria-current={activeSection === 'landing-main' ? 'location' : undefined}

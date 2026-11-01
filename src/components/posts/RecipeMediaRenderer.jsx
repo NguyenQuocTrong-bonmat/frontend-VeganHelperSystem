@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { getImageUrl, isVideoMedia } from '../../utils/imageUtils';
 
 /**
- * Reusable Media Renderer for recipe and post cards across My Posts and Saved Recipes.
+ * Reusable Media Renderer for recipe and post cards across My Posts and Saved Posts.
  * 
  * Supports:
  * - Proper <img> decoding for static images.
@@ -39,6 +39,7 @@ export default function RecipeMediaRenderer({
 
   // 2. Identify separate image thumbnail candidate (distinct from video source)
   const imageCandidate =
+    (videoCandidate && post?.thumbnailUrl && post?.thumbnailUrl !== videoCandidate && !isVideoMedia(post?.thumbnailUrl) ? post.thumbnailUrl : null) ||
     (post?.videoUrl && !isVideoMedia(post?.thumbnailUrl) && !isExplicitVideo ? post?.thumbnailUrl : null) ||
     post?.posterUrl ||
     post?.thumbnailImage ||
