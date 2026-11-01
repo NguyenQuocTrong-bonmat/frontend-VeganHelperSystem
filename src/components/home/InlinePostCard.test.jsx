@@ -219,4 +219,38 @@ describe('InlinePostCard', () => {
     });
     expect(handleAuthRequired).toHaveBeenCalledTimes(2);
   });
+
+  it('displays Leave a comment when commentCount is 0, and singular/plural comment count when > 0', async () => {
+    // 0 comments
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <InlinePostCard post={{ ...mockPost, commentCount: 0 }} />
+        </BrowserRouter>
+      );
+    });
+    expect(container.textContent).toContain('Leave a comment');
+
+    // 1 comment
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <InlinePostCard post={{ ...mockPost, commentCount: 1 }} />
+        </BrowserRouter>
+      );
+    });
+    expect(container.textContent).toContain('1 comment');
+    expect(container.textContent).not.toContain('1 comments');
+
+    // 5 comments
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <InlinePostCard post={{ ...mockPost, commentCount: 5 }} />
+        </BrowserRouter>
+      );
+    });
+    expect(container.textContent).toContain('5 comments');
+  });
 });
+

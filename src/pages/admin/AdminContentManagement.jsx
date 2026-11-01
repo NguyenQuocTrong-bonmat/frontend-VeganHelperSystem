@@ -45,7 +45,7 @@ const formatDate = (value) => formatDateTime(value) || 'Unknown time';
 
 const queueTitle = (queue, item) => {
   if (queue === 'ai') return item.title || `Post #${item.postId}`;
-  if (queue === 'posts') return `Reported post #${item.postId}`;
+  if (queue === 'posts') return item.postTitle || item.title || `Reported post #${item.postId}`;
   return item.postTitle || `Comment #${item.commentId}`;
 };
 
@@ -121,9 +121,10 @@ export default function AdminContentManagement() {
           return;
         }
         const nextItems = Array.isArray(response?.items) ? response.items : [];
-        setItems(nextItems);
+        const sortedItems = [...nextItems].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setItems(sortedItems);
         setTotalPages(nextTotalPages);
-        if (nextItems.length > 0) setSelected(nextItems[0]);
+        if (sortedItems.length > 0) setSelected(sortedItems[0]);
       } catch (loadError) {
         if (active) {
           setItems([]);
@@ -175,12 +176,24 @@ export default function AdminContentManagement() {
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return items;
-    return items.filter((item) => `${queueTitle(activeQueue, item)} ${queueDescription(activeQueue, item)}`.toLowerCase().includes(keyword));
+    const list = !keyword
+      ? items
+      : items.filter((item) => `${queueTitle(activeQueue, item)} ${queueDescription(activeQueue, item)} ${item.authorName || ''} ${item.reporterName || ''}`.toLowerCase().includes(keyword));
+    return [...list].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   }, [activeQueue, items, search]);
 
   const activeDefinition = QUEUES.find((queue) => queue.id === activeQueue);
   const currentContent = activeQueue === 'posts' ? detail?.currentContent : detail;
+
+  const authorName = activeQueue === 'comments'
+    ? detail?.authorName || selected?.authorName || ''
+    : detail?.authorName || currentContent?.authorName || detail?.report?.authorName || selected?.authorName || (currentContent?.authorId ? `User #${currentContent.authorId}` : selected?.authorId ? `User #${selected.authorId}` : '');
+
+  const reporterName = activeQueue === 'comments'
+    ? detail?.reporterName || selected?.reporterName || ''
+    : activeQueue === 'posts'
+      ? detail?.report?.reporterName || selected?.reporterName || ''
+      : '';
 
   const submitDecision = async (event) => {
     event.preventDefault();
@@ -316,7 +329,22 @@ export default function AdminContentManagement() {
                       </div>
                       {activeQueue !== 'ai' && <span className="shrink-0 rounded-full bg-[#FBEAE7] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#A63446]">Review</span>}
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#7B847A]">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#526052]">
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <svg className="w-3.5 h-3.5 text-[#5F735D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="truncate max-w-[150px]" title={item.authorName ? `User: ${item.authorName}` : undefined}>
+                          {item.authorName ? item.authorName : item.authorId ? `User #${item.authorId}` : 'User'}
+                        </span>
+                      </div>
+                      {item.reporterName && (
+                        <span className="text-[11px] text-[#7B847A]">
+                          · Reported by <span className="font-semibold text-[#485347]">{item.reporterName}</span>
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#7B847A]">
                       <time dateTime={item.createdAt || undefined}>{formatDate(item.createdAt)}</time>
                       {activeQueue === 'comments' && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
                     </div>
@@ -364,7 +392,23 @@ export default function AdminContentManagement() {
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6A8167]">Review evidence</p>
                   <h2 id="review-heading" className="mt-2 text-xl font-extrabold leading-tight text-[#243128] sm:text-2xl">{activeQueue === 'comments' ? detail?.postTitle : currentContent?.title || queueTitle(activeQueue, selected)}</h2>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-full bg-[#EAF0E9] px-3 py-1 font-semibold text-[#2F5233]">{activeQueue === 'comments' ? `Comment #${detail?.commentId}` : `Post #${selected.postId}`}</span>
+                    <span className="rounded-full bg-[#EAF0E9] px-3 py-1 font-semibold text-[#2F5233]">{activeQueue === 'comments' ? `Comment #${detail?.commentId || selected.commentId}` : `Post #${selected.postId}`}</span>
+                    {authorName && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EBF3FB] px-3 py-1 font-semibold text-[#185FA5]" title={`User: ${authorName}`}>
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        User: {authorName}
+                      </span>
+                    )}
+                    {reporterName && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FDF2F2] px-3 py-1 font-semibold text-[#991B1B]">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Reported by: {reporterName}
+                      </span>
+                    )}
                     <span className="rounded-full bg-[#F5F1E8] px-3 py-1 font-semibold text-[#756343]">{formatDate(selected.createdAt)}</span>
                   </div>
                 </div>
@@ -373,9 +417,15 @@ export default function AdminContentManagement() {
                   {activeQueue === 'comments' ? (
                     <>
                       <div className="rounded-2xl border border-[#DDE5D9] bg-[#F8FAF6] p-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#718070]">Reported comment</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold uppercase tracking-wide text-[#718070]">Reported comment</p>
+                          <span className="text-xs font-semibold text-[#2F5233]">User: {authorName || 'Unknown'}</span>
+                        </div>
                         <blockquote className="mt-2 text-sm leading-6 text-[#303B31]">“{detail?.commentContent}”</blockquote>
-                        <p className="mt-3 text-xs text-[#737C73]">By {detail?.authorName} · Reported by {detail?.reporterName}</p>
+                        <p className="mt-3 text-xs text-[#737C73]">
+                          Comment by <strong className="font-semibold text-[#27342A]">{authorName || 'Unknown'}</strong>
+                          {reporterName && <> · Reported by <strong className="font-semibold text-[#27342A]">{reporterName}</strong></>}
+                        </p>
                       </div>
                       <div className="rounded-2xl border border-[#F0D4CF] bg-[#FFF8F6] p-4">
                         <p className="text-xs font-bold uppercase tracking-wide text-[#A14C49]">Community reason</p>
@@ -386,8 +436,17 @@ export default function AdminContentManagement() {
                   ) : (
                     <>
                       <div className="rounded-2xl border border-[#DDE5D9] bg-[#F8FAF6] p-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#718070]">Current post content</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold uppercase tracking-wide text-[#718070]">Current post content</p>
+                          <span className="text-xs font-semibold text-[#2F5233]">User: {authorName || 'Unknown'}</span>
+                        </div>
                         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#303B31]">{currentContent?.content || 'No text content.'}</p>
+                        <p className="mt-3 text-xs text-[#737C73]">
+                          Posted by <strong className="font-semibold text-[#27342A]">{authorName || 'Unknown'}</strong>
+                          {activeQueue === 'posts' && reporterName && (
+                            <> · Reported by <strong className="font-semibold text-[#27342A]">{reporterName}</strong></>
+                          )}
+                        </p>
                       </div>
                       <div className="rounded-2xl border border-[#F0D4CF] bg-[#FFF8F6] p-4">
                         <p className="text-xs font-bold uppercase tracking-wide text-[#A14C49]">{activeQueue === 'ai' ? 'AI finding' : 'Community report'}</p>

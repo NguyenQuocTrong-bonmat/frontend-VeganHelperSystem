@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import CreatePostForm from './CreatePostForm';
 import ModalMotion from '../ui/ModalMotion';
+import { useNotification } from '../../hooks/useNotification';
 
 /**
  * Accessible Facebook-style Create Post Modal over the Home feed.
@@ -20,6 +21,7 @@ export default function CreatePostModal({
   onPostCreated,
   triggerRef,
 }) {
+  const { confirm } = useNotification();
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const isDirtyRef = useRef(false);
@@ -28,15 +30,19 @@ export default function CreatePostModal({
     isDirtyRef.current = isDirty;
   }, []);
 
-  const handleSafeClose = useCallback(() => {
+  const handleSafeClose = useCallback(async () => {
     if (isDirtyRef.current) {
-      const confirmDiscard = window.confirm(
-        'You have unsaved changes. Are you sure you want to discard this post?'
-      );
+      const confirmDiscard = await confirm({
+        title: 'Discard Unsaved Post?',
+        description: 'You have unsaved changes. Are you sure you want to discard this post? Any photos or recipe details will be lost.',
+        confirmText: 'Discard Post',
+        cancelText: 'Keep Editing',
+        variant: 'danger',
+      });
       if (!confirmDiscard) return;
     }
     onClose();
-  }, [onClose]);
+  }, [confirm, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;

@@ -11,7 +11,7 @@ import { formatDate } from '../../utils/dateUtils';
 import { motion, useReducedMotion } from 'framer-motion';
 import SavedPosts from './SavedPosts';
 import FollowListModal from '../../components/home/FollowListModal';
-import ModalMotion from '../../components/ui/ModalMotion';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PostStatusBadge, { resolvePostStatus, extractModerationReason, PostStatusNotice } from '../../components/posts/PostStatusBadge';
 import RecipeMediaRenderer from '../../components/posts/RecipeMediaRenderer';
 
@@ -769,44 +769,20 @@ function MyPosts({ notifications = [] } = {}) {
       )}
 
       {/* DELETE CONFIRMATION MODAL OVERLAY */}
-      <ModalMotion
+      <ConfirmDialog
         isOpen={Boolean(postToDelete)}
-        onClose={() => {
+        title="Delete Recipe?"
+        description={`Are you sure you want to delete ${postToDelete?.title ? `"${postToDelete.title}"` : 'this recipe'}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        usePortal={false}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
           if (!isDeleting) setPostToDelete(null);
         }}
-        backdropClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
-        dialogClassName="bg-[#FDFBF6] border border-[#DCE5D9] rounded-2xl p-6 w-full max-w-sm shadow-xl"
-        ariaLabelledBy="delete-recipe-title"
-      >
-        <h3 id="delete-recipe-title" className="font-fraunces text-xl font-semibold text-[#2B2A25] mb-2">
-          Delete Recipe?
-        </h3>
-        <p className="font-dm-sans text-[#6B6F63] text-sm mb-6">
-          Are you sure you want to delete {postToDelete?.title ? `"${postToDelete.title}"` : 'this recipe'}? This action cannot be undone.
-        </p>
-        <div className="flex gap-2.5 justify-end">
-          <button
-            type="button"
-            onClick={() => setPostToDelete(null)}
-            className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold text-[#6B6F63] hover:bg-[#F3F6EE] transition-all border border-[#DCE5D9] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
-            disabled={isDeleting}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleDeleteConfirm}
-            className="px-4 py-2 rounded-full font-dm-sans text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-all shadow-xs flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100"
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              'Delete'
-            )}
-          </button>
-        </div>
-      </ModalMotion>
+      />
 
       {/* Followers & Following Modal */}
       {user?.id && (

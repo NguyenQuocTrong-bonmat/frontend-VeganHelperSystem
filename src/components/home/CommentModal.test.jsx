@@ -183,4 +183,42 @@ describe('CommentModal', () => {
 
     expect(handleAuthRequired).toHaveBeenCalledTimes(1);
   });
+
+  it('excludes deleted and flagged or hidden comments from comment count', async () => {
+    const onCommentCountChange = vi.fn();
+    const mixedComments = [
+      { id: 1, content: 'Normal comment', status: 'visible', isDeleted: false, replies: [] },
+      { id: 2, content: 'Deleted comment', status: 'deleted', isDeleted: true, replies: [] },
+      { id: 3, content: 'Flagged comment', status: 'flagged', isDeleted: false, replies: [] },
+      { id: 4, content: 'Hidden comment', status: 'hidden', isDeleted: false, replies: [] },
+      {
+        id: 5,
+        content: 'Comment with replies',
+        status: 'visible',
+        isDeleted: false,
+        replies: [
+          { id: 6, content: 'Valid reply', status: 'visible', isDeleted: false, replies: [] },
+          { id: 7, content: 'Deleted reply', status: 'visible', isDeleted: true, replies: [] },
+        ],
+      },
+    ];
+
+    interactionService.getComments.mockResolvedValueOnce(mixedComments);
+
+    await act(async () => {
+      root.render(
+        <CommentModal
+          isOpen={true}
+          onClose={() => {}}
+          post={mockPost}
+          onCommentCountChange={onCommentCountChange}
+        />
+      );
+    });
+
+    // 1 (id: 1) + 1 (id: 5) + 1 (id: 6) = 3 comments (id 2, 3, 4, 7 are excluded)
+    expect(onCommentCountChange).toHaveBeenCalledWith(3);
+    expect(document.body.textContent).toContain('3 comments');
+  });
 });
+

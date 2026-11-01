@@ -8,11 +8,14 @@ import WeeklyCalendar from './WeeklyCalendar';
 
 import MealRoutinePanel from './MealRoutinePanel';
 import PlannerIcon from './PlannerIcon';
+import InlineAlert from '../ui/InlineAlert';
+import { useNotification } from '../../hooks/useNotification';
 import plannerInspiration from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
 import { dateLabel, dietLabel, number, rangeLabel, utcToday, zonedToday } from './plannerFormat';
 import './weekly-menu.css';
 
 export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange }) {
+  const { confirm, notify } = useNotification();
   const [pageIndex, setPageIndex] = useState(1);
   const [refresh, setRefresh] = useState(0);
   const [calendarRevision, setCalendarRevision] = useState(0);
@@ -130,7 +133,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       const apiResult = generateMealPlan(request).then(result => ({ result }), failure => ({ failure }));
       const surfaceApiFailure = () => apiResult.then(outcome => outcome.failure
         ? Promise.reject(outcome.failure)
-        : new Promise(() => {}));
+        : new Promise(() => { }));
       const waitForPhase = async (phase, duration) => {
         if (mounted.current) setCreation({ phase, preview: clientPreview });
         await Promise.race([new Promise(resolve => setTimeout(resolve, duration)), surfaceApiFailure()]);
@@ -151,13 +154,13 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       setPageIndex(1); setRefresh(value => value + 1);
       getMealPlanAccess().then(nextAccess => {
         if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
-      }).catch(() => {});
+      }).catch(() => { });
     } catch (failure) {
       if (mounted.current) { setCreation(null); setSetupOpen(true); setError(failure.message); }
       if (failure.status === 402 || failure.code === 'MEAL_PLAN_TRIAL_LIMIT_REACHED') {
         getMealPlanAccess().then(nextAccess => {
           if (typeof nextAccess?.canGenerate === 'boolean') onAccessChange?.(nextAccess);
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } finally {
       submitting.current = false;
@@ -180,7 +183,14 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
   async function regenerate() {
     if (!plan?.id || submitting.current || busy) return;
     const weekStart = plan.startDate ? dateLabel(plan.startDate) : 'this week';
-    if (!window.confirm(`Regenerate “${plan.name || 'this menu'}” for ${weekStart}? The dishes will be replaced and its tracking will reset.`)) return;
+    const confirmed = await confirm({
+      title: 'Regenerate Weekly Menu?',
+      description: `Regenerate “${plan.name || 'this menu'}” for ${weekStart}? The dishes will be replaced and its tracking will reset.`,
+      confirmText: 'Regenerate',
+      cancelText: 'Cancel',
+      variant: 'primary',
+    });
+    if (!confirmed) return;
     submitting.current = true;
     setRegenerating(true); setError(''); setSuccess('');
     try {
@@ -191,10 +201,15 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       setPlan(result);
       setCalendarRevision(value => value + 1);
       setSuccess('Your weekly menu has been regenerated. Tracking has been reset for the new dishes.');
+      notify.success('Weekly Menu Regenerated', 'Tracking has been reset for the new dishes.');
       setCreation(null);
       setRefresh(value => value + 1);
     } catch (failure) {
-      if (mounted.current) { setCreation(null); setError(failure.message); }
+      if (mounted.current) {
+        setCreation(null);
+        setError(failure.message);
+        notify.error('Regeneration Failed', failure.message);
+      }
     } finally {
       submitting.current = false;
       if (mounted.current) setRegenerating(false);
@@ -203,7 +218,14 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
 
   async function deleteSelectedPlan() {
     if (!plan?.id || submitting.current || busy) return;
-    if (!window.confirm(`Delete “${plan.name || 'this menu'}”? It will disappear from your saved menus, and you can create another menu for these dates.`)) return;
+    const confirmed = await confirm({
+      title: 'Delete Weekly Menu?',
+      description: `Delete “${plan.name || 'this menu'}”? It will disappear from your saved menus, and you can create another menu for these dates.`,
+      confirmText: 'Delete menu',
+      cancelText: 'Keep menu',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     submitting.current = true;
     setDeleting(true); setError(''); setSuccess('');
     try {
@@ -211,9 +233,13 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       if (!mounted.current) return;
       setPlan(null);
       setSuccess('The weekly menu was deleted. You can now create a menu for those dates.');
+      notify.success('Menu Deleted', 'The weekly menu was deleted.');
       setPageIndex(1); setRefresh(value => value + 1);
     } catch (failure) {
-      if (mounted.current) setError(failure.message);
+      if (mounted.current) {
+        setError(failure.message);
+        notify.error('Delete Failed', failure.message);
+      }
     } finally {
       submitting.current = false;
       if (mounted.current) setDeleting(false);
@@ -262,7 +288,16 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       </aside>
       <div className="wm-main-column">
         {setupOpen && <PlanSetupFlow profileRevision={profileRevision} busy={generating} error={error} onGenerate={generate} onCancel={cancelSetup} onEditProfile={onEditProfile} />}
-        {!setupOpen && error && <div role="alert" className="wm-alert">{error}</div>}
+        {!setupOpen && error && (
+          <div className="wm-alert-wrapper" style={{ marginBottom: '1rem' }}>
+            <InlineAlert
+              type="error"
+              title="Menu Error"
+              description={error}
+              onClose={() => setError('')}
+            />
+          </div>
+        )}
         {creation && <CalendarCreationProgress phase={creation.phase} preview={creation.preview} pendingPlan={creation.pendingPlan} visibleMealCount={creation.visibleMealCount} />}
         {!creation && loading && !plan && !listError && <div role="status" className="wm-loading"><PlannerIcon name="calendar" /><p>Making room for your week…</p><div className="wm-skeleton-calendar" aria-hidden="true">{Array.from({ length: 7 }, (_, index) => <span key={index} />)}</div></div>}
         {!creation && !plan && !loading && !listError && !setupOpen && <section className="wm-empty"><span className="wm-empty-art"><PlannerIcon name="bowl" /><PlannerIcon name="leaf" /></span><span className="wm-eyebrow">A fresh start, every week</span><h2>Your next week starts here.</h2><p>Less time wondering what to eat.<br />More time enjoying what is on your plate.</p><button type="button" className="wm-button wm-button-primary" disabled={access?.canGenerate === false} onClick={() => setSetupOpen(true)}>Create your first menu <PlannerIcon name="arrow" /></button><span className="wm-empty-caption">7 days · 3 meals a day · Made for your preferences</span></section>}
@@ -281,7 +316,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
         </section>}
         {!creation && plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
         {!creation && menu && <>
-          <WeeklyCalendar key={`calendar-${plan.id}-${calendarRevision}`} plan={plan} opening={opening} onRoutineChanged={routine=>setPlan(current=>current?.id === plan.id ? {...current,routine} : current)}>
+          <WeeklyCalendar key={`calendar-${plan.id}-${calendarRevision}`} plan={plan} opening={opening} onRoutineChanged={routine => setPlan(current => current?.id === plan.id ? { ...current, routine } : current)}>
             {({ calendarView, setView }) => <div className="wm-calendar-plan-context">
               <div className="wm-selected-plan wm-selected-plan-embedded" role="group" aria-label="Selected weekly menu">
                 {renaming ? <form className="wm-rename-form" onSubmit={saveRename}>
@@ -303,7 +338,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
             </div>}
           </WeeklyCalendar>
           <MenuJourney plan={plan} menu={menu} />
-          {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated=>{setPlan(updated);setRefresh(value=>value+1);}} onEditProfile={onEditProfile} />}
+          {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated => { setPlan(updated); setRefresh(value => value + 1); }} onEditProfile={onEditProfile} />}
           <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.mealCalorieSplit && <p>Daily calorie split: breakfast {menu.mealCalorieSplit.breakfastPercent}%, lunch {menu.mealCalorieSplit.lunchPercent}%, dinner {menu.mealCalorieSplit.dinnerPercent}%. These shares divide the daily target and do not change it.</p>}{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
         </>}
         {plan?.routine?.mode === 'maintenance' && <p className="wm-notice">This balanced plan is for viewing your menu. Create a weight goal plan to use tracking and reminders.</p>}

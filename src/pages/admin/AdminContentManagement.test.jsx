@@ -77,3 +77,45 @@ test('keyword comments use the existing queue and return to the last valid page 
   expect(service.getAdminCommentReports).toHaveBeenLastCalledWith({ pageIndex: 1, pageSize: 10, status: 'pending' });
   expect(container.textContent).toContain('Earlier pending comment');
 });
+
+test('displays queue items with newest date at the top', async () => {
+  const older = { id: 201, postId: 33, title: 'Older post', reason: 'Older flag', createdAt: '2026-10-18T09:54:00Z' };
+  const newer = { id: 202, postId: 34, title: 'Newer post', reason: 'Newer flag', createdAt: '2026-10-31T20:57:00Z' };
+  service.getAdminAiFlags.mockResolvedValue({ items: [older, newer], totalCount: 2 });
+
+  await act(async () => root.render(<AdminContentManagement />));
+
+  const buttons = container.querySelectorAll('button[type="button"]');
+  const itemTitles = Array.from(buttons)
+    .map(b => b.querySelector('p.font-bold')?.textContent)
+    .filter(Boolean);
+
+  expect(itemTitles[0]).toBe('Newer post');
+  expect(itemTitles[1]).toBe('Older post');
+});
+
+test('displays user/author information in moderation queue items and detail view', async () => {
+  const itemWithAuthor = {
+    id: 301,
+    postId: 55,
+    title: 'Delicious Vegan Pho',
+    authorName: 'ChefThao',
+    reason: 'Contains non-vegan tag',
+    createdAt: '2026-10-31T20:57:00Z',
+  };
+  service.getAdminAiFlags.mockResolvedValue({ items: [itemWithAuthor], totalCount: 1 });
+  service.getAdminModerationPostDetail.mockResolvedValue({
+    title: 'Delicious Vegan Pho',
+    authorName: 'ChefThao',
+    content: 'Broth made with star anise and herbs.',
+    contentRevision: 1,
+  });
+
+  await act(async () => root.render(<AdminContentManagement />));
+
+  expect(container.textContent).toContain('ChefThao');
+  expect(container.textContent).toContain('User: ChefThao');
+  expect(container.textContent).toContain('Posted by ChefThao');
+});
+
+

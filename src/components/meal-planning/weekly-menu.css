@@ -3914,21 +3914,21 @@
   color: #26342b;
 }
 
-/* Equal-Height Shared Grid Wrapper */
 .wm-workspace-grid {
   display: grid;
   grid-template-columns: 310px minmax(0, 1fr);
   gap: 28px;
-  align-items: stretch;
+  align-items: start;
   width: 100%;
 }
 
-/* Left Sidebar - Equal Height Flex Container */
+/* Left Sidebar */
 .wm-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  height: 100%;
+  align-self: start;
+  height: auto;
   min-width: 0;
   box-sizing: border-box;
 }
@@ -4046,7 +4046,7 @@
   margin-top: 12px;
 }
 
-/* Health profile guidance card - flexes to anchor the bottom edge cleanly */
+/* Health profile guidance card */
 .wm-profile-link {
   padding: 22px 20px;
   border: 1px solid #dce5d9;
@@ -4055,8 +4055,8 @@
   box-shadow: 0 2px 8px -2px rgba(36, 76, 56, .04);
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: fit-content;
+  flex: none;
+  height: auto;
   box-sizing: border-box;
 }
 
@@ -4077,7 +4077,7 @@
 }
 
 .wm-profile-link .wm-text-button {
-  margin-top: auto;
+  margin-top: 0;
 }
 
 /* Right Main Column */
@@ -4090,11 +4090,11 @@
   border-radius: 0;
   background: transparent;
   min-width: 0;
-  height: 100%;
+  height: auto;
   box-sizing: border-box;
 }
 
-/* Right Wizard Panel (Equal-Height Container) */
+/* Right Wizard Panel */
 .wm-setup {
   background: #fff;
   border: 1px solid #dce5d9;
@@ -4103,7 +4103,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%;
+  height: auto;
   box-sizing: border-box;
   box-shadow: 0 4px 16px -2px rgba(36, 76, 56, .05);
 }
@@ -4535,7 +4535,7 @@
   .wm-workspace-grid {
     grid-template-columns: 280px minmax(0, 1fr);
     gap: 20px;
-    align-items: stretch;
+    align-items: start;
   }
 
   .wm-sidebar {

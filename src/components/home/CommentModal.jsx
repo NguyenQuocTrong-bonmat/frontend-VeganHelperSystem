@@ -23,7 +23,11 @@ function asArray(data) {
 function countComments(list = []) {
   let count = 0;
   for (const item of list) {
-    count++;
+    const isDeleted = Boolean(item.isDeleted || item.IsDeleted || item.status === 'deleted');
+    const isHidden = item.status === 'hidden' || item.status === 'flagged';
+    if (!isDeleted && !isHidden) {
+      count++;
+    }
     if (item.replies && item.replies.length > 0) {
       count += countComments(item.replies);
     }

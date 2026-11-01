@@ -53,6 +53,12 @@ export default function InlinePostCard({
 
   const [commentCount, setCommentCount] = useState(Number(post.commentCount) || 0);
 
+  useEffect(() => {
+    if (post.commentCount !== undefined) {
+      setCommentCount(Number(post.commentCount) || 0);
+    }
+  }, [post.commentCount]);
+
   // Local profile preview popover state (when no container-level modal is passed)
   const [localProfilePreview, setLocalProfilePreview] = useState({
     isOpen: false,
@@ -112,6 +118,9 @@ export default function InlinePostCard({
         setIsLiked(Boolean(post.isLiked));
         setLikeCount(Number(post.likeCount) || 0);
         setIsSaved(Boolean(post.isSaved));
+        if (post.commentCount !== undefined) {
+          setCommentCount(Number(post.commentCount) || 0);
+        }
         return;
       }
 
@@ -123,6 +132,7 @@ export default function InlinePostCard({
           if (full.isLiked !== undefined) setIsLiked(Boolean(full.isLiked));
           if (full.likeCount !== undefined) setLikeCount(Number(full.likeCount) || 0);
           if (full.isSaved !== undefined) setIsSaved(Boolean(full.isSaved));
+          if (full.commentCount !== undefined) setCommentCount(Number(full.commentCount) || 0);
         }
       } catch (err) {
         // Silently keep basic metadata on network error
@@ -450,7 +460,7 @@ export default function InlinePostCard({
               }}
               className="hover:underline hover:text-vh-forest transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80"
             >
-              {commentCount > 0 ? `${commentCount} comments` : 'Leave a comment'}
+              {commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}` : 'Leave a comment'}
             </button>
             <span>•</span>
             <span>{post.viewCount || 0} views</span>
