@@ -38,7 +38,7 @@ const render = (path, variant) => act(async () => root.render(
 
 test('shows success only after the backend order endpoint confirms paid', async () => {
   getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'paid',
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'paid',
   });
   await render('/meal-plans/payment/success?status=PENDING&orderCode=830073', 'success');
 
@@ -50,7 +50,7 @@ test('shows success only after the backend order endpoint confirms paid', async 
 
 test('does not trust PayOS query status when the backend still reports pending', async () => {
   getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'pending',
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'pending',
   });
   await render('/meal-plans/payment/cancel?status=PAID&orderCode=830073', 'cancel');
 
@@ -61,7 +61,7 @@ test('does not trust PayOS query status when the backend still reports pending',
 
 test('shows the failed state only when the backend order is failed', async () => {
   getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'failed',
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'failed',
   });
   await render('/meal-plans/payment/failed?orderCode=830073', 'failed');
 

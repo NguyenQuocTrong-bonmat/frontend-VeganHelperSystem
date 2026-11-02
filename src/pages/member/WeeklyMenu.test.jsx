@@ -45,7 +45,7 @@ beforeEach(() => {
     } else if (config.url === '/meal-plan-payments/access') {
       data = paymentAccess;
     } else if (config.url === '/meal-plan-payments/packages') {
-      data = [{ code: 'one-month', name: 'One month', durationMonths: 1, amountVnd: 100000 }];
+      data = [{ code: 'one-month', name: 'One month', durationMonths: 1, amountVnd: 1000 }];
     } else {
       data = await route(config);
     }
@@ -193,7 +193,7 @@ test('uses backend access to block another generation after the three free trial
   expect(button('New weekly menu').disabled).toBe(true);
   expect(container.textContent).toContain('Your 3 free weekly-menu generations have been used');
   expect(container.textContent).toContain('One month');
-  expect(container.textContent).toMatch(/100[.,]000/);
+  expect(container.textContent).toMatch(/1[.,]000/);
   expect(adapter.mock.calls.some(([config]) => config.url === '/MealPlans/generate')).toBe(false);
 });
 
