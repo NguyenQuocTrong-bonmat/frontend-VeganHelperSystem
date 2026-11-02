@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import notificationsApi from '../../services/notificationService';
+import { autoEnableBrowserPush } from '../../services/browserPushService';
 import { notificationTarget } from '../../utils/notificationTarget';
 import { formatDateTime } from '../../utils/dateUtils';
-import BrowserPushControl from './BrowserPushControl';
 import { dropdownVariants, reducedMotionVariants } from '../ui/dropdownMotion';
 
 export default function NotificationBell({ userId }) {
@@ -56,18 +56,26 @@ export default function NotificationBell({ userId }) {
   useEffect(() => {
     alive.current = true;
     const refresh = () => { if (document.visibilityState !== 'hidden') fetchCount(); };
+    const syncPush = () => {
+      if (userId) autoEnableBrowserPush(userId).catch(() => {});
+    };
     fetchCount();
+    syncPush();
     const timer = setInterval(refresh, 60000);
     const receive = event => { if (event.data?.type === 'notification-received') { refresh(); } };
-    window.addEventListener('focus', refresh);
+    const onFocus = () => { refresh(); syncPush(); };
+    const onVisibilityChange = () => { if (document.visibilityState === 'visible') syncPush(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
     navigator.serviceWorker?.addEventListener('message', receive);
     return () => {
       alive.current = false; clearInterval(timer);
       listRequest.current?.abort(); countRequest.current?.abort();
-      window.removeEventListener('focus', refresh);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       navigator.serviceWorker?.removeEventListener('message', receive);
     };
-  }, [fetchCount]);
+  }, [fetchCount, userId]);
 
   useEffect(() => {
     if (!open) return;
@@ -102,6 +110,13 @@ export default function NotificationBell({ userId }) {
 
   const dateLabel = value => formatDateTime(value);
   const activeVariants = shouldReduceMotion ? reducedMotionVariants : dropdownVariants;
+  const requestBrowserPushFromGesture = () => {
+    if (!userId || typeof Notification === 'undefined' || Notification.permission !== 'default') return;
+    // Permission prompts must be triggered directly by a user action (opening the bell).
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') autoEnableBrowserPush(userId).catch(() => {});
+    }).catch(() => {});
+  };
 
   return (
     <div ref={container} className="relative flex items-center">
@@ -113,6 +128,7 @@ export default function NotificationBell({ userId }) {
         aria-expanded={open}
         aria-controls="notification-inbox"
         onClick={() => {
+          if (!open) requestBrowserPushFromGesture();
           setOpen(current => !current);
           if (!open) {
             fetchCount();
@@ -208,7 +224,6 @@ export default function NotificationBell({ userId }) {
                 Load more
               </button>
             )}
-            <BrowserPushControl userId={userId} />
           </motion.section>
         )}
       </AnimatePresence>
