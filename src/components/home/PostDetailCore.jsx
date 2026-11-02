@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPostDetail, getCategories, reportPost } from '../../services/postService';
 import ReportPostModal from './ReportPostModal';
 import CommentDeleteModal from './CommentDeleteModal';
+import CommentReportModal from './CommentReportModal';
 import {
   createComment,
   updateComment,
@@ -87,6 +88,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentText, setEditCommentText] = useState('');
   const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
+  const [reportTarget, setReportTarget] = useState(null);
   const [reportingCommentId, setReportingCommentId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
@@ -233,12 +235,13 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     setIsReportSubmitting(true);
     try {
       const revision = post?.contentRevision ?? post?.ContentRevision ?? 1;
-      await reportPost(id, {
+      const receipt = await reportPost(id, {
         reasonCategory,
         reason,
         expectedRevision: revision,
       });
-      toast.success('Thank you. Your report has been submitted for review.');
+      if (receipt?.alreadyReported) toast('You have already reported this post. Your report is pending review.');
+      else toast.success('Thank you. Your report has been submitted for review.');
       setIsReportModalOpen(false);
     } catch (err) {
       const status = err?.status || err?.response?.status;
@@ -352,7 +355,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     try {
       const updated = await updateComment(id, commentId, content);
       if (String(updated?.status || '').toLowerCase() === 'hidden') {
-        toast.success('Your edited comment was submitted for moderation review.');
+        toast.success('Your edited comment is temporarily hidden while the moderation team reviews it.');
       } else {
         toast.success('Comment updated.');
       }
@@ -416,15 +419,14 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     }
   };
 
-  const handleCommentReport = async (commentId) => {
+  const handleCommentReport = async (commentId, submittedReason) => {
     if (isGuest) {
       if (onAuthRequired) onAuthRequired();
       return;
     }
 
-    const promptReason = window.prompt('Why are you reporting this comment? (required):');
-    if (promptReason === null) return;
-    const reason = promptReason.trim();
+    if (submittedReason === undefined) { setReportTarget(commentId); return; }
+    const reason = submittedReason.trim();
     if (!reason) {
       toast.error('A reason is required to report this comment.');
       return;
@@ -437,15 +439,17 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     setReportingCommentId(commentId);
     try {
       const result = await reportComment(id, commentId, reason);
-      toast.success(result?.message || 'Report submitted for review.');
+      toast.success('Thank you. ' + (result?.message || 'Your report is pending review.'));
+      setReportTarget(null);
       if (result?.commentHidden) {
         const refreshed = await getComments(id, { maxDepth: 4 });
         setComments(asArray(refreshed));
         setCommentsError('');
       }
     } catch (err) {
-      if (err.status === 409 || err.message?.includes('already reported') || err.message?.includes('Duplicate')) {
+      if (err.message?.includes('already reported') || err.message?.includes('Duplicate')) {
         toast.error('You have already reported this comment.');
+        setReportTarget(null);
       } else {
         toast.error(err.message || 'Failed to report comment.');
       }
@@ -1047,6 +1051,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       )}
 
       {/* Comment Delete Modal */}
+      <CommentReportModal open={reportTarget !== null} busy={reportingCommentId !== null} onClose={() => setReportTarget(null)} onSubmit={reason => handleCommentReport(reportTarget, reason)} />
       <CommentDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => {

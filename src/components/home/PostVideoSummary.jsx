@@ -17,6 +17,18 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [showTranscript, setShowTranscript] = useState(false);
+  const [retryAt, setRetryAt] = useState(0);
+  const [now, setNow] = useState(Date.now());
+  const throttled = retryAt > now;
+  useEffect(() => {
+    if (!retryAt) return;
+    const timer = setInterval(() => {
+      const time = Date.now();
+      setNow(time);
+      if (time >= retryAt) { setRetryAt(0); setError(''); }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryAt]);
   const requestRef = useRef(null);
   const panelId = useId();
   const transcriptId = useId();
@@ -53,7 +65,7 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
       const saved = await getPostSummary(postId, { signal: controller.signal });
       if (controller.signal.aborted) return;
       setResult(saved);
-      if (saved.status === 'not_requested' || (generate && canGenerate(saved.status))) {
+      if (!throttled && (saved.status === 'not_requested' || (generate && canGenerate(saved.status)))) {
         if (isGuest) {
           onAuthRequired?.();
         } else {
@@ -63,6 +75,12 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
       }
     } catch (cause) {
       if (!controller.signal.aborted) {
+        if (cause.response?.status === 429) {
+          const seconds = Number(cause.response?.headers?.['retry-after']);
+          const delay = Number.isFinite(seconds) && seconds > 0 ? seconds : 3600;
+          setRetryAt(Date.now() + delay * 1000);
+          setNow(Date.now());
+        }
         setError(cause.response?.data?.message || cause.response?.data?.error || 'Could not load the video summary. Please try again.');
       }
     } finally {
@@ -106,8 +124,9 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
       <div id={panelId} hidden={!expanded} aria-busy={busy}>
         {busy && <p className="mt-4 text-sm text-[#6B6F63]" role="status">Checking or preparing your summary...</p>}
         {error && <div className="mt-4 space-y-2"><p className="text-sm text-red-700" role="alert">{error}</p><button type="button" onClick={() => loadSummary()} disabled={busy} className={buttonClass}>Check again</button></div>}
+        {throttled && <p role="status" className="mt-3 text-sm text-[#6B6F63]">New summary requests are temporarily limited. Try again in {Math.ceil((retryAt - now) / 60000)} minute(s). You can still check saved summaries.</p>}
         {isPending(result?.status) && <p className="mt-4 text-sm text-[#2F5233]" role="status">{result.status === 'pending' ? 'Waiting to process the video...' : 'Transcribing and summarizing the video...'}</p>}
-        {!busy && canGenerate(result?.status) && (
+        {!busy && !throttled && canGenerate(result?.status) && (
           <div className="mt-4 space-y-3">
             <p className="text-sm text-[#6B6F63]">{result.status === 'failed' ? result.error || 'The previous attempt could not be completed.' : result.status === 'stale' ? 'This video has changed. Create an updated summary.' : isGuest ? 'No summary is available yet. Sign in to create one.' : 'No summary is available yet. Create one to continue.'}</p>
             <button type="button" onClick={() => loadSummary(true)} className={buttonClass}>{isGuest ? 'Sign in to create summary' : result.status === 'failed' ? 'Try again' : result.status === 'stale' ? 'Update summary' : 'Create summary'}</button>

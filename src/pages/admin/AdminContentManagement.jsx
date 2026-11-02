@@ -31,7 +31,7 @@ const ACTIONS = {
     { id: 'remove', label: 'Hide post', tone: 'danger' },
   ],
   posts: [
-    { id: 'dismiss', label: 'Dismiss report', tone: 'neutral' },
+    { id: 'dismiss', label: 'Dismiss selected report', tone: 'neutral' },
     { id: 'keep', label: 'Keep post', tone: 'positive' },
     { id: 'remove', label: 'Hide post', tone: 'danger' },
   ],
@@ -346,7 +346,7 @@ export default function AdminContentManagement() {
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#7B847A]">
                       <time dateTime={item.createdAt || undefined}>{formatDate(item.createdAt)}</time>
-                      {activeQueue === 'comments' && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
+                      {activeQueue !== 'ai' && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
                     </div>
                   </button>
                 );
@@ -392,6 +392,7 @@ export default function AdminContentManagement() {
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6A8167]">Review evidence</p>
                   <h2 id="review-heading" className="mt-2 text-xl font-extrabold leading-tight text-[#243128] sm:text-2xl">{activeQueue === 'comments' ? detail?.postTitle : currentContent?.title || queueTitle(activeQueue, selected)}</h2>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <a href={`/posts/${detail?.postId || selected.postId}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-[#2F5233] px-3 py-1 font-semibold text-[#2F5233] underline focus-visible:outline focus-visible:outline-2">Open post in new tab</a>
                     <span className="rounded-full bg-[#EAF0E9] px-3 py-1 font-semibold text-[#2F5233]">{activeQueue === 'comments' ? `Comment #${detail?.commentId || selected.commentId}` : `Post #${selected.postId}`}</span>
                     {authorName && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EBF3FB] px-3 py-1 font-semibold text-[#185FA5]" title={`User: ${authorName}`}>
@@ -414,6 +415,13 @@ export default function AdminContentManagement() {
                 </div>
 
                 <div className="space-y-4 p-5 sm:p-6">
+                  {activeQueue !== 'comments' && <details className="rounded-2xl border border-[#DCE3D5] p-4"><summary className="cursor-pointer text-sm font-semibold">Recipe ingredients and steps</summary><div className="mt-3 max-h-80 space-y-3 overflow-auto text-sm"><h3 className="font-semibold">Ingredients</h3><ul className="list-disc space-y-1 pl-5">{(currentContent?.ingredients || []).map((item, index) => <li key={item.ingredientId || index}>{item.name} ? {item.quantity} {item.unit}</li>)}</ul>{!currentContent?.ingredients?.length && <p>No ingredients provided.</p>}<h3 className="font-semibold">Cooking steps</h3><ol className="list-decimal space-y-2 pl-5">{(currentContent?.steps || []).map((step, index) => <li key={step.stepNumber || index} className="whitespace-pre-wrap">{step.instruction}</li>)}</ol>{!currentContent?.steps?.length && <p>No cooking steps provided.</p>}</div></details>}
+                  {activeQueue === 'posts' && detail?.reports?.length > 0 && <details className="rounded-2xl border border-[#DCE3D5] p-4" open>
+                    <summary className="cursor-pointer text-sm font-semibold">Reports for this revision ({detail.report?.reportCount || detail.reports.length})</summary>
+                    <p className="mt-2 text-xs text-[#6B6F63]">Up to 100 reports are shown. Select a report to dismiss it individually. Keep or hide reviews the current post revision.</p>
+                    <ul className="mt-3 max-h-64 space-y-3 overflow-auto">{detail.reports.map(report => <li key={report.id} className="rounded-xl bg-[#F8FAF6] p-3 text-sm"><button type="button" onClick={() => setSelected(current => ({ ...current, id: report.id }))} className="font-semibold text-[#2F5233] underline">{report.reporterName || 'Member'}{selected.id === report.id ? ' ? Selected' : ''}</button><p className="mt-1 whitespace-pre-wrap break-words">{report.reason}</p><time className="text-xs text-[#6B6F63]">{formatDate(report.createdAt)}</time></li>)}</ul>
+                  </details>}
+                  {activeQueue !== 'comments' && currentContent?.status !== 'published' && <p className="text-sm text-[#6B6F63]">This post may not be publicly available. Its authorized content and media are shown below for review.</p>}
                   {activeQueue === 'comments' ? (
                     <>
                       <div className="rounded-2xl border border-[#DDE5D9] bg-[#F8FAF6] p-4">

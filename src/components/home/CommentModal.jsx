@@ -12,6 +12,7 @@ import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate, formatDateTime, getTimeAgo } from '../../utils/dateUtils';
 import { useAuth } from '../../context/AuthContext';
 import CommentDeleteModal from './CommentDeleteModal';
+import CommentReportModal from './CommentReportModal';
 import ModalMotion from '../ui/ModalMotion';
 
 function asArray(data) {
@@ -90,13 +91,14 @@ export default function CommentModal({
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentText, setEditCommentText] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [reportTarget, setReportTarget] = useState(null);
   const [reportingId, setReportingId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [deleteModalError, setDeleteModalError] = useState(null);
   const deleteModalOpenRef = useRef(deleteModalOpen);
-  deleteModalOpenRef.current = deleteModalOpen;
+  deleteModalOpenRef.current = deleteModalOpen || reportTarget !== null;
 
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -264,7 +266,7 @@ export default function CommentModal({
     try {
       const updated = await updateComment(postId, commentId, content);
       if (String(updated?.status || '').toLowerCase() === 'hidden') {
-        toast.success('Your edited comment was submitted for moderation review.');
+        toast.success('Your edited comment is temporarily hidden while the moderation team reviews it.');
       } else {
         toast.success('Comment updated.');
       }
@@ -331,15 +333,14 @@ export default function CommentModal({
     }
   };
 
-  const handleReport = async (commentId) => {
+  const handleReport = async (commentId, submittedReason) => {
     if (isGuest) {
       onAuthRequired?.();
       return;
     }
 
-    const promptReason = window.prompt('Why are you reporting this comment? (required):');
-    if (promptReason === null) return;
-    const reason = promptReason.trim();
+    if (submittedReason === undefined) { setReportTarget(commentId); return; }
+    const reason = submittedReason.trim();
     if (!reason) {
       toast.error('A reason is required to report this comment.');
       return;
@@ -352,15 +353,17 @@ export default function CommentModal({
     setReportingId(commentId);
     try {
       const result = await reportComment(postId, commentId, reason);
-      toast.success(result?.message || 'Report submitted for review.');
+      toast.success('Thank you. ' + (result?.message || 'Your report is pending review.'));
+      setReportTarget(null);
       if (result?.commentHidden) {
         const refreshed = await getComments(postId, { maxDepth: 4 });
         const arr = asArray(refreshed);
         setComments(arr);
       }
     } catch (err) {
-      if (err.status === 409 || err.message?.includes('already reported') || err.message?.includes('Duplicate')) {
+      if (err.message?.includes('already reported') || err.message?.includes('Duplicate')) {
         toast.error('You have already reported this comment.');
+        setReportTarget(null);
       } else {
         toast.error(err.message || 'Failed to report comment.');
       }
@@ -789,6 +792,7 @@ export default function CommentModal({
       </ModalMotion>
 
       {/* Accessible Comment Delete Modal */}
+      <CommentReportModal open={reportTarget !== null} busy={reportingId !== null} onClose={() => setReportTarget(null)} onSubmit={reason => handleReport(reportTarget, reason)} />
       <CommentDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => {

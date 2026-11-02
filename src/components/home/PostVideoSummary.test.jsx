@@ -114,4 +114,16 @@ describe('Video summary disclosure and request lifecycle', () => {
     expect(container.textContent).not.toContain(completed.summary);
     expect(buttons()[0].getAttribute('aria-expanded')).toBe('false');
   });
+  it('keeps saved-summary reads available but blocks repeated generation during a server cooldown', async () => {
+    getPostSummary.mockResolvedValue({ status: 'not_requested' });
+    requestPostSummary.mockRejectedValue({ response: { status: 429, headers: { 'retry-after': '60' }, data: { error: 'Too many video summary requests.' } } });
+    await render({ isGuest: false });
+    await click('View video summary');
+    expect(container.textContent).toContain('temporarily limited');
+    expect(buttons().some(button => button.textContent === 'Create summary')).toBe(false);
+    expect(requestPostSummary).toHaveBeenCalledTimes(1);
+    await click('Check again');
+    expect(getPostSummary).toHaveBeenCalledTimes(2);
+    expect(requestPostSummary).toHaveBeenCalledTimes(1);
+  });
 });
