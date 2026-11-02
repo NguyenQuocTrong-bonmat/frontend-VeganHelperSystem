@@ -101,8 +101,11 @@ export default function CreatePostModal({
   }, [isOpen, handleSafeClose, triggerRef]);
 
   const handleSuccess = (createdPost) => {
-    isDirtyRef.current = false;
     onPostCreated?.(createdPost);
+  };
+
+  const handleSubmitStarted = () => {
+    isDirtyRef.current = false;
     onClose();
   };
 
@@ -154,6 +157,7 @@ export default function CreatePostModal({
           initialPostType={initialPostType}
           focusPhoto={focusPhoto}
           isModal={true}
+          onSubmitStarted={handleSubmitStarted}
           onSuccess={handleSuccess}
           onCancel={handleSafeClose}
           onDirtyChange={handleDirtyChange}

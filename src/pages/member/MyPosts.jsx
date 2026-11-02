@@ -4,7 +4,7 @@ import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { deletePost, getMyPosts, getCategories } from '../../services/postService';
-import { getFollowStatus, getFollowers, getFollowing } from '../../services/userService';
+import { getFollowers, getFollowing } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/dateUtils';
@@ -52,50 +52,28 @@ function MyPosts({ notifications = [] } = {}) {
     let cancelled = false;
 
     async function loadFollowStats() {
-      try {
-        let status = null;
-        try {
-          if (typeof getFollowStatus === 'function') {
-            status = await getFollowStatus(user.id);
-          }
-        } catch {
-          // getFollowStatus returns 400 for self profile on backend; fall back to count methods
-          status = null;
-        }
+      const [followersRes, followingRes] = await Promise.allSettled([
+        getFollowers(user.id, 1, 1),
+        getFollowing(user.id, 1, 1),
+      ]);
+      if (cancelled) return;
 
-        if (!cancelled && status && typeof status.followersCount === 'number') {
-          setFollowStats({
-            followersCount: status.followersCount ?? 0,
-            followingCount: status.followingCount ?? 0,
-            loading: false,
-          });
-          return;
-        }
+      const followersCount = followersRes.status === 'fulfilled'
+        ? (followersRes.value?.totalCount ?? followersRes.value?.totalItems ?? (followersRes.value?.items?.length ?? 0))
+        : (user?.followersCount ?? 0);
+      const followingCount = followingRes.status === 'fulfilled'
+        ? (followingRes.value?.totalCount ?? followingRes.value?.totalItems ?? (followingRes.value?.items?.length ?? 0))
+        : (user?.followingCount ?? 0);
 
-        // Fetch counts directly from getFollowers and getFollowing pagination endpoints
-        const [followersRes, followingRes] = await Promise.allSettled([
-          getFollowers(user.id, 1, 1),
-          getFollowing(user.id, 1, 1),
-        ]);
+      setFollowStats({
+        followersCount,
+        followingCount,
+        loading: false,
+      });
+    }
 
-        if (!cancelled) {
-          const followersCount = followersRes.status === 'fulfilled'
-            ? (followersRes.value?.totalCount ?? followersRes.value?.totalItems ?? (followersRes.value?.items?.length ?? 0))
-            : (user?.followersCount ?? 0);
-          const followingCount = followingRes.status === 'fulfilled'
-            ? (followingRes.value?.totalCount ?? followingRes.value?.totalItems ?? (followingRes.value?.items?.length ?? 0))
-            : (user?.followingCount ?? 0);
-
-          setFollowStats({
-            followersCount,
-            followingCount,
-            loading: false,
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to load follow status:', err);
-      }
+    loadFollowStats().catch((error) => {
+      console.error('Failed to load follower counts:', error);
       if (!cancelled) {
         setFollowStats({
           followersCount: user?.followersCount ?? 0,
@@ -103,9 +81,7 @@ function MyPosts({ notifications = [] } = {}) {
           loading: false,
         });
       }
-    }
-
-    loadFollowStats();
+    });
     return () => { cancelled = true; };
   }, [user?.id, user?.followersCount, user?.followingCount]);
 
@@ -186,7 +162,11 @@ function MyPosts({ notifications = [] } = {}) {
       loadMyPosts(true);
     };
     window.addEventListener('veganhelper:post-changed', handlePostChanged);
-    return () => window.removeEventListener('veganhelper:post-changed', handlePostChanged);
+    window.addEventListener('veganhelper:post-created', handlePostChanged);
+    return () => {
+      window.removeEventListener('veganhelper:post-changed', handlePostChanged);
+      window.removeEventListener('veganhelper:post-created', handlePostChanged);
+    };
   }, [loadMyPosts]);
 
   const handleDeleteConfirm = async () => {

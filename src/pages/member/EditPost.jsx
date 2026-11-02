@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { updatePost, getCategories, getPostDetail } from '../../services/postService';
 import toast from 'react-hot-toast';
 import { isNotFoundError } from '../../utils/errorUtils';
+import { validatePostMediaSelection } from '../../utils/postMediaValidation';
 
 export default function EditPost() {
   const navigate = useNavigate();
@@ -124,6 +125,13 @@ export default function EditPost() {
     }
     if (!content.trim()) {
       setErrorMessage('Please enter post content.');
+      return;
+    }
+
+    const retainedMediaCount = existingMedia.filter(media => !removedMediaUrls.includes(media.mediaUrl)).length;
+    const mediaValidationError = validatePostMediaSelection(mediaFiles, retainedMediaCount);
+    if (mediaValidationError) {
+      setErrorMessage(mediaValidationError);
       return;
     }
 
@@ -264,13 +272,27 @@ export default function EditPost() {
                 <input
                   type="file"
                   multiple
+                  accept="image/*,video/*"
                   onChange={(e) => {
                     const selectedFiles = Array.from(e.target.files || []);
-                    if (selectedFiles.length > 0) setMediaFiles(prev => [...prev, ...selectedFiles]);
+                    if (selectedFiles.length > 0) {
+                      const combinedFiles = [...mediaFiles, ...selectedFiles];
+                      const retainedMediaCount = existingMedia.filter(media => !removedMediaUrls.includes(media.mediaUrl)).length;
+                      const validationError = validatePostMediaSelection(combinedFiles, retainedMediaCount);
+                      if (validationError) {
+                        setErrorMessage(validationError);
+                      } else {
+                        setMediaFiles(combinedFiles);
+                        setErrorMessage('');
+                      }
+                    }
                     e.target.value = '';
                   }}
                   className="w-full text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-control file:border-0 file:text-sm file:font-medium file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
                 />
+                <p className="mt-2 text-xs text-vh-text-secondary">
+                  Up to 10 files per post. Images: 5 MB each; videos: 200 MB each. New media per update: up to 200 MB.
+                </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
                   {/* Hiển thị Existing Media */}

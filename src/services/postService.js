@@ -95,7 +95,7 @@ export async function getMyPosts(params = {}) {
 }
 
 // FN13: Tạo bài viết mới (multipart/form-data)
-export async function createPost(postData) {
+export async function createPost(postData, { onUploadProgress } = {}) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
@@ -126,7 +126,10 @@ export async function createPost(postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.post('/Posts', formData);
+    const response = await axiosInstance.post('/Posts', formData, {
+      timeout: 10 * 60 * 1000,
+      onUploadProgress,
+    });
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to create post (${err.response?.status})`;
@@ -233,7 +236,7 @@ export async function updatePost(id, postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.put(`/Posts/${id}`, formData);
+    const response = await axiosInstance.put(`/Posts/${id}`, formData, { timeout: 10 * 60 * 1000 });
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to update post (${err.response?.status})`;

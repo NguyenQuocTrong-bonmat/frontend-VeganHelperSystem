@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { createPost, getCategories } from '../../services/postService';
+import { validatePostMediaSelection } from '../../utils/postMediaValidation';
 
 /**
  * Reusable Create Post Form used both inside CreatePostModal (on Home)
@@ -16,6 +17,7 @@ export default function CreatePostForm({
   initialPostType = 'recipe',
   focusPhoto = false,
   isModal = false,
+  onSubmitStarted,
   onSuccess,
   onCancel,
   onDirtyChange,
@@ -133,6 +135,11 @@ export default function CreatePostForm({
       setErrorMessage('Please upload at least 1 image or video for the post cover.');
       return;
     }
+    const mediaValidationError = validatePostMediaSelection(mediaFiles);
+    if (mediaValidationError) {
+      setErrorMessage(mediaValidationError);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -151,10 +158,40 @@ export default function CreatePostForm({
         steps: steps.filter((s) => s.trim() !== ''),
       };
 
-      const result = await createPost(payload);
-      toast.success('Post published successfully!');
+      const uploadToastId = toast.loading('Preparing your post upload...');
+      const uploadPromise = createPost(payload, {
+        onUploadProgress: ({ loaded, total }) => {
+          if (!total) return;
+          const progress = Math.min(100, Math.round((loaded / total) * 100));
+          const message = progress >= 100
+            ? 'Finishing your post...'
+            : `Uploading your post... ${progress}%`;
+          toast.loading(message, { id: uploadToastId });
+        },
+      });
 
-      onSuccess?.(result);
+      if (onSubmitStarted) {
+        setLoading(false);
+        onSubmitStarted();
+      }
+
+      void uploadPromise
+        .then((result) => {
+          toast.success('Post submitted successfully!', { id: uploadToastId });
+          onSuccess?.(result);
+          window.dispatchEvent(new CustomEvent('veganhelper:post-created', { detail: result }));
+        })
+        .catch((err) => {
+          console.error('Submit post error:', err);
+          const msg = err.status === 401
+            ? 'Your session has expired. Please log in again.'
+            : err.message || 'Failed to create post. Please try again.';
+          toast.error(msg, { id: uploadToastId, duration: 6000 });
+          if (!onSubmitStarted) {
+            setErrorMessage(msg);
+            setLoading(false);
+          }
+        });
     } catch (err) {
       console.error('Submit post error:', err);
       const msg =
@@ -275,11 +312,22 @@ export default function CreatePostForm({
                 onChange={(e) => {
                   if (e.target.files && e.target.files.length > 0) {
                     const newFiles = Array.from(e.target.files);
-                    setMediaFiles((prev) => [...prev, ...newFiles]);
+                    const combinedFiles = [...mediaFiles, ...newFiles];
+                    const validationError = validatePostMediaSelection(combinedFiles);
+                    if (validationError) {
+                      setErrorMessage(validationError);
+                    } else {
+                      setMediaFiles(combinedFiles);
+                      setErrorMessage('');
+                    }
                   }
+                  e.target.value = '';
                 }}
                 className="w-full text-xs sm:text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
+              <p className="mt-2 text-xs text-vh-text-secondary">
+                Up to 10 files and 200 MB per upload. Images: 5 MB each; videos: 200 MB each.
+              </p>
 
               {mediaFiles.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
