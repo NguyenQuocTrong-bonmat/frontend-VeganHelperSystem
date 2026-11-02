@@ -45,12 +45,14 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 import GuestRoute from './components/layout/GuestRoute'
 import toast, { Toaster, ToastBar } from 'react-hot-toast'
 import { NotificationProvider } from './context/NotificationContext'
+import ScrollToTop from './components/layout/ScrollToTop.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
+        <ScrollToTop />
         <Toaster
           position="top-right"
         toastOptions={{
