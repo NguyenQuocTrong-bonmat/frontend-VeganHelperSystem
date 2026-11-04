@@ -718,19 +718,23 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
     // Only 1 report button should exist, for the non-owner comment
     expect(reportButtons).toHaveLength(1);
 
-    vi.spyOn(window, 'prompt').mockReturnValue('Spam advertising');
     interactionService.reportComment.mockResolvedValueOnce({
       success: true,
       message: 'Report submitted for review.',
       commentHidden: false,
     });
 
+    await act(async () => reportButtons[0].click());
+    const reasonField = document.querySelector('#comment-report-reason');
+    expect(reasonField).not.toBeNull();
     await act(async () => {
-      reportButtons[0].click();
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(reasonField, 'Spam advertising');
+      reasonField.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await act(async () => reasonField.closest('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
 
     expect(interactionService.reportComment).toHaveBeenCalledWith('post-1', 'c-theirs', 'Spam advertising');
-    expect(toast.success).toHaveBeenCalledWith('Report submitted for review.');
+    expect(toast.success).toHaveBeenCalledWith('Thank you. Report submitted for review.');
   });
 
   it('Case 17: gracefully handles 409 Conflict duplicate report', async () => {
@@ -755,14 +759,18 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
       (b) => b.textContent?.trim() === 'Report'
     );
 
-    vi.spyOn(window, 'prompt').mockReturnValue('Repeated offensive behavior');
     const conflictError = new Error('You have already reported this comment.');
     conflictError.status = 409;
     interactionService.reportComment.mockRejectedValueOnce(conflictError);
 
+    await act(async () => reportBtn.click());
+    const reasonField = document.querySelector('#comment-report-reason');
+    expect(reasonField).not.toBeNull();
     await act(async () => {
-      reportBtn.click();
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(reasonField, 'Repeated offensive behavior');
+      reasonField.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await act(async () => reasonField.closest('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
 
     expect(toast.error).toHaveBeenCalledWith('You have already reported this comment.');
   });

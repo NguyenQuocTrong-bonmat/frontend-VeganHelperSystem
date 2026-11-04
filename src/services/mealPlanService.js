@@ -8,7 +8,7 @@ async function request(operation) {
     if (!cause.response) {
       const message = cause.code === 'ECONNABORTED'
         ? 'The menu request timed out. Check your plan history before trying again; the server may have saved it.'
-        : 'Could not connect to the backend. Check your connection and try again.';
+        : 'Could not confirm whether your menu was saved. Check Plan history before trying again.';
       throw Object.assign(new Error(message, { cause }), { code: cause.code });
     }
     const data = cause.response?.data;

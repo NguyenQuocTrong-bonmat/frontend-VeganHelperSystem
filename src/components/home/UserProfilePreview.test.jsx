@@ -493,19 +493,15 @@ describe('FOLLOW-02 — UserProfilePreview & Follow UI', () => {
     });
     postService.getCategories.mockResolvedValueOnce([]);
 
-    userService.getFollowStatus.mockResolvedValueOnce({
-      userId: 1,
-      isFollowing: false,
-      followersCount: 128,
-      followingCount: 45,
-    });
-
     userService.getFollowers.mockResolvedValueOnce({
-      items: [
-        { id: 10, displayName: 'Follower One', username: 'follower1', followedAt: '2026-10-01T00:00:00Z' },
-      ],
+      items: [],
+      totalCount: 128,
+    });
+    userService.getFollowers.mockResolvedValueOnce({
+      items: [{ id: 10, displayName: 'Follower One', username: 'follower1', followedAt: '2026-10-01T00:00:00Z' }],
       totalCount: 1,
     });
+    userService.getFollowing.mockResolvedValueOnce({ items: [], totalCount: 45 });
 
     await act(async () => {
       root.render(
