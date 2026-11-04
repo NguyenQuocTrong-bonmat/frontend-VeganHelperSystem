@@ -11,7 +11,7 @@ import PlannerIcon from './PlannerIcon';
 import InlineAlert from '../ui/InlineAlert';
 import { useNotification } from '../../hooks/useNotification';
 import plannerInspiration from '../../assets/images/hero/hero-vietnamese-vegan-spring-rolls.webp';
-import { dateLabel, dietLabel, number, rangeLabel, utcToday, zonedToday } from './plannerFormat';
+import { wholeNumber, dateLabel, dietLabel, number, rangeLabel, utcToday, zonedToday } from './plannerFormat';
 import './weekly-menu.css';
 
 export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange }) {
@@ -273,7 +273,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
         <section className="wm-plan-summary">
           <div className="wm-summary-image"><img src={plannerInspiration} alt="" /><span>Plant-based inspiration</span></div>
           <div className="wm-summary-copy"><h2>Your week,<br />thoughtfully planned.</h2><p>Plant-based meals, planned around you.</p></div>
-          {menu ? <><div className="wm-summary-target"><span>Daily calorie target</span><strong>{number(menu.targetDailyCalories)}<small>kcal</small></strong><span>{menu.goal === 'weight_goal' ? 'Estimated weight goal calories' : 'Estimated maintenance calories'}</span></div><div className="wm-summary-diet"><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</div><dl className="wm-summary-facts"><div><dt>Duration</dt><dd>{menu.days?.length ?? '—'} days</dd></div><div><dt>Scheduled meals</dt><dd>{menu.days?.reduce((count, day) => count + (day.meals?.length || 0), 0) ?? '—'}</dd></div></dl></> : <p className="wm-summary-first">Your menu overview will appear here once you have a saved plan.</p>}
+          {menu ? <><div className="wm-summary-target"><span>Daily calorie target</span><strong>{wholeNumber(menu.targetDailyCalories)}<small>kcal</small></strong><span>{menu.goal === 'weight_goal' ? 'Estimated weight goal calories' : 'Estimated maintenance calories'}</span></div><div className="wm-summary-diet"><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</div><dl className="wm-summary-facts"><div><dt>Duration</dt><dd>{menu.days?.length ?? '—'} days</dd></div><div><dt>Scheduled meals</dt><dd>{menu.days?.reduce((count, day) => count + (day.meals?.length || 0), 0) ?? '—'}</dd></div></dl></> : <p className="wm-summary-first">Your menu overview will appear here once you have a saved plan.</p>}
         </section>
         <section className="wm-saved-plans" aria-labelledby="saved-menu-heading">
           <div className="wm-section-heading"><h3 id="saved-menu-heading">Plan history</h3><button type="button" className="wm-icon-button" aria-label="Reload saved plans" disabled={busy || loading} onClick={() => setRefresh(value => value + 1)}><PlannerIcon name="refresh" /></button></div>
@@ -334,7 +334,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
                   </div>
                 </>}
               </div>
-              <div className="wm-menu-context"><span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span><span className="wm-mobile-calorie">Daily target <strong>{number(menu.targetDailyCalories)} kcal</strong></span><span>BMI at creation <strong>{number(menu.bmi)}</strong></span><span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span></div>
+              <div className="wm-menu-context"><span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span><span className="wm-mobile-calorie">Daily target <strong>{wholeNumber(menu.targetDailyCalories)} kcal</strong></span><span>BMI at creation <strong>{number(menu.bmi)}</strong></span><span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span></div>
             </div>}
           </WeeklyCalendar>
           <MenuJourney plan={plan} menu={menu} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { dietLabel, number, utcToday } from './plannerFormat';
+import { wholeNumber, dietLabel, number, utcToday } from './plannerFormat';
 import { formatDate } from '../../utils/dateUtils';
 import PlannerIcon from './PlannerIcon';
 
@@ -113,7 +113,7 @@ export default function MenuJourney({ plan, profile, allergies = [], mode = 'mai
 
   const stages = [
     { label: 'Read your profile', icon: 'leaf', value: effectiveProfile ? `${dietSummary} · ${saved && !allergiesRecorded ? 'allergies not recorded' : `${allergyNames.length} allergies`}` : saved ? 'Profile not recorded' : 'Waiting for profile' },
-    { label: 'Estimate daily energy', icon: 'sun', value: Number.isFinite(dailyTarget) ? `${number(dailyTarget)} kcal / day` : saved ? 'Not recorded' : energy ? `${number(energy.tdee)} kcal maintenance` : 'Profile needed' },
+    { label: 'Estimate daily energy', icon: 'sun', value: Number.isFinite(dailyTarget) ? `${wholeNumber(dailyTarget)} kcal / day` : saved ? 'Not recorded' : energy ? `${wholeNumber(energy.tdee)} kcal maintenance` : 'Profile needed' },
     { label: 'Share across meals', icon: 'bowl', value: saved ? averageSplit ? 'Actual daily average' : 'Not recorded' : validSplit ? `${percentages.join(' / ')}%` : 'Complete the 100% split' },
     { label: 'Choose 21 dishes', icon: 'calendar', value: saved ? `${uniqueMealCount} distinct dishes` : busy ? 'Matching and saving…' : mode === 'weight_goal' ? 'After your safety check' : 'After menu creation' },
   ];
@@ -137,13 +137,13 @@ export default function MenuJourney({ plan, profile, allergies = [], mode = 'mai
       {activeStage === 1 && <div className="wm-journey-detail-grid">
         <div><span className="wm-journey-detail-label">Energy estimate</span><h4>{effectiveMode === 'weight_goal' ? 'Safety first, then a daily target.' : 'A daily maintenance estimate.'}</h4><p>Vegan Helper estimates resting energy with the Mifflin–St Jeor equation, then applies your saved activity level. The server recalculates this before saving a plan.</p></div>
         <div className="wm-journey-equation">
-          <div><span>Resting energy</span><strong>{energy ? `${number(energy.resting)} kcal` : saved ? 'Not recorded' : 'Profile needed'}</strong></div>
+          <div><span>Resting energy</span><strong>{energy ? `${wholeNumber(energy.resting)} kcal` : saved ? 'Not recorded' : 'Profile needed'}</strong></div>
           <span aria-hidden="true">×</span><div><span>Activity factor</span><strong>{energy ? `${number(energy.factor)}×` : saved ? 'Not recorded' : '—'}</strong></div>
-          <span aria-hidden="true">=</span><div className="wm-journey-equation-total"><span>Estimated TDEE</span><strong>{Number.isFinite(tdee) ? `${number(tdee)} kcal` : saved ? 'Not recorded' : '—'}</strong></div>
-          {energy && <p>Resting estimate = 10 × {number(energy.weight)} kg + 6.25 × {number(energy.height)} cm − 5 × {energy.age} years {effectiveProfile.biologicalSex === 'male' ? '+ 5' : '− 161'} = {number(energy.resting)} kcal/day.</p>}
+          <span aria-hidden="true">=</span><div className="wm-journey-equation-total"><span>Estimated TDEE</span><strong>{Number.isFinite(tdee) ? `${wholeNumber(tdee)} kcal` : saved ? 'Not recorded' : '—'}</strong></div>
+          {energy && <p>Resting estimate = 10 × {number(energy.weight)} kg + 6.25 × {number(energy.height)} cm − 5 × {energy.age} years {effectiveProfile.biologicalSex === 'male' ? '+ 5' : '− 161'} = {wholeNumber(energy.resting)} kcal/day.</p>}
           {saved && effectiveMode === 'weight_goal' && <p>Saved goal: {initialWeightLabel} at creation → {goalWeightLabel} by {effectiveTargetDate ? formatDate(effectiveTargetDate) : 'a date not recorded'} ({goalDays > 0 ? `${goalDays} days` : 'timeline not recorded'}).</p>}
           {Number.isFinite(provisionalAdjustment) && <p>Goal adjustment preview: ({number(effectiveTargetWeight)} − {number(effectiveProfile.weightKg)}) kg × 7,700 ÷ {goalDays} days ≈ {number(Math.round(provisionalAdjustment))} kcal/day. This is a planning estimate; the server must approve the goal before generating meals.</p>}
-          {effectiveMode === 'weight_goal' && <p>{Number.isFinite(dailyTarget) ? `Safety-checked daily target: ${number(dailyTarget)} kcal${Number.isFinite(tdee) ? ` (${number(dailyTarget - tdee)} kcal from TDEE)` : ''}.` : saved ? 'Daily calorie target not recorded in this menu.' : 'Enter your goal and run the server safety check to reveal the daily target.'}</p>}
+          {effectiveMode === 'weight_goal' && <p>{Number.isFinite(dailyTarget) ? `Safety-checked daily target: ${wholeNumber(dailyTarget)} kcal${Number.isFinite(tdee) ? ` (${wholeNumber(dailyTarget - tdee)} kcal from TDEE)` : ''}.` : saved ? 'Daily calorie target not recorded in this menu.' : 'Enter your goal and run the server safety check to reveal the daily target.'}</p>}
         </div>
       </div>}
       {activeStage === 2 && <div className="wm-journey-detail-grid">
@@ -158,7 +158,7 @@ export default function MenuJourney({ plan, profile, allergies = [], mode = 'mai
       {activeStage === 3 && <div className="wm-journey-detail-grid">
         <div><span className="wm-journey-detail-label">Recipe selection</span><h4>{saved ? `${selectedMeals.length} meals placed across ${menu.days?.length || 0} days.` : busy ? 'The server is matching your dishes.' : 'Twenty-one dishes, chosen for your week.'}</h4><p>The application checks diet, declared allergens, meal time and a practical portion range. It then favors different dishes and main ingredients across the week. WHO’s healthy-diet guidance supports variety; these matching rules are specific to Vegan Helper.</p></div>
         <div className="wm-journey-selection">
-          {saved ? <><span className="wm-journey-selection-count">{uniqueMealCount}<small>different dishes</small></span><ol>{selectedMeals.slice(0, 3).map((meal, index) => <li key={`${meal.mealId}-${index}`}><span>0{index + 1}</span><strong>{meal.name}</strong><small>{number(meal.calories)} kcal</small></li>)}</ol><p>Open the calendar below to see every dish, ingredient and recipe.</p></> : <><div className={`wm-journey-selection-icon ${busy ? 'is-working' : ''}`}><PlannerIcon name="bowl" /></div><strong>{busy ? 'Checking the catalog and saving your plan…' : 'Ready when you create the menu'}</strong><p>{busy ? 'The server returns the completed selection when it is ready. This is an activity indicator, not a percentage of server progress.' : 'Dish names will appear here after the server returns your saved menu.'}</p></>}
+          {saved ? <><span className="wm-journey-selection-count">{uniqueMealCount}<small>different dishes</small></span><ol>{selectedMeals.slice(0, 3).map((meal, index) => <li key={`${meal.mealId}-${index}`}><span>0{index + 1}</span><strong>{meal.name}</strong><small>{wholeNumber(meal.calories)} kcal</small></li>)}</ol><p>Open the calendar below to see every dish, ingredient and recipe.</p></> : <><div className={`wm-journey-selection-icon ${busy ? 'is-working' : ''}`}><PlannerIcon name="bowl" /></div><strong>{busy ? 'Checking the catalog and saving your plan…' : 'Ready when you create the menu'}</strong><p>{busy ? 'The server returns the completed selection when it is ready. This is an activity indicator, not a percentage of server progress.' : 'Dish names will appear here after the server returns your saved menu.'}</p></>}
         </div>
       </div>}
     </div>

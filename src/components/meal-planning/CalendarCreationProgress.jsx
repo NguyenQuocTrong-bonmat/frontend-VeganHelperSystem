@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useState } from 'react';
-import { dateLabel, number } from './plannerFormat';
+import { wholeNumber, servingPercent, dateLabel, number } from './plannerFormat';
 import PlannerIcon from './PlannerIcon';
 
 const FACTORS = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
@@ -121,11 +121,11 @@ export default function CalendarCreationProgress({ phase, preview, pendingPlan, 
           <h3>Calculating your TDEE</h3>
           <p>Your profile provides the starting point. We estimate resting energy, then adjust it using your activity level.</p>
           <div className="wm-generation-equation">
-            <div className="wm-generation-equation-node is-resting"><small>Resting energy · Mifflin–St Jeor</small><strong>{energy ? `${number(animatedResting)} kcal` : 'Using saved profile'}</strong></div>
+            <div className="wm-generation-equation-node is-resting"><small>Resting energy · Mifflin–St Jeor</small><strong>{energy ? `${wholeNumber(animatedResting)} kcal` : 'Using saved profile'}</strong></div>
             <span aria-hidden="true">×</span>
             <div className="wm-generation-equation-node is-factor"><small>Activity factor</small><strong>{energy ? `${number(animatedFactor)}×` : 'Your activity level'}</strong></div>
             <span aria-hidden="true">=</span>
-            <div className="is-total wm-generation-equation-node is-total-node"><small>Estimated TDEE</small><strong>{energy || Number.isFinite(dailyTarget) ? `${number(animatedTdee)} kcal / day` : 'Calculating…'}</strong></div>
+            <div className="is-total wm-generation-equation-node is-total-node"><small>Estimated TDEE</small><strong>{energy || Number.isFinite(dailyTarget) ? `${wholeNumber(animatedTdee)} kcal / day` : 'Calculating…'}</strong></div>
           </div>
           <div className="wm-generation-timer" aria-hidden="true"><span className="is-three-seconds" /></div>
         </>}
@@ -163,7 +163,7 @@ export default function CalendarCreationProgress({ phase, preview, pendingPlan, 
           {meal.imageUrl ? <img src={meal.imageUrl} alt="" loading="lazy" /> : <span className={`wm-generation-meal-placeholder is-${meal.mealTime}`}><PlannerIcon name={meal.mealTime === 'breakfast' ? 'sun' : meal.mealTime === 'dinner' ? 'moon' : 'bowl'} /></span>}
           <span className="wm-generation-meal-date">Day {meal.dayIndex} · {meal.mealTime}</span>
           <strong>{meal.name}</strong>
-          <small>{number(meal.calories)} kcal · {number(meal.portionMultiplier)}× serving</small>
+          <small>{wholeNumber(meal.calories)} kcal · {servingPercent(meal)}% of a serving</small>
         </article>)}
       </div>
     </>}

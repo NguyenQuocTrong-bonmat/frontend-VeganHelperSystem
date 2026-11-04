@@ -1288,6 +1288,19 @@
   overflow-wrap: anywhere;
 }
 
+.wm-goal-field-error {
+  border: 1px solid #e4b6af;
+  border-left: 4px solid #a33d36;
+  border-radius: 12px;
+  background: #fff5f3;
+  color: #a33d36;
+  padding: 12px 16px;
+  margin-top: 10px;
+}
+.wm-goal-field-error p { color: #a33d36; margin: 0; }
+.wm-goal-field-error p + p { margin-top: 4px; }
+.wm-goal-field-error .wm-text-button { color: #a33d36; margin-top: 8px; }
+
 .wm-muted {
   font-size: 12px;
   color: #667568;
@@ -3692,39 +3705,6 @@
   white-space: nowrap;
 }
 
-.wm-date-field {
-  position: relative;
-}
-
-.wm-date-field .wm-control {
-  padding-right: 48px;
-}
-
-.wm-date-picker-icon {
-  position: absolute;
-  top: 50%;
-  right: 13px;
-  display: inline-flex;
-  color: var(--vh-forest);
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.wm-date-picker-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.wm-date-picker-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1;
-  width: 44px;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
 
 .wm-selected-plan {
   display: grid;

@@ -47,10 +47,11 @@ export default function DateInput({
   useEffect(() => {
     if (value !== undefined) {
       const nextIso = value ? toISODateOnly(value) || '' : '';
+      if (nextIso === internalIso) return;
       setInternalIso(nextIso);
       setDisplayText(toDisplay(nextIso));
     }
-  }, [value]);
+  }, [value, internalIso]);
 
   const notifyChange = (isoValue, displayVal) => {
     setInternalIso(isoValue);

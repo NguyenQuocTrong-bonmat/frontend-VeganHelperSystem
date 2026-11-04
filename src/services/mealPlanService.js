@@ -5,12 +5,20 @@ async function request(operation) {
     return (await operation()).data;
   } catch (cause) {
     if (cause.code === 'ERR_CANCELED') throw cause;
+    if (!cause.response) {
+      const message = cause.code === 'ECONNABORTED'
+        ? 'The menu request timed out. Check your plan history before trying again; the server may have saved it.'
+        : 'Could not connect to the backend. Check your connection and try again.';
+      throw Object.assign(new Error(message, { cause }), { code: cause.code });
+    }
     const data = cause.response?.data;
+    const fieldLabel = field => String(field || '').split('.').pop().replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, letter => letter.toUpperCase());
     const details = Array.isArray(data?.errors)
-      ? data.errors.map(error => error.Error ?? error.error)
-      : Object.values(data?.errors ?? {}).flat();
-    const message = details.filter(Boolean).join(' ') || data?.message || data?.error || data?.detail || data?.title
-      || 'Could not reach the server. Check that the backend is running and try again.';
+      ? data.errors.map(error => `${fieldLabel(error.Field ?? error.field)}: ${error.Error ?? error.error}`)
+      : Object.entries(data?.errors ?? {}).flatMap(([field, errors]) =>
+        (Array.isArray(errors) ? errors : [errors]).map(error => `${fieldLabel(field)}: ${error}`));
+    const message = details.filter(detail => detail && !detail.endsWith(': undefined')).join(' ') || data?.message || data?.error || data?.detail || data?.title
+      || `The menu request failed (HTTP ${cause.response.status}). Please try again.`;
     throw Object.assign(new Error(message, { cause }), { status: cause.response?.status, code: data?.errorCode ?? data?.code });
   }
 }
