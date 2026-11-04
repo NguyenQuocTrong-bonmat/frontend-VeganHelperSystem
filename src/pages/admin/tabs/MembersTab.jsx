@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function MembersTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  
+
   // Dialog state
   const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
   const [isUnbanDialogOpen, setIsUnbanDialogOpen] = useState(false);
-  
+
   // These would be populated by the selected member in the future
   const selectedMember = null;
   const [banReason, setBanReason] = useState('');
@@ -118,7 +119,7 @@ export default function MembersTab() {
             <p className="text-sm text-[#6B6F63] mb-4">
               Are you sure you want to ban this member? They will lose access to the platform for the specified duration.
             </p>
-            
+
             {selectedMember ? (
               <div className="bg-[#F9FBF8] border border-[#E5EBE1] rounded-md p-3 mb-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#DCE3D5] flex items-center justify-center text-[#6B6F63] font-bold">
@@ -138,7 +139,7 @@ export default function MembersTab() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Reason <span className="text-red-500">*</span></label>
-                <textarea 
+                <textarea
                   rows="3"
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                   placeholder="Explain why this user is being banned..."
@@ -146,11 +147,11 @@ export default function MembersTab() {
                   onChange={(e) => setBanReason(e.target.value)}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Duration (Days) <span className="text-red-500">*</span></label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min="1"
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                   placeholder="e.g., 7"
@@ -161,15 +162,15 @@ export default function MembersTab() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsBanDialogOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-[#6B6F63] bg-white border border-[#DCE3D5] rounded-md hover:bg-[#F5F8F2] transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
-                  alert('API integration pending — no account changes were made.');
+                  toast('API integration pending — no account changes were made.', { icon: 'ℹ️' });
                   setIsBanDialogOpen(false);
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -190,7 +191,7 @@ export default function MembersTab() {
             <p className="text-sm text-[#6B6F63] mb-4">
               Are you sure you want to unban this member? Their access to the platform will be restored immediately.
             </p>
-            
+
             {selectedMember ? (
               <div className="bg-[#F9FBF8] border border-[#E5EBE1] rounded-md p-3 mb-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#DCE3D5] flex items-center justify-center text-[#6B6F63] font-bold">
@@ -210,7 +211,7 @@ export default function MembersTab() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Reason <span className="text-red-500">*</span></label>
-                <textarea 
+                <textarea
                   rows="3"
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                   placeholder="Explain why the ban is being lifted..."
@@ -221,15 +222,15 @@ export default function MembersTab() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsUnbanDialogOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-[#6B6F63] bg-white border border-[#DCE3D5] rounded-md hover:bg-[#F5F8F2] transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
-                  alert('API integration pending — no account changes were made.');
+                  toast('API integration pending — no account changes were made.', { icon: 'ℹ️' });
                   setIsUnbanDialogOpen(false);
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-[#2F5233] rounded-md hover:bg-[#244026] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

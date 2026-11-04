@@ -6,10 +6,11 @@ import AIChatbot from '../../components/chat/AIChatbot';
 import { getHealthProfile, getBmiResult, getBmiHistory } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/dateUtils';
+import { calculateCalorieAndMacros } from '../../utils/bmiNutritionUtils';
 
 function BmiDashboard({ isComponent = false }) {
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [healthProfile, setHealthProfile] = useState(null);
   const [bmiResult, setBmiResult] = useState(null);
@@ -29,7 +30,7 @@ function BmiDashboard({ isComponent = false }) {
           }),
           getBmiHistory().catch(e => ({ history: [] }))
         ]);
-        
+
         setHealthProfile(profile);
         setBmiResult(bmiData);
         setBmiHistory(historyData?.history || []);
@@ -52,6 +53,8 @@ function BmiDashboard({ isComponent = false }) {
     if (lower.includes('overweight')) return 'text-orange-500';
     return 'text-red-600'; // Obese
   };
+
+  const caloriePlan = calculateCalorieAndMacros(bmiResult, healthProfile);
 
   if (loading) {
     return (
@@ -83,28 +86,28 @@ function BmiDashboard({ isComponent = false }) {
   return (
     <div className={!isComponent ? "min-h-screen flex flex-col bg-[#FDFBF6]" : "w-full"}>
       {!isComponent && <HeaderMember />}
-      
+
       {/* PAGE HEADER */}
       {!isComponent && (
-      <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
-        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
-            BMI Dashboard
-          </h1>
-          <p className="text-[#6B6F63] text-[15px]">
-            Track your body mass index and healthy weight progress
-          </p>
+        <div className="w-full bg-[#E9EFE6]/40 border-b border-[#DCE3D5]/50">
+          <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-[#2B2A25] mb-2">
+              BMI Dashboard
+            </h1>
+            <p className="text-[#6B6F63] text-[15px]">
+              Track your body mass index and healthy weight progress
+            </p>
+          </div>
         </div>
-      </div>
       )}
 
       <main className={`flex-grow w-full max-w-4xl mx-auto px-6 ${!isComponent ? 'py-12' : 'py-6'} space-y-12`}>
-        
+
         {/* SECTION 1: CURRENT BMI */}
         <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 md:p-10 shadow-sm flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 text-center md:text-left">
             <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-6">Current BMI</h2>
-            
+
             {bmiResult ? (
               <div>
                 <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-8">
@@ -115,7 +118,7 @@ function BmiDashboard({ isComponent = false }) {
                     {bmiResult.category}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 max-w-sm">
                   <div className="bg-[#FDFBF6] border border-[#DCE3D5] p-4 rounded-xl text-center">
                     <div className="text-[#6B6F63] text-xs uppercase tracking-wider mb-1">Height</div>
@@ -126,7 +129,72 @@ function BmiDashboard({ isComponent = false }) {
                     <div className="font-semibold text-lg text-[#2B2A25]">{healthProfile?.weightKg || '--'} kg</div>
                   </div>
                 </div>
-                
+
+                {/* Daily Calorie Target & Macro Distribution Card (English) */}
+                {caloriePlan && (
+                  <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-5 shadow-xs space-y-4 mt-6">
+                    {/* Top Row: Icon + Target Calorie Header */}
+                    <div className="flex items-center justify-between gap-3 border-b border-[#DCE3D5]/70 pb-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#244527] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5c-4.418 0-8-3.582-8-8 0-3.5 3-7.5 8-11.5 5 4 8 8 8 11.5 0 4.418-3.582 8-8 8z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-xs uppercase tracking-wider text-[#6B6F63] font-semibold">DAILY CALORIE TARGET</div>
+                          <div className="text-sm sm:text-base font-bold text-[#244527]">{caloriePlan.goalLabel}</div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-fraunces font-bold text-2xl sm:text-3xl text-[#244527] leading-none">
+                          {caloriePlan.targetCalories.toLocaleString()} <span className="text-sm sm:text-base font-sans font-medium text-[#6B6F63]">kcal</span>
+                        </div>
+                        {caloriePlan.maintenanceCalories && (
+                          <div className="text-xs text-[#6B6F63] mt-1">
+                            Maintenance TDEE: ~{caloriePlan.maintenanceCalories.toLocaleString()} kcal
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Macronutrient Distribution Bars */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm text-[#2B2A25] font-medium mb-2">
+                        <span>Target Macronutrient Distribution</span>
+                        <span className="text-xs text-[#6B6F63]">Protein · Carbs · Fats</span>
+                      </div>
+                      <div className="h-2.5 w-full bg-[#E5EBE1] rounded-full overflow-hidden flex gap-0.5">
+                        <div style={{ width: `${caloriePlan.macros.proteinPercent}%` }} className="bg-[#244527] h-full" title={`Protein: ${caloriePlan.macros.proteinPercent}%`} />
+                        <div style={{ width: `${caloriePlan.macros.carbsPercent}%` }} className="bg-[#547A53] h-full" title={`Carbs: ${caloriePlan.macros.carbsPercent}%`} />
+                        <div style={{ width: `${caloriePlan.macros.fatPercent}%` }} className="bg-[#93B58D] h-full" title={`Fats: ${caloriePlan.macros.fatPercent}%`} />
+                      </div>
+
+                      {/* 3 Macro Cards */}
+                      <div className="grid grid-cols-3 gap-3 mt-3 text-center">
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Protein</div>
+                          <div className="font-bold text-sm sm:text-base text-[#244527] mt-0.5">
+                            {caloriePlan.macros.proteinPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.proteinGrams}g)</span>
+                          </div>
+                        </div>
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Carbs</div>
+                          <div className="font-bold text-sm sm:text-base text-[#547A53] mt-0.5">
+                            {caloriePlan.macros.carbsPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.carbsGrams}g)</span>
+                          </div>
+                        </div>
+                        <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                          <div className="text-xs text-[#6B6F63] font-medium">Fats</div>
+                          <div className="font-bold text-sm sm:text-base text-[#6C8567] mt-0.5">
+                            {caloriePlan.macros.fatPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.fatGrams}g)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {bmiResult.idealWeightRange && (
                   <div className="mt-6 text-sm text-[#6B6F63]">
                     <span className="font-medium text-[#2B2A25]">Ideal Weight Range:</span> {bmiResult.idealWeightRange.minKg.toFixed(1)}kg - {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
@@ -137,7 +205,7 @@ function BmiDashboard({ isComponent = false }) {
               <div className="bg-[#FFF5F5] border border-[#FFE0E0] p-6 rounded-xl text-center md:text-left">
                 <p className="text-[#A63446] font-medium mb-2">Insufficient Health Data</p>
                 <p className="text-[#A63446]/80 text-sm mb-4">Please update your height and weight in the Health Profile to calculate your BMI.</p>
-                <button 
+                <button
                   onClick={() => navigate('/health')}
                   className="px-5 py-2 bg-[#A63446] text-white rounded-lg text-sm font-medium hover:bg-[#8B2A3A] transition-colors"
                 >
@@ -146,7 +214,7 @@ function BmiDashboard({ isComponent = false }) {
               </div>
             )}
           </div>
-          
+
           <div className="hidden md:flex items-center justify-center w-48 h-48 rounded-full bg-[#F3F6EE] border-8 border-[#E9EFE6]">
             <svg className="w-20 h-20 text-[#2F5233]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -194,7 +262,7 @@ function BmiDashboard({ isComponent = false }) {
             </div>
           )}
         </section>
-        
+
       </main>
 
       {!isComponent && <AIChatbot />}

@@ -43,13 +43,108 @@ import AdminAuditLogs from './pages/admin/AdminAuditLogs.jsx'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import GuestRoute from './components/layout/GuestRoute'
-import { Toaster } from 'react-hot-toast'
+import toast, { Toaster, ToastBar } from 'react-hot-toast'
+import { NotificationProvider } from './context/NotificationContext'
+import ScrollToTop from './components/layout/ScrollToTop.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function App() {
   return (
     <AuthProvider>
-      <Toaster position="top-right" />
+      <NotificationProvider>
+        <ScrollToTop />
+        <Toaster
+          position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#FDFBF6',
+            color: '#2B2A25',
+            border: '1px solid #DCE5D9',
+            borderRadius: '12px',
+            padding: '12px 14px',
+            boxShadow: '0 8px 24px -4px rgba(47, 82, 51, 0.12), 0 2px 6px -1px rgba(47, 82, 51, 0.06)',
+            fontSize: '14px',
+            fontFamily: '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            maxWidth: '380px',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#2F5233',
+              secondary: '#FDFBF6',
+            },
+          },
+          error: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#A63446',
+              secondary: '#FDFBF6',
+            },
+          },
+        }}
+      >
+        {(t) => (
+          <ToastBar toast={t}>
+            {({ icon, message }) => (
+              <>
+                {icon}
+                <div style={{ flex: '1 1 auto', margin: '0 8px', wordBreak: 'break-word', fontSize: '13.5px', lineHeight: '1.4' }}>
+                  {message}
+                </div>
+                {t.type !== 'loading' && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.dismiss(t.id);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '22px',
+                      height: '22px',
+                      padding: 0,
+                      marginLeft: '6px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#6B6F63',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#2B2A25';
+                      e.currentTarget.style.backgroundColor = 'rgba(47, 82, 51, 0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#6B6F63';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                    aria-label="Đóng thông báo"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+              </>
+            )}
+          </ToastBar>
+        )}
+      </Toaster>
       <Routes>
         {/* Guest */}
         <Route path="/" element={<GuestRoute><HomeGuest /></GuestRoute>} />
@@ -83,7 +178,7 @@ function App() {
         <Route path="/health" element={<ProtectedRoute><HealthAndWellness /></ProtectedRoute>} />
         <Route path="/health/bmi" element={<ProtectedRoute><HealthAndWellness /></ProtectedRoute>} />
         <Route path="/vegan-stores/:id" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
-        <Route path="/account-suspended" element={<ProtectedRoute><AccountSuspended /></ProtectedRoute>} />
+        <Route path="/account-suspended" element={<AccountSuspended />} />
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute requireAdmin={true}><AdminContentManagement /></ProtectedRoute>} />
@@ -93,6 +188,7 @@ function App() {
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </NotificationProvider>
     </AuthProvider>
   )
 }

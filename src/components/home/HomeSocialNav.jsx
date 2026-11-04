@@ -7,7 +7,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
   const savedPostsRoute = isGuest ? '/login' : '/saved-posts';
 
   const linkStyle = ({ isActive }) =>
-    `flex items-center gap-2.5 lg:gap-3.5 px-2.5 lg:px-4 py-3 rounded-xl text-[14px] sm:text-[15px] font-dm-sans transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest ${
+    `flex items-center gap-2.5 lg:gap-3.5 px-2.5 lg:px-4 py-3 rounded-xl text-[14px] sm:text-[15px] font-dm-sans transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none ${
       isActive
         ? 'bg-vh-forest text-white font-medium shadow-sm'
         : 'text-vh-text-secondary hover:text-vh-forest hover:bg-vh-mint/30'
@@ -16,7 +16,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
   return (
     <aside
       aria-label="Social Navigation"
-      className="w-[200px] lg:w-[220px] xl:w-[260px] 2xl:w-[280px] shrink-0 hidden min-[900px]:block select-none sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pr-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="hidden lg:block lg:w-[220px] xl:w-[240px] 2xl:w-[260px] shrink-0 select-none sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pr-1 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-vh-border/60 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       <div className="bg-vh-surface border border-vh-border/70 rounded-card p-4 shadow-sm space-y-1.5">
         <div className="px-3 py-2 mb-1">
@@ -76,7 +76,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
               <button
                 type="button"
                 onClick={() => onOpenComposer('post')}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage hover:-translate-y-0.5 active:scale-95 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -86,7 +86,7 @@ export default function HomeSocialNav({ isGuest = false, onOpenComposer }) {
             ) : (
               <Link
                 to="/posts/create"
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage hover:-translate-y-0.5 active:scale-95 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-vh-forest text-white rounded-full font-dm-sans text-xs font-semibold hover:bg-vh-sage hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

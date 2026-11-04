@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { getFollowers, getFollowing, unfollowUser } from '../../services/userService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/dateUtils';
+import { motion, useReducedMotion } from 'framer-motion';
+import ModalMotion from '../ui/ModalMotion';
 
 /**
  * FollowListModal
@@ -18,6 +20,7 @@ export default function FollowListModal({
   followersCount = null,
   followingCount = null,
 }) {
+  const shouldReduceMotion = useReducedMotion();
   let currentUser = null;
   try {
     const auth = useAuth();
@@ -104,7 +107,7 @@ export default function FollowListModal({
                 const count = typeof data?.totalCount === 'number' ? data.totalCount : (data?.items?.length ?? 0);
                 setTabCounts((prev) => ({ ...prev, [otherTab]: count }));
               })
-              .catch(() => {});
+              .catch(() => { });
           }
         } catch {
           // ignore background count fetch error
@@ -172,182 +175,192 @@ export default function FollowListModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen || !userId) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in"
-      onClick={onClose}
+    <ModalMotion
+      isOpen={Boolean(isOpen && userId)}
+      onClose={onClose}
+      backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+      dialogClassName="w-full max-w-md bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
+      ariaLabelledBy="follow-list-title"
+      dialogRef={modalRef}
+      closeOnEscape={false}
     >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="follow-list-title"
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95"
-      >
-        {/* Modal Header */}
-        <div className="p-4 border-b border-[#DCE3D5] flex items-center justify-between bg-white">
-          <h2 id="follow-list-title" className="font-fraunces font-semibold text-lg text-[#2B2A25]">
-            Connections
-          </h2>
-          <button
-            ref={closeBtnRef}
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#F3F6EE] hover:bg-[#E2EAD9] text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
-            aria-label="Close dialog"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+      {/* Modal Header */}
+      <div className="p-4 border-b border-[#DCE3D5] flex items-center justify-between bg-white">
+        <h2 id="follow-list-title" className="font-fraunces font-semibold text-lg text-[#2B2A25]">
+          Connections
+        </h2>
+        <button
+          ref={closeBtnRef}
+          type="button"
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-[#F3F6EE] hover:bg-[#E2EAD9] text-[#6B6F63] hover:text-[#2B2A25] flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+          aria-label="Close dialog"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        {/* Tabs: Followers / Following */}
-        <div className="flex border-b border-[#DCE3D5] bg-[#FDFBF6]">
-          <button
-            type="button"
-            onClick={() => setActiveTab('followers')}
-            className={`flex-1 py-3 text-sm font-dm-sans font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'followers'
-                ? 'border-[#2F5233] text-[#2F5233]'
-                : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
+      {/* Tabs: Followers / Following */}
+      <div className="flex border-b border-[#DCE3D5] bg-[#FDFBF6]" role="tablist" aria-label="Followers and Following">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'followers'}
+          onClick={() => setActiveTab('followers')}
+          className={`relative flex-1 py-3 text-sm font-dm-sans font-semibold transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none ${activeTab === 'followers'
+              ? 'text-[#2F5233]'
+              : 'text-[#6B6F63] hover:text-[#2B2A25]'
             }`}
-          >
-            Followers {(tabCounts.followers ?? followersCount) !== null && `(${tabCounts.followers ?? followersCount})`}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('following')}
-            className={`flex-1 py-3 text-sm font-dm-sans font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'following'
-                ? 'border-[#2F5233] text-[#2F5233]'
-                : 'border-transparent text-[#6B6F63] hover:text-[#2B2A25]'
+        >
+          <span>Followers {(tabCounts.followers ?? followersCount) !== null && `(${tabCounts.followers ?? followersCount})`}</span>
+          {activeTab === 'followers' && (
+            <motion.div
+              layoutId="follow-list-active-tab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2F5233]"
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            />
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'following'}
+          onClick={() => setActiveTab('following')}
+          className={`relative flex-1 py-3 text-sm font-dm-sans font-semibold transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none ${activeTab === 'following'
+              ? 'text-[#2F5233]'
+              : 'text-[#6B6F63] hover:text-[#2B2A25]'
             }`}
-          >
-            Following {(tabCounts.following ?? followingCount) !== null && `(${tabCounts.following ?? followingCount})`}
-          </button>
-        </div>
+        >
+          <span>Following {(tabCounts.following ?? followingCount) !== null && `(${tabCounts.following ?? followingCount})`}</span>
+          {activeTab === 'following' && (
+            <motion.div
+              layoutId="follow-list-active-tab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2F5233]"
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            />
+          )}
+        </button>
+      </div>
 
-        {/* Content list */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {loading ? (
-            <div className="space-y-3 py-4">
-              {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="flex items-center gap-3 p-2 animate-pulse">
-                  <div className="w-11 h-11 rounded-full bg-[#E9EFE6] shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="w-28 h-4 bg-[#E9EFE6] rounded" />
-                    <div className="w-20 h-3 bg-[#E9EFE6] rounded" />
-                  </div>
+      {/* Content list */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {loading ? (
+          <div className="space-y-3 py-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex items-center gap-3 p-2 animate-pulse">
+                <div className="w-11 h-11 rounded-full bg-[#E9EFE6] shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="w-28 h-4 bg-[#E9EFE6] rounded" />
+                  <div className="w-20 h-3 bg-[#E9EFE6] rounded" />
                 </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="py-8 text-center text-sm text-red-700 bg-red-50 rounded-xl p-4">
-              <p>{error}</p>
-              <button
-                type="button"
-                onClick={() => loadList(activeTab, userId)}
-                className="mt-2 text-xs font-semibold underline hover:text-red-900 cursor-pointer"
-              >
-                Retry
-              </button>
-            </div>
-          ) : items.length === 0 ? (
-            <div className="py-12 text-center text-[#6B6F63]">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F3F6EE] text-[#2F5233] flex items-center justify-center text-2xl">
-                🌿
               </div>
-              <p className="font-fraunces font-semibold text-base text-[#2B2A25]">
-                {activeTab === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
-              </p>
-              <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
-                {activeTab === 'followers'
-                  ? 'When members follow this profile, they will appear here.'
-                  : 'Explore recipes and connect with creators in the community.'}
-              </p>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="py-8 text-center text-sm text-red-700 bg-red-50 rounded-xl p-4">
+            <p>{error}</p>
+            <button
+              type="button"
+              onClick={() => loadList(activeTab, userId)}
+              className="mt-2 text-xs font-semibold underline hover:text-red-900 cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="py-12 text-center text-[#6B6F63]">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F3F6EE] text-[#2F5233] flex items-center justify-center text-2xl">
+              🌿
             </div>
-          ) : (
-            items.map((item) => {
-              const isItemSelf = Boolean(currentUser?.id && String(currentUser.id) === String(item.id));
-              const profileUrl = isItemSelf ? '/my-posts' : `/users/${item.id}`;
-              const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                item.displayName || item.username || 'User'
-              )}&background=E9EFE6&color=2F5233&size=96`;
-              const avatarSrc =
-                !imageErrors[item.id] && item.avatarUrl
-                  ? getImageUrl(item.avatarUrl)
-                  : fallbackUrl;
+            <p className="font-fraunces font-semibold text-base text-[#2B2A25]">
+              {activeTab === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
+            </p>
+            <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
+              {activeTab === 'followers'
+                ? 'When members follow this profile, they will appear here.'
+                : 'Explore recipes and connect with creators in the community.'}
+            </p>
+          </div>
+        ) : (
+          items.map((item) => {
+            const isItemSelf = Boolean(currentUser?.id && String(currentUser.id) === String(item.id));
+            const profileUrl = isItemSelf ? '/my-posts' : `/users/${item.id}`;
+            const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              item.displayName || item.username || 'User'
+            )}&background=E9EFE6&color=2F5233&size=96`;
+            const avatarSrc =
+              !imageErrors[item.id] && item.avatarUrl
+                ? getImageUrl(item.avatarUrl)
+                : fallbackUrl;
 
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white border border-transparent hover:border-[#DCE3D5] transition-all duration-150"
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white border border-transparent hover:border-[#DCE3D5] transition-all duration-150"
+              >
+                <Link
+                  to={profileUrl}
+                  onClick={onClose}
+                  className="flex items-center gap-3 min-w-0 flex-1 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg p-0.5"
                 >
+                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border border-[#DCE3D5] bg-[#E9EFE6]">
+                    <img
+                      src={avatarSrc}
+                      alt={item.displayName || item.username || 'User'}
+                      onError={() =>
+                        setImageErrors((prev) => ({ ...prev, [item.id]: true }))
+                      }
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-fraunces font-semibold text-sm text-[#2B2A25] group-hover:text-[#2F5233] truncate transition-colors">
+                        {item.displayName || item.username || 'User'}
+                      </h4>
+                      {isItemSelf && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2F5233] bg-[#E9EFE6] px-1.5 py-0.2 rounded">
+                          You
+                        </span>
+                      )}
+                    </div>
+                    {item.username && (
+                      <p className="text-xs text-[#6B6F63] truncate">@{item.username}</p>
+                    )}
+                    {item.followedAt && (
+                      <p className="text-[10px] text-[#6B6F63]/80 mt-0.5">
+                        Since {formatDate(item.followedAt)}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+
+                {isOwnProfile && activeTab === 'following' && !isItemSelf ? (
+                  <button
+                    type="button"
+                    onClick={() => handleUnfollow(item.id, item.displayName || item.username)}
+                    disabled={unfollowingId === item.id}
+                    className="text-xs font-dm-sans font-semibold px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 text-[#6B6F63] transition-all shrink-0 ml-2 cursor-pointer disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 active:scale-95 motion-reduce:transform-none"
+                  >
+                    {unfollowingId === item.id ? 'Unfollowing...' : 'Unfollow'}
+                  </button>
+                ) : (
                   <Link
                     to={profileUrl}
                     onClick={onClose}
-                    className="flex items-center gap-3 min-w-0 flex-1 group"
+                    className="text-xs font-dm-sans font-semibold px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#F3F6EE] hover:bg-[#2F5233] hover:text-white text-[#2F5233] transition-all shrink-0 ml-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
                   >
-                    <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border border-[#DCE3D5] bg-[#E9EFE6]">
-                      <img
-                        src={avatarSrc}
-                        alt={item.displayName || item.username || 'User'}
-                        onError={() =>
-                          setImageErrors((prev) => ({ ...prev, [item.id]: true }))
-                        }
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="font-fraunces font-semibold text-sm text-[#2B2A25] group-hover:text-[#2F5233] truncate transition-colors">
-                          {item.displayName || item.username || 'User'}
-                        </h4>
-                        {isItemSelf && (
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2F5233] bg-[#E9EFE6] px-1.5 py-0.2 rounded">
-                            You
-                          </span>
-                        )}
-                      </div>
-                      {item.username && (
-                        <p className="text-xs text-[#6B6F63] truncate">@{item.username}</p>
-                      )}
-                      {item.followedAt && (
-                        <p className="text-[10px] text-[#6B6F63]/80 mt-0.5">
-                          Since {formatDate(item.followedAt)}
-                        </p>
-                      )}
-                    </div>
+                    {isItemSelf ? 'Your Garden' : 'View'}
                   </Link>
-
-                  {isOwnProfile && activeTab === 'following' && !isItemSelf ? (
-                    <button
-                      type="button"
-                      onClick={() => handleUnfollow(item.id, item.displayName || item.username)}
-                      disabled={unfollowingId === item.id}
-                      className="text-xs font-dm-sans font-semibold px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300 text-[#6B6F63] transition-colors shrink-0 ml-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {unfollowingId === item.id ? 'Unfollowing...' : 'Unfollow'}
-                    </button>
-                  ) : (
-                    <Link
-                      to={profileUrl}
-                      onClick={onClose}
-                      className="text-xs font-dm-sans font-semibold px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-[#F3F6EE] hover:bg-[#2F5233] hover:text-white text-[#2F5233] transition-colors shrink-0 ml-2"
-                    >
-                      {isItemSelf ? 'Your Garden' : 'View'}
-                    </Link>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
-    </div>
+    </ModalMotion>
   );
 }

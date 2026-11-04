@@ -24,7 +24,7 @@ export default function CreatePost() {
         <div className="bg-vh-glass backdrop-blur-[16px] border border-white/70 shadow-glass rounded-card-lg p-6 sm:p-10">
           <CreatePostForm
             isModal={false}
-            onSuccess={() => navigate('/my-posts')}
+            onSubmitStarted={() => navigate('/my-posts')}
             onCancel={() => navigate('/my-posts')}
           />
         </div>

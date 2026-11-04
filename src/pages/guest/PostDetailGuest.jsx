@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import HeaderGuest from '../../components/layout/HeaderGuest';
 import Footer from '../../components/layout/Footer';
 import PostDetailCore from '../../components/home/PostDetailCore';
+import AIChatbot from '../../components/chat/AIChatbot';
 
 function PostDetailGuest() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -12,6 +13,7 @@ function PostDetailGuest() {
       <HeaderGuest />
       <PostDetailCore isGuest={true} onAuthRequired={() => setShowLoginModal(true)} />
       <Footer />
+      <AIChatbot />
 
       {/* Login Modal */}
       {showLoginModal && (

@@ -1,6 +1,8 @@
 import { formatDate } from '../../utils/dateUtils';
 
 export const number = value => value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
+export const wholeNumber = value => value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+export const servingPercent = meal => wholeNumber(meal.portionPercent ?? (meal.portionMultiplier == null ? null : Number(meal.portionMultiplier) * 100));
 export const dateLabel = value => value ? formatDate(value) : 'Unknown date';
 export const utcToday = () => new Date().toISOString().slice(0, 10);
 export const zonedToday = zone => {

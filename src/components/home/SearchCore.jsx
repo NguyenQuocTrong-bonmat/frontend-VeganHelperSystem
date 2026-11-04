@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { searchPosts } from '../../services/postService';
 import { searchUsers } from '../../services/userService';
 import UserCard from './UserCard';
@@ -56,6 +57,7 @@ function SearchCore({ isGuest }) {
   if (!['all', 'posts', 'people'].includes(queryTab)) queryTab = 'all';
   const queryPage = parseInt(searchParams.get('page')) || 1;
 
+  const shouldReduceMotion = useReducedMotion();
   const [inputValue, setInputValue] = useState(queryKeyword);
   const [activeTab, setActiveTab] = useState(queryTab);
   const [currentPage, setCurrentPage] = useState(queryPage);
@@ -378,12 +380,12 @@ function SearchCore({ isGuest }) {
   return (
     <div className="min-h-[calc(100vh-80px)] bg-[#FAF8F0] text-[#2B2A25] pb-16 font-dm-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        
+
         {/* Layout container: Left filters rail + Main area */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          
+
           {/* DESKTOP LEFT FILTERS PANEL (Facebook-style) */}
-          <aside 
+          <aside
             className="hidden lg:block lg:w-72 xl:w-80 shrink-0 sticky top-24 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-5 shadow-sm"
             aria-label="Search filters"
           >
@@ -407,25 +409,29 @@ function SearchCore({ isGuest }) {
                     aria-selected={isActive}
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => switchTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-[15px] font-medium transition-all duration-200 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${
-                      isActive
-                        ? 'bg-[#E9EFE6] text-[#2F5233] font-semibold border-l-4 border-[#2F5233] shadow-xs pl-3'
+                    className={`relative w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-[15px] font-medium transition-colors duration-200 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] ${isActive
+                        ? 'text-[#2F5233] font-semibold border-l-4 border-[#2F5233] pl-3'
                         : 'text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#F3F6EE] border-l-4 border-transparent'
-                    }`}
+                      }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-1.5 rounded-lg transition-colors ${
-                        isActive ? 'bg-[#2F5233] text-white' : 'bg-transparent text-[#6B6F63]'
-                      }`}>
+                    {isActive && (
+                      <motion.div
+                        layoutId="search-desktop-tab-bg"
+                        className="absolute inset-0 bg-[#E9EFE6] rounded-xl shadow-xs"
+                        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                      />
+                    )}
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-[#2F5233] text-white' : 'bg-transparent text-[#6B6F63]'
+                        }`}>
                         {tab.icon}
                       </div>
                       <span>{tab.label}</span>
                     </div>
 
                     {queryKeyword && !isGlobalLoading && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        isActive ? 'bg-[#2F5233]/15 text-[#2F5233] font-bold' : 'text-[#6B6F63] bg-[#E9EFE6]/60'
-                      }`}>
+                      <span className={`relative z-10 text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-[#2F5233]/15 text-[#2F5233] font-bold' : 'text-[#6B6F63] bg-[#E9EFE6]/60'
+                        }`}>
                         {tab.id === 'posts' && !postsError && totalPostsCount}
                         {tab.id === 'people' && !isGuest && !usersError && totalUsersCount}
                         {tab.id === 'all' && !postsError && !usersError && (isGuest ? totalPostsCount : totalPostsCount + totalUsersCount)}
@@ -440,7 +446,7 @@ function SearchCore({ isGuest }) {
               <div className="mt-6 pt-4 border-t border-[#DCE3D5]/70 bg-[#F3F6EE]/60 rounded-xl p-3 text-xs text-[#6B6F63]">
                 <p className="font-semibold text-[#2B2A25] mb-1">Community search</p>
                 <p className="mb-2.5 leading-relaxed">Log in to search and connect with other community members.</p>
-                <Link 
+                <Link
                   to="/login"
                   className="inline-block text-xs font-semibold text-[#2F5233] hover:underline"
                 >
@@ -452,7 +458,7 @@ function SearchCore({ isGuest }) {
 
           {/* MAIN RESULTS COLUMN */}
           <main className="flex-1 min-w-0 w-full" id="search-main-content">
-            
+
             {/* Top Search Input Box */}
             <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
               <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
@@ -513,14 +519,20 @@ function SearchCore({ isGuest }) {
                       role="tab"
                       aria-selected={isActive}
                       onClick={() => switchTab(tab.id)}
-                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer ${
-                        isActive
-                          ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                      className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer ${isActive
+                          ? 'text-white font-semibold'
                           : 'bg-[#F3F6EE] text-[#6B6F63] hover:text-[#2B2A25] hover:bg-[#E9EFE6]'
-                      }`}
+                        }`}
                     >
-                      <span className="w-4 h-4">{tab.icon}</span>
-                      <span>{tab.label}</span>
+                      {isActive && (
+                        <motion.span
+                          layoutId="search-mobile-scope-pill"
+                          className="absolute inset-0 bg-[#2F5233] rounded-xl shadow-xs"
+                          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        />
+                      )}
+                      <span className="relative z-10 w-4 h-4 flex items-center justify-center">{tab.icon}</span>
+                      <span className="relative z-10">{tab.label}</span>
                     </button>
                   );
                 })}
@@ -529,7 +541,7 @@ function SearchCore({ isGuest }) {
 
             {/* QUERY SUMMARY BAR */}
             {queryKeyword && (
-              <div 
+              <div
                 id="search-status-bar"
                 className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-sm"
               >
@@ -578,7 +590,7 @@ function SearchCore({ isGuest }) {
               ) : activeTab === 'all' ? (
                 /* ================= ALL VIEW (PEOPLE + POSTS) ================= */
                 <div className="flex flex-col gap-10">
-                  
+
                   {/* People Preview Section */}
                   <section aria-labelledby="heading-people-preview" className="flex flex-col gap-4">
                     <div className="flex items-center justify-between pb-3 border-b border-[#DCE3D5]">

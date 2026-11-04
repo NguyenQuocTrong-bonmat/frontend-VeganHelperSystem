@@ -11,7 +11,7 @@ import { getPublicProfile } from '../../services/userService';
 import shopService from '../../services/shopService';
 import { authService } from '../../services/authService';
 import PostDetailCore from '../../components/home/PostDetailCore';
-import { getMyPosts, getPostDetail, getCategories, updatePost } from '../../services/postService';
+import { getMyPosts, getPostDetail, getCategories, updatePost, reportPost } from '../../services/postService';
 import { getComments } from '../../services/interactionService';
 
 vi.mock('../../services/userService', () => ({
@@ -28,7 +28,7 @@ vi.mock('../../components/layout/Footer', () => ({ default: () => null }));
 vi.mock('../../components/chat/AIChatbot', () => ({ default: () => null }));
 vi.mock('./SavedPosts', () => ({ default: () => null }));
 vi.mock('../../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 7, username: 'owner', displayName: 'Owner' } }) }));
-vi.mock('../../services/postService', () => ({ getMyPosts: vi.fn(), getPostDetail: vi.fn(), getCategories: vi.fn(), updatePost: vi.fn(), deletePost: vi.fn() }));
+vi.mock('../../services/postService', () => ({ getMyPosts: vi.fn(), getPostDetail: vi.fn(), getCategories: vi.fn(), updatePost: vi.fn(), deletePost: vi.fn(), reportPost: vi.fn() }));
 vi.mock('../../services/interactionService', () => ({ getComments: vi.fn(), toggleSave: vi.fn(), toggleLike: vi.fn(), createComment: vi.fn(), updateComment: vi.fn(), deleteComment: vi.fn(), reportComment: vi.fn() }));
 
 let container, root;
@@ -177,4 +177,72 @@ test('editing previews and submits multiple newly selected files after the input
   expect(container.querySelector('video[src="/preview/b.mp4"]')).not.toBeNull();
   await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
   expect(updatePost).toHaveBeenCalledWith('11', expect.objectContaining({ mediaFiles: files, mediaIdsToRemove: [] }));
+});
+
+test('Report button is hidden on own post (isOwnPost)', async () => {
+  getPostDetail.mockResolvedValue({ id: 11, authorId: 7, title: 'My Vegan Dish', postType: 'article', media: [] });
+  getComments.mockResolvedValue([]);
+  await act(async () => root.render(<MemoryRouter initialEntries={['/posts/11']}><Routes><Route path="/posts/:id" element={<PostDetailCore />} /></Routes></MemoryRouter>));
+  const buttons = [...container.querySelectorAll('button')];
+  const reportBtn = buttons.find(b => b.textContent.trim() === 'Report');
+  expect(reportBtn).toBeUndefined();
+});
+
+test('Report button is displayed for other user post and opens report modal to submit', async () => {
+  getPostDetail.mockResolvedValue({ id: 11, authorId: 99, title: 'Tofu Scramble', contentRevision: 2, postType: 'article', media: [] });
+  getComments.mockResolvedValue([]);
+  reportPost.mockResolvedValue({ id: 1, status: 'pending' });
+
+  await act(async () => root.render(<MemoryRouter initialEntries={['/posts/11']}><Routes><Route path="/posts/:id" element={<PostDetailCore />} /></Routes></MemoryRouter>));
+  
+  const buttons = [...container.querySelectorAll('button')];
+  const reportBtn = buttons.find(b => b.textContent.trim() === 'Report');
+  expect(reportBtn).toBeDefined();
+
+  // Click report button to open modal
+  await act(async () => reportBtn.click());
+  expect(container.textContent).toContain('Report Post');
+  expect(container.textContent).toContain('Select Violation Reason:');
+
+  // Initially Additional Details is hidden
+  expect(container.querySelector('#report-details')).toBeNull();
+
+  // Select Other violation to reveal Additional Details
+  await act(async () => {
+    container.querySelector('input[value="other"]').click();
+  });
+  const textarea = container.querySelector('#report-details');
+  expect(textarea).not.toBeNull();
+  const nativeTextareaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+  await act(async () => {
+    nativeTextareaValueSetter.call(textarea, 'This post includes non-vegan ingredients.');
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Submit report
+  const submitBtn = [...container.querySelectorAll('button')].find(b => b.textContent.trim() === 'Submit Report');
+  expect(submitBtn).toBeDefined();
+  await act(async () => submitBtn.click());
+
+  expect(reportPost).toHaveBeenCalledWith('11', {
+    reasonCategory: 'other',
+    reason: 'This post includes non-vegan ingredients.',
+    expectedRevision: 2,
+  });
+});
+
+test('Guest user clicking Report triggers onAuthRequired callback', async () => {
+  getPostDetail.mockResolvedValue({ id: 11, authorId: 99, title: 'Tofu Scramble', postType: 'article', media: [] });
+  getComments.mockResolvedValue([]);
+  const onAuthRequired = vi.fn();
+
+  await act(async () => root.render(<MemoryRouter initialEntries={['/posts/11']}><Routes><Route path="/posts/:id" element={<PostDetailCore isGuest onAuthRequired={onAuthRequired} />} /></Routes></MemoryRouter>));
+  
+  const buttons = [...container.querySelectorAll('button')];
+  const reportBtn = buttons.find(b => b.textContent.trim() === 'Report');
+  expect(reportBtn).toBeDefined();
+
+  await act(async () => reportBtn.click());
+  expect(onAuthRequired).toHaveBeenCalledTimes(1);
 });

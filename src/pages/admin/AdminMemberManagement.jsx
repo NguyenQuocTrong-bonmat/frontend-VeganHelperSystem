@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
+import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
 import { getImageUrl } from '../../utils/imageUtils';
 import { getAdminMembers, getAdminMemberById, banMember, unbanMember } from '../../services/adminService';
 import { getPaginationPages } from '../../utils/paginationUtils';
+import { formatDate, formatDateTime } from '../../utils/dateUtils';
 
 export default function AdminMemberManagement() {
   const [members, setMembers] = useState([]);
@@ -30,6 +32,7 @@ export default function AdminMemberManagement() {
     member: null,
     reason: '',
     duration: '30 Days',
+    isSubmitting: false,
   });
 
   const [unbanModal, setUnbanModal] = useState({
@@ -44,12 +47,23 @@ export default function AdminMemberManagement() {
     isLoading: false,
   });
 
+  const shouldReduceMotion = useReducedMotion();
+  const toastTimerRef = useRef(null);
+
+  // Clean up toast timer on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   // Notification Toast State
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   const showToast = (message, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ show: true, message, type });
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
     }, 3500);
   };
@@ -149,15 +163,15 @@ export default function AdminMemberManagement() {
               isActive: m.isActive,
               emailVerifiedAt: m.emailVerifiedAt,
               createdAt: m.createdAt,
-              joinedDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-GB') : '--',
+              joinedDate: formatDate(m.createdAt) || '--',
               lastLoginAt: m.lastLoginAt,
-              lastLoginFormatted: m.lastLoginAt ? new Date(m.lastLoginAt).toLocaleString('en-GB') : 'Never',
+              lastLoginFormatted: m.lastLoginAt ? formatDateTime(m.lastLoginAt) : 'Never',
               lockedUntil: m.lockedUntil,
               avatarUrl: m.avatarUrl || null,
               banId: m.banId,
               banReason: m.banReason || '',
               banExpiresAt: m.banExpiresAt,
-              banDuration: m.banExpiresAt ? new Date(m.banExpiresAt).toLocaleDateString('en-GB') : m.banId ? 'Permanent' : '',
+              banDuration: m.banExpiresAt ? formatDate(m.banExpiresAt) : m.banId ? 'Permanent' : '',
             };
           })
         );
@@ -212,12 +226,12 @@ export default function AdminMemberManagement() {
             banReason: detail.banReason || member.banReason,
             banExpiresAt: detail.banExpiresAt || member.banExpiresAt,
             banDuration: detail.banExpiresAt
-              ? new Date(detail.banExpiresAt).toLocaleDateString('en-GB')
+              ? formatDate(detail.banExpiresAt)
               : detail.banId
               ? 'Permanent'
               : member.banDuration,
             lastLoginFormatted: detail.lastLoginAt
-              ? new Date(detail.lastLoginAt).toLocaleString('en-GB')
+              ? formatDateTime(detail.lastLoginAt)
               : member.lastLoginFormatted,
             emailVerifiedAt: detail.emailVerifiedAt ?? member.emailVerifiedAt,
             createdAt: detail.createdAt ?? member.createdAt,
@@ -236,12 +250,20 @@ export default function AdminMemberManagement() {
   // Ban confirmation (POST /api/admin/members/{id}/ban)
   const handleConfirmBan = async (e) => {
     e.preventDefault();
-    if (!banModal.member) return;
-    if (!banModal.reason.trim()) {
+    if (!banModal.member || banModal.isSubmitting) return;
+
+    const trimmedReason = banModal.reason.trim();
+    if (!trimmedReason) {
       showToast('Please specify a reason for banning this account.', 'error');
       return;
     }
 
+    if (trimmedReason.length > 500) {
+      showToast('Ban reason cannot exceed 500 characters.', 'error');
+      return;
+    }
+
+    setBanModal((prev) => ({ ...prev, isSubmitting: true }));
     try {
       let expiresAt = null;
       if (banModal.duration === '7 Days') {
@@ -253,15 +275,16 @@ export default function AdminMemberManagement() {
       }
 
       await banMember(banModal.member.id, {
-        reason: banModal.reason.trim(),
+        reason: trimmedReason,
         expiresAt,
       });
 
       showToast(`Account @${banModal.member.username} has been suspended.`, 'success');
       await fetchMembers();
-      setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' });
+      setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false });
     } catch (err) {
       showToast(err.message || 'The account could not be suspended.', 'error');
+      setBanModal((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -293,25 +316,48 @@ export default function AdminMemberManagement() {
     <AdminLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Toast Feedback */}
-        {toast.show && (
-          <div
-            role="status"
-            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${
-              toast.type === 'error'
-                ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
-                : 'bg-[#2F5233] text-white border-[#25401F]'
-            }`}
-          >
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {toast.type === 'error' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              )}
-            </svg>
-            <span>{toast.message}</span>
-          </div>
-        )}
+        <AnimatePresence>
+          {toast.show && (
+            <motion.div
+              role="status"
+              variants={shouldReduceMotion ? reducedToastVariants : toastVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border text-sm font-medium pointer-events-auto ${
+                toast.type === 'error'
+                  ? 'bg-[#FDF2F2] text-[#A63446] border-[#F4C2BC]'
+                  : 'bg-[#2F5233] text-white border-[#25401F]'
+              }`}
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {toast.type === 'error' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                )}
+              </svg>
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                  setToast({ show: false, message: '', type: 'success' });
+                }}
+                className={`ml-1.5 p-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 cursor-pointer ${
+                  toast.type === 'error'
+                    ? 'hover:bg-[#FBEAE7] text-[#A63446] focus-visible:ring-[#A63446]'
+                    : 'hover:bg-white/20 text-white focus-visible:ring-white'
+                }`}
+                aria-label="Dismiss notification"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 1. Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -327,7 +373,7 @@ export default function AdminMemberManagement() {
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               onClick={handleClearFilters}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-full shadow-xs hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer transition-all"
             >
               <svg className="w-3.5 h-3.5 text-[#6B6F63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -340,7 +386,11 @@ export default function AdminMemberManagement() {
         {loadError && (
           <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-[#F4C2BC] bg-[#FDF2F2] p-4 text-sm text-[#8B2B3A] sm:flex-row sm:items-center sm:justify-between">
             <span>{loadError}</span>
-            <button type="button" onClick={fetchMembers} className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto">
+            <button
+              type="button"
+              onClick={fetchMembers}
+              className="self-start rounded-full border border-[#A63446] px-4 py-2 text-xs font-semibold hover:bg-white sm:self-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-2 active:scale-[0.97] motion-reduce:transform-none cursor-pointer transition-all"
+            >
               Try again
             </button>
           </div>
@@ -428,12 +478,14 @@ export default function AdminMemberManagement() {
                 placeholder="Search by name, email, or @username..."
                 value={searchQuery}
                 onChange={(e) => handleFilterChange(setSearchQuery, e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:ring-1 focus:ring-[#2F5233] outline-none transition-all placeholder-[#8A9080] text-[#2B2A25]"
+                className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAFBF9] border border-[#DCE3D5] rounded-xl focus:bg-white focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] transition-all placeholder-[#8A9080] text-[#2B2A25]"
               />
               {searchQuery && (
                 <button
+                  type="button"
+                  aria-label="Clear search"
                   onClick={() => handleFilterChange(setSearchQuery, '')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25]"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-lg active:scale-95 motion-reduce:transform-none"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -449,8 +501,9 @@ export default function AdminMemberManagement() {
                 {['All', 'Active', 'Banned'].map((status) => (
                   <button
                     key={status}
+                    type="button"
                     onClick={() => handleFilterChange(setStatusFilter, status)}
-                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all ${
+                    className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-all active:scale-[0.97] motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 cursor-pointer ${
                       statusFilter === status
                         ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
                         : 'text-[#6B6F63] hover:text-[#2B2A25]'
@@ -466,7 +519,7 @@ export default function AdminMemberManagement() {
                 <select
                   value={roleFilter}
                   onChange={(e) => handleFilterChange(setRoleFilter, e.target.value)}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="All">All Roles</option>
                   <option value="Member">Members</option>
@@ -479,7 +532,7 @@ export default function AdminMemberManagement() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl shadow-xs outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] cursor-pointer"
                 >
                   <option value="newest">Sort: Newest</option>
                   <option value="oldest">Sort: Oldest</option>
@@ -497,8 +550,9 @@ export default function AdminMemberManagement() {
             </div>
             {(searchQuery || statusFilter !== 'All' || roleFilter !== 'All') && (
               <button
+                type="button"
                 onClick={handleClearFilters}
-                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F]"
+                className="text-xs text-[#2F5233] font-semibold underline hover:text-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:scale-95 motion-reduce:transform-none cursor-pointer"
               >
                 Clear all active filters
               </button>
@@ -508,23 +562,34 @@ export default function AdminMemberManagement() {
 
         {/* 4. Members Table Card */}
         <div className="bg-white border border-[#DCE3D5] rounded-[24px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse table-fixed">
+          {/* Mobile Horizontal Scroll Cue */}
+          <div className="md:hidden flex items-center justify-between px-4 py-2 text-[11px] text-[#6B6F63] bg-[#FAFBF9] border-b border-[#DCE3D5]">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Swipe horizontally to view full member columns
+            </span>
+            <span className="text-[10px] font-mono text-[#8A9080]">880px</span>
+          </div>
+
+          <div tabIndex={0} role="region" aria-label="Members directory table" className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]/40">
+            <table className="w-full min-w-[880px] text-left text-xs border-separate border-spacing-0 table-fixed">
               <thead>
                 <tr className="bg-[#FAFBF9] text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                  <th className="py-3.5 px-4 font-semibold w-[56%]">Member</th>
-                  <th className="py-3.5 px-4 font-semibold w-[44%]">Contact & Email</th>
-                  <th className="py-3.5 px-3 font-semibold w-[90px]">Role</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Status</th>
-                  <th className="py-3.5 px-3 font-semibold w-[105px]">Joined Date</th>
-                  <th className="py-3.5 px-2.5 font-semibold text-left w-[138px]">Actions</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold w-[220px] sm:sticky sm:left-0 bg-[#FAFBF9] z-20 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Member</th>
+                  <th scope="col" className="py-3.5 px-4 font-semibold w-[200px] border-b border-[#DCE3D5]">Contact & Email</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[100px] border-b border-[#DCE3D5]">Role</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[110px] border-b border-[#DCE3D5]">Status</th>
+                  <th scope="col" className="py-3.5 px-3 font-semibold w-[110px] border-b border-[#DCE3D5]">Joined Date</th>
+                  <th scope="col" className="py-3.5 px-2.5 font-semibold text-left w-[140px] md:sticky md:right-0 bg-[#FAFBF9] z-20 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
+              <tbody className="text-[#2B2A25]">
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, idx) => (
                     <tr key={`skel-member-${idx}`} className="animate-pulse">
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 sm:sticky sm:left-0 bg-white z-10 sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-full bg-[#EAF0E9] shrink-0" />
                           <div className="space-y-1.5 flex-1 min-w-0">
@@ -533,20 +598,20 @@ export default function AdminMemberManagement() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 border-b border-[#EAF0E9]">
                         <div className="w-36 h-3 bg-[#EAF0E9] rounded mb-1" />
                         <div className="w-24 h-2.5 bg-[#F3F6EE] rounded" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-16 h-5 bg-[#EAF0E9] rounded-full" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="py-4 px-3 border-b border-[#EAF0E9]">
                         <div className="w-20 h-3 bg-[#EAF0E9] rounded" />
                       </td>
-                      <td className="py-4 px-2.5 text-left">
+                      <td className="py-4 px-2.5 text-left md:sticky md:right-0 bg-white z-10 md:border-l md:border-[#DCE3D5]/80 border-b border-[#EAF0E9]">
                         <div className="w-24 h-6 bg-[#EAF0E9] rounded" />
                       </td>
                     </tr>
@@ -563,9 +628,9 @@ export default function AdminMemberManagement() {
                     const isBanned = member.status === 'Banned';
 
                     return (
-                      <tr key={member.id} className="hover:bg-[#FAFBF9] transition-colors">
+                      <tr key={member.id} className="group hover:bg-[#F3F6EE]/60 transition-colors duration-150">
                         {/* Member Identity Column */}
-                        <td className="py-4 px-4 overflow-hidden">
+                        <td className="py-4 px-4 overflow-hidden border-b border-[#EAF0E9] sm:sticky sm:left-0 bg-white group-hover:bg-[#F7F9F5] z-10 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 transition-colors">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 h-10 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-xs bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
                               {member.avatarUrl ? (
@@ -590,7 +655,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Email & Contact */}
-                        <td className="py-4 px-4 text-[#6B6F63] overflow-hidden">
+                        <td className="py-4 px-4 text-[#6B6F63] overflow-hidden border-b border-[#EAF0E9]">
                           <div className="min-w-0">
                             <p className="font-medium text-[#2B2A25] truncate" title={member.email}>
                               {member.email}
@@ -611,7 +676,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Role Badge */}
-                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                               member.role === 'Admin'
@@ -624,7 +689,7 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-3 whitespace-nowrap overflow-hidden border-b border-[#EAF0E9]">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                               isBanned
@@ -642,17 +707,18 @@ export default function AdminMemberManagement() {
                         </td>
 
                         {/* Joined Date */}
-                        <td className="py-4 px-3 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono">
+                        <td className="py-4 px-3 text-[#6B6F63] font-medium whitespace-nowrap overflow-hidden font-mono border-b border-[#EAF0E9]">
                           {member.joinedDate}
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-2.5 text-left whitespace-nowrap overflow-hidden">
+                        <td className="py-4 px-2.5 text-left whitespace-nowrap overflow-hidden border-b border-[#EAF0E9] md:sticky md:right-0 bg-white group-hover:bg-[#F7F9F5] z-10 md:shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] md:border-l md:border-[#DCE3D5]/80 transition-colors">
                           <div className="inline-flex items-center justify-start gap-1.5">
                             {/* Inspect Details Button */}
                             <button
+                              type="button"
                               onClick={() => handleOpenDetails(member)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white transition-all shrink-0"
+                              className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-lg hover:bg-[#2F5233] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all shrink-0 cursor-pointer"
                               title="Inspect Member Profile"
                             >
                               Details
@@ -661,14 +727,17 @@ export default function AdminMemberManagement() {
                             {/* Ban or Unban Button */}
                             {isBanned ? (
                               <button
+                                type="button"
                                 onClick={() => setUnbanModal({ isOpen: true, member, notes: '' })}
-                                className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-white border border-[#DCE3D5] rounded-lg hover:border-[#2F5233] transition-all shrink-0"
+                                className="px-2.5 py-1.5 text-xs font-semibold text-[#2F5233] bg-white border border-[#DCE3D5] rounded-lg hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all shrink-0 cursor-pointer"
                                 title="Restore User Account"
                               >
                                 Unban
                               </button>
                             ) : (
                               <button
+                                type="button"
+                                data-testid="open-ban-modal-btn"
                                 onClick={() =>
                                   setBanModal({
                                     isOpen: true,
@@ -678,10 +747,10 @@ export default function AdminMemberManagement() {
                                   })
                                 }
                                 disabled={member.role === 'Admin'}
-                                className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                                className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-1 disabled:active:scale-100 ${
                                   member.role === 'Admin'
                                     ? 'opacity-40 cursor-not-allowed text-[#8A9080] border border-[#EAF0E9]'
-                                    : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white'
+                                    : 'text-[#A63446] bg-[#FBEAE7] border border-[#F4C2BC] hover:bg-[#A63446] hover:text-white active:scale-[0.97] motion-reduce:transform-none cursor-pointer'
                                 }`}
                                 title={
                                   member.role === 'Admin'
@@ -699,7 +768,7 @@ export default function AdminMemberManagement() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-[#6B6F63]">
+                    <td colSpan="6" className="py-12 text-center text-[#6B6F63] border-b border-[#EAF0E9]">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-10 h-10 text-[#A8BDA2] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -707,8 +776,9 @@ export default function AdminMemberManagement() {
                         <p className="font-semibold text-sm text-[#2B2A25]">No members found</p>
                         <p className="text-xs text-[#8A9080] mt-0.5">Try searching with a different name or clear active filters.</p>
                         <button
+                          type="button"
                           onClick={handleClearFilters}
-                          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full hover:bg-[#2F5233] hover:text-white transition-all"
+                          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#2F5233] bg-[#EAF0E9] border border-[#DCE3D5] rounded-full hover:bg-[#2F5233] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -736,9 +806,10 @@ export default function AdminMemberManagement() {
 
             <div className="flex items-center gap-1.5">
               <button
+                type="button"
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Previous
               </button>
@@ -746,8 +817,9 @@ export default function AdminMemberManagement() {
               {getPaginationPages(currentPage, totalPages, 5).map((pageNum) => (
                 <button
                   key={pageNum}
+                  type="button"
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.95] motion-reduce:transform-none transition-all cursor-pointer ${
                     currentPage === pageNum
                       ? 'bg-[#2F5233] text-white shadow-xs'
                       : 'border border-[#DCE3D5] bg-white text-[#6B6F63] hover:border-[#2F5233] hover:text-[#2B2A25]'
@@ -758,9 +830,10 @@ export default function AdminMemberManagement() {
               ))}
 
               <button
+                type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-[#DCE3D5] bg-white text-[#2B2A25] hover:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] disabled:active:scale-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Next
               </button>
@@ -771,9 +844,18 @@ export default function AdminMemberManagement() {
         {/* ============================================================ */}
         {/* MODAL 1: BAN MEMBER (FN39: Ban with Reason & Duration)       */}
         {/* ============================================================ */}
-        {banModal.isOpen && banModal.member && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden">
+        <ModalMotion
+          isOpen={Boolean(banModal.isOpen && banModal.member)}
+          onClose={() => {
+            if (!banModal.isSubmitting) {
+              setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false });
+            }
+          }}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden"
+        >
+          {banModal.member && (
+            <>
               <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#FBEAE7] text-[#A63446] flex items-center justify-center shrink-0">
@@ -787,8 +869,11 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                  type="button"
+                  aria-label="Close modal"
+                  onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false })}
+                  disabled={banModal.isSubmitting}
+                  className="p-1 rounded-lg text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none disabled:opacity-50 cursor-pointer"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -815,8 +900,9 @@ export default function AdminMemberManagement() {
                   </label>
                   <select
                     value={banModal.duration}
+                    disabled={banModal.isSubmitting}
                     onChange={(e) => setBanModal((prev) => ({ ...prev, duration: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233]"
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] disabled:opacity-50 cursor-pointer"
                   >
                     <option value="7 Days">7 Days (Temporary Warning)</option>
                     <option value="30 Days">30 Days (Standard Moderation)</option>
@@ -827,16 +913,24 @@ export default function AdminMemberManagement() {
 
                 {/* Reason input */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#2B2A25] mb-1.5">
-                    Reason for Suspension <span className="text-[#A63446]">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="admin-ban-reason-input" className="block text-xs font-semibold text-[#2B2A25]">
+                      Reason for Suspension <span className="text-[#A63446]">*</span>
+                    </label>
+                    <span className={`text-[10px] ${banModal.reason.length > 450 ? 'text-[#A63446] font-semibold' : 'text-[#8A9080]'}`}>
+                      {banModal.reason.length}/500
+                    </span>
+                  </div>
                   <textarea
+                    id="admin-ban-reason-input"
                     rows={3}
                     required
+                    maxLength={500}
+                    disabled={banModal.isSubmitting}
                     placeholder="Specify why this account is being banned (e.g., Harassment, Unverified medical claims, commercial spam)..."
                     value={banModal.reason}
                     onChange={(e) => setBanModal((prev) => ({ ...prev, reason: e.target.value }))}
-                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25] placeholder-[#8A9080]"
+                    className="w-full p-3 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] text-[#2B2A25] placeholder-[#8A9080] disabled:opacity-50"
                   />
                 </div>
 
@@ -849,29 +943,36 @@ export default function AdminMemberManagement() {
                 <div className="flex items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
-                    onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days' })}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                    disabled={banModal.isSubmitting}
+                    onClick={() => setBanModal({ isOpen: false, member: null, reason: '', duration: '30 Days', isSubmitting: false })}
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all disabled:opacity-50 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] transition-colors"
+                    disabled={banModal.isSubmitting || !banModal.reason.trim()}
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#A63446] rounded-xl shadow-xs hover:bg-[#8B2B3A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] focus-visible:ring-offset-1 active:scale-[0.98] disabled:active:scale-100 motion-reduce:transform-none transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    Confirm & Revoke Access
+                    {banModal.isSubmitting ? 'Suspending...' : 'Confirm & Revoke Access'}
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalMotion>
 
         {/* ============================================================ */}
         {/* MODAL 2: UNBAN MEMBER                                        */}
         {/* ============================================================ */}
-        {unbanModal.isOpen && unbanModal.member && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden">
+        <ModalMotion
+          isOpen={Boolean(unbanModal.isOpen && unbanModal.member)}
+          onClose={() => setUnbanModal({ isOpen: false, member: null, notes: '' })}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-md w-full shadow-2xl p-6 overflow-hidden"
+        >
+          {unbanModal.member && (
+            <>
               <div className="flex items-start justify-between pb-3 border-b border-[#DCE3D5]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#EAF0E9] text-[#2F5233] flex items-center justify-center shrink-0">
@@ -885,8 +986,10 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Close modal"
                   onClick={() => setUnbanModal({ isOpen: false, member: null, notes: '' })}
-                  className="text-[#8A9080] hover:text-[#2B2A25]"
+                  className="p-1 rounded-lg text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -914,7 +1017,7 @@ export default function AdminMemberManagement() {
                     placeholder="e.g., Appeal approved, probation completed..."
                     value={unbanModal.notes}
                     onChange={(e) => setUnbanModal((prev) => ({ ...prev, notes: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] text-[#2B2A25]"
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3D5] rounded-xl outline-none focus:border-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] text-[#2B2A25]"
                   />
                 </div>
 
@@ -922,28 +1025,33 @@ export default function AdminMemberManagement() {
                   <button
                     type="button"
                     onClick={() => setUnbanModal({ isOpen: false, member: null, notes: '' })}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] transition-colors"
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-xl shadow-xs hover:bg-[#25401F] transition-colors"
+                    className="px-4 py-2 text-xs font-semibold text-white bg-[#2F5233] rounded-xl shadow-xs hover:bg-[#25401F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.98] motion-reduce:transform-none transition-all cursor-pointer"
                   >
                     Restore Account
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalMotion>
 
         {/* ============================================================ */}
         {/* MODAL 3: MEMBER DETAIL OVERVIEW                              */}
         {/* ============================================================ */}
-        {detailModal.isOpen && detailModal.member && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-lg w-full shadow-2xl p-6 overflow-hidden">
+        <ModalMotion
+          isOpen={Boolean(detailModal.isOpen && detailModal.member)}
+          onClose={() => setDetailModal({ isOpen: false, member: null })}
+          backdropClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+          dialogClassName="bg-[#FDFBF6] border border-[#DCE3D5] rounded-3xl max-w-lg w-full shadow-2xl p-6 overflow-hidden"
+        >
+          {detailModal.member && (
+            <>
               <div className="flex items-start justify-between pb-4 border-b border-[#DCE3D5]">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full border border-[#DCE3D5] flex items-center justify-center font-bold text-sm bg-[#EAF0E9] text-[#2F5233] shrink-0 overflow-hidden">
@@ -970,8 +1078,10 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Close modal"
                   onClick={() => setDetailModal({ isOpen: false, member: null })}
-                  className="text-[#8A9080] hover:text-[#2B2A25] shrink-0 ml-2"
+                  className="p-1 rounded-lg text-[#8A9080] hover:text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none shrink-0 ml-2 cursor-pointer"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -1018,14 +1128,6 @@ export default function AdminMemberManagement() {
                   </div>
                 </div>
 
-                {/* Diet preference */}
-                <div>
-                  <span className="font-semibold text-[#2B2A25] block mb-1">Diet Preference</span>
-                  <p className="text-[#6B6F63] bg-[#FAFBF9] p-3 rounded-xl border border-[#DCE3D5] leading-relaxed">
-                    {detailModal.member.bio}
-                  </p>
-                </div>
-
                 {/* Ban info if banned */}
                 {detailModal.member.status === 'Banned' && (
                   <div className="bg-[#FBEAE7] border border-[#F4C2BC] rounded-xl p-3 text-[#A63446]">
@@ -1039,28 +1141,19 @@ export default function AdminMemberManagement() {
                 )}
 
                 {/* Footer action */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#DCE3D5]">
-                  <Link
-                    to={`/users/${detailModal.member.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F5233] hover:underline"
-                  >
-                    <span>View Public Posts</span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </Link>
-
+                <div className="flex items-center justify-end pt-3 border-t border-[#DCE3D5]">
                   <button
+                    type="button"
                     onClick={() => setDetailModal({ isOpen: false, member: null })}
-                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9]"
+                    className="px-4 py-2 text-xs font-semibold text-[#2B2A25] bg-white border border-[#DCE3D5] rounded-xl hover:bg-[#FAFBF9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-[0.97] motion-reduce:transform-none transition-all cursor-pointer"
                   >
                     Close
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </ModalMotion>
       </div>
     </AdminLayout>
   );

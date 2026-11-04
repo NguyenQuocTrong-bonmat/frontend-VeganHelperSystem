@@ -8,15 +8,17 @@ const Button = React.forwardRef(({
   disabled, 
   ...props 
 }, ref) => {
-  const baseStyles = 'inline-flex items-center justify-center font-dm-sans transition-all duration-normal ease-vh focus-ring-vh';
+  const baseStyles = 'inline-flex items-center justify-center font-dm-sans transition-all duration-normal ease-vh focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2';
   const variants = {
     primary: 'bg-vh-forest text-white hover:bg-opacity-90 rounded-control px-4 py-2 text-base font-medium',
     secondary: 'bg-transparent text-vh-forest border border-vh-forest hover:bg-vh-forest hover:bg-opacity-10 rounded-control px-4 py-2 text-base font-medium',
-    destructive: 'bg-vh-error text-white hover:bg-opacity-90 rounded-control px-4 py-2 text-base font-medium',
+    destructive: 'bg-vh-error text-white hover:bg-opacity-90 rounded-control px-4 py-2 text-base font-medium focus-visible:ring-vh-error',
   };
 
   const variantStyles = variants[variant] || variants.primary;
-  const stateStyles = disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:-translate-y-[1px] shadow-sm hover:shadow';
+  const stateStyles = disabled || isLoading
+    ? 'opacity-50 cursor-not-allowed'
+    : 'cursor-pointer hover:-translate-y-[1px] shadow-sm hover:shadow active:scale-[0.98] active:translate-y-0 active:shadow-none motion-reduce:transform-none';
 
   return (
     <button

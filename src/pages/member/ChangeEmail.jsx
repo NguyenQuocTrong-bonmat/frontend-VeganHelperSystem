@@ -96,10 +96,10 @@ export default function ChangeEmail() {
       <>
         <HeaderMember />
         <div className="min-h-screen bg-vh-cream py-10 px-4 flex justify-center text-center font-dm-sans">
-        <div className="max-w-md bg-white p-8 rounded-card-lg shadow-subtle border border-vh-border">
+          <div className="max-w-md bg-white p-8 rounded-card-lg shadow-subtle border border-vh-border">
             <h2 className="text-xl font-dm-serif text-vh-forest mb-4">Cannot Change Email</h2>
             <p className="text-vh-text-secondary mb-6">Your account is linked to Google. Please unlink it in your Profile first.</p>
-            <Link to="/profile" className="px-6 py-2 bg-vh-forest text-white rounded-control hover:bg-[#1a3829] transition-colors">
+            <Link to="/profile" className="px-6 py-2 bg-vh-forest text-white rounded-control hover:bg-[#1a3829] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none">
               Go to Profile
             </Link>
           </div>
@@ -117,12 +117,12 @@ export default function ChangeEmail() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-vh-sage rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
 
         <div className="max-w-2xl mx-auto relative z-10 space-y-8">
-          
+
           {/* Breadcrumb Navigation */}
           <nav className="flex items-center text-sm font-medium text-vh-text-secondary mb-4">
-            <Link to="/home" className="hover:text-vh-forest transition-colors">Home</Link>
+            <Link to="/home" className="hover:text-vh-forest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-0.5">Home</Link>
             <span className="mx-2 text-vh-border">/</span>
-            <Link to="/security" className="hover:text-vh-forest transition-colors">Security</Link>
+            <Link to="/security" className="hover:text-vh-forest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-0.5">Security</Link>
             <span className="mx-2 text-vh-border">/</span>
             <span className="text-vh-forest">Change Email</span>
           </nav>
@@ -150,32 +150,32 @@ export default function ChangeEmail() {
                   <h3 className="font-medium text-lg mb-2">Step 1: Enter New Email and Current Password</h3>
                   <p className="text-vh-text-secondary text-sm">Please provide the new email address and your current password to continue.</p>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">New Email Address</label>
                     <input
-                      type="email" 
+                      type="email"
                       placeholder="e.g. newemail@example.com"
                       required
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white"
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-all"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Current Password</label>
                     <input
-                      type="password" 
+                      type="password"
                       placeholder="Enter current password"
                       required
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white"
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-all"
                     />
                   </div>
                   <div className="pt-2">
-                    <button type="submit" disabled={isSubmitting} className="w-full px-6 py-2.5 rounded-control bg-vh-forest text-white font-medium disabled:opacity-60">
+                    <button type="submit" disabled={isSubmitting} className="w-full px-6 py-2.5 rounded-control bg-vh-forest hover:bg-[#1a3829] text-white font-medium disabled:opacity-60 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100">
                       {isSubmitting ? 'Sending...' : 'Continue'}
                     </button>
                   </div>
@@ -194,7 +194,7 @@ export default function ChangeEmail() {
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Verification Code (OTP)</label>
                     <input
-                      type="text" 
+                      type="text"
                       placeholder="Enter 6-digit OTP"
                       inputMode="numeric"
                       maxLength={6}
@@ -202,15 +202,15 @@ export default function ChangeEmail() {
                       required
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white text-center tracking-[0.5em]"
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white text-center tracking-[0.5em] focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-all"
                     />
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button type="button" onClick={() => { setOtp(''); setStep(1); }} className="px-6 py-2.5 rounded-control border border-vh-border text-vh-text-secondary font-medium flex-1">
+                    <button type="button" onClick={() => { setOtp(''); setStep(1); }} className="px-6 py-2.5 rounded-control border border-vh-border text-vh-text-secondary hover:bg-vh-surface hover:text-vh-forest font-medium flex-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none">
                       Back
                     </button>
-                    <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 rounded-control bg-vh-forest text-white font-medium disabled:opacity-60 flex-1">
+                    <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 rounded-control bg-vh-forest hover:bg-[#1a3829] text-white font-medium disabled:opacity-60 flex-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100">
                       {isSubmitting ? 'Verifying...' : 'Verify OTP'}
                     </button>
                   </div>
@@ -224,7 +224,7 @@ export default function ChangeEmail() {
                   <h3 className="font-medium text-lg mb-2">Step 3: Verify OTP Sent to New Email</h3>
                   <p className="text-vh-text-secondary text-sm">A verification code has been sent to your new email address.</p>
                 </div>
-                
+
                 <div className="p-4 bg-vh-surface/50 rounded-control border border-vh-border">
                   <p className="text-sm text-vh-text-secondary mb-1">New Email Address</p>
                   <p className="font-medium text-gray-500">{newEmail}</p>
@@ -234,7 +234,7 @@ export default function ChangeEmail() {
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Verification Code (OTP)</label>
                     <input
-                      type="text" 
+                      type="text"
                       placeholder="Enter 6-digit OTP"
                       inputMode="numeric"
                       maxLength={6}
@@ -242,24 +242,24 @@ export default function ChangeEmail() {
                       required
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white text-center tracking-[0.5em]"
+                      className="w-full px-4 py-3 rounded-control border border-vh-border bg-white text-center tracking-[0.5em] focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-all"
                     />
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button type="button" onClick={() => { setOtp(''); setStep(2); }} className="px-6 py-2.5 rounded-control border border-vh-border text-vh-text-secondary font-medium flex-1">
+                    <button type="button" onClick={() => { setOtp(''); setStep(2); }} className="px-6 py-2.5 rounded-control border border-vh-border text-vh-text-secondary hover:bg-vh-surface hover:text-vh-forest font-medium flex-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none">
                       Back
                     </button>
-                    <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 rounded-control bg-vh-forest text-white font-medium disabled:opacity-60 flex-1">
+                    <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 rounded-control bg-vh-forest hover:bg-[#1a3829] text-white font-medium disabled:opacity-60 flex-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transform-none disabled:active:scale-100">
                       {isSubmitting ? 'Confirming...' : 'Verify and Change Email'}
                     </button>
                   </div>
                 </div>
               </form>
             )}
-            
+
             <div className="mt-8 pt-6 border-t border-vh-border text-center">
-              <button onClick={() => navigate('/security')} className="text-sm text-vh-text-secondary hover:text-vh-forest font-medium transition-colors">
+              <button onClick={() => navigate('/security')} className="text-sm text-vh-text-secondary hover:text-vh-forest font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-1 active:opacity-80">
                 Cancel & return to Security
               </button>
             </div>

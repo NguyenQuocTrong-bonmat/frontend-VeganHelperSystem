@@ -30,6 +30,8 @@ const failure = (status, data) => Object.assign(new Error('Request failed'), { r
 let container, root, adapter, route, profileRoute, originalAdapter, paymentAccess;
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-10-20T12:00:00Z'));
   global.IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
   originalAdapter = axios.defaults.adapter;
@@ -43,7 +45,7 @@ beforeEach(() => {
     } else if (config.url === '/meal-plan-payments/access') {
       data = paymentAccess;
     } else if (config.url === '/meal-plan-payments/packages') {
-      data = [{ code: 'one-month', name: 'One month', durationMonths: 1, amountVnd: 100000 }];
+      data = [{ code: 'one-month', name: 'One month', durationMonths: 1, amountVnd: 1000 }];
     } else {
       data = await route(config);
     }
@@ -54,6 +56,7 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await act(async () => root.unmount()); container.remove(); axios.defaults.adapter = originalAdapter; clearAuthTokens();
+  vi.useRealTimers();
 });
 const render = () => act(async () => root.render(<MemoryRouter><WeeklyMenu /></MemoryRouter>));
 const button = text => [...container.querySelectorAll('button')].find(node => node.textContent.includes(text) || node.getAttribute('aria-label')?.includes(text));
@@ -115,7 +118,7 @@ test('back preserves schedule values and cancelling setup preserves the saved me
   route = async () => page([plan()]);
   await render(); await openReview();
   await click(button('Back'));
-  expect(container.querySelector('#meal-plan-start').value).toBe('2026-10-21');
+  expect(container.querySelector('#meal-plan-start').value).toBe('21/10/2026');
   await click(button('Cancel setup'));
   expect(container.querySelector('#plan-setup-form')).toBeNull();
   expect(container.textContent).toContain('breakfast dish 8-1');
@@ -173,7 +176,7 @@ test.each([false, true])('loads saved plans with rememberMe=%s and displays real
   expect(container.textContent).toContain('Peanut');
   await click(button('Day view'));
   await click(button('breakfast dish 8-1'));
-  expect(container.textContent).toContain('1.25');
+  expect(container.textContent).toContain('125% of a standard serving');
   expect(container.textContent).toContain('125 g');
   await click(button('Close meal details'));
   expect(button('Wednesday')).toBeDefined();
@@ -190,18 +193,25 @@ test('uses backend access to block another generation after the three free trial
   expect(button('New weekly menu').disabled).toBe(true);
   expect(container.textContent).toContain('Your 3 free weekly-menu generations have been used');
   expect(container.textContent).toContain('One month');
-  expect(container.textContent).toMatch(/100[.,]000/);
+  expect(container.textContent).toMatch(/1[.,]000/);
   expect(adapter.mock.calls.some(([config]) => config.url === '/MealPlans/generate')).toBe(false);
 });
 
-test('generates and displays the persisted response, posting only the selected start date', async () => {
+test('generates and displays the persisted response with the selected meal calorie split', async () => {
   route = async config => config.method === 'post' ? plan(9) : page();
   await render();
   await openReview();
-  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+  const generation = act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  await vi.advanceTimersByTimeAsync(21000);
+  await generation;
   const request = adapter.mock.calls.map(([config]) => config).find(config => config.method === 'post');
   expect(request.url).toBe('/MealPlans/generate');
-  expect(JSON.parse(request.data)).toEqual({ startDate: '2026-10-21' });
+  expect(JSON.parse(request.data)).toEqual({
+    name: 'Week of 21/10/2026',
+    startDate: '2026-10-21',
+    mealCalorieSplit: { breakfastPercent: 25, lunchPercent: 30, dinnerPercent: 45 },
+  });
   expect(request.headers.Authorization).toBe('Bearer session-member');
   expect(container.textContent).toContain('breakfast dish 9-1');
   expect(container.textContent).toContain('saved');
@@ -238,14 +248,16 @@ test('prevents duplicate POSTs while generation is in flight', async () => {
   route = config => config.method === 'post' ? new Promise(resolve => { finish = resolve; }) : Promise.resolve(page());
   await render();
   await openReview();
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
   const form = container.querySelector('form');
   await act(async () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   });
   expect(adapter.mock.calls.filter(([config]) => config.method === 'post')).toHaveLength(1);
-  expect(container.querySelector('button[type="submit"]').disabled).toBe(true);
-  await act(async () => finish(plan()));
+  expect(button('New weekly menu').disabled).toBe(true);
+  expect(container.textContent).toContain('Creating and saving your weekly menu');
+  await act(async () => { finish(plan()); await vi.advanceTimersByTimeAsync(21000); });
   expect(container.textContent).toContain('breakfast dish 8-1');
 });
 
@@ -283,10 +295,11 @@ test('switching to health settings during creation keeps the pending request and
   };
   await render();
   await openReview();
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
   await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
   await click(button('Review health profile'));
   expect(container.querySelector('main').hidden).toBe(true);
-  await act(async () => finish(plan()));
+  await act(async () => { finish(plan()); await vi.advanceTimersByTimeAsync(21000); });
   await click(button('Weekly Menu'));
   expect(container.querySelector('main').hidden).toBe(false);
   expect(container.textContent).toContain('breakfast dish 8-1');
@@ -298,7 +311,7 @@ test('uncertain network failure advises reloading saved plans and does not retry
   await render();
   await openReview();
   await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  expect(container.querySelector('[role="alert"]').textContent).toContain('may already have been saved');
+  expect(container.querySelector('[role="alert"]').textContent).toContain('Could not confirm whether your menu was saved');
   expect(adapter.mock.calls.filter(([config]) => config.method === 'post')).toHaveLength(1);
   expect(container.textContent).toContain('breakfast dish 8-1');
 });

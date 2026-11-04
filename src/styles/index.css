@@ -46,6 +46,12 @@ body {
 .font-dm-serif { font-family: 'DM Serif Display', serif; }
 .font-dm-sans { font-family: 'DM Sans', sans-serif; }
 
+/* Edge adds a native reveal control beside our accessible password toggle. */
+.auth-password-input::-ms-reveal,
+.auth-password-input::-ms-clear {
+  display: none;
+}
+
 /* Hero asymmetric radius (Old) */
 .hero-radius {
   border-top-left-radius: 32px;
@@ -61,13 +67,20 @@ body {
 
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--primary-moss);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #FAF8F0, 0 0 0 4px var(--primary-moss);
+}
+
+.focus-ring-vh:focus {
+  outline: none;
 }
 
 .focus-ring-vh:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--vh-forest);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #FAF8F0, 0 0 0 4px var(--vh-forest);
 }
 
 /* Glassmorphism System */
@@ -126,4 +139,275 @@ body {
     transform: translateY(0);
   }
 }
+
+
+/* Store Map Pin Selected Pulse & Click Effect matching Landing Page */
+@keyframes storePinPulse {
+  from {
+    transform: scale(0.8);
+    opacity: 0.75;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes storePinPop {
+  0% {
+    transform: rotate(-45deg) scale(0.9);
+  }
+  50% {
+    transform: rotate(-45deg) scale(1.22);
+  }
+  100% {
+    transform: rotate(-45deg) scale(1.1);
+  }
+}
+
+.store-marker-pin-selected {
+  animation: storePinPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.store-marker-pin-selected::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1.5px solid #2F5233;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: storePinPulse 0.75s ease-out both;
+}
+
+/* ---- Responsive Fluid Typography Utilities (VEGANHELPER-RESPONSIVE-SPEC-FINAL) ---- */
+.text-clamp-hero-h1 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.75rem, 1.2rem + 2.75vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-clamp-page-h1 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.text-clamp-section-h2 {
+  font-family: 'Fraunces', 'DM Serif Display', serif;
+  font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.text-clamp-card-h3 {
+  font-family: 'Be Vietnam Pro', 'DM Sans', sans-serif;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+  line-height: 1.35;
+}
+
+.text-clamp-minor-h4 {
+  font-family: 'Be Vietnam Pro', 'DM Sans', sans-serif;
+  font-size: clamp(0.875rem, 0.85rem + 0.125vw, 1rem);
+  line-height: 1.4;
+}
+
+/* ---- Standard Container Architecture (5-Tier) ---- */
+.vh-container-feed {
+  width: 100%;
+  max-width: 1640px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-feed {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-feed {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-feed {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-dashboard {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-dashboard {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-dashboard {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-dashboard {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-editorial {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-editorial {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  .vh-container-editorial {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .vh-container-editorial {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.vh-container-form {
+  width: 100%;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-form {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.vh-container-settings {
+  width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .vh-container-settings {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Line-length limit for optimal reading comfort */
+.max-w-reading {
+  max-width: 65ch;
+}
+
+/* Touch-target minimum floor */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Goong Map Zoom Controls — Vegan Stores Responsive Positioning */
+.goongjs-ctrl-top-right,
+.mapboxgl-ctrl-top-right {
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 10 !important;
+}
+
+.goongjs-ctrl-top-right .goongjs-ctrl,
+.mapboxgl-ctrl-top-right .goongjs-ctrl {
+  margin: 0 !important;
+}
+
+/* Mobile Bottom Navigation Clearance */
+@media (max-width: 767.98px) {
+  body:has(#mobile-bottom-nav),
+  body:has([data-mobile-bottom-nav]),
+  .has-mobile-bottom-nav {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ==========================================================================
+   Home Member Hero — Small Mobile Decorative Visual Suppression (<480px)
+   Hides:
+   - Foreground food image inside the white frame (.vh-hero-decorative-visual)
+   - Faded food background image (.vh-hero-backdrop)
+   - Decorative curved background shape (.vh-hero-organic-wave)
+   Restores:
+   - Original visual at >= 480px (tablet and desktop)
+   Reclaims:
+   - Container height, margins, padding, and spacing to eliminate empty voids
+   ========================================================================== */
+@media (max-width: 479.98px) {
+  .vh-hero-decorative-visual,
+  .vh-hero-backdrop,
+  .vh-hero-organic-wave {
+    display: none !important;
+  }
+
+  .vh-hero-section {
+    min-height: auto !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .vh-hero-content {
+    margin-top: 0.5rem !important;
+    gap: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .vh-hero-copy {
+    width: 100% !important;
+  }
+
+  .vh-hero-title {
+    font-size: clamp(1.875rem, 8.5vw, 2.5rem) !important;
+    line-height: 1.15 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .vh-hero-desc {
+    margin-bottom: 1.5rem !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.5 !important;
+  }
+}
+
 

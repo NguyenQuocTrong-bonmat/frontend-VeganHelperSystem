@@ -3,17 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import { getMealPlanAccess, getMealPlanPaymentOrder } from '../../services/mealPlanPaymentService';
+import { getMealPlanAccess, getMealPlanPaymentOrder, verifyMealPlanPaymentOrder } from '../../services/mealPlanPaymentService';
 import { getMealPlanCheckoutContext } from '../../utils/mealPlanPaymentContext';
+import { formatDate } from '../../utils/dateUtils';
 
 const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
 
 function dateLabel(value) {
   if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? null
-    : new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+  return formatDate(value) || null;
 }
 
 function ResultIcon({ kind }) {
@@ -29,8 +27,8 @@ function ResultIcon({ kind }) {
 
 function resultFor(variant, order) {
   if (order?.status?.toLowerCase() === 'paid') return 'success';
-  if (order?.status?.toLowerCase() === 'failed') return 'failed';
   if (variant === 'cancel') return 'cancel';
+  if (order?.status?.toLowerCase() === 'failed') return 'failed';
   return 'pending';
 }
 
@@ -86,10 +84,21 @@ export default function MealPlanPaymentResult({ variant = 'success' }) {
       try {
         const attempts = variant === 'success' ? 6 : 1;
         let order = null;
+        try {
+          order = await verifyMealPlanPaymentOrder(context.orderId);
+        } catch (verificationError) {
+          // A webhook may have updated the order even if the provider status lookup failed.
+          order = await getMealPlanPaymentOrder(context.orderId);
+          if (order.status?.toLowerCase() !== 'paid') throw verificationError;
+        }
+
         for (let attempt = 0; attempt < attempts; attempt += 1) {
+          if (!active || order.status?.toLowerCase() !== 'pending') break;
+          if (attempt > 0) {
+            await new Promise(resolve => { timeout = setTimeout(resolve, 1500); });
+          }
           order = await getMealPlanPaymentOrder(context.orderId);
           if (!active || order.status?.toLowerCase() !== 'pending' || attempt === attempts - 1) break;
-          await new Promise(resolve => { timeout = setTimeout(resolve, 1500); });
         }
         if (!active) return;
 

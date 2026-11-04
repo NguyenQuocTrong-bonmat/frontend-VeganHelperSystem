@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function CategoriesTab() {
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Dialog states
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
+
   // Form state
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ export default function CategoriesTab() {
     postCategoryKind: '',
     isActive: true
   });
-  
+
   const selectedCategory = null;
 
   const handleOpenAddDialog = () => {
@@ -33,12 +34,12 @@ export default function CategoriesTab() {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    alert('API integration pending — no category changes were made.');
+    toast('API integration pending — no category changes were made.', { icon: 'ℹ️' });
     setIsFormDialogOpen(false);
   };
 
   const handleDeleteSubmit = () => {
-    alert('API integration pending — no category changes were made.');
+    toast('API integration pending — no category changes were made.', { icon: 'ℹ️' });
     setIsDeleteDialogOpen(false);
   };
 
@@ -56,7 +57,7 @@ export default function CategoriesTab() {
             Configure and organize taxonomy, recipes, and community classifications.
           </p>
         </div>
-        <button 
+        <button
           onClick={handleOpenAddDialog}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#2F5233] rounded-md hover:bg-[#244026] transition-colors shrink-0"
         >
@@ -140,39 +141,39 @@ export default function CategoriesTab() {
             <h3 className="text-lg font-bold text-[#2B2A25] mb-4">
               {isEditing ? 'Edit Category' : 'Add Category'}
             </h3>
-            
+
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Name <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                   placeholder="e.g., Main Courses"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Slug <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                   placeholder="e.g., main-courses"
                   value={formData.slug}
-                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[#2B2A25] mb-1">Category Type <span className="text-red-500">*</span></label>
-                <select 
+                <select
                   required
                   className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233] bg-white"
                   value={formData.categoryType}
-                  onChange={(e) => setFormData({...formData, categoryType: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, categoryType: e.target.value })}
                 >
                   <option value="post">Post</option>
                   <option value="product">Product</option>
@@ -182,23 +183,23 @@ export default function CategoriesTab() {
               {formData.categoryType === 'post' && (
                 <div>
                   <label className="block text-sm font-medium text-[#2B2A25] mb-1">Post Category Kind</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="w-full border border-[#DCE3D5] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5233]"
                     placeholder="e.g., recipe"
                     value={formData.postCategoryKind}
-                    onChange={(e) => setFormData({...formData, postCategoryKind: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, postCategoryKind: e.target.value })}
                   />
                 </div>
               )}
 
               <div className="flex items-center gap-2 pt-2">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   id="isActive"
                   className="w-4 h-4 text-[#2F5233] focus:ring-[#2F5233] border-[#DCE3D5] rounded"
                   checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 />
                 <label htmlFor="isActive" className="text-sm text-[#2B2A25]">
                   Active (visible to users)
@@ -206,14 +207,14 @@ export default function CategoriesTab() {
               </div>
 
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-[#E5EBE1]">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsFormDialogOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-[#6B6F63] bg-white border border-[#DCE3D5] rounded-md hover:bg-[#F5F8F2] transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-[#2F5233] rounded-md hover:bg-[#244026] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!formData.name || !formData.slug || !formData.categoryType}
@@ -232,10 +233,10 @@ export default function CategoriesTab() {
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-[#2B2A25] mb-2">Delete Category</h3>
             <p className="text-sm text-[#6B6F63] mb-4">
-              Are you sure you want to delete this category? 
+              Are you sure you want to delete this category?
               Deletion may be restricted when content references this category.
             </p>
-            
+
             {selectedCategory ? (
               <div className="bg-[#F9FBF8] border border-[#E5EBE1] rounded-md p-3 mb-4">
                 <p className="text-sm font-semibold text-[#2B2A25]">{selectedCategory.name}</p>
@@ -248,13 +249,13 @@ export default function CategoriesTab() {
             )}
 
             <div className="mt-6 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsDeleteDialogOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-[#6B6F63] bg-white border border-[#DCE3D5] rounded-md hover:bg-[#F5F8F2] transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleDeleteSubmit}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                 disabled={!selectedCategory}

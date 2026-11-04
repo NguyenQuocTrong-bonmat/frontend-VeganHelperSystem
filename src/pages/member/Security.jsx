@@ -8,7 +8,7 @@ import HeaderMember from '../../components/layout/HeaderMember';
 export default function Security() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   // Section A states
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -25,7 +25,7 @@ export default function Security() {
       toast.error('New passwords do not match.');
       return;
     }
-    
+
     setIsChangingPassword(true);
     try {
       await authService.changePassword({
@@ -57,7 +57,7 @@ export default function Security() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-vh-sage rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
 
         <div className="max-w-6xl mx-auto relative z-10 space-y-8">
-          
+
           {/* Breadcrumb Navigation */}
           <nav className="flex items-center text-sm font-medium text-vh-text-secondary mb-4">
             <Link to="/home" className="hover:text-vh-forest transition-colors flex items-center gap-1">
@@ -79,7 +79,7 @@ export default function Security() {
                 Manage your password and connected login methods securely.
               </p>
             </div>
-            <Link 
+            <Link
               to="/home"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-control bg-white border border-vh-border text-vh-forest font-medium hover:bg-vh-mint/20 hover:border-vh-sage transition-all shadow-sm"
             >
@@ -111,7 +111,7 @@ export default function Security() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
                   />
                 </div>
                 <div>
@@ -125,7 +125,7 @@ export default function Security() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
-                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
                   />
                 </div>
                 <div>
@@ -139,20 +139,20 @@ export default function Security() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus:border-vh-sage focus:ring-2 focus:ring-vh-sage/20 text-base transition-all duration-normal"
+                    className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
                   />
                 </div>
                 <div className="pt-6 mt-auto">
                   <button
                     type="submit"
                     disabled={isChangingPassword}
-                    className="w-full sm:w-auto px-8 py-3 rounded-control bg-vh-forest text-white text-base font-medium hover:bg-[#1a3829] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-floating flex justify-center items-center gap-2 focus:ring-4 focus:ring-vh-forest/20"
+                    className="w-full sm:w-auto px-8 py-3 rounded-control bg-vh-forest text-white text-base font-medium hover:bg-[#1a3829] transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-floating flex justify-center items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100"
                   >
                     {isChangingPassword ? (
-                       <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                       </svg>
+                      <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
                     ) : null}
                     {isChangingPassword ? 'Changing Password...' : 'Change Password'}
                   </button>
@@ -170,7 +170,7 @@ export default function Security() {
                   Email Address
                 </span>
               </h2>
-              
+
               <div className="flex-1 flex flex-col">
                 <div className="space-y-6 flex-1">
                   <div className="p-4 bg-vh-surface/50 rounded-control border border-vh-border">
@@ -181,13 +181,13 @@ export default function Security() {
                       {user?.email || 'Loading...'}
                     </p>
                   </div>
-                  
+
                   {isGoogleLinked ? (
                     <div className="p-4 bg-red-50 border border-red-200 rounded-control text-sm text-red-700">
                       <p className="font-medium mb-1">Google Account Linked</p>
                       <p>
                         Your account is currently linked to Google. To change your email address, you must first unlink your Google account in your{' '}
-                        <Link to="/profile" className="font-bold underline hover:text-red-900">
+                        <Link to="/profile" className="font-bold underline hover:text-red-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest rounded px-0.5">
                           Profile
                         </Link>.
                       </p>
@@ -207,11 +207,10 @@ export default function Security() {
                     onClick={(e) => {
                       if (isGoogleLinked) e.preventDefault();
                     }}
-                    className={`w-full sm:w-auto px-8 py-3 rounded-control border text-base font-medium transition-colors flex justify-center items-center gap-2 shadow-floating focus:ring-4 ${
-                      isGoogleLinked
+                    className={`w-full sm:w-auto px-8 py-3 rounded-control border text-base font-medium transition-all flex justify-center items-center gap-2 shadow-floating focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isGoogleLinked
                         ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
-                        : "bg-white border-vh-forest text-vh-forest hover:bg-vh-forest hover:text-white focus:ring-vh-forest/20"
-                    }`}
+                        : "bg-white border-vh-forest text-vh-forest hover:bg-vh-forest hover:text-white focus-visible:ring-vh-forest active:scale-95 motion-reduce:transform-none"
+                      }`}
                   >
                     Change Email
                   </Link>

@@ -128,4 +128,34 @@ describe('FeaturedPost', () => {
     expect(container.querySelector('img[alt="Vietnamese Vegan Pho"]')).toBeNull();
     expect(container.textContent).toContain('Vietnamese Botanical Cuisine');
   });
+
+  it('updates like count and toggles heart when clicked', async () => {
+    const postWithLikes = {
+      ...basePost,
+      id: 105,
+      likeCount: 5,
+      isLiked: false,
+    };
+
+    await act(async () => {
+      root.render(
+        <BrowserRouter>
+          <FeaturedPost post={postWithLikes} isGuest={false} />
+        </BrowserRouter>
+      );
+    });
+
+    const likeBtn = container.querySelector('button[aria-label="Like post"]');
+    expect(likeBtn).not.toBeNull();
+    expect(likeBtn.textContent).toContain('5');
+
+    // Click the like button
+    await act(async () => {
+      likeBtn.click();
+    });
+
+    // Optimistic update increments like count to 6 and label changes
+    expect(container.querySelector('button[aria-label="Unlike post"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="Unlike post"]').textContent).toContain('6');
+  });
 });

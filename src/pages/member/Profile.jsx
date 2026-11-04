@@ -4,9 +4,11 @@ import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
+import AIChatbot from '../../components/chat/AIChatbot';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatCalendarDate } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
+import DateInput from '../../components/common/DateInput';
 
 const formatDateInputValue = (date) => {
   const year = date.getFullYear();
@@ -33,13 +35,26 @@ const isValidBirthDate = (value) => {
   return isRealDate && value < formatDateInputValue(new Date());
 };
 
+const VIETNAMESE_PHONE_REGEX = /^(0|\+84)(3|5|7|8|9)\d{8}$/;
+
+const normalizePhoneNumber = (phone) => {
+  if (!phone) return '';
+  return phone.trim().replace(/[\s.-]/g, '');
+};
+
+const isValidPhoneNumber = (phone) => {
+  const cleaned = normalizePhoneNumber(phone);
+  if (!cleaned) return true; // Phone is optional in profile
+  return VIETNAMESE_PHONE_REGEX.test(cleaned);
+};
+
 function Profile() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  
+  const { logout, restoreSession } = useAuth();
+
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Edit Profile States
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -62,6 +77,29 @@ function Profile() {
   const [unlinkOTP, setUnlinkOTP] = useState('');
   const [unlinkMessage, setUnlinkMessage] = useState('');
 
+  const syncEditFormFromProfile = (p = profile) => {
+    if (!p) return;
+    setEditForm({
+      displayName: p.displayName || '',
+      phoneNumber: p.phoneNumber || '',
+      biologicalSex: p.biologicalSex || 'female',
+      birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
+    });
+    setEditErrors({});
+    setAvatarFile(null);
+    setAvatarPreview(null);
+  };
+
+  const handleOpenEditModal = () => {
+    syncEditFormFromProfile(profile);
+    setIsEditOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    syncEditFormFromProfile(profile);
+    setIsEditOpen(false);
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -70,15 +108,9 @@ function Profile() {
     try {
       setIsLoading(true);
       const data = await authService.getProfile();
-      setProfile(data.data || data); 
-      
       const p = data.data || data;
-      setEditForm({
-        displayName: p.displayName || '',
-        phoneNumber: p.phoneNumber || '',
-        biologicalSex: p.biologicalSex || 'female',
-        birthDate: p.birthDate ? p.birthDate.split('T')[0] : ''
-      });
+      setProfile(p);
+      syncEditFormFromProfile(p);
     } catch (err) {
       toast.error('Failed to load profile.');
     } finally {
@@ -114,10 +146,16 @@ function Profile() {
     e.preventDefault();
 
     const displayName = editForm.displayName.trim();
+    const rawPhone = editForm.phoneNumber || '';
+    const cleanedPhone = normalizePhoneNumber(rawPhone);
     const errors = {};
 
     if (displayName.length < 3) {
       errors.displayName = 'Full name must contain at least 3 characters.';
+    }
+
+    if (rawPhone.trim() && !isValidPhoneNumber(rawPhone)) {
+      errors.phoneNumber = 'Phone number must be a valid Vietnamese number (e.g. 0912345678 or +84912345678).';
     }
 
     if (editForm.birthDate && !isValidBirthDate(editForm.birthDate)) {
@@ -133,7 +171,7 @@ function Profile() {
     try {
       const formData = new FormData();
       formData.append('displayName', displayName);
-      if (editForm.phoneNumber) formData.append('phoneNumber', editForm.phoneNumber);
+      formData.append('phoneNumber', cleanedPhone);
       if (editForm.biologicalSex) formData.append('biologicalSex', editForm.biologicalSex);
       if (editForm.birthDate) formData.append('birthDate', editForm.birthDate);
       if (avatarFile) formData.append('avatar', avatarFile);
@@ -142,9 +180,23 @@ function Profile() {
       toast.success('Profile updated successfully!');
       setEditErrors({});
       setIsEditOpen(false);
-      fetchProfile();
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      await fetchProfile();
+      if (restoreSession) {
+        await restoreSession();
+      }
+      window.dispatchEvent(
+        new CustomEvent('veganhelper:profile-updated', {
+          detail: { userId: profile?.id },
+        })
+      );
     } catch (err) {
-      toast.error('Failed to update profile.');
+      const serverError = err.response?.data?.error || 'Failed to update profile.';
+      if (serverError.toLowerCase().includes('phone')) {
+        setEditErrors(prev => ({ ...prev, phoneNumber: serverError }));
+      }
+      toast.error(serverError);
     }
   };
 
@@ -220,7 +272,7 @@ function Profile() {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 30) return `Joined ${diffDays === 0 ? 'today' : `${diffDays} days ago`}`;
     const diffMonths = Math.floor(diffDays / 30);
     if (diffMonths < 12) return `Joined ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
@@ -287,7 +339,7 @@ function Profile() {
             </div>
             {/* Right: Primary Action Button */}
             <div className="flex-shrink-0 self-start md:self-center">
-              <button onClick={() => setIsEditOpen(true)} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition shadow-sm hover:shadow active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-moss" id="openEditProfileBtn" type="button">
+              <button onClick={handleOpenEditModal} className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-sm font-medium transition-all shadow-sm hover:shadow active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-moss cursor-pointer" id="openEditProfileBtn" type="button">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -407,8 +459,8 @@ function Profile() {
                     </span>
                   </div>
                   <p className="text-sm font-semibold text-text-charcoal">
-                    {(profile?.provider === 'google' || profile?.isGoogleLinked) 
-                      ? 'Your account is linked to Google.' 
+                    {(profile?.provider === 'google' || profile?.isGoogleLinked)
+                      ? 'Your account is linked to Google.'
                       : 'Connect your Google account for quicker login'}
                   </p>
                 </div>
@@ -469,95 +521,11 @@ function Profile() {
         </div>
       </footer>
       {/* END: MainFooter */}
-      {/* BEGIN: ChatbotFloatingComponent */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end" data-purpose="ai-assistant-container">
-        {/* AI Nutrition Assistant Pop-up Widget */}
-        <div className="hidden w-[380px] h-[520px] bg-surface-paper rounded-2xl shadow-popover border border-border-sage-mist flex flex-col mb-4 overflow-hidden origin-bottom-right transition-all animate-in fade-in zoom-in-95 duration-200" id="aiChatWidget">
-          {/* Assistant Header */}
-          <div className="bg-primary-moss text-white px-5 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                {/* 4-point Sparkle Icon */}
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-fraunces font-semibold text-base leading-tight">
-                  AI Nutrition Assistant
-                </h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[11px] text-white/80 font-normal">
-                    Online & ready
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition" id="closeAiChatBtn" type="button">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
-              </svg>
-            </button>
-          </div>
-          {/* Messages Scroll Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-herb-white/40 text-sm">
-            {/* Assistant Message Bubble */}
-            <div className="flex items-start gap-2.5 max-w-[85%]">
-              <div className="w-7 h-7 rounded-full bg-primary-moss/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-primary-moss">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"></path>
-                </svg>
-              </div>
-              <div className="bg-surface-paper border border-border-sage-mist rounded-2xl rounded-tl-sm p-3 shadow-xs text-text-charcoal">
-                <p className="">
-                  Hello Linh! 👋 I'm your Vegan Helper nutrition guide. How can I assist your plant-based meal planning today?
-                </p>
-              </div>
-            </div>
-            {/* Suggestion Chips Group */}
-            <div className="pt-2">
-              <p className="text-[11px] font-semibold text-text-stem-gray uppercase tracking-wider mb-2">
-                Quick inquiries
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🌱 High Protein Dishes
-                </button>
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🥣 Weight Loss Menu
-                </button>
-                <button className="text-xs bg-surface-paper hover:bg-primary-moss hover:text-white text-text-charcoal px-3 py-1.5 rounded-full border border-border-sage-mist transition-colors shadow-2xs">
-                  🥦 Ingredient Swaps
-                </button>
-              </div>
-            </div>
-          </div>
-          {/* Input Footer Area */}
-          <div className="p-3 bg-surface-paper border-t border-border-sage-mist">
-            <form className="flex items-center gap-2">
-              <input className="flex-1 text-sm bg-herb-white/60 border border-border-sage-mist rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-moss/30 focus:border-primary-moss placeholder:text-text-stem-gray/70" placeholder="Ask AI nutrition assistant..." type="text" />
-              <button className="w-9 h-9 rounded-full bg-primary-moss text-white flex items-center justify-center hover:bg-moss-hover transition shadow-sm flex-shrink-0" title="Send" type="submit">
-                <svg className="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <path d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-              </button>
-            </form>
-          </div>
-        </div>
-        {/* 56px Floating Action Button (AI Assistant) */}
-        <button aria-label="Toggle AI Nutrition Assistant" className="w-14 h-14 rounded-full bg-primary-moss text-white flex items-center justify-center shadow-float hover:bg-moss-hover hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-4 focus:ring-primary-moss/30" id="aiChatToggleBtn" type="button">
-          {/* 4-point AI sparkle icon */}
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"></path>
-          </svg>
-        </button>
-      </div>
-      {/* END: ChatbotFloatingComponent */}
+      <AIChatbot />
       {/* BEGIN: EditProfileModal */}
       <div className={`fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 ${isEditOpen ? "" : "hidden"}`} id="edit-profile-modal-overlay">
         {/* Sibling 1: Backdrop */}
-        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" id="editModalBackdrop"></div>
+        <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" id="editModalBackdrop" onClick={handleCloseEditModal}></div>
         {/* Sibling 2: Modal Content Box */}
         <div className="relative z-10 bg-surface-paper border border-border-sage-mist rounded-xl w-full max-w-md p-6 sm:p-7 shadow-[0_2px_12px_rgba(43,42,37,0.12)] max-h-[90vh] overflow-y-auto" id="edit-profile-modal-container" style={{ boxShadow: '0 2px 12px rgba(43,42,37,0.12)' }}>
           {/* Modal Header */}
@@ -570,7 +538,7 @@ function Profile() {
                 Update your account identity and contact details.
               </p>
             </div>
-            <button onClick={() => setIsEditOpen(false)} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-colors duration-200" id="closeEditProfileBtn" type="button">
+            <button onClick={handleCloseEditModal} aria-label="Close modal" className="text-text-stem-gray hover:text-text-charcoal p-1.5 rounded-lg hover:bg-herb-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" id="closeEditProfileBtn" type="button">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>
@@ -591,7 +559,7 @@ function Profile() {
                 </span>
               </div>
               <div>
-                <button onClick={() => fileInputRef.current.click()} className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-colors duration-200 shadow-2xs" type="button"><input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} accept="image/png, image/jpeg" />
+                <button onClick={() => fileInputRef.current.click()} className="text-xs font-medium text-primary-moss hover:text-[#25401F] border border-border-sage-mist bg-white hover:bg-herb-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer" type="button"><input type="file" hidden ref={fileInputRef} onChange={handleFileSelect} accept="image/png, image/jpeg" />
                   Change Photo
                 </button>
                 <p className="text-[11px] text-text-stem-gray mt-1">
@@ -605,7 +573,7 @@ function Profile() {
                 Full Name
               </label>
               <input
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.displayName ? 'border-red-500' : 'border-border-sage-mist'}`}
                 id="modalFullName"
                 type="text"
                 value={editForm.displayName}
@@ -636,7 +604,20 @@ function Profile() {
               <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalPhone">
                 Phone Number
               </label>
-              <input className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalPhone" type="tel" value={editForm.phoneNumber} onChange={handleEditChange} />
+              <input
+                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.phoneNumber ? 'border-red-500' : 'border-border-sage-mist'}`}
+                id="modalPhone"
+                type="tel"
+                placeholder="e.g. 0912345678"
+                value={editForm.phoneNumber || ''}
+                aria-invalid={Boolean(editErrors.phoneNumber)}
+                onChange={handleEditChange}
+              />
+              {editErrors.phoneNumber && (
+                <p className="mt-1 text-xs text-red-600" role="alert" id="modalPhoneError">
+                  {editErrors.phoneNumber}
+                </p>
+              )}
             </div>
             {/* 2-Column Grid: Sex & DOB */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -644,30 +625,31 @@ function Profile() {
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalSex">
                   Biological Sex
                 </label>
-                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+                <select className="w-full text-sm bg-white border border-border-sage-mist rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 cursor-pointer" id="modalSex" value={editForm.biologicalSex} onChange={handleEditChange}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[#2B2A25] mb-1" htmlFor="modalDob">
                   Date of Birth
                 </label>
-                <input
-                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus:ring-2 focus:ring-[#2F5233] focus:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
+                <DateInput
                   id="modalDob"
-                  type="date"
+                  name="birthDate"
                   value={editForm.birthDate}
                   max={getLatestValidBirthDate()}
                   aria-invalid={Boolean(editErrors.birthDate)}
                   onChange={handleEditChange}
+                  inputClassName={`text-sm bg-white border rounded-lg px-3 py-2 text-text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-colors duration-200 ${editErrors.birthDate ? 'border-red-500' : 'border-border-sage-mist'}`}
                 />
+                <p className="text-[11px] text-text-stem-gray mt-0.5">Format: DD/MM/YYYY</p>
                 {editErrors.birthDate && <p className="mt-1 text-xs text-red-600">{editErrors.birthDate}</p>}
               </div>
             </div>
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-2">
-              <button onClick={() => setIsEditOpen(false)} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200" id="cancelEditProfileBtn" type="button">
+              <button onClick={handleCloseEditModal} className="border border-[#2F5233] text-[#2F5233] hover:bg-[#F3F6EE] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer" id="cancelEditProfileBtn" type="button">
                 Cancel
               </button>
-              <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 shadow-sm" id="saveEditProfileBtn" type="submit">
+              <button className="bg-[#2F5233] hover:bg-[#25401F] text-white rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer" id="saveEditProfileBtn" type="submit">
                 Save Changes
               </button>
             </div>
@@ -679,21 +661,21 @@ function Profile() {
       {/* Set Password Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isPasswordModalOpen ? "" : "hidden"}`}>
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => setIsPasswordModalOpen(false)}></div>
-        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full border border-border-sage-mist shadow-lg">
           <h3 className="font-caslon text-xl font-bold mb-4">Set Local Password</h3>
           <p className="text-sm text-text-stem-gray mb-4">You need to set a local password before unlinking your Google account.</p>
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div>
               <label className="block text-xs mb-1">New Password</label>
-              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.newPassword} onChange={e => setPasswordForm(p => ({...p, newPassword: e.target.value}))} />
+              <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={passwordForm.newPassword} onChange={e => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))} />
             </div>
             <div>
               <label className="block text-xs mb-1">Confirm Password</label>
-              <input type="password" required className="w-full border rounded-lg px-3 py-2" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(p => ({...p, confirmPassword: e.target.value}))} />
+              <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={passwordForm.confirmPassword} onChange={e => setPasswordForm(p => ({ ...p, confirmPassword: e.target.value }))} />
             </div>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-sm bg-primary-moss text-white rounded-lg">Save Password</button>
+              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-sm bg-primary-moss hover:bg-moss-hover text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Save Password</button>
             </div>
           </form>
         </div>
@@ -702,20 +684,20 @@ function Profile() {
       {/* Unlink Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isUnlinkModalOpen ? "" : "hidden"}`}>
         <div className="absolute inset-0 bg-[#2b2a25] bg-opacity-40" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }}></div>
-        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full">
+        <div className="relative z-10 bg-surface-paper rounded-xl p-6 max-w-sm w-full border border-border-sage-mist shadow-lg">
           <h3 className="font-caslon text-xl font-bold mb-4">Unlink Google Account</h3>
-          
+
           {unlinkStep === 1 ? (
             <>
               <p className="text-sm text-text-stem-gray mb-4">Please enter your password to confirm this action.</p>
               <form onSubmit={handleRequestUnlinkGoogle} className="space-y-4">
                 <div>
                   <label className="block text-xs mb-1">Current Password</label>
-                  <input type="password" required className="w-full border rounded-lg px-3 py-2" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                  <input type="password" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Continue</button>
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); }} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot hover:bg-red-800 text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-beetroot focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Continue</button>
                 </div>
               </form>
             </>
@@ -725,11 +707,11 @@ function Profile() {
               <form onSubmit={handleConfirmUnlinkGoogle} className="space-y-4">
                 <div>
                   <label className="block text-xs mb-1">OTP</label>
-                  <input type="text" required className="w-full border rounded-lg px-3 py-2" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
+                  <input type="text" required className="w-full border border-border-sage-mist rounded-lg px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:border-primary-moss" value={unlinkOTP} onChange={e => setUnlinkOTP(e.target.value)} />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot text-white rounded-lg">Confirm Unlink</button>
+                  <button type="button" onClick={() => { setIsUnlinkModalOpen(false); setUnlinkStep(1); setCurrentPassword(''); setUnlinkOTP(''); }} className="px-4 py-2 text-sm border border-border-sage-mist rounded-lg hover:bg-herb-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss active:scale-95 motion-reduce:transform-none cursor-pointer">Cancel</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-accent-beetroot hover:bg-red-800 text-white rounded-lg transition-all shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-beetroot focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Confirm Unlink</button>
                 </div>
               </form>
             </>

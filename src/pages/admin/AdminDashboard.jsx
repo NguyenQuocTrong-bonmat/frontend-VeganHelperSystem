@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../context/AuthContext';
 import { getAdminDashboardOverview, getAdminDashboardActivity, getAdminDashboardCategories, getAdminAuditLogs } from '../../services/adminService';
+import { formatDate } from '../../utils/dateUtils';
+import DateInput from '../../components/common/DateInput';
 
 const utcDay = (date) => date.toISOString().slice(0, 10);
 const defaultRange = () => {
@@ -61,6 +64,7 @@ function useDashboardResource(kind, range, interval, retry) {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
   const [velocityPeriod, setVelocityPeriod] = useState('day');
   const [range, setRange] = useState(defaultRange);
   const [draftRange, setDraftRange] = useState(range);
@@ -108,7 +112,7 @@ export default function AdminDashboard() {
   const metric = (value) => overviewState.loading ? '…' : value == null ? '—' : value.toLocaleString('en-GB');
   const recentEvents = (auditState.data?.items || []).map((item) => ({
     id: item.id, name: item.action, subtext: `Admin #${item.adminId}`,
-    date: auditDate(item.createdAt).toLocaleDateString('en-GB'),
+    date: formatDate(auditDate(item.createdAt)),
     time: auditDate(item.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     status: 'Recorded', detail: `${item.targetType}${item.targetId ? ` #${item.targetId}` : ''}`,
   }));
@@ -135,14 +139,34 @@ export default function AdminDashboard() {
 
           {/* Date Range Selector nicely aligned */}
           <form onSubmit={applyRange} className="flex flex-wrap items-end gap-2 text-xs text-[#2B2A25]">
-            <label className="grid gap-1">From (UTC)<input aria-label="From (UTC)" type="date" required min="2000-01-01" max={utcDay(new Date())} value={draftRange.from} onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2" /></label>
-            <label className="grid gap-1">To (UTC)<input aria-label="To (UTC)" type="date" required min={draftRange.from} max={utcDay(new Date())} value={draftRange.to} onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })} className="rounded-xl border border-[#DCE3D5] bg-white p-2" /></label>
-            <button type="submit" className="rounded-xl bg-[#2F5233] px-4 py-2.5 text-white">Apply</button>
+            <label className="grid gap-1">From (UTC)
+              <DateInput
+                aria-label="From (UTC)"
+                required
+                min="2000-01-01"
+                max={utcDay(new Date())}
+                value={draftRange.from}
+                onChange={(e) => setDraftRange({ ...draftRange, from: e.target.value })}
+                inputClassName="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all text-xs"
+              />
+            </label>
+            <label className="grid gap-1">To (UTC)
+              <DateInput
+                aria-label="To (UTC)"
+                required
+                min={draftRange.from}
+                max={utcDay(new Date())}
+                value={draftRange.to}
+                onChange={(e) => setDraftRange({ ...draftRange, to: e.target.value })}
+                inputClassName="rounded-xl border border-[#DCE3D5] bg-white p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all text-xs"
+              />
+            </label>
+            <button type="submit" className="rounded-xl bg-[#2F5233] hover:bg-[#25401F] px-4 py-2.5 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none cursor-pointer">Apply</button>
           </form>
         </div>
         {rangeError && <p role="alert" className="text-sm text-[#A63446]">{rangeError}</p>}
         {loading && <p role="status" className="text-sm text-[#6B6F63]">Loading dashboard…</p>}
-        {error && <div role="alert" className="rounded-xl border border-[#A63446] p-4 text-[#A63446]">{error}<button type="button" onClick={() => setRetry((value) => value + 1)} className="ml-4 underline">Retry</button></div>}
+        {error && <div role="alert" className="rounded-xl border border-[#A63446] p-4 text-[#A63446]">{error}<button type="button" onClick={() => setRetry((value) => value + 1)} className="ml-4 underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded px-1 active:opacity-80">Retry</button></div>}
 
         {/* ============================================================== */}
         {/* 2. MAIN 3-COLUMN DASHBOARD GRID */}
@@ -215,30 +239,64 @@ export default function AdminDashboard() {
 
                     <div className="flex items-center gap-2">
                       {/* Group creation counts by calendar day, week or month. */}
-                      <div className="flex items-center bg-[#EAF0E9] p-1 rounded-full text-xs border border-[#DCE3D5]">
+                      <div className="flex items-center bg-[#EAF0E9] p-1 rounded-full text-xs border border-[#DCE3D5]" role="group" aria-label="Velocity period selection">
                         <button
+                          type="button"
                           aria-pressed={velocityPeriod === 'day'}
                           onClick={() => setVelocityPeriod('day')}
-                          className={`px-3 py-1 rounded-full font-medium transition-all ${
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
                             velocityPeriod === 'day'
-                              ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                              ? 'text-white font-semibold'
                               : 'text-[#6B6F63] hover:text-[#2B2A25]'
                           }`}
                         >
-                          Daily
+                          {velocityPeriod === 'day' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Daily</span>
                         </button>
                         <button
+                          type="button"
                           aria-pressed={velocityPeriod === 'week'}
                           onClick={() => setVelocityPeriod('week')}
-                          className={`px-3 py-1 rounded-full font-medium transition-all ${
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
                             velocityPeriod === 'week'
-                              ? 'bg-[#2F5233] text-white shadow-xs font-semibold'
+                              ? 'text-white font-semibold'
                               : 'text-[#6B6F63] hover:text-[#2B2A25]'
                           }`}
                         >
-                          Weekly
+                          {velocityPeriod === 'week' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Weekly</span>
                         </button>
-                        <button type="button" aria-pressed={velocityPeriod === 'month'} onClick={() => setVelocityPeriod('month')} className={`px-3 py-1 rounded-full font-medium ${velocityPeriod === 'month' ? 'bg-[#2F5233] text-white' : 'text-[#6B6F63]'}`}>Monthly</button>
+                        <button 
+                          type="button" 
+                          aria-pressed={velocityPeriod === 'month'} 
+                          onClick={() => setVelocityPeriod('month')} 
+                          className={`relative px-3 py-1 rounded-full font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer ${
+                            velocityPeriod === 'month' 
+                              ? 'text-white font-semibold' 
+                              : 'text-[#6B6F63] hover:text-[#2B2A25]'
+                          }`}
+                        >
+                          {velocityPeriod === 'month' && (
+                            <motion.span
+                              layoutId="admin-velocity-period-pill"
+                              className="absolute inset-0 bg-[#2F5233] rounded-full shadow-xs"
+                              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          )}
+                          <span className="relative z-10">Monthly</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -303,42 +361,53 @@ export default function AdminDashboard() {
             {/* Bottom Wide Table: Recent Activity & Audit Log (Spanning Col 1 & 2) */}
             <div className="bg-white border border-[#DCE3D5] rounded-[28px] p-6 shadow-xs">
               <div className="pb-4 border-b border-[#DCE3D5]">
-                <Link to="/admin/audit-logs" className="font-semibold text-base text-[#2B2A25] hover:underline">Audit Trail & Recent Events</Link>
+                <Link to="/admin/audit-logs" className="font-semibold text-base text-[#2B2A25] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-0.5 active:opacity-80">Audit Trail & Recent Events</Link>
                 <p className="text-xs text-[#6B6F63]">Recent platform management actions</p>
               </div>
 
+              {/* Mobile Horizontal Scroll Cue */}
+              <div className="sm:hidden flex items-center justify-between text-[11px] text-[#6B6F63] py-1.5 border-b border-[#DCE3D5]">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-[#2F5233]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Swipe horizontally to view full events
+                </span>
+                <span className="text-[10px] font-mono text-[#8A9080]">560px</span>
+              </div>
+
               {/* Table */}
-              <div className="overflow-x-auto mt-2">
-                <table className="w-full text-left text-xs table-fixed">
+              <div tabIndex={0} role="region" aria-label="Recent activity table" className="overflow-x-auto mt-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233]/40">
+                <table className="w-full min-w-[560px] text-left text-xs border-separate border-spacing-0 table-fixed">
                   <thead>
                     <tr className="text-[#6B6F63] font-medium border-b border-[#DCE3D5]">
-                      <th className="py-3 px-2 font-normal w-[32%]">Name</th>
-                      <th className="py-3 px-2 font-normal w-[18%]">Date</th>
-                      <th className="py-3 px-2 font-normal w-[15%]">Time</th>
-                      <th className="py-3 px-2 font-normal w-[17%]">Status</th>
-                      <th className="py-3 px-2 font-normal text-left w-[18%]">Target</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[180px] sm:sticky sm:left-0 bg-white z-20 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 border-b border-[#DCE3D5]">Name</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[95px] border-b border-[#DCE3D5]">Date</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[85px] border-b border-[#DCE3D5]">Time</th>
+                      <th scope="col" className="py-3 px-2 font-normal w-[100px] border-b border-[#DCE3D5]">Status</th>
+                      <th scope="col" className="py-3 px-2 font-normal text-left w-[100px] border-b border-[#DCE3D5]">Target</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EAF0E9] text-[#2B2A25]">
-                    {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">Loading audit events…</td></tr>}
-                    {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
+                  <tbody className="text-[#2B2A25]">
+                    {auditState.loading && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63] border-b border-[#EAF0E9]">Loading audit events…</td></tr>}
+                    {!auditState.loading && recentEvents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-[#6B6F63] border-b border-[#EAF0E9]">{auditState.error ? 'Audit data unavailable.' : 'No management actions in this period.'}</td></tr>}
                     {recentEvents.map((row) => (
-                      <tr key={row.id} className="hover:bg-[#FAFBF9] transition-colors">
-                        <td className="py-3 px-2 overflow-hidden">
+                      <tr key={row.id} className="group hover:bg-[#F3F6EE]/60 transition-colors duration-150">
+                        <td className="py-3 px-2 overflow-hidden border-b border-[#EAF0E9] sm:sticky sm:left-0 bg-white group-hover:bg-[#F7F9F5] z-10 sm:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] sm:border-r sm:border-[#DCE3D5]/80 transition-colors">
                           <div className="min-w-0">
                             <p className="font-semibold text-[#2B2A25] truncate" title={row.name}>{row.name}</p>
                             <p className="text-[10px] text-[#6B6F63] truncate" title={row.subtext}>{row.subtext}</p>
                           </div>
                         </td>
-                        <td className="py-3 px-2 font-medium text-[#6B6F63] overflow-hidden truncate" title={row.date}>{row.date}</td>
-                        <td className="py-3 px-2 text-[#6B6F63] overflow-hidden truncate" title={row.time}>{row.time}</td>
-                        <td className="py-3 px-2 overflow-hidden">
+                        <td className="py-3 px-2 font-medium text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.date}>{row.date}</td>
+                        <td className="py-3 px-2 text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.time}>{row.time}</td>
+                        <td className="py-3 px-2 overflow-hidden border-b border-[#EAF0E9]">
                           <span className="inline-flex items-center gap-1.5 font-medium text-[#6B6F63] max-w-full truncate" title={row.status}>
                             <span className="w-2 h-2 rounded-full bg-[#9CA3AF] shrink-0" />
                             <span className="truncate">{row.status}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-2 text-left font-medium text-[#6B6F63] overflow-hidden truncate" title={row.detail}>{row.detail}</td>
+                        <td className="py-3 px-2 text-left font-medium text-[#6B6F63] overflow-hidden truncate border-b border-[#EAF0E9]" title={row.detail}>{row.detail}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -446,7 +515,7 @@ export default function AdminDashboard() {
 
               <div className="flex items-center justify-between mt-4">
                 <h2 className="text-3xl font-extrabold text-[#2B2A25]">{metric(overview?.moderation.totalPending)} Items</h2>
-                <Link to="/admin/content" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] text-[#2F5233] border border-[#DCE3D5]">Review</Link>
+                <Link to="/admin/content" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAF0E9] hover:bg-[#DCE5D9] text-[#2F5233] border border-[#DCE3D5] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">Review</Link>
               </div>
               <p className="mt-3 text-xs text-[#6B6F63]">{metric(overview?.moderation.aiFlaggedPosts)} AI flagged posts · {metric(overview?.moderation.reportedPosts)} reported posts · {metric(overview?.moderation.reportedComments)} reported comments</p>
               <p className="mt-1 text-xs text-[#6B6F63]">Current pending content. A post flagged by both AI and users is counted once in the total.</p>

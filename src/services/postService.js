@@ -10,6 +10,7 @@ import { getAccessToken } from '../utils/authStorage';
  * @param {string} [params.difficultyLevel] Độ khó (tùy chọn)
  * @param {string} [params.dietType] Chế độ ăn (tùy chọn)
  * @param {number} [params.prepTimeMax] Thời gian chuẩn bị tối đa (tùy chọn)
+ * @param {string} [params.sortBy] latest hoặc trending
  */
 export async function getPostsFeed(params = {}) {
   const {
@@ -19,12 +20,14 @@ export async function getPostsFeed(params = {}) {
     difficultyLevel,
     dietType,
     prepTimeMax,
+    sortBy = 'trending',
   } = params;
 
   // Tạo URLSearchParams để tự động build query string hợp lệ
   const queryParams = new URLSearchParams();
   queryParams.append('PageIndex', pageIndex);
   queryParams.append('PageSize', pageSize);
+  queryParams.append('SortBy', sortBy);
 
   if (categoryId !== undefined && categoryId !== null) {
     queryParams.append('CategoryId', categoryId);
@@ -92,7 +95,7 @@ export async function getMyPosts(params = {}) {
 }
 
 // FN13: Tạo bài viết mới (multipart/form-data)
-export async function createPost(postData) {
+export async function createPost(postData, { onUploadProgress } = {}) {
   const formData = new FormData();
 
   formData.append('Title', postData.title);
@@ -123,14 +126,17 @@ export async function createPost(postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.post('/Posts', formData);
+    const response = await axiosInstance.post('/Posts', formData, {
+      timeout: 10 * 60 * 1000,
+      onUploadProgress,
+    });
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to create post (${err.response?.status})`;
     if (err.response?.data) {
       const errorJson = err.response.data;
       errorMessage = errorJson.message || errorJson.title || JSON.stringify(errorJson);
-      
+
       if (errorJson.errors) {
         let details = '';
         if (Array.isArray(errorJson.errors)) {
@@ -155,7 +161,7 @@ export async function createPost(postData) {
     } else if (err.message) {
       errorMessage = err.message;
     }
-    
+
     const error = new Error(errorMessage);
     error.status = err.response?.status;
     throw error;
@@ -230,7 +236,7 @@ export async function updatePost(id, postData) {
   formData.append('StepsJson', JSON.stringify(mappedSteps));
 
   try {
-    const response = await axiosInstance.put(`/Posts/${id}`, formData);
+    const response = await axiosInstance.put(`/Posts/${id}`, formData, { timeout: 10 * 60 * 1000 });
     return response.data;
   } catch (err) {
     let errorMessage = `Failed to update post (${err.response?.status})`;
@@ -286,6 +292,29 @@ export async function searchPosts(params = {}) {
     }
     const error = new Error(errorMessage);
     error.status = err.response?.status;
+    throw error;
+  }
+}
+
+export async function reportPost(id, reportData = {}) {
+  const { reasonCategory, reason, expectedRevision = 1 } = reportData;
+  try {
+    const response = await axiosInstance.post(`/Posts/${id}/reports`, {
+      reasonCategory,
+      reason,
+      expectedRevision,
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = `HTTP Error ${err.response?.status}`;
+    if (err.response?.data) {
+      errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    const error = new Error(errorMessage);
+    error.status = err.response?.status;
+    error.response = err.response;
     throw error;
   }
 }

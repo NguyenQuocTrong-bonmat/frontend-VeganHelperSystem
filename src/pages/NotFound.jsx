@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/layout/Footer';
+import { navigateHomeAndRefresh } from '../utils/navigationUtils';
 
 export default function NotFound() {
   const { isAuthenticated } = useAuth();
@@ -18,7 +19,12 @@ export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col bg-vh-cream font-dm-sans text-vh-text-primary">
       <header className="border-b border-vh-border px-6 py-4 sm:px-10">
-        <Link to={home} className="inline-flex rounded-control-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-4" aria-label="Vegan Helper home">
+        <Link
+          to={home}
+          onClick={(e) => navigateHomeAndRefresh(e, home)}
+          className="inline-flex rounded-control-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-4"
+          aria-label="Vegan Helper home"
+        >
           <img src="/logo.png" alt="Vegan Helper" className="h-12 w-auto" />
         </Link>
       </header>

@@ -61,7 +61,7 @@ export default function ImageLightbox({ src, alt = 'Enlarged image', isOpen, onC
         type="button"
         onClick={onClose}
         aria-label="Close enlarged image view"
-        className="absolute top-4 right-4 z-[110] p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white/90 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+        className="absolute top-4 right-4 z-[110] p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white/90 hover:text-white transition-all active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

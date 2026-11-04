@@ -19,8 +19,8 @@ const Input = React.forwardRef(({
       <input
         id={inputId}
         ref={ref}
-        className={`rounded-control border bg-vh-surface px-3 py-2 text-base font-dm-sans text-vh-text-primary placeholder-vh-text-secondary focus-ring-vh transition-all duration-fast ease-vh
-          ${error ? 'border-vh-error' : 'border-vh-border hover:border-vh-sage'}`}
+        className={`rounded-control border bg-vh-surface px-3 py-2 text-base font-dm-sans text-vh-text-primary placeholder-vh-text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest transition-all duration-fast ease-vh
+          ${error ? 'border-vh-error focus-visible:ring-vh-error focus-visible:border-vh-error' : 'border-vh-border hover:border-vh-sage'}`}
         {...props}
       />
       {description && !error && (

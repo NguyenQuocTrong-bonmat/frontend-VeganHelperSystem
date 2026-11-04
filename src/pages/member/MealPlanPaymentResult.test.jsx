@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, afterEach, expect, test, vi } from 'vitest';
 import MealPlanPaymentResult from './MealPlanPaymentResult';
 import { MEAL_PLAN_CHECKOUT_CONTEXT_KEY } from '../../utils/mealPlanPaymentContext';
-import { getMealPlanAccess, getMealPlanPaymentOrder } from '../../services/mealPlanPaymentService';
+import { getMealPlanAccess, getMealPlanPaymentOrder, verifyMealPlanPaymentOrder } from '../../services/mealPlanPaymentService';
 
 vi.mock('../../components/layout/HeaderMember', () => ({ default: () => null }));
 vi.mock('../../components/layout/Footer', () => ({ default: () => null }));
@@ -12,6 +12,7 @@ vi.mock('../../components/chat/AIChatbot', () => ({ default: () => null }));
 vi.mock('../../services/mealPlanPaymentService', () => ({
   getMealPlanAccess: vi.fn(),
   getMealPlanPaymentOrder: vi.fn(),
+  verifyMealPlanPaymentOrder: vi.fn(),
 }));
 
 let container, root;
@@ -23,6 +24,7 @@ beforeEach(() => {
   document.body.appendChild(container);
   root = createRoot(container);
   getMealPlanAccess.mockResolvedValue({ expiresAt: '2027-01-01T00:00:00Z' });
+  verifyMealPlanPaymentOrder.mockResolvedValue({ status: 'pending' });
 });
 
 afterEach(async () => {
@@ -37,12 +39,13 @@ const render = (path, variant) => act(async () => root.render(
 ));
 
 test('shows success only after the backend order endpoint confirms paid', async () => {
-  getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'paid',
+  verifyMealPlanPaymentOrder.mockResolvedValue({
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'paid',
   });
   await render('/meal-plans/payment/success?status=PENDING&orderCode=830073', 'success');
 
-  expect(getMealPlanPaymentOrder).toHaveBeenCalledWith(73);
+  expect(verifyMealPlanPaymentOrder).toHaveBeenCalledWith(73);
+  expect(getMealPlanPaymentOrder).not.toHaveBeenCalled();
   expect(container.textContent).toContain('Payment confirmed');
   expect(container.textContent).toContain('Six months');
   expect(getMealPlanAccess).toHaveBeenCalled();
@@ -50,7 +53,7 @@ test('shows success only after the backend order endpoint confirms paid', async 
 
 test('does not trust PayOS query status when the backend still reports pending', async () => {
   getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'pending',
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'pending',
   });
   await render('/meal-plans/payment/cancel?status=PAID&orderCode=830073', 'cancel');
 
@@ -61,7 +64,7 @@ test('does not trust PayOS query status when the backend still reports pending',
 
 test('shows the failed state only when the backend order is failed', async () => {
   getMealPlanPaymentOrder.mockResolvedValue({
-    orderId: 73, packageName: 'Six months', amountVnd: 500000, status: 'failed',
+    orderId: 73, packageName: 'Six months', amountVnd: 5000, status: 'failed',
   });
   await render('/meal-plans/payment/failed?orderCode=830073', 'failed');
 

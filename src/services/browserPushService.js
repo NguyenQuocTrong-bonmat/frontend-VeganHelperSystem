@@ -29,18 +29,47 @@ export async function browserPushStatus(userId) {
 export async function enableBrowserPush(userId, publicKey) {
   if (starting) throw new Error('A browser push update is already in progress. Please wait.');
   starting = true;
-  try { return await subscribeBrowserPush(userId, publicKey); }
+  try { return await subscribeBrowserPush(userId, publicKey, true); }
   finally { starting = false; }
 }
 
-async function subscribeBrowserPush(userId, publicKey) {
+// Browsers only allow silent registration after the user has already granted permission.
+// Call this when an authenticated session starts and whenever the tab becomes active.
+export async function autoEnableBrowserPush(userId) {
+  if (!userId || !supported() || Notification.permission !== 'granted') return { active: false, reason: 'permission-required' };
+  if (starting) return { active: false, reason: 'in-progress' };
+  starting = true;
+  try {
+    const config = await notifications.getPushConfig();
+    if (!config?.enabled || !config.publicKey) return { active: false, reason: 'not-configured' };
+
+    const worker = await registration();
+    const subscription = await worker?.pushManager.getSubscription();
+    const saved = stored();
+    const currentKey = subscription?.options?.applicationServerKey;
+    const expectedKey = decodeApplicationServerKey(config.publicKey);
+    const sameKey = currentKey && Array.from(new Uint8Array(currentKey)).join(',') === Array.from(expectedKey).join(',');
+    const active = String(saved?.userId) === String(userId) && saved?.endpoint === subscription?.endpoint && sameKey;
+    if (active) return { active: true };
+
+    await subscribeBrowserPush(userId, config.publicKey, false);
+    return { active: true };
+  } finally { starting = false; }
+}
+
+function decodeApplicationServerKey(publicKey) {
+  const base64 = publicKey.replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')), char => char.charCodeAt(0));
+}
+
+async function subscribeBrowserPush(userId, publicKey, requestPermission) {
   if (!supported() || !userId || !publicKey) throw new Error('Browser push is not available.');
   const version = ++epoch;
   // Refreshing a JWT for the same account is valid; logout/account changes cancel the operation.
   const check = () => { if (version !== epoch || accountId() !== String(userId)) throw new Error('Your session changed. Please try again.'); };
   check();
-  // This function is called only from the Enable button's click handler.
-  const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+  const permission = Notification.permission === 'granted' ? 'granted'
+    : requestPermission ? await Notification.requestPermission() : Notification.permission;
   if (permission !== 'granted') throw new Error('Notifications were not allowed. You can change permission in your browser site settings.');
   check();
   await navigator.serviceWorker.register('/notification-sw.js');
@@ -48,8 +77,7 @@ async function subscribeBrowserPush(userId, publicKey) {
   check();
   let subscription = await worker.pushManager.getSubscription();
   const saved = stored();
-  const base64 = publicKey.replace(/-/g, '+').replace(/_/g, '/');
-  const key = Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')), char => char.charCodeAt(0));
+  const key = decodeApplicationServerKey(publicKey);
   const currentKey = subscription?.options?.applicationServerKey;
   const sameKey = currentKey && Array.from(new Uint8Array(currentKey)).join(',') === Array.from(key).join(',');
   if (subscription && (!sameKey || String(saved?.userId) !== String(userId))) {

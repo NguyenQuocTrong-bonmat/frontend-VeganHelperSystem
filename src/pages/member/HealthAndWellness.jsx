@@ -2,16 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
-import { 
-  getHealthProfile, 
-  updateHealthProfile, 
-  declareAllergies, 
+import {
+  getHealthProfile,
+  updateHealthProfile,
+  declareAllergies,
   searchIngredients,
-  getBmiResult, 
-  getBmiHistory 
+  getBmiResult,
+  getBmiHistory
 } from '../../services/healthProfileService';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/dateUtils';
+import DateInput from '../../components/common/DateInput';
+import { calculateCalorieAndMacros } from '../../utils/bmiNutritionUtils';
 
 /**
  * HealthAndWellness — Unified view integrating Health Profile, Food Allergies, Current BMI, and BMI History.
@@ -265,6 +267,8 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
     }
   };
 
+  const caloriePlan = calculateCalorieAndMacros(bmiResult, healthData);
+
   if (loading) {
     return (
       <div className={!isComponent ? 'min-h-screen flex flex-col bg-[#FDFBF6]' : 'w-full'}>
@@ -295,17 +299,15 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
         </div>
       )}
 
-      {/* MAIN CONTENT CONTAINER — Balanced 2-Column Responsive Layout */}
+      {/* MAIN CONTENT CONTAINER — Balanced 2-Row, 2-Column Responsive Layout */}
       <main className={`flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 ${!isComponent ? 'py-10' : 'py-8'}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+
           {/* ======================================================== */}
-          {/* LEFT COLUMN: Health Profile followed by Food Allergies   */}
+          {/* ROW 1 LEFT: Health Profile                               */}
           {/* ======================================================== */}
-          <div className="space-y-8 flex flex-col">
-            
-            {/* SECTION 1: HEALTH PROFILE */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
                 <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -318,16 +320,16 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                 </div>
               </div>
 
-              <form onSubmit={handleHealthSubmit} className="space-y-5">
+              <form id="health-profile-form" onSubmit={handleHealthSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Height (cm)</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       name="heightCm"
                       value={healthData.heightCm}
                       onChange={handleHealthChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                       placeholder="e.g. 170"
                       min="100"
                       max="250"
@@ -337,12 +339,12 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Weight (kg)</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       name="weightKg"
                       value={healthData.weightKg}
                       onChange={handleHealthChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                       placeholder="e.g. 65"
                       min="30"
                       max="200"
@@ -355,11 +357,11 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Biological Sex</label>
-                    <select 
+                    <select
                       name="biologicalSex"
                       value={healthData.biologicalSex}
                       onChange={handleHealthChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                     >
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -368,26 +370,26 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Birth Date</label>
-                    <input 
-                      type="date" 
+                    <DateInput
                       name="birthDate"
                       value={healthData.birthDate ? healthData.birthDate.split('T')[0] : ''}
                       onChange={handleHealthChange}
                       max={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      inputClassName="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                       required
                     />
+                    <p className="text-xs text-[#6B6F63]">Format: DD/MM/YYYY</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Diet Type</label>
-                    <select 
+                    <select
                       name="dietType"
                       value={healthData.dietType}
                       onChange={handleHealthChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                     >
                       <option value="vegan">Vegan</option>
                       <option value="lacto_ovo_vegetarian">Lacto-Ovo Vegetarian</option>
@@ -395,11 +397,11 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#2B2A25]">Activity Level</label>
-                    <select 
+                    <select
                       name="activityLevel"
                       value={healthData.activityLevel}
                       onChange={handleHealthChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
                     >
                       <option value="sedentary">Sedentary (Little/no exercise)</option>
                       <option value="light">Lightly Active (1-3 days/wk)</option>
@@ -409,200 +411,32 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                     </select>
                   </div>
                 </div>
-
-                <div className="pt-3 flex justify-end">
-                  <button 
-                    type="submit" 
-                    disabled={savingHealth}
-                    className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all disabled:opacity-70 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer text-sm"
-                  >
-                    {savingHealth && (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                      </svg>
-                    )}
-                    Save Health Profile
-                  </button>
-                </div>
               </form>
-            </section>
+            </div>
 
-            {/* SECTION 2: FOOD ALLERGIES */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
-                <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <div className="pt-5 flex justify-end">
+              <button
+                type="submit"
+                form="health-profile-form"
+                disabled={savingHealth}
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
+              >
+                {savingHealth && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                   </svg>
-                </div>
-                <div>
-                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Food Allergies</h2>
-                  <p className="text-xs text-[#6B6F63] mt-0.5">Filter out allergens from recommended recipes</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleAllergiesSubmit} className="space-y-6">
-                
-                {/* Search System Ingredients */}
-                <div className="space-y-2.5">
-                  <label className="block text-sm font-medium text-[#2B2A25]">Search System Ingredients</label>
-                  <div className="flex gap-2.5">
-                    <input 
-                      type="text" 
-                      value={ingredientSearch}
-                      onChange={(e) => setIngredientSearch(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleSearchIngredients();
-                        }
-                      }}
-                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
-                      placeholder="e.g. Tomato, Peanut, Soy..."
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleSearchIngredients}
-                      disabled={searchingIngredients}
-                      className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] disabled:opacity-70 flex items-center gap-1.5 shrink-0 cursor-pointer text-sm"
-                    >
-                      {searchingIngredients && (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                      )}
-                      Search
-                    </button>
-                  </div>
-
-                  {/* Search Results Dropdown */}
-                  {ingredientResults.length > 0 && (
-                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl max-h-48 overflow-y-auto p-1.5 shadow-inner">
-                      {ingredientResults.map((ing) => (
-                        <div key={ing.id} className="flex justify-between items-center p-2 hover:bg-[#E9EFE6] rounded-lg transition-colors">
-                          <span className="text-sm text-[#2B2A25] font-medium">{ing.name}</span>
-                          <button 
-                            type="button" 
-                            onClick={() => addSystemAllergy(ing)}
-                            className="text-xs font-semibold text-[#2F5233] bg-white px-3 py-1.5 rounded-md hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] shadow-xs cursor-pointer"
-                          >
-                            + Add
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Selected System Allergies Tags */}
-                  {allergyData.systemAllergies.length > 0 && (
-                    <div className="p-3.5 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
-                      <span className="block text-[11px] font-semibold text-[#6B6F63] mb-2.5 uppercase tracking-wider">
-                        Selected System Allergies ({allergyData.systemAllergies.length})
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {allergyData.systemAllergies.map((allergy) => (
-                          <div key={allergy.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F5233]/10 text-[#2F5233] border border-[#2F5233]/20 rounded-full text-xs font-medium">
-                            {allergy.name}
-                            <button 
-                              type="button" 
-                              onClick={() => removeSystemAllergy(allergy.id)}
-                              className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none cursor-pointer"
-                              aria-label={`Remove ${allergy.name}`}
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-[#DCE3D5]/50"></div>
-
-                {/* Custom Allergy Adder */}
-                <div className="space-y-2.5">
-                  <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
-                  <div className="flex gap-2.5">
-                    <input 
-                      type="text" 
-                      value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addCustomAllergy();
-                        }
-                      }}
-                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:ring-2 focus:ring-[#2F5233] focus:border-transparent outline-none transition-all bg-[#FDFBF6] text-[15px]"
-                      placeholder="e.g. Sesame, Celery, Mango..."
-                    />
-                    <button 
-                      type="button" 
-                      onClick={addCustomAllergy}
-                      className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] shrink-0 cursor-pointer text-sm"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {/* Custom Allergies Tags */}
-                  {allergyData.customAllergies.length > 0 && (
-                    <div className="p-3.5 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
-                      <span className="block text-[11px] font-semibold text-[#6B6F63] mb-2.5 uppercase tracking-wider">
-                        Your Custom Allergies ({allergyData.customAllergies.length})
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {allergyData.customAllergies.map((allergy, index) => (
-                          <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#A63446]/10 text-[#A63446] border border-[#A63446]/20 rounded-full text-xs font-medium">
-                            {allergy}
-                            <button 
-                              type="button" 
-                              onClick={() => removeCustomAllergy(allergy)}
-                              className="text-[#A63446]/60 hover:text-[#A63446] focus:outline-none cursor-pointer"
-                              aria-label={`Remove ${allergy}`}
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2 flex justify-end border-t border-[#DCE3D5]/50">
-                  <button 
-                    type="submit" 
-                    disabled={savingAllergies}
-                    className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all disabled:opacity-70 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer text-sm"
-                  >
-                    {savingAllergies && (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                      </svg>
-                    )}
-                    Save Allergies
-                  </button>
-                </div>
-              </form>
-            </section>
-          </div>
+                )}
+                Save Health Profile
+              </button>
+            </div>
+          </section>
 
           {/* ======================================================== */}
-          {/* RIGHT COLUMN: Current BMI followed by BMI History        */}
+          {/* ROW 1 RIGHT: Current BMI                                 */}
           {/* ======================================================== */}
-          <div className="space-y-8 flex flex-col">
-            
-            {/* SECTION 3: CURRENT BMI */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm">
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
                 <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -616,8 +450,8 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
               </div>
 
               {bmiResult ? (
-                <div>
-                  <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-4 mb-6 text-center sm:text-left">
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-4 text-center sm:text-left">
                     <div className="text-5xl sm:text-6xl font-fraunces font-bold text-[#2B2A25]">
                       {bmiResult.bmi.toFixed(1)}
                     </div>
@@ -638,14 +472,68 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                     </div>
                   </div>
 
-                  {/* Ideal Weight Range */}
-                  {bmiResult.idealWeightRange && (
-                    <div className="mt-5 p-3.5 bg-[#F3F6EE] border border-[#DCE3D5]/60 rounded-xl text-sm text-[#4A4D44] flex items-center gap-2">
-                      <span className="text-[#2F5233] font-semibold text-base">🎯</span>
-                      <span>
-                        <strong className="font-semibold text-[#2B2A25]">Ideal Weight Range:</strong>{' '}
-                        {bmiResult.idealWeightRange.minKg.toFixed(1)}kg – {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
-                      </span>
+                  {/* Daily Calorie Target & Macro Distribution Card (English) */}
+                  {caloriePlan && (
+                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-5 shadow-xs space-y-4">
+                      {/* Top Row: Icon + Target Calorie Header */}
+                      <div className="flex items-center justify-between gap-3 border-b border-[#DCE3D5]/70 pb-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#244527] text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5c-4.418 0-8-3.582-8-8 0-3.5 3-7.5 8-11.5 5 4 8 8 8 11.5 0 4.418-3.582 8-8 8z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-wider text-[#6B6F63] font-semibold">DAILY CALORIE TARGET</div>
+                            <div className="text-sm sm:text-base font-bold text-[#244527]">{caloriePlan.goalLabel}</div>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-fraunces font-bold text-2xl sm:text-3xl text-[#244527] leading-none">
+                            {caloriePlan.targetCalories.toLocaleString()} <span className="text-sm sm:text-base font-sans font-medium text-[#6B6F63]">kcal</span>
+                          </div>
+                          {caloriePlan.maintenanceCalories && (
+                            <div className="text-xs text-[#6B6F63] mt-1">
+                              Maintenance TDEE: ~{caloriePlan.maintenanceCalories.toLocaleString()} kcal
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Macronutrient Distribution Bars */}
+                      <div>
+                        <div className="flex items-center justify-between text-xs sm:text-sm text-[#2B2A25] font-medium mb-2">
+                          <span>Target Macronutrient Distribution</span>
+                          <span className="text-xs text-[#6B6F63]">Protein · Carbs · Fats</span>
+                        </div>
+                        <div className="h-2.5 w-full bg-[#E5EBE1] rounded-full overflow-hidden flex gap-0.5">
+                          <div style={{ width: `${caloriePlan.macros.proteinPercent}%` }} className="bg-[#244527] h-full" title={`Protein: ${caloriePlan.macros.proteinPercent}%`} />
+                          <div style={{ width: `${caloriePlan.macros.carbsPercent}%` }} className="bg-[#547A53] h-full" title={`Carbs: ${caloriePlan.macros.carbsPercent}%`} />
+                          <div style={{ width: `${caloriePlan.macros.fatPercent}%` }} className="bg-[#93B58D] h-full" title={`Fats: ${caloriePlan.macros.fatPercent}%`} />
+                        </div>
+
+                        {/* 3 Macro Cards */}
+                        <div className="grid grid-cols-3 gap-3 mt-3 text-center">
+                          <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                            <div className="text-xs text-[#6B6F63] font-medium">Protein</div>
+                            <div className="font-bold text-sm sm:text-base text-[#244527] mt-0.5">
+                              {caloriePlan.macros.proteinPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.proteinGrams}g)</span>
+                            </div>
+                          </div>
+                          <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                            <div className="text-xs text-[#6B6F63] font-medium">Carbs</div>
+                            <div className="font-bold text-sm sm:text-base text-[#547A53] mt-0.5">
+                              {caloriePlan.macros.carbsPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.carbsGrams}g)</span>
+                            </div>
+                          </div>
+                          <div className="bg-white border border-[#DCE3D5] rounded-xl py-2 px-1 shadow-2xs">
+                            <div className="text-xs text-[#6B6F63] font-medium">Fats</div>
+                            <div className="font-bold text-sm sm:text-base text-[#6C8567] mt-0.5">
+                              {caloriePlan.macros.fatPercent}% <span className="text-xs font-normal text-[#6B6F63]">({caloriePlan.macros.fatGrams}g)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -657,62 +545,247 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                   </p>
                 </div>
               )}
-            </section>
+            </div>
 
-            {/* SECTION 4: BMI HISTORY */}
-            <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex-1 flex flex-col">
+            {/* Ideal Weight Range */}
+            {bmiResult?.idealWeightRange && (
+              <div className="mt-6 p-3.5 bg-[#F3F6EE] border border-[#DCE3D5]/60 rounded-xl text-sm text-[#4A4D44] flex items-center gap-2">
+                <span className="text-[#2F5233] font-semibold text-base">🎯</span>
+                <span>
+                  <strong className="font-semibold text-[#2B2A25]">Ideal Weight Range:</strong>{' '}
+                  {bmiResult.idealWeightRange.minKg.toFixed(1)}kg – {bmiResult.idealWeightRange.maxKg.toFixed(1)}kg
+                </span>
+              </div>
+            )}
+          </section>
+
+          {/* ======================================================== */}
+          {/* ROW 2 LEFT: Food Allergies                                */}
+          {/* ======================================================== */}
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between h-full">
+            <div>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
                 <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                   </svg>
                 </div>
                 <div>
-                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">BMI History</h2>
-                  <p className="text-xs text-[#6B6F63] mt-0.5">Chronological record of weight changes and progress</p>
+                  <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">Food Allergies</h2>
+                  <p className="text-xs text-[#6B6F63] mt-0.5">Filter out allergens from recommended recipes</p>
                 </div>
               </div>
 
-              {bmiHistory.length === 0 ? (
-                <div className="py-12 text-center text-[#6B6F63] my-auto">
-                  <div className="w-14 h-14 mx-auto mb-3 bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] rounded-full flex items-center justify-center text-xl">
-                    ⏱️
+              <form id="food-allergies-form" onSubmit={handleAllergiesSubmit} className="space-y-6">
+
+                {/* Search System Ingredients */}
+                <div className="space-y-2.5">
+                  <label className="block text-sm font-medium text-[#2B2A25]">Search System Ingredients</label>
+                  <div className="flex gap-2.5">
+                    <input
+                      type="text"
+                      value={ingredientSearch}
+                      onChange={(e) => setIngredientSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearchIngredients();
+                        }
+                      }}
+                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
+                      placeholder="e.g. Tomato, Peanut, Soy..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchIngredients}
+                      disabled={searchingIngredients}
+                      className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-1.5 shrink-0 cursor-pointer text-sm"
+                    >
+                      {searchingIngredients && (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                      )}
+                      Search
+                    </button>
                   </div>
-                  <p className="font-medium text-[#2B2A25]">No BMI history records yet</p>
-                  <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
-                    New historical records are logged automatically each time you update your weight in the Health Profile.
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto w-full">
-                  <table className="w-full text-left border-collapse min-w-[280px]">
-                    <thead>
-                      <tr className="border-b border-[#DCE3D5]">
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider">Date</th>
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">Weight</th>
-                        <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">BMI</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#FDFBF6]">
-                      {bmiHistory.map((record, index) => (
-                        <tr key={index} className="hover:bg-[#F3F6EE]/50 transition-colors">
-                          <td className="py-3 px-3 text-sm text-[#2B2A25] font-medium whitespace-nowrap">
-                            {formatDate(record.timestamp)}
-                          </td>
-                          <td className="py-3 px-3 text-sm text-[#2B2A25] text-right font-medium whitespace-nowrap">
-                            {record.weightKg?.toFixed ? `${record.weightKg.toFixed(1)} kg` : `${record.weightKg} kg`}
-                          </td>
-                          <td className="py-3 px-3 text-sm font-semibold text-[#2F5233] text-right whitespace-nowrap">
-                            {record.bmi?.toFixed ? record.bmi.toFixed(1) : record.bmi}
-                          </td>
-                        </tr>
+
+                  {/* Search Results Dropdown */}
+                  {ingredientResults.length > 0 && (
+                    <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl max-h-48 overflow-y-auto p-1.5 shadow-inner">
+                      {ingredientResults.map((ing) => (
+                        <div key={ing.id} className="flex justify-between items-center p-2 hover:bg-[#E9EFE6] rounded-lg transition-colors">
+                          <span className="text-sm text-[#2B2A25] font-medium">{ing.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => addSystemAllergy(ing)}
+                            className="text-xs font-semibold text-[#2F5233] bg-white px-3 py-1.5 rounded-md hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer"
+                          >
+                            + Add
+                          </button>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  )}
+
+                  {/* Selected System Allergies Tags */}
+                  {allergyData.systemAllergies.length > 0 && (
+                    <div className="p-3.5 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
+                      <span className="block text-[11px] font-semibold text-[#6B6F63] mb-2.5 uppercase tracking-wider">
+                        Selected System Allergies ({allergyData.systemAllergies.length})
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {allergyData.systemAllergies.map((allergy) => (
+                          <div key={allergy.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F5233]/10 text-[#2F5233] border border-[#2F5233]/20 rounded-full text-xs font-medium">
+                            {allergy.name}
+                            <button
+                              type="button"
+                              onClick={() => removeSystemAllergy(allergy.id)}
+                              className="text-[#2F5233]/60 hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded-full p-0.5 active:scale-90 motion-reduce:transform-none cursor-pointer"
+                              aria-label={`Remove ${allergy.name}`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </section>
-          </div>
+
+                <div className="border-t border-[#DCE3D5]/50"></div>
+
+                {/* Custom Allergy Adder */}
+                <div className="space-y-2.5">
+                  <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
+                  <div className="flex gap-2.5">
+                    <input
+                      type="text"
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomAllergy();
+                        }
+                      }}
+                      className="flex-grow min-w-0 px-4 py-2.5 rounded-lg border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] transition-all bg-[#FDFBF6] text-[15px]"
+                      placeholder="e.g. Sesame, Celery, Mango..."
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomAllergy}
+                      className="px-5 py-2.5 bg-[#E9EFE6] text-[#2F5233] font-medium rounded-lg hover:bg-[#DCE3D5] transition-colors border border-[#DCE3D5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none shrink-0 cursor-pointer text-sm"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {/* Custom Allergies Tags */}
+                  {allergyData.customAllergies.length > 0 && (
+                    <div className="p-3.5 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
+                      <span className="block text-[11px] font-semibold text-[#6B6F63] mb-2.5 uppercase tracking-wider">
+                        Your Custom Allergies ({allergyData.customAllergies.length})
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {allergyData.customAllergies.map((allergy, index) => (
+                          <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#A63446]/10 text-[#A63446] border border-[#A63446]/20 rounded-full text-xs font-medium">
+                            {allergy}
+                            <button
+                              type="button"
+                              onClick={() => removeCustomAllergy(allergy)}
+                              className="text-[#A63446]/60 hover:text-[#A63446] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A63446] rounded-full p-0.5 active:scale-90 motion-reduce:transform-none cursor-pointer"
+                              aria-label={`Remove ${allergy}`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            <div className="pt-4 flex justify-end border-t border-[#DCE3D5]/50 mt-6">
+              <button
+                type="submit"
+                form="food-allergies-form"
+                disabled={savingAllergies}
+                className="px-6 py-2.5 bg-[#2F5233] text-white font-medium rounded-lg hover:bg-[#25401F] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-70 flex items-center gap-2 shadow-sm cursor-pointer text-sm"
+              >
+                {savingAllergies && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                )}
+                Save Allergies
+              </button>
+            </div>
+          </section>
+
+          {/* ======================================================== */}
+          {/* ROW 2 RIGHT: BMI History                                  */}
+          {/* ======================================================== */}
+          <section className="bg-white border border-[#DCE3D5] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col h-full">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DCE3D5]/50">
+              <div className="w-10 h-10 rounded-full bg-[#E9EFE6] flex items-center justify-center text-[#2F5233] shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-fraunces text-2xl font-semibold text-[#2B2A25]">BMI History</h2>
+                <p className="text-xs text-[#6B6F63] mt-0.5">Chronological record of weight changes and progress</p>
+              </div>
+            </div>
+
+            {bmiHistory.length === 0 ? (
+              <div className="py-12 text-center text-[#6B6F63] my-auto flex-1 flex flex-col items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-[#FDFBF6] border border-[#DCE3D5] text-[#2F5233] rounded-full flex items-center justify-center text-xl">
+                  ⏱️
+                </div>
+                <p className="font-medium text-[#2B2A25]">No BMI history records yet</p>
+                <p className="text-xs text-[#6B6F63] mt-1 max-w-xs mx-auto">
+                  New historical records are logged automatically each time you update your weight in the Health Profile.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto overflow-y-auto max-h-[380px] w-full flex-1 pr-1 custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[280px]">
+                  <thead className="sticky top-0 bg-white z-10">
+                    <tr className="border-b border-[#DCE3D5]">
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider">Date</th>
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">Weight</th>
+                      <th className="py-2.5 px-3 text-xs font-semibold text-[#6B6F63] uppercase tracking-wider text-right">BMI</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#FDFBF6]">
+                    {bmiHistory.map((record, index) => (
+                      <tr key={index} className="hover:bg-[#F3F6EE]/50 transition-colors">
+                        <td className="py-3 px-3 text-sm text-[#2B2A25] font-medium whitespace-nowrap">
+                          {formatDate(record.timestamp)}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-[#2B2A25] text-right font-medium whitespace-nowrap">
+                          {record.weightKg?.toFixed ? `${record.weightKg.toFixed(1)} kg` : `${record.weightKg} kg`}
+                        </td>
+                        <td className="py-3 px-3 text-sm font-semibold text-[#2F5233] text-right whitespace-nowrap">
+                          {record.bmi?.toFixed ? record.bmi.toFixed(1) : record.bmi}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
 
         </div>
       </main>
