@@ -49,6 +49,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
     await act(async () => root.unmount());
     container.remove();
     document.body.style.overflow = '';
+    vi.useRealTimers();
   });
 
   const mockPost = {
@@ -546,6 +547,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
   });
 
   it('places delete confirmation above the comment popup and Escape closes only confirmation', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const onClose = vi.fn();
     interactionService.getComments.mockResolvedValueOnce([
       { id: 'own', userId: 'user-101', content: 'Own comment', depth: 1, replies: [] },
@@ -565,6 +567,7 @@ describe('FN17-FE-02 — Comment & Reply UI Alignment', () => {
     await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', cancelable: true })));
     expect(document.activeElement).toBe(controls[0]);
     await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })));
+    await act(async () => vi.runOnlyPendingTimersAsync());
     expect(document.querySelector('[aria-labelledby="comment-delete-modal-title"]')).toBeNull();
     expect(onClose).not.toHaveBeenCalled();
     expect(comments.inert).toBe(false);

@@ -103,6 +103,7 @@ export default function CommentModal({
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const textareaRef = useRef(null);
+  const initialFocusTimerRef = useRef(null);
 
   const postId = post?.id;
 
@@ -172,6 +173,7 @@ export default function CommentModal({
 
     // Focus close button or composer after rendering
     const timer = setTimeout(() => {
+      initialFocusTimerRef.current = null;
       if (deleteModalOpenRef.current) return;
       if (textareaRef.current && !isGuest) {
         textareaRef.current.focus();
@@ -179,9 +181,11 @@ export default function CommentModal({
         closeButtonRef.current.focus();
       }
     }, 50);
+    initialFocusTimerRef.current = timer;
 
     return () => {
       clearTimeout(timer);
+      if (initialFocusTimerRef.current === timer) initialFocusTimerRef.current = null;
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
       // Restore focus to trigger button
@@ -288,6 +292,10 @@ export default function CommentModal({
       onAuthRequired?.();
       return;
     }
+    if (initialFocusTimerRef.current !== null) {
+      clearTimeout(initialFocusTimerRef.current);
+      initialFocusTimerRef.current = null;
+    }
     setCommentToDelete(comment);
     setDeleteModalError(null);
     setDeleteModalOpen(true);
@@ -339,7 +347,14 @@ export default function CommentModal({
       return;
     }
 
-    if (submittedReason === undefined) { setReportTarget(commentId); return; }
+    if (submittedReason === undefined) {
+      if (initialFocusTimerRef.current !== null) {
+        clearTimeout(initialFocusTimerRef.current);
+        initialFocusTimerRef.current = null;
+      }
+      setReportTarget(commentId);
+      return;
+    }
     const reason = submittedReason.trim();
     if (!reason) {
       toast.error('A reason is required to report this comment.');
