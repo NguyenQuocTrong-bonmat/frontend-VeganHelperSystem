@@ -31,5 +31,8 @@ export const createMealPlanCheckout = packageCode => request(() =>
 export const getMealPlanPaymentOrder = (orderId, signal) => request(() =>
   axios.get(`/meal-plan-payments/orders/${orderId}`, { signal }));
 
+export const verifyMealPlanPaymentOrder = orderId => request(() =>
+  axios.post(`/meal-plan-payments/orders/${orderId}/verify`));
+
 export const getMealPlanAccess = signal => request(() =>
   axios.get('/meal-plan-payments/access', { signal }));
