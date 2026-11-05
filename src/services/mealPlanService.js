@@ -32,10 +32,10 @@ export const getMealPlan = (id, signal) => request(() =>
 export const renameMealPlan = (id, name) => request(() =>
   axios.patch(`/MealPlans/${id}/name`, { name })).catch(failure => {
   if (failure.status === 404) {
-    throw Object.assign(new Error('The running backend does not have the menu rename endpoint yet. Restart it with the latest meal-planning code.'), { status: failure.status, cause: failure });
+    throw Object.assign(new Error('Open the menu again from Plan history before renaming it. If it is no longer listed, choose another menu.'), { status: failure.status, cause: failure });
   }
   if (failure.status >= 500 && failure.message === 'An internal server error occurred.') {
-    throw Object.assign(new Error('The backend could not save this name. If the latest backend is running, apply the AddMealPlanNames database migration and try again.'), { status: failure.status, cause: failure });
+    throw Object.assign(new Error('We could not save the new name right now. Please try again in a moment.'), { status: failure.status, cause: failure });
   }
   throw failure;
 });

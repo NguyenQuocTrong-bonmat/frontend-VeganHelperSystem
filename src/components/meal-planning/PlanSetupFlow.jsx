@@ -11,6 +11,7 @@ const formatDayFirstDate = formatDate;
 
 function goalSafetyField(reason) {
   const message = reason.toLowerCase();
+  if (/weekly menu cannot assess/.test(message)) return 'professionalAdvice';
   if (/target weight|requested target weight/.test(message)) return 'targetWeight';
   if (/target date|0\.5 kg per week|calorie deficit or surplus|daily intake falls below/.test(message)) return 'targetDate';
   if (/not pregnant|breastfeeding|clinician-managed/.test(message)) return 'eligibility';
@@ -43,11 +44,14 @@ function suggestGoalDate(profile, startDate, targetWeightKg) {
   const tdee = (10 * weight + 6.25 * height - 5 * age + (sex === 'male' ? 5 : -161)) * activity;
   const currentBmi = weight / (height / 100) ** 2;
   const targetBmi = targetWeightKg / (height / 100) ** 2;
-  if (targetBmi < 18.5 || targetBmi >= 25) {
-    return { weightIssue: 'At your saved height, this target weight is outside the supported BMI range (18.5 to below 25). Choose a different target weight to get a date suggestion.' };
+  if (targetBmi < 18.5) {
+    return { weightIssue: 'This target weight would put your estimated BMI below 18.5. Choose a higher target weight to avoid aiming for an underweight range.' };
+  }
+  if (targetBmi >= 25 && targetWeightKg >= weight) {
+    return { weightIssue: 'At this estimated BMI, the planner supports gradual weight loss. Choose a target weight below your current weight, or use a balanced menu to maintain it.' };
   }
   if (currentBmi < 18.5 || currentBmi >= 40) {
-    return { dateIssue: 'Your current measurements are outside the supported range for automatic weight goal planning.' };
+    return { dateIssue: 'A doctor or registered dietitian can help you choose a goal that fits your health needs.' };
   }
   const delta = targetWeightKg - weight;
   const minimumCalories = sex === 'male' ? 1500 : 1200;
@@ -64,7 +68,7 @@ function suggestGoalDate(profile, startDate, targetWeightKg) {
       return { date: asOf.toISOString().slice(0, 10) };
     }
   }
-  return { dateIssue: 'No date within 730 days meets the current goal limits. Try a target weight closer to your current weight.' };
+  return { dateIssue: 'A smaller first milestone may give you a more manageable timeline. Try a target weight closer to your current weight.' };
 }
 
 
@@ -101,8 +105,14 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
     () => weightGoal ? suggestGoalDate(profile, startDate, Number(targetWeight)) : {},
     [weightGoal, profile, startDate, targetWeight],
   );
-  const weightErrors = goalErrors.targetWeight ?? (goalSuggestion.weightIssue ? [goalSuggestion.weightIssue] : []);
-  const dateErrors = goalErrors.targetDate ?? (goalSuggestion.dateIssue ? [goalSuggestion.dateIssue] : []);
+  const profileHeight = Number(profile?.heightCm);
+  const needsProfessionalAdvice = weightGoal && profileHeight >= 100 && profileHeight <= 250
+    && Number(profile?.weightKg) / (profileHeight / 100) ** 2 >= 40;
+  const professionalAdvice = weightGoal && (goalErrors.professionalAdvice?.[0] || (needsProfessionalAdvice
+    ? 'A doctor or registered dietitian can help you find an approach that supports your health and fits your needs. Weekly Menu cannot assess those needs closely enough to create a weight loss plan for you.'
+    : ''));
+  const weightErrors = professionalAdvice ? [] : (goalErrors.targetWeight ?? (goalSuggestion.weightIssue ? [goalSuggestion.weightIssue] : []));
+  const dateErrors = professionalAdvice ? [] : (goalErrors.targetDate ?? (goalSuggestion.dateIssue ? [goalSuggestion.dateIssue] : []));
   const splitValues = Object.values(mealSplit).map(Number);
   const splitTotal = splitValues.reduce((total, value) => total + (Number.isFinite(value) ? value : 0), 0);
   const splitIsValid = splitValues.every(value => Number.isInteger(value) && value >= 1 && value <= 98) && splitTotal === 100;
@@ -129,7 +139,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
 
   useEffect(() => {
     let active = true;
-    setLoading(true); setProfileError('');
+    setLoading(true); setProfileError(''); setGoalErrors({});
     getHealthProfile().then(data => { if (active) setProfile(data); })
       .catch(failure => { if (active) { setProfile(null); setProfileError(failure.status === 404 ? 'Create your health profile before planning your week.' : failure.message); } })
       .finally(() => { if (active) setLoading(false); });
@@ -155,7 +165,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
 
   async function submit(event) {
     event.preventDefault();
-    if (busy || checking) return;
+    if (busy || checking || (step >= 1 && professionalAdvice)) return;
     if (step >= 1 && !menuName.trim()) {
       menuNameField.current?.setCustomValidity('Enter a name for this weekly menu.');
       menuNameField.current?.reportValidity();
@@ -163,7 +173,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
     }
     if (!event.currentTarget.checkValidity()) { event.currentTarget.reportValidity(); return; }
     if (step === 1 && !splitIsValid) {
-      setSplitError('The breakfast, lunch and dinner percentages must add up to 100%.');
+      setSplitError('Adjust the shares for breakfast, lunch and dinner so each is between 1% and 98% and the total is 100%.');
       return;
     }
     if (step < 2) { setStep(value => value + 1); return; }
@@ -236,7 +246,8 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
           {weightGoal && <p className="wm-notice"><PlannerIcon name="info" /><span>A server safety check reviews your goal, timeline and calorie adjustment before creation. Weight change is estimated and cannot be guaranteed.</span></p>}
         </>}
         {step === 1 && <div className="wm-schedule-fields">
-          {(goalErrors.general?.length || goalErrors.profile?.length) > 0 && <div role="alert" className="wm-goal-field-error">
+          {professionalAdvice && <div role="status" className="wm-notice wm-guidance">{professionalAdvice}</div>}
+          {!professionalAdvice && (goalErrors.general?.length || goalErrors.profile?.length) > 0 && <div role="alert" className="wm-goal-field-error">
             {[...(goalErrors.general || []), ...(goalErrors.profile || [])].map(reason => <p key={reason}>{reason}</p>)}
             {goalErrors.profile?.length > 0 && <button type="button" className="wm-text-button" onClick={onEditProfile}>Review health profile <PlannerIcon name="arrow" /></button>}
           </div>}
@@ -260,11 +271,11 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
             <p className="wm-calorie-split-help">The starting values are editable convenience values, not a medical recommendation.</p>
           </fieldset>
           {weightGoal && <>
-            <div className="wm-input-group"><label htmlFor="goal-weight">Target weight <span>(kg)</span></label><input className="wm-control" id="goal-weight" type="number" min="30" max="200" step="0.1" required value={targetWeight} aria-invalid={Boolean(weightErrors?.length)} aria-describedby={weightErrors?.length ? 'goal-weight-error' : undefined} onChange={event => { targetDateManuallyEdited.current = false; setTargetWeight(event.target.value); clearGoalErrors('targetWeight', 'targetDate'); }} placeholder="Enter your target weight" /><p>Current weight: {profile?.weightKg ? `${number(profile.weightKg)} kg` : 'Add it in Health & Wellness.'}</p>{weightErrors?.length > 0 && <div id="goal-weight-error" role="alert" className="wm-goal-field-error">{weightErrors.map(reason => <p key={reason}>{reason}</p>)}</div>}</div>
-            <div className="wm-input-group"><label htmlFor="goal-date">Target date</label><DateInput id="goal-date" name="targetDate" value={targetDate} min={startDate} required aria-invalid={Boolean(dateErrors?.length)} aria-describedby={dateErrors?.length ? 'goal-date-help goal-date-error' : 'goal-date-help'} inputClassName="wm-control" onChange={event => { targetDateManuallyEdited.current = true; setTargetDate(event.target.value); clearGoalErrors('targetDate'); }} /><p id="goal-date-help">The earliest date that meets the current safety limits is filled in automatically. You can enter a later date to make the change more gradual.</p>{dateErrors?.length > 0 && <div id="goal-date-error" role="alert" className="wm-goal-field-error">{dateErrors.map(reason => <p key={reason}>{reason}</p>)}</div>}</div>
+            <div className="wm-input-group"><label htmlFor="goal-weight">Target weight <span>(kg)</span></label><input className="wm-control" id="goal-weight" type="number" min="30" max="200" step="0.1" required value={targetWeight} aria-invalid={Boolean(weightErrors?.length)} aria-describedby={weightErrors?.length ? 'goal-weight-error' : undefined} onChange={event => { targetDateManuallyEdited.current = false; setTargetWeight(event.target.value); clearGoalErrors('targetWeight', 'targetDate'); }} placeholder="Enter your target weight" /><p>Current weight: {profile?.weightKg ? `${number(profile.weightKg)} kg` : 'Add it in Health & Wellness.'}</p>{weightErrors?.length > 0 && <div id="goal-weight-error" role="alert" className="wm-goal-field-error wm-guidance">{weightErrors.map(reason => <p key={reason}>{reason}</p>)}</div>}</div>
+            <div className="wm-input-group"><label htmlFor="goal-date">Target date</label><DateInput id="goal-date" name="targetDate" value={targetDate} min={startDate} required aria-invalid={Boolean(dateErrors?.length)} aria-describedby={dateErrors?.length ? 'goal-date-help goal-date-error' : 'goal-date-help'} inputClassName="wm-control" onChange={event => { targetDateManuallyEdited.current = true; setTargetDate(event.target.value); clearGoalErrors('targetDate'); }} /><p id="goal-date-help">The earliest date that meets the current safety limits is filled in automatically. You can enter a later date to make the change more gradual.</p>{dateErrors?.length > 0 && <div id="goal-date-error" role="alert" className="wm-goal-field-error wm-guidance">{dateErrors.map(reason => <p key={reason}>{reason}</p>)}</div>}</div>
             <div className="wm-input-group"><label htmlFor="goal-timezone">Timezone</label><TimeZoneSelect id="goal-timezone" required value={timeZoneId} onChange={event=>setTimeZoneId(event.target.value)} aria-describedby="goal-timezone-help" /><p id="goal-timezone-help">Defaults to your device timezone. Goal plan dates and reminder times use the selected timezone.</p></div>
             <label className="wm-check-label"><input id="goal-eligibility" type="checkbox" required checked={eligibility} aria-invalid={Boolean(goalErrors.eligibility?.length)} aria-describedby={goalErrors.eligibility?.length ? 'goal-eligibility-error' : undefined} onChange={event=>{ setEligibility(event.target.checked); clearGoalErrors('eligibility'); }} />I am aged 18–65, not pregnant or breastfeeding, and do not need clinician-managed nutrition.</label>
-            {goalErrors.eligibility?.length > 0 && <div id="goal-eligibility-error" role="alert" className="wm-goal-field-error">{goalErrors.eligibility.map(reason => <p key={reason}>{reason}</p>)}</div>}
+            {goalErrors.eligibility?.length > 0 && <div id="goal-eligibility-error" role="alert" className="wm-goal-field-error wm-guidance">{goalErrors.eligibility.map(reason => <p key={reason}>{reason}</p>)}</div>}
             <label className="wm-check-label"><input type="checkbox" checked={reminders} onChange={event=>setReminders(event.target.checked)} />Remind me at meal times</label>
             {reminders && <div className="wm-reminder-preview">{Object.entries(times).map(([key,value])=><label key={key}>{key.replace('Time','')}<input type="time" required value={value} onChange={event=>setTimes(current=>({...current,[key]:event.target.value}))} /></label>)}</div>}
           </>}
@@ -273,7 +284,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
         {step === 2 && <div className="wm-review">
           <div className="wm-review-summary"><span className="wm-mode-symbol"><PlannerIcon name={weightGoal ? 'target' : 'leaf'} /></span><div><h3>{menuName.trim()}</h3><p>{weightGoal ? 'Weight goal plan' : 'Balanced weekly menu'} · Starts {dateLabel(startDate)} · 7 days · 21 meals</p></div></div>
           <dl className="wm-review-facts wm-meal-split-review"><div><dt>Breakfast</dt><dd>{mealSplit.breakfast}%</dd></div><div><dt>Lunch</dt><dd>{mealSplit.lunch}%</dd></div><div><dt>Dinner</dt><dd>{mealSplit.dinner}%</dd></div></dl>
-          {weightGoal && <><dl className="wm-review-facts"><div><dt>Target weight</dt><dd>{number(targetWeight)} kg</dd></div><div><dt>Target date</dt><dd>{dateLabel(targetDate)}</dd></div><div><dt>Daily calorie target</dt><dd>{safety?.allowed ? `${wholeNumber(safety.targetCalories)} kcal` : 'Safety review required'}</dd></div>{safety?.allowed && <><div><dt>Estimated TDEE</dt><dd>{wholeNumber(safety.tdee)} kcal</dd></div><div><dt>Daily adjustment</dt><dd>{wholeNumber(safety.dailyAdjustment)} kcal</dd></div></>}</dl>{safety && !safety.allowed && <div role="alert" className="wm-alert"><strong>This goal needs adjustment.</strong><ul>{safety.reasons?.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Go back and change the goal or choose a longer timeline.</p></div>}</>}
+          {weightGoal && <><dl className="wm-review-facts"><div><dt>Target weight</dt><dd>{number(targetWeight)} kg</dd></div><div><dt>Target date</dt><dd>{dateLabel(targetDate)}</dd></div><div><dt>Daily calorie target</dt><dd>{safety?.allowed ? `${wholeNumber(safety.targetCalories)} kcal` : 'Safety review required'}</dd></div>{safety?.allowed && <><div><dt>Estimated TDEE</dt><dd>{wholeNumber(safety.tdee)} kcal</dd></div><div><dt>Daily adjustment</dt><dd>{wholeNumber(safety.dailyAdjustment)} kcal</dd></div></>}</dl>{safety && !safety.allowed && <div role="alert" className="wm-alert wm-guidance"><strong>Guidance for your goal</strong><ul>{safety.reasons?.map(reason=><li key={reason}>{reason}</li>)}</ul></div>}</>}
           <div className="wm-profile-review">
             <div className="wm-section-heading"><h3>Your saved health profile</h3><button type="button" className="wm-text-button" onClick={onEditProfile}>Review health profile & allergies <PlannerIcon name="arrow" /></button></div>
             {loading ? <p role="status">Loading your health profile…</p> : profileError ? <div role="alert"><p>{profileError}</p><button type="button" className="wm-text-button" onClick={() => setRefresh(value => value + 1)}>Retry health profile</button></div> : profile ? <>
@@ -287,7 +298,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
       {error && <div role="alert" className="wm-alert">{error}</div>}
       <div className="wm-setup-footer">
         <button type="button" className="wm-text-button" disabled={busy || checking} onClick={() => step ? setStep(value => value - 1) : onCancel()}>{step ? 'Back' : 'Cancel setup'}</button>
-        <button type="submit" className="wm-button wm-button-primary" disabled={busy || checking || (step === 2 && (loading || !profile || Boolean(profileError) || (weightGoal && !eligibility)))}>{checking ? 'Checking goal safety…' : busy ? 'Creating your menu…' : step < 2 ? 'Continue' : weightGoal && !safety?.allowed ? 'Check goal safety' : 'Create weekly menu'}{!busy && !checking && <PlannerIcon name="arrow" />}</button>
+        <button type="submit" className="wm-button wm-button-primary" disabled={busy || checking || (step >= 1 && Boolean(professionalAdvice)) || (step === 2 && (loading || !profile || Boolean(profileError) || (weightGoal && !eligibility)))}>{checking ? 'Checking goal safety…' : busy ? 'Creating your menu…' : step < 2 ? 'Continue' : weightGoal && !safety?.allowed ? 'Check goal safety' : 'Create weekly menu'}{!busy && !checking && <PlannerIcon name="arrow" />}</button>
       </div>
     </form>
   </section>;

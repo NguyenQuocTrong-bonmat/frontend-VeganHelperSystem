@@ -1570,6 +1570,18 @@
   line-height: 1.9;
 }
 
+.wm-notice.wm-guidance,
+.wm-alert.wm-guidance,
+.wm-goal-field-error.wm-guidance {
+  background: #fff5d6;
+  border-color: #e3c779;
+  color: #5e4719;
+}
+
+.wm-goal-field-error.wm-guidance p {
+  color: inherit;
+}
+
 .wm-fields>.wm-notice {
   margin-top: 18px;
 }
