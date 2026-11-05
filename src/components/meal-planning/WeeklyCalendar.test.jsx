@@ -14,8 +14,8 @@ beforeEach(()=>{
   axios.defaults.adapter=async config=>{requests.push(config);return {config,status:200,headers:{},data:await reply(config)};};
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();axios.defaults.adapter=oldAdapter;vi.useRealTimers();});
-function Harness({initial=plan}) { const [current,setCurrent]=useState(initial);return <WeeklyCalendar plan={current} onRoutineChanged={routine=>setCurrent(p=>({...p,routine}))} />; }
-const render=(initial=plan)=>act(async()=>root.render(<Harness initial={initial} />));
+function Harness({initial=plan, initialView}) { const [current,setCurrent]=useState(initial);return <WeeklyCalendar plan={current} initialView={initialView} onRoutineChanged={routine=>setCurrent(p=>({...p,routine}))} />; }
+const render=(initial=plan, initialView='day')=>act(async()=>root.render(<Harness initial={initial} initialView={initialView} />));
 const click=node=>act(async()=>node.click());
 test('toggles a day meal between not recorded and followed without opening meal details',async()=>{
   await render();
@@ -44,15 +44,15 @@ test('future and superseded meals cannot be tracked and maintenance has no track
   await render({...plan,routine:{...plan.routine,entries:plan.routine.entries.map(e=>({...e,dueAt:'2099-10-17T12:00:00Z'}))}});
   expect(host.querySelector('.wm-follow-button').disabled).toBe(true);
   expect(host.textContent).not.toContain('Available after your scheduled meal time.');
-  await act(async()=>root.render(<WeeklyCalendar plan={{...plan,routine:{...plan.routine,state:'superseded'}}} onRoutineChanged={()=>{}} />));
+  await act(async()=>root.render(<WeeklyCalendar plan={{...plan,routine:{...plan.routine,state:'superseded'}}} initialView="day" onRoutineChanged={()=>{}} />));
   expect(host.querySelector('.wm-follow-button').disabled).toBe(true);
-  await act(async()=>root.render(<WeeklyCalendar plan={{...plan,routine:null}} />));
+  await act(async()=>root.render(<WeeklyCalendar plan={{...plan,routine:null}} initialView="day" />));
   expect(host.querySelector('.wm-meal-tracking')).toBeNull();
 });
 test('week calendar uses the same two-state button without a combo box',async()=>{
   const original=window.matchMedia;window.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){}});
   try {
-    await render();await click([...host.querySelectorAll('button')].find(b=>b.textContent.includes('Week view')));
+    await render(plan, 'week');
     const button=host.querySelector('[data-view="week"] .wm-follow-button');
     expect(button.textContent).toBe('Not recorded');
     expect(host.querySelector('[data-view="week"] .wm-meal-tracking select')).toBeNull();
@@ -60,4 +60,34 @@ test('week calendar uses the same two-state button without a combo box',async()=
     expect(JSON.parse(requests[0].data)).toMatchObject({date:'2026-10-17',mealTime:'breakfast',status:'followed',expectedVersion:3});
     expect(button.textContent).toBe('Followed');
   } finally {window.matchMedia=original;}
+});
+
+test('defaults to week view on desktop (> 1100px) and day view on tablet/mobile (<= 1100px)', async () => {
+  // Desktop defaults to week view
+  await act(async () => root.render(<Harness key="desktop" />));
+  expect(host.querySelector('[data-view="week"]')).not.toBeNull();
+  expect(host.querySelector('[data-view="day"]')).toBeNull();
+
+  // Tablet/mobile (<= 1100px) defaults to day view
+  const original = window.matchMedia;
+  let listener;
+  window.matchMedia = () => ({
+    matches: false,
+    addEventListener: (type, fn) => { listener = fn; },
+    removeEventListener() {},
+  });
+  try {
+    await act(async () => root.render(<Harness key="mobile" />));
+    expect(host.querySelector('[data-view="day"]')).not.toBeNull();
+    expect(host.querySelector('[data-view="week"]')).toBeNull();
+
+    // Resizing across breakpoint to desktop (> 1100px) switches to week view
+    if (listener) {
+      await act(async () => listener({ matches: true }));
+      expect(host.querySelector('[data-view="week"]')).not.toBeNull();
+      expect(host.querySelector('[data-view="day"]')).toBeNull();
+    }
+  } finally {
+    window.matchMedia = original;
+  }
 });

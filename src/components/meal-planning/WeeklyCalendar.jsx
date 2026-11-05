@@ -18,7 +18,7 @@ function MealVisual({ meal, compact = false }) {
 function MealCard({ meal, compact, onOpen, tracking }) {
   const ingredients = meal.ingredients || [];
   return <article className={`wm-calendar-meal ${tracking ? 'has-tracking' : ''}`}><button type="button" className={`wm-meal-card wm-meal-card-${meal.mealTime} ${compact ? 'is-compact' : ''}`} onClick={event => onOpen(meal, event.currentTarget)}>
-    {!compact && <MealVisual meal={meal} />}
+    <MealVisual meal={meal} compact={compact} />
     <span className="wm-meal-card-body">
       <span className="wm-meal-overline"><span className="wm-meal-label"><PlannerIcon name={mealIcons[meal.mealTime] || 'bowl'} />{meal.mealTime}</span><span className="wm-meal-arrow"><PlannerIcon name="arrow" /></span></span>
       <strong>{meal.name}</strong>
@@ -47,17 +47,39 @@ function MealDetailPanel({ meal, onClose }) {
   </section>;
 }
 
-export default function WeeklyCalendar({ plan, opening, onRoutineChanged, children }) {
+export default function WeeklyCalendar({ plan, opening, onRoutineChanged, children, initialView }) {
   const today = zonedToday(plan.routine?.timeZoneId);
-  const [view, setView] = useState('day');
-  const [wideScreen, setWideScreen] = useState(() => window.matchMedia?.('(min-width: 1101px)').matches ?? true);
+
+  const checkWide = () => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(min-width: 1101px)').matches;
+    }
+    return true;
+  };
+
+  const [wideScreen, setWideScreen] = useState(checkWide);
+  const [view, setView] = useState(() => initialView || (checkWide() ? 'week' : 'day'));
+  const userChangedView = useRef(Boolean(initialView));
+
   useEffect(() => {
-    const media = window.matchMedia?.('(min-width: 1101px)');
-    if (!media) return;
-    const update = () => setWideScreen(media.matches);
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const media = window.matchMedia('(min-width: 1101px)');
+    const update = (e) => {
+      const isWide = e.matches;
+      setWideScreen(isWide);
+      if (isWide && !userChangedView.current) {
+        setView('week');
+      }
+    };
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
+
+  const handleSetView = (nextView) => {
+    userChangedView.current = true;
+    setView(nextView);
+  };
+
   const calendarView = wideScreen ? view : 'day';
   const days = plan.menu.days || [];
   const [dayIndex, setDayIndex] = useState(() => days.find(day => day.date === today)?.dayIndex ?? days[0]?.dayIndex);
@@ -83,8 +105,8 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged, childr
       <div><h2>Your weekly calendar</h2><p><PlannerIcon name="calendar" />{dateLabel(plan.startDate)} – {dateLabel(plan.endDate)}</p></div>
       {!children && (
         <div className="wm-view-switch" role="group" aria-label="Calendar view">
-          <button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" />Week view</button>
-          <button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" />Day view</button>
+          <button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => handleSetView('week')}><PlannerIcon name="calendar" /><span>Week view</span></button>
+          <button type="button" aria-pressed={calendarView === 'day'} onClick={() => handleSetView('day')}><PlannerIcon name="sun" /><span>Day view</span></button>
         </div>
       )}
     </div>
@@ -117,7 +139,7 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged, childr
       disabled={Boolean(saving) || opening || future || !onRoutineChanged || !['active', 'continued'].includes(routine.state)} onChange={status => record(entry, status)} />;
   }
 
-  const planHeader = typeof children === 'function' ? children({ calendarView, setView }) : children;
+  const planHeader = typeof children === 'function' ? children({ calendarView, setView: handleSetView }) : children;
   if (!days.length) return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>{planHeader}{calendarHeading}<div className="wm-empty"><h2>No scheduled meals in this menu</h2><p>Create another weekly menu to see its saved meals.</p></div></section>;
 
   return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>

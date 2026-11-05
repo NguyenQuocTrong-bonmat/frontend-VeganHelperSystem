@@ -1,30 +1,33 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
 import HealthAndWellness from './HealthAndWellness';
 import WeeklyMealPlanner from '../../components/meal-planning/WeeklyMealPlanner';
-import MealPlanBillingPanel from '../../components/meal-planning/MealPlanBillingPanel';
-import { useLocation } from 'react-router-dom';
 import PlannerIcon from '../../components/meal-planning/PlannerIcon';
 import weeklyMenuImage from '../../assets/images/hero/hero-vietnamese-vegan-pho.webp';
+import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
+import { formatDate } from '../../utils/dateUtils';
 
 function WeeklyMenu() {
-  const location = useLocation();
   const [activeTab, setActiveTab] = useState('weekly');
   const [mealPlanAccess, setMealPlanAccess] = useState(undefined);
+  const [profileRevision, setProfileRevision] = useState(0);
 
   useEffect(() => {
-    if (location.hash !== '#meal-plan-packages') return undefined;
-    const frame = requestAnimationFrame(() => {
-      const target = document.getElementById('meal-plan-packages');
-      if (!target) return;
-      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [location.hash]);
-  const [profileRevision, setProfileRevision] = useState(0);
+    const controller = new AbortController();
+    getMealPlanAccess(controller.signal)
+      .then(accessData => {
+        setMealPlanAccess(accessData);
+      })
+      .catch(() => {
+        // Fallback so WeeklyMealPlanner is not blocked if access request fails
+        setMealPlanAccess(null);
+      });
+    return () => controller.abort();
+  }, []);
+
   return (
     <div className="wm-page min-h-screen flex flex-col">
       <HeaderMember />
@@ -65,8 +68,31 @@ function WeeklyMenu() {
       </div>
 
       <main id="weekly-menu-panel" role="tabpanel" aria-labelledby="weekly-menu-tab" hidden={activeTab !== 'weekly'} className="wm-page-main flex-grow">
+        {/* PAYMENT / MEMBERSHIP CTA BANNER */}
+        <div className="wm-upgrade-cta-banner" role="region" aria-label="Meal plan membership">
+          <div className="wm-upgrade-cta-copy">
+            <span className="wm-upgrade-cta-tag">
+              <PlannerIcon name="leaf" />
+              Meal Plan Access
+            </span>
+            <p className="wm-upgrade-cta-message">
+              {mealPlanAccess?.status === 'active'
+                ? `Your access is active${mealPlanAccess.expiresAt ? ` until ${formatDate(mealPlanAccess.expiresAt)}` : ''}. Need to extend?`
+                : mealPlanAccess?.canGenerate
+                  ? `${mealPlanAccess.trialGenerationsRemaining ?? 3} free generation${mealPlanAccess.trialGenerationsRemaining === 1 ? '' : 's'} remaining.`
+                  : 'Your free generations have been used. Upgrade to continue planning.'}
+            </p>
+          </div>
+          <Link
+            to="/meal-plans/payment"
+            className="wm-upgrade-cta-action"
+            aria-label="Upgrade meal plan access"
+          >
+            <span>Upgrade Access</span>
+            <PlannerIcon name="arrow" />
+          </Link>
+        </div>
 
-        <MealPlanBillingPanel access={mealPlanAccess} onAccessChange={setMealPlanAccess} />
         <WeeklyMealPlanner access={mealPlanAccess} onAccessChange={setMealPlanAccess} profileRevision={profileRevision} onEditProfile={() => { setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); }} />
       </main>
 

@@ -6,9 +6,10 @@ import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import AIChatbot from '../../components/chat/AIChatbot';
 import { getImageUrl } from '../../utils/imageUtils';
-import { formatCalendarDate } from '../../utils/dateUtils';
+import { formatDate, formatCalendarDate } from '../../utils/dateUtils';
 import HeaderMember from '../../components/layout/HeaderMember';
 import DateInput from '../../components/common/DateInput';
+import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
 
 const formatDateInputValue = (date) => {
   const year = date.getFullYear();
@@ -77,6 +78,11 @@ function Profile() {
   const [unlinkOTP, setUnlinkOTP] = useState('');
   const [unlinkMessage, setUnlinkMessage] = useState('');
 
+  // Meal Plan Subscription State
+  const [mealPlanAccess, setMealPlanAccess] = useState(null);
+  const [isAccessLoading, setIsAccessLoading] = useState(true);
+  const [accessError, setAccessError] = useState(null);
+
   const syncEditFormFromProfile = (p = profile) => {
     if (!p) return;
     setEditForm({
@@ -102,7 +108,27 @@ function Profile() {
 
   useEffect(() => {
     fetchProfile();
+    fetchMealPlanAccess();
   }, []);
+
+  const fetchMealPlanAccess = async (signal) => {
+    try {
+      setIsAccessLoading(true);
+      setAccessError(null);
+      const data = await getMealPlanAccess(signal);
+      setMealPlanAccess(data);
+    } catch (err) {
+      if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+        setAccessError(err.message || 'Unable to load subscription details.');
+      }
+    } finally {
+      setIsAccessLoading(false);
+    }
+  };
+
+  const handleRetryAccess = () => {
+    fetchMealPlanAccess();
+  };
 
   const fetchProfile = async () => {
     try {
@@ -442,6 +468,170 @@ function Profile() {
             </div>
 
           </section>
+          {/* END: PersonalInformationCard */}
+
+          {/* BEGIN: MealPlanSubscriptionCard */}
+          <section className="bg-surface-paper rounded-xl border border-border-sage-mist p-6 sm:p-8 shadow-subtle mt-6" data-purpose="meal-plan-subscription-card">
+            <div className="pb-6 border-b border-border-sage-mist/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h2 className="font-fraunces text-xl sm:text-2xl font-semibold text-text-charcoal">
+                  Meal Plan Membership
+                </h2>
+                <p className="text-sm text-text-stem-gray mt-1">
+                  Your weekly meal planner subscription status and access rights
+                </p>
+              </div>
+              <Link
+                to="/weekly-menu"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-moss hover:underline self-start sm:self-auto"
+              >
+                <span>Go to Weekly Menu</span>
+                <span>→</span>
+              </Link>
+            </div>
+
+            <div className="mt-6">
+              {isAccessLoading ? (
+                <div role="status" className="p-5 rounded-lg bg-herb-white/50 border border-border-sage-mist/80 flex items-center gap-3 text-text-stem-gray text-sm">
+                  <svg className="w-5 h-5 animate-spin text-primary-moss" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>Checking subscription status...</span>
+                </div>
+              ) : accessError ? (
+                <div role="alert" className="p-4 rounded-lg bg-red-50/70 border border-red-200 text-red-800 flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg className="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                    <span>{accessError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRetryAccess}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-800 transition-colors cursor-pointer"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <div className="p-5 rounded-lg bg-herb-white/50 border border-border-sage-mist/80 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="text-[13px] text-text-stem-gray font-normal">Subscription Status:</span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          mealPlanAccess?.status === 'active'
+                            ? 'bg-badge-green-bg text-badge-green-text border border-badge-green-text/20'
+                            : mealPlanAccess?.status === 'grace_period'
+                              ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                              : mealPlanAccess?.status === 'expired'
+                                ? 'bg-red-50 text-red-700 border border-red-200'
+                                : mealPlanAccess?.status === 'scheduled'
+                                  ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                                  : 'bg-herb-white text-text-stem-gray border border-border-sage-mist'
+                        }`}>
+                          {mealPlanAccess?.status === 'active'
+                            ? 'Active'
+                            : mealPlanAccess?.status === 'grace_period'
+                              ? 'Grace Period'
+                              : mealPlanAccess?.status === 'expired'
+                                ? 'Expired'
+                                : mealPlanAccess?.status === 'scheduled'
+                                  ? 'Scheduled'
+                                  : 'Free Trial'}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-text-charcoal">
+                        {mealPlanAccess?.status === 'active'
+                          ? 'Active subscription for weekly menus and meal planning.'
+                          : mealPlanAccess?.status === 'grace_period'
+                            ? 'Subscription in grace period. Read-only access to existing plans.'
+                            : mealPlanAccess?.status === 'expired'
+                              ? 'Your subscription has ended. Upgrade to continue creating menus.'
+                              : mealPlanAccess?.status === 'scheduled'
+                                ? 'Your subscription is scheduled.'
+                                : 'Free trial tier. Create custom weekly menus with your trial quota.'}
+                      </p>
+                    </div>
+
+                    {/* Action CTA */}
+                    <div className="shrink-0">
+                      <Link
+                        to="/meal-plans/payment"
+                        className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-primary-moss hover:bg-moss-hover text-white text-xs sm:text-sm font-medium transition-all shadow-sm hover:shadow cursor-pointer"
+                      >
+                        <span>
+                          {mealPlanAccess?.status === 'active'
+                            ? 'Extend Subscription'
+                            : mealPlanAccess?.status === 'grace_period' || mealPlanAccess?.status === 'expired'
+                              ? 'Renew Subscription'
+                              : mealPlanAccess?.status === 'scheduled'
+                                ? 'Manage Subscription'
+                                : 'Upgrade Access'}
+                        </span>
+                        <span>→</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="pt-3 border-t border-border-sage-mist/60 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <span className="text-text-stem-gray block">Planner Generation:</span>
+                      <span className="font-medium text-text-charcoal">
+                        {mealPlanAccess?.canGenerate
+                          ? 'Enabled'
+                          : 'Quota Exhausted'}
+                      </span>
+                    </div>
+
+                    {mealPlanAccess?.status === 'active' && mealPlanAccess?.expiresAt ? (
+                      <div>
+                        <span className="text-text-stem-gray block">Valid Until:</span>
+                        <span className="font-medium text-text-charcoal font-dm-sans">
+                          {formatDate(mealPlanAccess.expiresAt)}
+                        </span>
+                      </div>
+                    ) : mealPlanAccess?.status === 'grace_period' && mealPlanAccess?.graceEndsAt ? (
+                      <div>
+                        <span className="text-text-stem-gray block">Grace Period Ends:</span>
+                        <span className="font-medium text-text-charcoal font-dm-sans">
+                          {formatDate(mealPlanAccess.graceEndsAt)}
+                        </span>
+                      </div>
+                    ) : mealPlanAccess?.status === 'scheduled' ? (
+                      <div>
+                        <span className="text-text-stem-gray block">Activation:</span>
+                        <span className="font-medium text-text-charcoal font-dm-sans">
+                          Pending
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-text-stem-gray block">Free Menus Remaining:</span>
+                        <span className="font-medium text-text-charcoal font-dm-sans">
+                          {mealPlanAccess?.trialGenerationsRemaining ?? 3} / 3
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      <span className="text-text-stem-gray block">Saved Menu History:</span>
+                      <span className="font-medium text-text-charcoal">
+                        {mealPlanAccess?.canViewExistingPlans || mealPlanAccess?.canViewTrialPlans
+                          ? 'Accessible'
+                          : 'Locked'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+          {/* END: MealPlanSubscriptionCard */}
+
           <section className="bg-surface-paper rounded-xl border border-border-sage-mist p-6 sm:p-8 shadow-subtle mt-6">
             <div className="pb-6 border-b border-border-sage-mist/70 flex justify-between items-end">
               <div>

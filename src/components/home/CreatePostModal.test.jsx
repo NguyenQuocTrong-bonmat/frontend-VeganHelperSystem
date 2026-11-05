@@ -4,6 +4,25 @@ import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CreatePostModal from './CreatePostModal';
 import * as postService from '../../services/postService';
+import { NotificationContext } from '../../context/NotificationContext';
+
+const testNotificationContext = {
+  confirm: async (opts = {}) => {
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      return window.confirm(opts.description || opts.title || 'Are you sure?');
+    }
+    return true;
+  },
+  notify: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    loading: vi.fn(),
+    dismiss: vi.fn(),
+  },
+  toast: {},
+};
 
 vi.mock('../../services/postService', () => ({
   createPost: vi.fn(),
@@ -34,9 +53,11 @@ describe('CreatePostModal', () => {
   it('renders accessible dialog with aria-modal and locks body scroll when open', async () => {
     await act(async () => {
       root.render(
-        <BrowserRouter>
-          <CreatePostModal isOpen={true} onClose={() => {}} />
-        </BrowserRouter>
+        <NotificationContext.Provider value={testNotificationContext}>
+          <BrowserRouter>
+            <CreatePostModal isOpen={true} onClose={() => {}} />
+          </BrowserRouter>
+        </NotificationContext.Provider>
       );
     });
 
@@ -53,9 +74,11 @@ describe('CreatePostModal', () => {
 
     await act(async () => {
       root.render(
-        <BrowserRouter>
-          <CreatePostModal isOpen={true} onClose={handleClose} />
-        </BrowserRouter>
+        <NotificationContext.Provider value={testNotificationContext}>
+          <BrowserRouter>
+            <CreatePostModal isOpen={true} onClose={handleClose} />
+          </BrowserRouter>
+        </NotificationContext.Provider>
       );
     });
 
@@ -76,9 +99,11 @@ describe('CreatePostModal', () => {
 
     await act(async () => {
       root.render(
-        <BrowserRouter>
-          <CreatePostModal isOpen={true} onClose={handleClose} />
-        </BrowserRouter>
+        <NotificationContext.Provider value={testNotificationContext}>
+          <BrowserRouter>
+            <CreatePostModal isOpen={true} onClose={handleClose} />
+          </BrowserRouter>
+        </NotificationContext.Provider>
       );
     });
 
@@ -112,9 +137,11 @@ describe('CreatePostModal', () => {
 
     await act(async () => {
       root.render(
-        <BrowserRouter>
-          <CreatePostModal isOpen={true} onClose={handleClose} />
-        </BrowserRouter>
+        <NotificationContext.Provider value={testNotificationContext}>
+          <BrowserRouter>
+            <CreatePostModal isOpen={true} onClose={handleClose} />
+          </BrowserRouter>
+        </NotificationContext.Provider>
       );
     });
 
