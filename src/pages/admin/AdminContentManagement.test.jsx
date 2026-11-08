@@ -6,9 +6,9 @@ import * as service from '../../services/adminService';
 
 vi.mock('../../components/admin/AdminLayout', () => ({ default: ({ children }) => <main>{children}</main> }));
 vi.mock('../../services/adminService', () => ({
-  decideAiFlag: vi.fn(), decideCommentReport: vi.fn(), decidePostReport: vi.fn(),
+  decideAiFlag: vi.fn(), decideCommentReport: vi.fn(), decidePostReport: vi.fn(), decideModerationPost: vi.fn(),
   getAdminAiFlags: vi.fn(), getAdminCommentReportDetail: vi.fn(), getAdminCommentReports: vi.fn(),
-  getAdminModerationPostDetail: vi.fn(), getAdminPostReportDetail: vi.fn(), getAdminPostReports: vi.fn(),
+  getAdminModerationPostDetail: vi.fn(), getAdminModerationPosts: vi.fn(), getAdminPostReportDetail: vi.fn(), getAdminPostReports: vi.fn(),
 }));
 
 let container, root;
@@ -17,6 +17,7 @@ beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
   vi.clearAllMocks();
   service.getAdminAiFlags.mockResolvedValue({ items: [{ id: 201, postId: 33, title: 'AI detected content', reason: 'AI evidence' }], totalCount: 1 });
+  service.getAdminModerationPosts.mockResolvedValue({ items: [{ id: 33, title: 'AI detected content', scanState: 'flagged', contentRevision: 2 }], totalCount: 1 });
   service.getAdminPostReports.mockResolvedValue({ items: [report], totalCount: 1 });
   service.getAdminCommentReports.mockResolvedValue({ items: [], totalCount: 0 });
   service.getAdminModerationPostDetail.mockResolvedValue({ title: 'AI detected content', content: 'AI queue content', contentRevision: 2 });
@@ -25,6 +26,48 @@ beforeEach(() => {
   container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
 });
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); });
+
+test('a revised hidden post remains available for Admin approval even when AI creates no flag', async () => {
+  service.getAdminModerationPosts.mockResolvedValue({
+    items: [{ id: 216, title: 'Revised video post', contentRevision: 3, scanState: 'manual_required', createdAt: '2026-11-07T03:21:26Z' }],
+    totalCount: 1, totalPages: 1,
+  });
+  service.getAdminModerationPostDetail.mockResolvedValue({
+    id: 216, title: 'Revised video post', contentRevision: 3, status: 'pending_review',
+    scanState: 'manual_required', scanErrorCode: 'invalid_response', media: [],
+  });
+  service.decideModerationPost.mockResolvedValue({ postId: 216, action: 'approve' });
+
+  await act(async () => root.render(<AdminContentManagement />));
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('AI Flagged Posts')).click());
+  expect(container.textContent).toContain('Revised video post');
+  expect(container.textContent).toContain('invalid_response');
+  await act(async () => container.querySelector('input[value="approve"]').click());
+  await act(async () => {
+    const input = container.querySelector('textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, 'Video reviewed manually');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  expect(service.decideModerationPost).toHaveBeenCalledWith(216, {
+    action: 'approve', reason: 'Video reviewed manually', expectedRevision: 3,
+  });
+});
+
+test('the merged approval queue can keep an AI-flagged post hidden', async () => {
+  service.decideModerationPost.mockResolvedValue({ postId: 33, action: 'remove' });
+  await act(async () => root.render(<AdminContentManagement />));
+  await act(async () => container.querySelector('input[value="remove"]').click());
+  await act(async () => {
+    const input = container.querySelector('textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, 'Not suitable for the community');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  expect(service.decideModerationPost).toHaveBeenCalledWith(33, {
+    action: 'remove', reason: 'Not suitable for the community', expectedRevision: 2,
+  });
+});
 
 test('reported posts use their own queue, evidence and Admin decision endpoint', async () => {
   await act(async () => root.render(<AdminContentManagement />));
@@ -45,7 +88,7 @@ test('reported posts use their own queue, evidence and Admin decision endpoint',
   });
   await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
   expect(service.decidePostReport).toHaveBeenCalledWith(901, { action: 'remove', reason: 'Spam confirmed by Admin', expectedRevision: 3 });
-  expect(service.decideAiFlag).not.toHaveBeenCalled();
+  expect(service.decideModerationPost).not.toHaveBeenCalled();
 });
 
 test('keyword comments use the existing queue and return to the last valid page after review', async () => {
@@ -79,9 +122,9 @@ test('keyword comments use the existing queue and return to the last valid page 
 });
 
 test('displays queue items with newest date at the top', async () => {
-  const older = { id: 201, postId: 33, title: 'Older post', reason: 'Older flag', createdAt: '2026-10-18T09:54:00Z' };
-  const newer = { id: 202, postId: 34, title: 'Newer post', reason: 'Newer flag', createdAt: '2026-10-31T20:57:00Z' };
-  service.getAdminAiFlags.mockResolvedValue({ items: [older, newer], totalCount: 2 });
+  const older = { id: 33, title: 'Older post', scanState: 'flagged', createdAt: '2026-10-18T09:54:00Z' };
+  const newer = { id: 34, title: 'Newer post', scanState: 'flagged', createdAt: '2026-10-31T20:57:00Z' };
+  service.getAdminModerationPosts.mockResolvedValue({ items: [older, newer], totalCount: 2 });
 
   await act(async () => root.render(<AdminContentManagement />));
 
@@ -97,13 +140,12 @@ test('displays queue items with newest date at the top', async () => {
 test('displays user/author information in moderation queue items and detail view', async () => {
   const itemWithAuthor = {
     id: 301,
-    postId: 55,
     title: 'Delicious Vegan Pho',
     authorName: 'ChefThao',
     reason: 'Contains non-vegan tag',
     createdAt: '2026-10-31T20:57:00Z',
   };
-  service.getAdminAiFlags.mockResolvedValue({ items: [itemWithAuthor], totalCount: 1 });
+  service.getAdminModerationPosts.mockResolvedValue({ items: [itemWithAuthor], totalCount: 1 });
   service.getAdminModerationPostDetail.mockResolvedValue({
     title: 'Delicious Vegan Pho',
     authorName: 'ChefThao',

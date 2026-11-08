@@ -1,6 +1,7 @@
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
+import { NotificationProvider } from '../../context/NotificationContext';
 import { vi } from 'vitest';
 import WeeklyMenu from './WeeklyMenu';
 import PlanSetupFlow from '../../components/meal-planning/PlanSetupFlow';
@@ -42,6 +43,10 @@ beforeEach(() => {
     let data;
     if (config.url === '/HealthProfile') {
       data = await profileRoute(config);
+    } else if (config.url === '/HealthProfile/bmi') {
+      data = { bmi: 22.5, category: 'Normal', dailyCalorieRecommendation: 2000, idealWeightRange: { minKg: 55, maxKg: 75 } };
+    } else if (config.url === '/HealthProfile/bmi-history') {
+      data = { history: [] };
     } else if (config.url === '/meal-plan-payments/access') {
       data = paymentAccess;
     } else if (config.url === '/meal-plan-payments/packages') {
@@ -58,7 +63,7 @@ afterEach(async () => {
   await act(async () => root.unmount()); container.remove(); axios.defaults.adapter = originalAdapter; clearAuthTokens();
   vi.useRealTimers();
 });
-const render = () => act(async () => root.render(<MemoryRouter><WeeklyMenu /></MemoryRouter>));
+const render = () => act(async () => root.render(<MemoryRouter><NotificationProvider><WeeklyMenu /></NotificationProvider></MemoryRouter>));
 const button = text => [...container.querySelectorAll('button')].find(node => node.textContent.includes(text) || node.getAttribute('aria-label')?.includes(text));
 const click = node => act(async () => node.click());
 const change = (node, value) => act(async () => {
@@ -149,7 +154,11 @@ test('offers week and day views and opens real ingredients without inventing coo
   route = async () => page([plan()]);
   await render();
   expect(container.querySelector('[aria-label="Weekly meal calendar"]')).not.toBeNull();
+  expect(container.querySelector('[data-view="week"]')).not.toBeNull();
+  expect(container.querySelector('[data-view="day"]')).toBeNull();
+  await click(button('Day view'));
   expect(container.querySelector('[data-view="day"]')).not.toBeNull();
+  expect(container.querySelector('[data-view="week"]')).toBeNull();
   expect(container.querySelector('.wm-meal-ingredient-preview').textContent).toContain('Tofu');
   await click(button('Week view'));
   expect(container.querySelector('[data-view="week"]')).not.toBeNull();
@@ -192,8 +201,10 @@ test('uses backend access to block another generation after the three free trial
 
   expect(button('New weekly menu').disabled).toBe(true);
   expect(container.textContent).toContain('Your 3 free weekly-menu generations have been used');
-  expect(container.textContent).toContain('One month');
-  expect(container.textContent).toMatch(/1[.,]000/);
+  expect(container.querySelector('#meal-plan-packages')).toBeNull();
+  const cta = container.querySelector('a[href="/meal-plans/payment"]');
+  expect(cta).not.toBeNull();
+  expect(cta.textContent).toContain('Upgrade Access');
   expect(adapter.mock.calls.some(([config]) => config.url === '/MealPlans/generate')).toBe(false);
 });
 
@@ -314,4 +325,32 @@ test('uncertain network failure advises reloading saved plans and does not retry
   expect(container.querySelector('[role="alert"]').textContent).toContain('Could not confirm whether your menu was saved');
   expect(adapter.mock.calls.filter(([config]) => config.method === 'post')).toHaveLength(1);
   expect(container.textContent).toContain('breakfast dish 8-1');
+});
+
+test('billing panel is absent from DOM and payment CTA links to /meal-plans/payment', async () => {
+  await render();
+  expect(container.querySelector('#meal-plan-packages')).toBeNull();
+  const cta = container.querySelector('a[href="/meal-plans/payment"]');
+  expect(cta).not.toBeNull();
+  expect(cta.textContent).toContain('Upgrade Access');
+  expect(container.textContent).toContain('Meal Plan Access');
+});
+
+test('switches between Weekly Menu and Health & Wellness tabs correctly', async () => {
+  await render();
+  const weeklyTab = button('Weekly Menu');
+  const wellnessTab = button('Health & Wellness');
+
+  expect(weeklyTab.getAttribute('aria-selected')).toBe('true');
+  expect(wellnessTab.getAttribute('aria-selected')).toBe('false');
+  expect(container.querySelector('main').hidden).toBe(false);
+
+  await click(wellnessTab);
+  expect(weeklyTab.getAttribute('aria-selected')).toBe('false');
+  expect(wellnessTab.getAttribute('aria-selected')).toBe('true');
+  expect(container.querySelector('main').hidden).toBe(true);
+
+  await click(weeklyTab);
+  expect(weeklyTab.getAttribute('aria-selected')).toBe('true');
+  expect(container.querySelector('main').hidden).toBe(false);
 });

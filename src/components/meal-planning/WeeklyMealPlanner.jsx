@@ -268,24 +268,141 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
     <p role="status" className={generating || regenerating || opening || deleting || success ? 'wm-status' : 'sr-only'}>{regenerating ? 'Regenerating your weekly menu…' : generating ? 'Creating and saving your weekly menu. Please wait…' : deleting ? 'Deleting your weekly menu…' : opening ? 'Opening saved menu…' : success}</p>
     {access?.canGenerate === false && <p role="status" className="wm-notice">Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.</p>}
     {access && !access.canViewExistingPlans && !access.canViewTrialPlans && <p className="wm-notice">No saved meal plans are available to view yet. Create a plan with your free trial or activate a package to unlock saved plans.</p>}
-    <div className="wm-workspace-grid">
-      <aside className="wm-sidebar" aria-label="Plan overview and saved menus">
-        <section className="wm-plan-summary">
-          <div className="wm-summary-image"><img src={plannerInspiration} alt="" /><span>Plant-based inspiration</span></div>
-          <div className="wm-summary-copy"><h2>Your week,<br />thoughtfully planned.</h2><p>Plant-based meals, planned around you.</p></div>
-          {menu ? <><div className="wm-summary-target"><span>Daily calorie target</span><strong>{wholeNumber(menu.targetDailyCalories)}<small>kcal</small></strong><span>{menu.goal === 'weight_goal' ? 'Estimated weight goal calories' : 'Estimated maintenance calories'}</span></div><div className="wm-summary-diet"><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</div><dl className="wm-summary-facts"><div><dt>Duration</dt><dd>{menu.days?.length ?? '—'} days</dd></div><div><dt>Scheduled meals</dt><dd>{menu.days?.reduce((count, day) => count + (day.meals?.length || 0), 0) ?? '—'}</dd></div></dl></> : <p className="wm-summary-first">Your menu overview will appear here once you have a saved plan.</p>}
-        </section>
-        <section className="wm-saved-plans" aria-labelledby="saved-menu-heading">
-          <div className="wm-section-heading"><h3 id="saved-menu-heading">Plan history</h3><button type="button" className="wm-icon-button" aria-label="Reload saved plans" disabled={busy || loading} onClick={() => setRefresh(value => value + 1)}><PlannerIcon name="refresh" /></button></div>
-          <label className="wm-field-label" htmlFor="saved-meal-plan">Choose a week</label>
-          <select id="saved-meal-plan" value={plan?.id ?? ''} onChange={event => openPlan(event.target.value)} disabled={busy || loading || !choices.length} className="wm-control">
-            {!plan && <option value="">No saved menus yet</option>}{choices.map(item => <option key={item.id} value={item.id}>{item.name || rangeLabel(item)} · {rangeLabel(item)}</option>)}
-          </select>
-          {listError ? <div role="alert" className="wm-inline-error"><p>{listError}</p><button type="button" className="wm-text-button" onClick={() => setRefresh(value => value + 1)}>Retry</button></div> : loading ? <p role="status" className="wm-muted">Loading saved plans…</p> : <p className="wm-saved-help">Every menu keeps the profile and allergies used when it was created.</p>}
-          {saved.totalPages > 1 && <div className="wm-pagination"><button type="button" className="wm-icon-button" aria-label="Previous plans" disabled={busy || loading || pageIndex <= 1} onClick={() => setPageIndex(value => value - 1)}><PlannerIcon name="chevron" className="wm-reverse" /></button><span>{pageIndex} / {saved.totalPages}</span><button type="button" className="wm-icon-button" aria-label="Next plans" disabled={busy || loading || pageIndex >= saved.totalPages} onClick={() => setPageIndex(value => value + 1)}><PlannerIcon name="chevron" /></button></div>}
-        </section>
-        <section className="wm-profile-link"><PlannerIcon name="leaf" /><h3>Good plans start with you.</h3><p>Keep your health profile, diet and allergies up to date before creating a menu.</p><button type="button" className="wm-text-button" onClick={onEditProfile}>Review health profile <PlannerIcon name="arrow" /></button></section>
-      </aside>
+    {/* HORIZONTAL DASHBOARD OVERVIEW */}
+    <section className="wm-dashboard-overview wm-saved-plans" aria-label="Plan overview and saved menus">
+      <div className="wm-overview-history-bar" aria-labelledby="saved-menu-heading">
+        <div className="wm-history-control-group">
+          <div className="wm-history-label-group">
+            <h3 id="saved-menu-heading" className="wm-history-title">Plan history</h3>
+            <button
+              type="button"
+              className="wm-icon-button"
+              aria-label="Reload saved plans"
+              disabled={busy || loading}
+              onClick={() => setRefresh(value => value + 1)}
+            >
+              <PlannerIcon name="refresh" />
+            </button>
+          </div>
+          <div className="wm-history-select-wrapper">
+            <label className="wm-field-label sr-only" htmlFor="saved-meal-plan">Choose a week</label>
+            <select
+              id="saved-meal-plan"
+              value={plan?.id ?? ''}
+              onChange={event => openPlan(event.target.value)}
+              disabled={busy || loading || !choices.length}
+              className="wm-control wm-history-select"
+            >
+              {!plan && <option value="">No saved menus yet</option>}
+              {choices.map(item => (
+                <option key={item.id} value={item.id}>
+                  {item.name || rangeLabel(item)} · {rangeLabel(item)}
+                </option>
+              ))}
+            </select>
+          </div>
+          {saved.totalPages > 1 && (
+            <div className="wm-pagination">
+              <button
+                type="button"
+                className="wm-icon-button"
+                aria-label="Previous plans"
+                disabled={busy || loading || pageIndex <= 1}
+                onClick={() => setPageIndex(value => value - 1)}
+              >
+                <PlannerIcon name="chevron" className="wm-reverse" />
+              </button>
+              <span>{pageIndex} / {saved.totalPages}</span>
+              <button
+                type="button"
+                className="wm-icon-button"
+                aria-label="Next plans"
+                disabled={busy || loading || pageIndex >= saved.totalPages}
+                onClick={() => setPageIndex(value => value + 1)}
+              >
+                <PlannerIcon name="chevron" />
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="wm-history-profile-action">
+          <button type="button" className="wm-text-button" onClick={onEditProfile}>
+            <PlannerIcon name="leaf" />
+            <span>Review health profile</span>
+            <PlannerIcon name="arrow" />
+          </button>
+        </div>
+      </div>
+
+      {listError ? (
+        <div role="alert" className="wm-inline-error">
+          <p>{listError}</p>
+          <button type="button" className="wm-text-button" onClick={() => setRefresh(value => value + 1)}>
+            Retry
+          </button>
+        </div>
+      ) : loading ? (
+        <p role="status" className="wm-muted">Loading saved plans…</p>
+      ) : (
+        <p className="wm-saved-help sr-only">Every menu keeps the profile and allergies used when it was created.</p>
+      )}
+
+      {/* Horizontal Stats Cards */}
+      {menu ? (
+        <div className="wm-overview-cards-grid">
+          <div className="wm-overview-card wm-card-calorie">
+            <div className="wm-overview-card-icon"><PlannerIcon name="sun" /></div>
+            <div className="wm-overview-card-content">
+              <span className="wm-overview-card-label">Daily Calorie Target</span>
+              <strong className="wm-overview-card-value">
+                {wholeNumber(menu.targetDailyCalories)} <small>kcal</small>
+              </strong>
+              <span className="wm-overview-card-sub">
+                {menu.goal === 'weight_goal' ? 'Estimated weight goal calories' : 'Estimated maintenance calories'}
+              </span>
+            </div>
+          </div>
+
+          <div className="wm-overview-card wm-card-diet">
+            <div className="wm-overview-card-icon"><PlannerIcon name="leaf" /></div>
+            <div className="wm-overview-card-content">
+              <span className="wm-overview-card-label">Diet Type</span>
+              <strong className="wm-overview-card-value">{dietLabel(menu.dietType)}</strong>
+              <span className="wm-overview-card-sub">
+                {menu.allergies?.length ? `${menu.allergies.length} allergen(s) filtered` : 'None declared'}
+              </span>
+            </div>
+          </div>
+
+          <div className="wm-overview-card wm-card-duration">
+            <div className="wm-overview-card-icon"><PlannerIcon name="calendar" /></div>
+            <div className="wm-overview-card-content">
+              <span className="wm-overview-card-label">Duration</span>
+              <strong className="wm-overview-card-value">{menu.days?.length ?? '—'} <small>days</small></strong>
+              <span className="wm-overview-card-sub">Full week cycle</span>
+            </div>
+          </div>
+
+          <div className="wm-overview-card wm-card-meals">
+            <div className="wm-overview-card-icon"><PlannerIcon name="bowl" /></div>
+            <div className="wm-overview-card-content">
+              <span className="wm-overview-card-label">Scheduled Meals</span>
+              <strong className="wm-overview-card-value">
+                {menu.days?.reduce((count, day) => count + (day.meals?.length || 0), 0) ?? '—'} <small>meals</small>
+              </strong>
+              <span className="wm-overview-card-sub">3 meals a day</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="wm-overview-empty">
+          <p className="wm-summary-first">Your menu overview will appear here once you have a saved plan.</p>
+        </div>
+      )}
+    </section>
+
+    {/* FULL-WIDTH WORKSPACE CONTENT */}
+    <div className="wm-workspace-grid wm-workspace-full">
       <div className="wm-main-column">
         {setupOpen && <PlanSetupFlow profileRevision={profileRevision} busy={generating} error={error} onGenerate={generate} onCancel={cancelSetup} onEditProfile={onEditProfile} />}
         {!setupOpen && error && (
@@ -308,9 +425,9 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
           </form> : <>
             <div><span className="wm-eyebrow">Selected weekly menu</span><h2>{plan.name || rangeLabel(plan)}</h2><p>{rangeLabel(plan)}{plan.routine?.mode === 'weight_goal' ? ' · Weight goal plan with tracking' : ' · Balanced menu'}</p></div>
             <div className="wm-plan-actions">
-              <button ref={renameButton} type="button" className="wm-text-button" disabled={busy || !plan.id} onClick={beginRename}>Rename menu</button>
-              <button type="button" className="wm-text-button" disabled={busy || !plan.id || Boolean(regenerationBlocked)} title={regenerationBlocked || undefined} onClick={regenerate}>Regenerate menu</button>
-              <button type="button" className="wm-text-button is-destructive" disabled={busy || !plan.id} onClick={deleteSelectedPlan}>{deleting ? 'Deleting…' : 'Delete menu'}</button>
+              <button ref={renameButton} type="button" className="wm-action-btn wm-action-rename" disabled={busy || !plan.id} onClick={beginRename}><PlannerIcon name="pencil" /><span>Rename menu</span></button>
+              <button type="button" className="wm-action-btn wm-action-regenerate" disabled={busy || !plan.id || Boolean(regenerationBlocked)} title={regenerationBlocked || undefined} onClick={regenerate}><PlannerIcon name="refresh" /><span>Regenerate menu</span></button>
+              <button type="button" className="wm-action-btn wm-action-delete" disabled={busy || !plan.id} onClick={deleteSelectedPlan}><PlannerIcon name="trash" /><span>{deleting ? 'Deleting…' : 'Delete menu'}</span></button>
             </div>
           </>}
         </section>}
@@ -325,21 +442,39 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
                 </form> : <>
                   <div className="wm-selected-plan-details"><span className="wm-eyebrow">Selected weekly menu</span><h2>{plan.name || rangeLabel(plan)}</h2><p>{rangeLabel(plan)}{plan.routine?.mode === 'weight_goal' ? ' · Weight goal plan with tracking' : ' · Balanced menu'}</p></div>
                   <div className="wm-selected-plan-tools">
-                    <div className="wm-view-switch" role="group" aria-label="Calendar view"><button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" />Week view</button><button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" />Day view</button></div>
+                    <div className="wm-view-switch" role="group" aria-label="Calendar view"><button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" /><span>Week view</span></button><button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" /><span>Day view</span></button></div>
                     <div className="wm-plan-actions">
-                      <button ref={renameButton} type="button" className="wm-text-button" disabled={busy || !plan.id} onClick={beginRename}>Rename menu</button>
-                      <button type="button" className="wm-text-button" disabled={busy || !plan.id || Boolean(regenerationBlocked)} title={regenerationBlocked || undefined} onClick={regenerate}>Regenerate menu</button>
-                      <button type="button" className="wm-text-button is-destructive" disabled={busy || !plan.id} onClick={deleteSelectedPlan}>{deleting ? 'Deleting…' : 'Delete menu'}</button>
+                      <button ref={renameButton} type="button" className="wm-action-btn wm-action-rename" disabled={busy || !plan.id} onClick={beginRename}><PlannerIcon name="pencil" /><span>Rename menu</span></button>
+                      <button type="button" className="wm-action-btn wm-action-regenerate" disabled={busy || !plan.id || Boolean(regenerationBlocked)} title={regenerationBlocked || undefined} onClick={regenerate}><PlannerIcon name="refresh" /><span>Regenerate menu</span></button>
+                      <button type="button" className="wm-action-btn wm-action-delete" disabled={busy || !plan.id} onClick={deleteSelectedPlan}><PlannerIcon name="trash" /><span>{deleting ? 'Deleting…' : 'Delete menu'}</span></button>
                     </div>
                   </div>
                 </>}
               </div>
-              <div className="wm-menu-context"><span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span><span className="wm-mobile-calorie">Daily target <strong>{wholeNumber(menu.targetDailyCalories)} kcal</strong></span><span>BMI at creation <strong>{number(menu.bmi)}</strong></span><span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span></div>
+              <div className="wm-menu-context">
+                <span><PlannerIcon name="leaf" />{dietLabel(menu.dietType)}</span>
+                <span className="wm-mobile-calorie">Daily target <strong>{wholeNumber(menu.targetDailyCalories)} kcal</strong></span>
+                <span>BMI at creation <strong>{number(menu.bmi)}</strong></span>
+                <span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span>
+                {plan.routine?.mode === 'weight_goal' && (() => {
+                  const entries = plan.routine.entries || [];
+                  const logged = entries.filter(e => e.status !== 'unlogged');
+                  const followed = logged.filter(e => e.status === 'followed').length;
+                  return (
+                    <span className="wm-context-adherence">
+                      <PlannerIcon name="target" />
+                      Tracking adherence <strong>{logged.length ? `${Math.round(followed / logged.length * 100)}% (${logged.length}/${entries.length})` : `0/${entries.length} logged`}</strong>
+                    </span>
+                  );
+                })()}
+              </div>
             </div>}
           </WeeklyCalendar>
-          <MenuJourney plan={plan} menu={menu} />
-          {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated => { setPlan(updated); setRefresh(value => value + 1); }} onEditProfile={onEditProfile} />}
-          <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.mealCalorieSplit && <p>Daily calorie split: breakfast {menu.mealCalorieSplit.breakfastPercent}%, lunch {menu.mealCalorieSplit.lunchPercent}%, dinner {menu.mealCalorieSplit.dinnerPercent}%. These shares divide the daily target and do not change it.</p>}{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
+          <div className="wm-planning-nutrition-section">
+            {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated => { setPlan(updated); setRefresh(value => value + 1); }} onEditProfile={onEditProfile} />}
+            <MenuJourney plan={plan} menu={menu} />
+            <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.mealCalorieSplit && <p>Daily calorie split: breakfast {menu.mealCalorieSplit.breakfastPercent}%, lunch {menu.mealCalorieSplit.lunchPercent}%, dinner {menu.mealCalorieSplit.dinnerPercent}%. These shares divide the daily target and do not change it.</p>}{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
+          </div>
         </>}
         {plan?.routine?.mode === 'maintenance' && <p className="wm-notice">This balanced plan is for viewing your menu. Create a weight goal plan to use tracking and reminders.</p>}
       </div>

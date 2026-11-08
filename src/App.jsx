@@ -21,6 +21,7 @@ import PublicUserProfile from './pages/member/PublicUserProfile.jsx'
 import MyPosts from './pages/member/MyPosts.jsx'
 import PostDetail from './pages/member/PostDetail.jsx'
 import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
+import MealPlanPayment from './pages/member/MealPlanPayment.jsx'
 import MealPlanPaymentResult from './pages/member/MealPlanPaymentResult.jsx'
 import FindVeganStores from './pages/member/FindVeganStores.jsx'
 import StoreDetail from './pages/member/StoreDetail.jsx'
@@ -169,6 +170,7 @@ function App() {
         <Route path="/posts/edit/:id" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
         <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
+        <Route path="/meal-plans/payment" element={<ProtectedRoute><MealPlanPayment /></ProtectedRoute>} />
         <Route path="/meal-plans/payment/success" element={<ProtectedRoute><MealPlanPaymentResult variant="success" /></ProtectedRoute>} />
         <Route path="/meal-plans/payment/cancel" element={<ProtectedRoute><MealPlanPaymentResult variant="cancel" /></ProtectedRoute>} />
         <Route path="/meal-plans/payment/failed" element={<ProtectedRoute><MealPlanPaymentResult variant="failed" /></ProtectedRoute>} />

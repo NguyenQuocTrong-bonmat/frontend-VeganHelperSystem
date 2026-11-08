@@ -8,6 +8,7 @@ import { getFollowers, getFollowing } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/dateUtils';
+import { getMealPlanAccess } from '../../services/mealPlanPaymentService';
 import { motion, useReducedMotion } from 'framer-motion';
 import SavedPosts from './SavedPosts';
 import FollowListModal from '../../components/home/FollowListModal';
@@ -45,6 +46,42 @@ function MyPosts({ notifications = [] } = {}) {
     isOpen: false,
     initialTab: 'followers',
   });
+
+  // Meal Plan Access state
+  const [mealPlanAccess, setMealPlanAccess] = useState(null);
+  const [isAccessLoading, setIsAccessLoading] = useState(true);
+  const [accessError, setAccessError] = useState(false);
+
+  // Load meal plan subscription access
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    setAccessError(false);
+    getMealPlanAccess(controller.signal)
+      .then(data => {
+        if (!cancelled) {
+          setMealPlanAccess(data);
+          setAccessError(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setMealPlanAccess(null);
+          if (err?.name !== 'CanceledError' && err?.code !== 'ERR_CANCELED') {
+            setAccessError(true);
+          }
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsAccessLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
 
   // Load followers and following counts
   useEffect(() => {
@@ -370,28 +407,70 @@ function MyPosts({ notifications = [] } = {}) {
               </div>
             </div>
 
-            {/* Right: Profile Actions */}
-            <div className="flex items-center justify-center sm:justify-start md:justify-end gap-2.5 shrink-0 self-center md:self-start pt-1">
-              <button
-                type="button"
-                onClick={() => navigate('/posts/create')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>Write Recipe</span>
-              </button>
+            {/* Right: Profile Actions & Subscription Status */}
+            <div className="flex flex-col items-center sm:items-start md:items-end gap-2.5 shrink-0 self-center md:self-start pt-1">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/posts/create')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F5233] hover:bg-[#25401F] text-white text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  <span>Write Recipe</span>
+                </button>
 
-              <Link
-                to="/profile"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                </svg>
-                <span>Edit Profile</span>
-              </Link>
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#DCE3D5] bg-white hover:bg-[#F3F6EE] text-[#2F5233] text-xs sm:text-sm font-semibold font-dm-sans transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                  </svg>
+                  <span>Edit Profile</span>
+                </Link>
+              </div>
+
+              {/* Meal Plan Access Badge & Payment CTA */}
+              <div className="flex items-center gap-2 text-xs font-dm-sans bg-[#F3F6EE] px-3 py-1.5 rounded-full border border-[#DCE3D5]" data-testid="meal-plan-access-badge">
+                <span className="text-[#6B6F63] font-medium">Meal Plan:</span>
+                {isAccessLoading ? (
+                  <span className="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse" />
+                ) : accessError ? (
+                  <span className="font-semibold text-text-stem-gray" title="Meal Plan Status Unavailable">Status Unavailable</span>
+                ) : (
+                  <span className={`font-semibold ${
+                    mealPlanAccess?.status === 'active'
+                      ? 'text-[#2F5233]'
+                      : mealPlanAccess?.status === 'grace_period'
+                        ? 'text-amber-800'
+                        : mealPlanAccess?.status === 'expired'
+                          ? 'text-red-700'
+                          : mealPlanAccess?.status === 'scheduled'
+                            ? 'text-blue-800'
+                            : 'text-[#4E5246]'
+                  }`}>
+                    {mealPlanAccess?.status === 'active'
+                      ? 'Active'
+                      : mealPlanAccess?.status === 'grace_period'
+                        ? 'Grace Period'
+                        : mealPlanAccess?.status === 'expired'
+                          ? 'Expired'
+                          : mealPlanAccess?.status === 'scheduled'
+                            ? 'Scheduled'
+                            : `${mealPlanAccess?.trialGenerationsRemaining ?? 3} Free Left`}
+                  </span>
+                )}
+                <span className="text-[#DCE5D9]">•</span>
+                <Link
+                  to="/meal-plans/payment"
+                  className="font-semibold text-[#2F5233] hover:underline"
+                  title="View meal plan subscription and packages"
+                >
+                  {mealPlanAccess?.status === 'active' || mealPlanAccess?.status === 'scheduled' ? 'Manage' : 'Upgrade'} →
+                </Link>
+              </div>
             </div>
 
           </div>

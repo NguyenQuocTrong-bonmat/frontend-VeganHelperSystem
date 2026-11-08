@@ -6,13 +6,13 @@ import { getImageUrl } from '../../utils/imageUtils';
 import { getPaginationPages } from '../../utils/paginationUtils';
 import { formatDateTime } from '../../utils/dateUtils';
 import {
-  decideAiFlag,
   decideCommentReport,
   decidePostReport,
-  getAdminAiFlags,
+  decideModerationPost,
   getAdminCommentReportDetail,
   getAdminCommentReports,
   getAdminModerationPostDetail,
+  getAdminModerationPosts,
   getAdminPostReportDetail,
   getAdminPostReports,
 } from '../../services/adminService';
@@ -20,15 +20,15 @@ import {
 const PAGE_SIZE = 10;
 
 const QUEUES = [
-  { id: 'ai', label: 'AI flagged posts' },
+  { id: 'review', label: 'AI Flagged Posts' },
   { id: 'posts', label: 'Reported posts' },
   { id: 'comments', label: 'Reported comments' },
 ];
 
 const ACTIONS = {
-  ai: [
-    { id: 'keep', label: 'Keep post', tone: 'positive' },
-    { id: 'remove', label: 'Hide post', tone: 'danger' },
+  review: [
+    { id: 'approve', label: 'Approve post', tone: 'positive' },
+    { id: 'remove', label: 'Keep post hidden', tone: 'danger' },
   ],
   posts: [
     { id: 'dismiss', label: 'Dismiss selected report', tone: 'neutral' },
@@ -44,12 +44,13 @@ const ACTIONS = {
 const formatDate = (value) => formatDateTime(value) || 'Unknown time';
 
 const queueTitle = (queue, item) => {
-  if (queue === 'ai') return item.title || `Post #${item.postId}`;
+  if (queue === 'review') return item.title || `Post #${item.id}`;
   if (queue === 'posts') return item.postTitle || item.title || `Reported post #${item.postId}`;
   return item.postTitle || `Comment #${item.commentId}`;
 };
 
 const queueDescription = (queue, item) => {
+  if (queue === 'review') return item.scanState ? `AI scan: ${item.scanState}` : 'Awaiting Admin review';
   if (queue === 'comments') return item.commentContent || 'Comment content unavailable.';
   return item.reason || 'No report reason provided.';
 };
@@ -70,9 +71,9 @@ function EmptyState({ message }) {
 
 export default function AdminContentManagement() {
   const shouldReduceMotion = useReducedMotion();
-  const [activeQueue, setActiveQueue] = useState('ai');
+  const [activeQueue, setActiveQueue] = useState('review');
   const [items, setItems] = useState([]);
-  const [queueCounts, setQueueCounts] = useState({ ai: 0, posts: 0, comments: 0 });
+  const [queueCounts, setQueueCounts] = useState({ review: 0, posts: 0, comments: 0 });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selected, setSelected] = useState(null);
@@ -90,13 +91,13 @@ export default function AdminContentManagement() {
   useEffect(() => {
     let active = true;
     Promise.all([
-      getAdminAiFlags({ pageIndex: 1, pageSize: 1 }),
+      getAdminModerationPosts({ pageIndex: 1, pageSize: 1, status: 'pending_review' }),
       getAdminPostReports({ pageIndex: 1, pageSize: 1, status: 'pending' }),
       getAdminCommentReports({ pageIndex: 1, pageSize: 1, status: 'pending' }),
-    ]).then(([ai, posts, comments]) => {
-      if (active) setQueueCounts({ ai: ai.totalCount || 0, posts: posts.totalCount || 0, comments: comments.totalCount || 0 });
+    ]).then(([review, posts, comments]) => {
+      if (active) setQueueCounts({ review: review.totalCount || 0, posts: posts.totalCount || 0, comments: comments.totalCount || 0 });
     }).catch(() => {
-      if (active) setQueueCounts({ ai: 0, posts: 0, comments: 0 });
+      if (active) setQueueCounts({ review: 0, posts: 0, comments: 0 });
     });
     return () => { active = false; };
   }, [reloadKey]);
@@ -111,7 +112,7 @@ export default function AdminContentManagement() {
       setDecision({ action: '', reason: '' });
       try {
         let response;
-        if (activeQueue === 'ai') response = await getAdminAiFlags({ pageIndex: page, pageSize: PAGE_SIZE });
+        if (activeQueue === 'review') response = await getAdminModerationPosts({ pageIndex: page, pageSize: PAGE_SIZE, status: 'pending_review' });
         if (activeQueue === 'posts') response = await getAdminPostReports({ pageIndex: page, pageSize: PAGE_SIZE, status: 'pending' });
         if (activeQueue === 'comments') response = await getAdminCommentReports({ pageIndex: page, pageSize: PAGE_SIZE, status: 'pending' });
         if (!active) return;
@@ -151,7 +152,7 @@ export default function AdminContentManagement() {
       setDecision({ action: '', reason: '' });
       try {
         let response;
-        if (activeQueue === 'ai') response = await getAdminModerationPostDetail(selected.postId);
+        if (activeQueue === 'review') response = await getAdminModerationPostDetail(selected.id);
         if (activeQueue === 'posts') response = await getAdminPostReportDetail(selected.id);
         if (activeQueue === 'comments') response = await getAdminCommentReportDetail(selected.id);
         if (active) setDetail(response);
@@ -200,8 +201,8 @@ export default function AdminContentManagement() {
     if (!selected || !decision.action || !decision.reason.trim()) return;
     setIsSubmitting(true);
     try {
-      if (activeQueue === 'ai') {
-        await decideAiFlag(selected.id, {
+      if (activeQueue === 'review') {
+        await decideModerationPost(selected.id, {
           action: decision.action,
           reason: decision.reason.trim(),
           expectedRevision: currentContent?.contentRevision || selected.contentRevision,
@@ -325,9 +326,9 @@ export default function AdminContentManagement() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#27342A]">{queueTitle(activeQueue, item)}</p>
-                        {activeQueue !== 'ai' && <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#6D756D]">{queueDescription(activeQueue, item)}</p>}
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#6D756D]">{queueDescription(activeQueue, item)}</p>
                       </div>
-                      {activeQueue !== 'ai' && <span className="shrink-0 rounded-full bg-[#FBEAE7] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#A63446]">Review</span>}
+                      <span className="shrink-0 rounded-full bg-[#FBEAE7] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#A63446]">Review</span>
                     </div>
                     <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#526052]">
                       <div className="flex items-center gap-1.5 font-medium">
@@ -346,7 +347,7 @@ export default function AdminContentManagement() {
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#7B847A]">
                       <time dateTime={item.createdAt || undefined}>{formatDate(item.createdAt)}</time>
-                      {activeQueue !== 'ai' && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
+                      {(activeQueue === 'posts' || activeQueue === 'comments') && <span>{item.reportCount} report{item.reportCount === 1 ? '' : 's'}</span>}
                     </div>
                   </button>
                 );
@@ -392,8 +393,8 @@ export default function AdminContentManagement() {
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6A8167]">Review evidence</p>
                   <h2 id="review-heading" className="mt-2 text-xl font-extrabold leading-tight text-[#243128] sm:text-2xl">{activeQueue === 'comments' ? detail?.postTitle : currentContent?.title || queueTitle(activeQueue, selected)}</h2>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <a href={`/posts/${detail?.postId || selected.postId}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-[#2F5233] px-3 py-1 font-semibold text-[#2F5233] underline focus-visible:outline focus-visible:outline-2">Open post in new tab</a>
-                    <span className="rounded-full bg-[#EAF0E9] px-3 py-1 font-semibold text-[#2F5233]">{activeQueue === 'comments' ? `Comment #${detail?.commentId || selected.commentId}` : `Post #${selected.postId}`}</span>
+                    <a href={`/posts/${detail?.postId || selected.postId || selected.id}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-[#2F5233] px-3 py-1 font-semibold text-[#2F5233] underline focus-visible:outline focus-visible:outline-2">Open post in new tab</a>
+                    <span className="rounded-full bg-[#EAF0E9] px-3 py-1 font-semibold text-[#2F5233]">{activeQueue === 'comments' ? `Comment #${detail?.commentId || selected.commentId}` : `Post #${selected.postId || selected.id}`}</span>
                     {authorName && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EBF3FB] px-3 py-1 font-semibold text-[#185FA5]" title={`User: ${authorName}`}>
                         <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -457,10 +458,9 @@ export default function AdminContentManagement() {
                         </p>
                       </div>
                       <div className="rounded-2xl border border-[#F0D4CF] bg-[#FFF8F6] p-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#A14C49]">{activeQueue === 'ai' ? 'AI finding' : 'Community report'}</p>
-                        <p className="mt-2 text-sm leading-6 text-[#4A3B39]">{selected.reason || detail?.report?.reason || 'No reason provided.'}</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#A14C49]">{activeQueue === 'review' ? 'Review context' : 'Community report'}</p>
+                        <p className="mt-2 text-sm leading-6 text-[#4A3B39]">{activeQueue === 'review' ? detail?.scanSummary || (detail?.scanErrorCode ? `AI scan: ${detail.scanErrorCode}. Admin review is required.` : detail?.scanState === 'flagged' ? 'AI flagged this post for review.' : 'Awaiting Admin review.') : selected.reason || detail?.report?.reason || 'No reason provided.'}</p>
                         {activeQueue === 'posts' && <p className="mt-3 text-xs leading-5 text-[#6B6F63]">Reports do not automatically hide posts or notify their authors. Only an Admin decision can hide a reported post.</p>}
-                        {activeQueue === 'ai' && selected.aiModelName && <p className="mt-2 text-xs text-[#7F6965]">Model: {selected.aiModelName}</p>}
                       </div>
                       {Array.isArray(currentContent?.media) && currentContent.media.length > 0 && (
                         <div>
