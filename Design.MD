@@ -1,44 +1,43 @@
 # VeganHelper System Design, Workflows & Diagrams
 
-- **Reviewed:** 07/11/2026, against the current local source.
-- **Frontend:** frontend-VeganHelperSystem, branch dev, commit 8bf5d63d.
-- **Backend:** VeganHelperProject, branch developer, commit 3edb60d0.
-- **Scope:** FN01–FN44, account security, payments, video transcription/summary and cross-feature workflows.
+- **Reviewed:** 08/11/2026, against the current local source.
+- **Frontend:** FE-VeganHelper, branch dev, commit 7ab80e84416a2fe6d79bcb4d8aeaf5aa84ba88d5.
+- **Backend:** VeganHelperProject, branch developer, commit 910eebf725dbaab0faac7ac1e171494e442a2ead.
+- **Scope:** FN01–FN52, account security, payments, video transcription/summary and cross-feature workflows.
 - **Evidence level:** source inspection of routes, components, services, controllers, validators and repositories. “Integrated” describes wiring visible in source, not a claim that every user journey passed a live test. This review does not query provider APIs or change database data.
 
-The source commits above identify the reviewed application behavior. Backend source links are pinned to the reviewed commit; frontend source links are relative to this repository.
+The commit hashes above identify the local source snapshots reviewed. FE source paths are relative to this repository; BE links point to the reviewed developer snapshot.
 
 ## 1. Product Vision & Visual Design System
 
 VeganHelper is a modern plant-based culinary and family nutrition platform. The frontend is a React/Vite single-page application with JavaScript, form validation, responsive styles, shared HTTP services and motion effects. Validation in the browser supports usability; backend authorization and validation remain authoritative.
 
-### 1.1 Visual Design Tokens (Botanical Glassmorphism & Cream)
+### 1.1 Current CSS Token Families
 
-The application adheres strictly to the **Botanical Glassmorphism & Cream** visual design language:
-
-| Token Category | Key Identifier | Hex / Value | Usage & Visual Role |
-|:---|:---|:---|:---|
-| **Primary Brand** | `primary-moss` | `#2F5233` | Deep forest moss green used for active states, primary CTA buttons, active tab indicators, and primary headings. |
-| **Primary Hover** | `primary-hover` | `#25401F` | Darkened moss green for button hover and active interactive feedback. |
-| **Accent Beetroot** | `accent-beetroot` | `#A63446` | Vivid beetroot red for Like active states, destructive delete actions, and danger alerts. |
-| **Accent Turmeric** | `accent-turmeric` | `#E09F3E` | Warm golden turmeric yellow for ratings, star reviews, and draft status badges. |
-| **Background Cream** | `surface-cream` | `#FDFBF6` | Warm, calming natural linen background for the main viewport, preventing harsh pure white glare. |
-| **Background Paper** | `surface-paper` | `#F7F4EB` | Subtle off-white paper tone for card surfaces and modal overlays. |
-| **Sage Mist Border** | `border-sage-mist` | `#DCE3D5` | Soft organic green-gray for card borders, input field borders, and structural dividing lines. |
-| **Text Charcoal** | `text-charcoal` | `#2B2A25` | Deep charcoal for primary headings, body text, and recipe titles used throughout the interface; contrast compliance is not asserted by this workflow review. |
-| **Text Stem Gray** | `text-stem-gray` | `#6B6F63` | Subdued olive-gray for secondary text, metadata timestamps, servings, and helper labels. |
+The stylesheet contains a legacy botanical palette and a newer `vh-*` palette. Both remain in use across pages, so this table is an inventory of defined tokens rather than a claim that every screen follows one unified design system.
+| Token | CSS value | Current role |
+|---|---|---|
+| `--bg-herb-white` | `#F3F6EE` | Body background used by the base stylesheet. |
+| `--surface-paper` | `#FDFBF6` | Light surface. |
+| `--primary-moss` / `--primary-moss-hover` | `#2F5233` / `#25401F` | Legacy brand and hover colors. |
+| `--accent-beetroot` | `#A63446` | Legacy alert/destructive accent. |
+| `--accent-turmeric` | `#D9A441` | Legacy warm accent. |
+| `--text-charcoal` / `--text-stem-gray` | `#2B2A25` / `#6B6F63` | Main and secondary text. |
+| `--border-sage-mist` | `#DCE3D5` | Legacy border color. |
+| `--vh-forest` / `--vh-sage` | `#244C38` / `#A8BDA2` | Newer green palette. |
+| `--vh-mint` / `--vh-cream` | `#DDF2E1` / `#FAF8F0` | Newer supporting surfaces. |
+| `--vh-glass` / `--vh-gold` | `rgba(255, 255, 255, 0.65)` / `#D6B66A` | Glass surface and newer warm accent. |
 
 ### 1.2 Typography Hierarchy
 
-- **Serif Display:** `font-caslon` / `font-fraunces` (`Fraunces, serif`) — Used for editorial headers, hero title banners, and major feature titles.
-- **Sans-Serif Body:** `font-vietnam` / `font-dm-sans` (`Be Vietnam Pro`, `DM Sans`, sans-serif) — Clean, legible modern sans-serif optimized for ingredients, nutritional data tables, and interactive UI controls.
+- The base stylesheet uses `Be Vietnam Pro` for body text and defines utility classes for Libre Caslon Text, Fraunces, Be Vietnam Pro, DM Serif Display and DM Sans.
+- DM Sans and DM Serif Display are imported by the stylesheet. Other font families depend on their page-level or external font loading; do not assume they are available everywhere.
 
 ---
 
 ## 2. Current System Architecture & Access
 
 ### 2.1 Technology and responsibility boundaries
-
 | Area | Current implementation |
 |---|---|
 | FE | React 18.3, JavaScript/JSX, Vite 8, React Router 6, Tailwind 3, Framer Motion, React Hook Form/Zod, Axios; versions are from package.json, not an external compatibility audit. |
@@ -48,7 +47,7 @@ The application adheres strictly to the **Botanical Glassmorphism & Cream** visu
 | Database | PostgreSQL hosted on Supabase, through EF Core Code First. Application authentication remains custom JWT/Google/SendGrid; the UI does not use Supabase Auth or query its database directly. |
 | Media | Cloudflare R2 for uploaded avatars and post media. Database records contain media URLs/metadata. Temporary audio/video files used during processing are not persistent user-avatar storage. |
 | AI Genie | IAiChatClient resolves to DeepSeekChatClient. Model is configuration-driven through DeepSeekChat:Model (options default: deepseek-flash). |
-| Post moderation | GeminiPostModerationClient for text/images and Gemini video fallback; TwelveLabs Pegasus 1.6 handles videos when TwelveLabsApiKey is configured. |
+| Post moderation | Gemini reviews text/images. If video media and TwelveLabsApiKey are configured, TwelveLabs Pegasus 1.6 reviews videos concurrently; otherwise Gemini reviews the full post including video. |
 | Video transcript/summary | GroqVideoSummaryClient, with FFmpeg audio extraction; configured Whisper and chat models (options defaults: whisper-large-v3-turbo and openai/gpt-oss-20b). |
 | Store discovery | Shops stored in PostgreSQL; Goong map rendering/geocoding in FE; Google Maps directions are external navigation URLs. No AI or Google Places database retrieval is implemented in this flow. |
 | Payments | payOS SDK through PayOSGateway; signed webhook and authenticated direct verification both use the existing transaction-safe order/access update path. |
@@ -84,7 +83,6 @@ flowchart LR
 ### 2.3 Actual application routes
 
 Routes listed as “Protected” accept authenticated members and administrators. Guest access to an anonymous backend API does not make its corresponding FE route public.
-
 | Route | Page | Access / next transition |
 |---|---|---|
 | / | HomeGuest | GuestRoute; authenticated visitor goes to /home. |
@@ -118,9 +116,8 @@ Routes listed as “Protected” accept authenticated members and administrators
 - API URLs below include /api. FE service strings omit that prefix because Axios baseURL already contains it. Controller route casing (for example /Posts) is retained where helpful.
 - 400 means invalid input, 401 unauthenticated/invalid session, 403 a business/access rejection, 404 unavailable/not-visible resource, 409 conflicting state/revision, 402 meal-plan entitlement required, 429 rate/trial limit, and 5xx provider/server failure. Response bodies differ by controller/service/middleware; clients must read their actual contract.
 - Shared Pagination validates PageIndex 1–1,000,000 and PageSize 1–100. Post feed/search, saved posts, user search and follows normalize/clamp their own page sizes to at most 50. Comments return a depth-limited tree, not a paginated collection.
-- “Planned” FN33/FN34 have no current endpoint/worker. Tables or old backlog descriptions alone are not implementation evidence.
 
-## 2.5 Functional Specifications (FN01–FN44)
+## 2.5 Functional Specifications (FN01–FN52)
 
 ### FN01 — Đăng ký tài khoản — Registration and email activation
 
@@ -143,7 +140,7 @@ Routes listed as “Protected” accept authenticated members and administrators
 - Registration/security codes expire after 15 minutes. VerifyOTP uses a 120-second client resend countdown; that timer is not the token lifetime.
 - A new registration can remain saved if sending the email fails (503). Resend is the recovery path. The restarted-registration branch does not propagate ResendVerificationAsync failure; a 200 there does not prove delivery.
 
-**Source evidence:** [FE: src/pages/guest/SignUp.jsx](src/pages/guest/SignUp.jsx); [FE: src/pages/guest/VerifyOTP.jsx](src/pages/guest/VerifyOTP.jsx); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AuthService.cs); [BE: src/VeganHelper.BLL/DTOs/AuthDtos.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/DTOs/AuthDtos.cs).
+**Source evidence:** [FE: src/pages/guest/SignUp.jsx](src/pages/guest/SignUp.jsx); [FE: src/pages/guest/VerifyOTP.jsx](src/pages/guest/VerifyOTP.jsx); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AuthService.cs); [BE: src/VeganHelper.BLL/DTOs/AuthDtos.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/DTOs/AuthDtos.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -188,7 +185,7 @@ flowchart TD
 - Refresh tokens are hashed, checked for expiry/revocation/token version and rotated. Token lifetimes come from configuration, not fixed diagram constants.
 - Local login honors Remember me; Google login currently persists in localStorage. FE role parsing is navigation support, while BE validates the current account and role.
 
-**Source evidence:** [FE: src/pages/guest/Login.jsx](src/pages/guest/Login.jsx); [FE: src/context/AuthContext.jsx](src/context/AuthContext.jsx); [FE: src/lib/axios.js](src/lib/axios.js); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AuthService.cs); [BE: src/VeganHelper.API/Authorization/AccountTokenValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Authorization/AccountTokenValidation.cs).
+**Source evidence:** [FE: src/pages/guest/Login.jsx](src/pages/guest/Login.jsx); [FE: src/context/AuthContext.jsx](src/context/AuthContext.jsx); [FE: src/lib/axios.js](src/lib/axios.js); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AuthService.cs); [BE: src/VeganHelper.API/Authorization/AccountTokenValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Authorization/AccountTokenValidation.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -229,7 +226,7 @@ flowchart TD
 - Normal logout does not increment TokenVersion or revoke an already issued access JWT immediately. FE removes it; a separately retained JWT can remain valid until expiry/account revocation.
 - FE clears its local session even if logout or push cleanup fails; server-side revocation is not guaranteed during that network failure.
 
-**Source evidence:** [FE: src/services/authService.js](src/services/authService.js); [FE: src/context/AuthContext.jsx](src/context/AuthContext.jsx); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AuthService.cs).
+**Source evidence:** [FE: src/services/authService.js](src/services/authService.js); [FE: src/context/AuthContext.jsx](src/context/AuthContext.jsx); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AuthService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -268,7 +265,7 @@ flowchart TD
 - Generic success does not reveal whether an account exists or guarantee delivery. Invalid/expired/used token returns 400.
 - Reset revokes refresh tokens but currently does not increment TokenVersion. Do not describe it as immediate revocation of every existing access JWT.
 
-**Source evidence:** [FE: src/pages/guest/ForgotPasswordResetPassword.jsx](src/pages/guest/ForgotPasswordResetPassword.jsx); [FE: src/services/authService.js](src/services/authService.js); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AuthService.cs).
+**Source evidence:** [FE: src/pages/guest/ForgotPasswordResetPassword.jsx](src/pages/guest/ForgotPasswordResetPassword.jsx); [FE: src/services/authService.js](src/services/authService.js); [BE: src/VeganHelper.BLL/Services/AuthService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AuthService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -306,7 +303,7 @@ flowchart TD
 - A missing/deleted account returns 404. Authentication failures use the shared refresh/guard path.
 - This is the self-profile endpoint; other users' public profiles are FN21 and do not expose private email/password.
 
-**Source evidence:** [FE: src/pages/member/Profile.jsx](src/pages/member/Profile.jsx); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/UserService.cs); [BE: src/VeganHelper.BLL/DTOs/ProfileDtos.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/DTOs/ProfileDtos.cs).
+**Source evidence:** [FE: src/pages/member/Profile.jsx](src/pages/member/Profile.jsx); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/UserService.cs); [BE: src/VeganHelper.BLL/DTOs/ProfileDtos.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/DTOs/ProfileDtos.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -341,7 +338,7 @@ flowchart TD
 - General profile height/weight limits differ from HealthProfile validation: profile DTO permits up to 300 cm/500 kg; the meal-planning health flow is stricter.
 - Security actions are separate endpoints: a generic profile update does not change email/password or link Google.
 
-**Source evidence:** [FE: src/pages/member/Profile.jsx](src/pages/member/Profile.jsx); [FE: src/services/authService.js](src/services/authService.js); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/UserService.cs); [BE: src/VeganHelper.API/Controllers/UserController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Controllers/UserController.cs).
+**Source evidence:** [FE: src/pages/member/Profile.jsx](src/pages/member/Profile.jsx); [FE: src/services/authService.js](src/services/authService.js); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/UserService.cs); [BE: src/VeganHelper.API/Controllers/UserController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Controllers/UserController.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -377,7 +374,7 @@ flowchart TD
 - /users/:id and user-search APIs currently require login; the old document's guest author-directory access was inaccurate.
 - An authenticated admin can use normal member pages. Elevated moderation permissions do not grant editing other users' comment text or regular post ownership operations.
 
-**Source evidence:** [FE: src/components/layout/ProtectedRoute.jsx](src/components/layout/ProtectedRoute.jsx); [FE: src/components/layout/GuestRoute.jsx](src/components/layout/GuestRoute.jsx); [BE: src/VeganHelper.API/Program.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Program.cs).
+**Source evidence:** [FE: src/components/layout/ProtectedRoute.jsx](src/components/layout/ProtectedRoute.jsx); [FE: src/components/layout/GuestRoute.jsx](src/components/layout/GuestRoute.jsx); [BE: src/VeganHelper.API/Program.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Program.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -418,7 +415,7 @@ flowchart TD
 - Following is not a dedicated BE feed endpoint and is bounded by the first follow page/profile post payloads. It should not be described as a complete server-paginated following feed.
 - No followed users produces an empty-state CTA; a guest does not call protected follow APIs.
 
-**Source evidence:** [FE: src/pages/member/Home.jsx](src/pages/member/Home.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs).
+**Source evidence:** [FE: src/pages/member/Home.jsx](src/pages/member/Home.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/PostRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -451,10 +448,10 @@ flowchart TD
 
 **Conditions and outcomes:**
 - At least 1 trimmed character is required by BE, not 2. Empty q displays the FE search introduction; it does not automatically GET all posts.
-- The current search is relational text matching, not vector/semantic or a dedicated full-text index contract.
+- Post search uses relational text matching; it is not a dedicated full-text-index search.
 - FE All preview requests 6 posts; Posts tab requests 10 per page. BE caps pageSize at 50. Dedicated search does not accept the feed's category/difficulty filters.
 
-**Source evidence:** [FE: src/components/home/SearchCore.jsx](src/components/home/SearchCore.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs).
+**Source evidence:** [FE: src/components/home/SearchCore.jsx](src/components/home/SearchCore.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/PostRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -488,7 +485,7 @@ flowchart TD
 - BE normalizes pageIndex and caps pageSize at 50. The FE preview sizes are choices by the caller, not different BE endpoints.
 - The search DTO is limited to identity/display name/avatar; private email and security fields are not a people-search response.
 
-**Source evidence:** [FE: src/components/home/SearchCore.jsx](src/components/home/SearchCore.jsx); [FE: src/services/userService.js](src/services/userService.js); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/UserService.cs).
+**Source evidence:** [FE: src/components/home/SearchCore.jsx](src/components/home/SearchCore.jsx); [FE: src/services/userService.js](src/services/userService.js); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/UserService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -521,7 +518,7 @@ flowchart TD
 - Diet values are vegan/lacto_ovo_vegetarian and difficulty values easy/medium/hard where the write validators define them.
 - The Home Following branch filters its aggregated payload locally; do not assume parity with every server feed filter.
 
-**Source evidence:** [FE: src/services/postService.js](src/services/postService.js); [FE: src/pages/member/Home.jsx](src/pages/member/Home.jsx); [BE: src/VeganHelper.BLL/DTOs/Posts/GetFeedRequest.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/DTOs/Posts/GetFeedRequest.cs).
+**Source evidence:** [FE: src/services/postService.js](src/services/postService.js); [FE: src/pages/member/Home.jsx](src/pages/member/Home.jsx); [BE: src/VeganHelper.BLL/DTOs/Posts/GetFeedRequest.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/DTOs/Posts/GetFeedRequest.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -556,7 +553,7 @@ flowchart TD
 - Comment/like/save APIs still require a published post even if the author can preview an unpublished detail.
 - A guest can read comments and a completed shared summary but must log in for writes or to request creation of a missing summary.
 
-**Source evidence:** [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [FE: src/components/home/PostVideoSummary.jsx](src/components/home/PostVideoSummary.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs).
+**Source evidence:** [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [FE: src/components/home/PostVideoSummary.jsx](src/components/home/PostVideoSummary.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -591,9 +588,9 @@ flowchart TD
 - Title required ≤255; positive category ID; content required; nonnegative optional prep/cook times. Each submitted ingredient ID must exist, duplicate ingredients are rejected, and steps require distinct positive numbers/descriptions.
 - At least 1 and at most 10 media files. Images JPEG/PNG/WebP ≤5 MiB each; videos MP4/MOV/WebM ≤200 MiB and ≤60 seconds; uploaded batch total ≤200 MiB.
 - BE validates extension, MIME and file signature/duration metadata. R2 upload does not imply adaptive transcoding or responsive-video generation.
-- DB failure triggers transaction rollback and best-effort cleanup of newly uploaded media. New public posts become queryable without an embedding job.
+- DB failure triggers transaction rollback and best-effort cleanup of newly uploaded media. New public posts can be found by FN32 through its relational post and ingredient query once eligible.
 
-**Source evidence:** [FE: src/services/postService.js](src/services/postService.js); [FE: src/components/home/CreatePostModal.jsx](src/components/home/CreatePostModal.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.BLL/Services/Media/PostMediaUploadValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/Media/PostMediaUploadValidation.cs).
+**Source evidence:** [FE: src/services/postService.js](src/services/postService.js); [FE: src/components/home/CreatePostModal.jsx](src/components/home/CreatePostModal.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.BLL/Services/Media/PostMediaUploadValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/Media/PostMediaUploadValidation.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -632,7 +629,7 @@ flowchart TD
 - An admin decision racing with an edit cannot be silently bypassed; a changed revision can cause 409.
 - A safe AI result does not automatically remove an existing human/AI moderation hold.
 
-**Source evidence:** [FE: src/pages/member/EditPost.jsx](src/pages/member/EditPost.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs).
+**Source evidence:** [FE: src/pages/member/EditPost.jsx](src/pages/member/EditPost.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -670,7 +667,7 @@ flowchart TD
 - An admin deleting another author's post is not authorized by this route. Admin moderation uses keep/remove or approve/reject with a reason.
 - Cancellation changes nothing; missing/already-deleted post returns 404.
 
-**Source evidence:** [FE: src/pages/member/MyPosts.jsx](src/pages/member/MyPosts.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs).
+**Source evidence:** [FE: src/pages/member/MyPosts.jsx](src/pages/member/MyPosts.jsx); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/PostRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -704,7 +701,7 @@ flowchart TD
 - Statuses are lowercase database values such as published, pending_review and rejected. UI wording is not a separate APPROVED/PENDING status enum.
 - Creating a new post now defaults to published. Do not force every new card into an Under Review tab in the workflow description.
 
-**Source evidence:** [FE: src/pages/member/MyPosts.jsx](src/pages/member/MyPosts.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostService.cs).
+**Source evidence:** [FE: src/pages/member/MyPosts.jsx](src/pages/member/MyPosts.jsx); [FE: src/services/postService.js](src/services/postService.js); [BE: src/VeganHelper.BLL/Services/PostService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -724,47 +721,38 @@ flowchart TD
 
 ---
 
-### FN17 — Bình luận — Nested comments, editing and moderation
+### FN17 — Bình luận và trả lời — Comment tree
 
-**Actor / entry:** Guest read; authenticated writes; Post detail / CommentModal.
+**Actor / entry:** Guest reads; authenticated users create comments/replies; Post detail / CommentModal.
 
 **API contract** (paths include the /api prefix):
 - `GET /api/posts/{postId}/comments`
 - `POST /api/posts/{postId}/comments`
-- `PUT /api/posts/{postId}/comments/{commentId}`
-- `DELETE /api/posts/{postId}/comments/{commentId}`
-- `POST /api/posts/{postId}/comments/{commentId}/reports`
 
 **Current workflow:**
-1. Read a visible tree. Backend default maxDepth is 2; current FE detail and modal explicitly request 4.
-2. Submit trimmed content of 1–500 characters. Parent must be a visible, non-deleted comment on the same published post; data depth is limited to 4.
-3. Keyword filter returns Allow (visible), BlockRejected (400 and no new/updated content), or HidePendingReview (stored hidden with a pending keyword flag for admin).
-4. Only comment owner can edit; BE re-runs the filter and sets UpdatedAt. FE displays edited state, without an edit-history viewer.
-5. Deletion/report permissions and root/reply outcomes are expanded in section 3; they are not hard-delete operations.
+1. Load the public comment tree. FE requests `maxDepth=4`; the API returns a depth-limited tree without pagination.
+2. Submit trimmed content between 1 and 500 characters. A parent must be visible, belong to the same published post, and remain within the supported depth.
+3. The keyword filter either allows the comment, rejects it without saving, or stores it hidden for admin review.
+4. Successful visible comments appear in the thread; comment edit/delete/report behavior is documented separately in FN43–FN45 and FN50.
 
 **Conditions and outcomes:**
-- Filter includes Vietnamese and English words, whole-term boundaries and hỏi/ngã tone folding. It does not guarantee detection of all slang, obfuscation or context.
-- Admin cannot edit someone else's text. Comment owner or post author can delete without a reason/notice; admin acting on another user's post/comment requires a reason of at most 500 characters and notifies only the selected comment's owner.
-- Root deletion hides/deletes its whole thread from public display; deleting a reply preserves descendants under a compact deleted-comment placeholder.
-- A different user may report a visible comment; 3 distinct pending user reports hide it. Repeated pending report by the same user is rejected. Resolved-report behavior is not a lifetime one-report ban.
-- Public comment retrieval is a tree with maxDepth 1–4, without server pagination. Comment moderation currently uses keywords and user reports; an LLM comment-scanning worker is not implemented.
+- The keyword list includes Vietnamese and English variants with tone folding; it cannot guarantee detection of every slang spelling or context.
+- Keyword-hidden comments and user reports are reviewed in the admin comment queue. An LLM comment-scanning worker is not implemented.
 
-**Source evidence:** [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [FE: src/components/home/CommentModal.jsx](src/components/home/CommentModal.jsx); [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.BLL/Services/CommentService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/CommentService.cs); [BE: src/VeganHelper.BLL/Services/CommentKeywordFilter.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/CommentKeywordFilter.cs).
+**Source evidence:** [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [FE: src/components/home/CommentModal.jsx](src/components/home/CommentModal.jsx); [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.BLL/Services/CommentService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/CommentService.cs); [BE: src/VeganHelper.BLL/Services/CommentKeywordFilter.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/CommentKeywordFilter.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
 ```mermaid
 flowchart TD
-    A["Submit new comment / own edit"] --> B["Require login, published post, 1–500 chars"]
-    B --> C{"Valid parent and depth at most 4?"}
+    A["Read thread / submit comment or reply"] --> B["Require published post and 1–500 characters"]
+    B --> C{"Valid visible parent and supported depth?"}
     C -->|No| D["Validation / unavailable error"]
     C -->|Yes| E{"Keyword outcome?"}
-    E -->|BlockRejected| F["400, do not save new content"]
-    E -->|HidePendingReview| G["Save hidden + pending keyword flag"]
-    E -->|Allow| H["Save visible, notify for a new comment"]
-    G --> I["Admin comment-review queue"]
-    H --> J["Render tree, owner can edit/delete"]
-    J --> K["Reports / ownership-aware delete: section 3"]
+    E -->|Reject| F["Reject without saving"]
+    E -->|Hide| G["Save hidden + pending keyword review"]
+    E -->|Allow| H["Save visible comment"]
+    H --> I["Refresh depth-limited thread"]
 ```
 
 ---
@@ -786,7 +774,7 @@ flowchart TD
 - A like can publish a notification to the author; unlike does not create a second like notification.
 - The endpoint is a toggle, not a set-to-true command. A client should use the server result rather than infer state after repeated requests.
 
-**Source evidence:** [FE: src/services/interactionService.js](src/services/interactionService.js); [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [BE: src/VeganHelper.BLL/Services/PostInteractionService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostInteractionService.cs).
+**Source evidence:** [FE: src/services/interactionService.js](src/services/interactionService.js); [FE: src/components/home/PostDetailCore.jsx](src/components/home/PostDetailCore.jsx); [BE: src/VeganHelper.BLL/Services/PostInteractionService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostInteractionService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -819,7 +807,7 @@ flowchart TD
 - Guest must authenticate. The same endpoint toggles both saving and unsaving.
 - Saving does not create an author notification.
 
-**Source evidence:** [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.BLL/Services/PostInteractionService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostInteractionService.cs).
+**Source evidence:** [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.BLL/Services/PostInteractionService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostInteractionService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -852,7 +840,7 @@ flowchart TD
 - An original post becoming deleted/unavailable is filtered from this list; its absence is not a hard deletion of every saved relationship.
 - Zero results renders the Saved Recipes empty state.
 
-**Source evidence:** [FE: src/pages/member/SavedPosts.jsx](src/pages/member/SavedPosts.jsx); [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.DAL/Repositories/PostInteractionRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostInteractionRepository.cs).
+**Source evidence:** [FE: src/pages/member/SavedPosts.jsx](src/pages/member/SavedPosts.jsx); [FE: src/services/interactionService.js](src/services/interactionService.js); [BE: src/VeganHelper.DAL/Repositories/PostInteractionRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/PostInteractionRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -867,47 +855,21 @@ flowchart TD
 
 ---
 
-### FN21 — Hồ sơ tác giả và Follow — Profile / follower lists
+### FN21 — Hồ sơ tác giả — Public author profile
 
-**Actor / entry:** Member / Admin; /users/:id.
+**Actor / entry:** Authenticated member or admin; `/users/:id`.
 
 **API contract** (paths include the /api prefix):
 - `GET /api/users/{userId}/profile`
-- `GET /api/users/{userId}/follow-status`
-- `POST /api/users/{userId}/follow`
-- `DELETE /api/users/{userId}/follow`
-- `GET /api/users/{userId}/followers`
-- `GET /api/users/{userId}/following`
-- `PATCH /api/users/{userId}/follow/notifications`
 
 **Current workflow:**
-1. FE loads the public-profile DTO (display identity, metrics and published post cards).
-2. For another eligible user it loads follow status; follow/unfollow returns updated relationship/counts.
-3. Followers/following dialogs request paged lists and allow opening another profile.
-4. BE additionally exposes per-follow new-post notification settings; the current FE userService does not wire that PATCH action.
+1. FE loads the profile DTO with public identity, counts and published post cards.
+2. Profile visibility requires authentication. Private account/security fields are not returned by this public-profile DTO.
+3. Follow status, follow actions and paged follower/following lists are tracked separately in FN47–FN48.
 
-**Conditions and outcomes:**
-- These profile/search/follow routes are authenticated. Target must be active/verified/available.
-- Self-follow is rejected. Duplicate follow returns 409; unfollow without an existing relationship returns 404.
-- List paging defaults to 10, maximum 50. Follow creates an in-app notification; unfollow cancels pending follower-post deliveries.
-- A Follow relationship is not a friend request or a paid membership role.
-
-**Source evidence:** [FE: src/pages/member/PublicUserProfile.jsx](src/pages/member/PublicUserProfile.jsx); [FE: src/services/userService.js](src/services/userService.js); [BE: src/VeganHelper.BLL/Services/FollowService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/FollowService.cs); [BE: src/VeganHelper.API/Controllers/FollowsController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Controllers/FollowsController.cs).
+**Source evidence:** [FE: src/pages/member/PublicUserProfile.jsx](src/pages/member/PublicUserProfile.jsx); [FE: src/services/userService.js](src/services/userService.js); [BE: src/VeganHelper.BLL/Services/UserService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/UserService.cs); [BE: src/VeganHelper.API/Controllers/UserController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Controllers/UserController.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
-
-```mermaid
-flowchart TD
-    A["Open /users/id"] --> B["GET protected public profile"]
-    B --> C{"Different eligible user?"}
-    C -->|Yes| D["GET follow-status"]
-    D --> E{"Action?"}
-    E -->|Follow| F["POST follow"]
-    E -->|Unfollow| G["DELETE follow"]
-    F --> H["Return updated counts/status"]
-    G --> H
-    B --> I["Open paged followers/following dialog"]
-```
 
 ---
 
@@ -930,7 +892,7 @@ flowchart TD
 - The current meal generator requires DOB/age 18–120, male/female for the calorie equation, supported activity and diet. General profile fields can be optional while a planner attempt still rejects insufficient inputs.
 - Mifflin–St Jeor maintenance energy is calculated in BE; TDEE may be null when a supported baseline cannot be estimated. This is a product estimate, not medical diagnosis.
 
-**Source evidence:** [FE: src/pages/member/HealthAndWellness.jsx](src/pages/member/HealthAndWellness.jsx); [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/MaintenanceEnergy.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/MealPlanning/MaintenanceEnergy.cs).
+**Source evidence:** [FE: src/pages/member/HealthAndWellness.jsx](src/pages/member/HealthAndWellness.jsx); [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/MaintenanceEnergy.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/MealPlanning/MaintenanceEnergy.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -966,7 +928,7 @@ flowchart TD
 - Empty list means no allergies are recorded, not that the person is allergy-free.
 - Allergy matching depends on catalog relationships, structured ingredients and implemented aliases. It is not a clinical safety guarantee for unlabeled ingredients or cross-contamination.
 
-**Source evidence:** [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [FE: src/components/home/AllergyWarningBanner.jsx](src/components/home/AllergyWarningBanner.jsx); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/AllergyFilter.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/MealPlanning/AllergyFilter.cs).
+**Source evidence:** [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [FE: src/components/home/AllergyWarningBanner.jsx](src/components/home/AllergyWarningBanner.jsx); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/AllergyFilter.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/MealPlanning/AllergyFilter.cs).
 
 **Implementation status:** Health allergy declarations are integrated; recipe-warning banner is not connected.
 
@@ -999,7 +961,7 @@ flowchart TD
 - Implemented categories: below 18.5 Underweight; below 25 Normal; below 30 Overweight; otherwise Obese. The application does not provide a clinical diagnosis.
 - The BMI category's adult-reference check and maintenance-energy eligibility are separate code paths; do not imply that a BMI result alone makes the person eligible for a weight-goal plan.
 
-**Source evidence:** [FE: src/pages/member/HealthAndWellness.jsx](src/pages/member/HealthAndWellness.jsx); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/HealthProfileService.cs).
+**Source evidence:** [FE: src/pages/member/HealthAndWellness.jsx](src/pages/member/HealthAndWellness.jsx); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/HealthProfileService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1032,7 +994,7 @@ flowchart TD
 - The current FE getBmiHistory helper does not expose paging arguments, so its first request is not a guarantee that all rows over 100 are displayed.
 - Viewing history does not generate new measurement records or change the profile.
 
-**Source evidence:** [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.DAL/Repositories/HealthProfileRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/HealthProfileRepository.cs).
+**Source evidence:** [FE: src/services/healthProfileService.js](src/services/healthProfileService.js); [BE: src/VeganHelper.BLL/Services/HealthProfileService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/HealthProfileService.cs); [BE: src/VeganHelper.DAL/Repositories/HealthProfileRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/HealthProfileRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1081,7 +1043,7 @@ flowchart TD
 - Weight-goal tracking supports unlogged/followed/changed/skipped, only at/after the meal's due time, with a note ≤500. Maintenance does not support tracking/reminders. Regeneration is blocked after the plan starts, after tracking, or when superseded.
 - Paid access permits viewing existing plans; the seven-day grace period begins at subscription expiry, not at a plan's EndDate. Current trial plans remain readable under CanViewTrialPlans without an EndDate+7 cutoff. AvailableIngredientsSnapshot is currently saved as an empty array: pantry-based generation is not implemented.
 
-**Source evidence:** [FE: src/components/meal-planning/PlanSetupFlow.jsx](src/components/meal-planning/PlanSetupFlow.jsx); [FE: src/components/meal-planning/WeeklyMealPlanner.jsx](src/components/meal-planning/WeeklyMealPlanner.jsx); [FE: src/services/mealPlanService.js](src/services/mealPlanService.js); [BE: src/VeganHelper.BLL/Services/MealPlanning/MealPlanningService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/MealPlanning/MealPlanningService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/MealPlanGenerator.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/MealPlanning/MealPlanGenerator.cs); [BE: src/VeganHelper.BLL/Services/MealPlanAccessPolicy.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/MealPlanAccessPolicy.cs).
+**Source evidence:** [FE: src/components/meal-planning/PlanSetupFlow.jsx](src/components/meal-planning/PlanSetupFlow.jsx); [FE: src/components/meal-planning/WeeklyMealPlanner.jsx](src/components/meal-planning/WeeklyMealPlanner.jsx); [FE: src/services/mealPlanService.js](src/services/mealPlanService.js); [BE: src/VeganHelper.BLL/Services/MealPlanning/MealPlanningService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/MealPlanning/MealPlanningService.cs); [BE: src/VeganHelper.BLL/Services/MealPlanning/MealPlanGenerator.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/MealPlanning/MealPlanGenerator.cs); [BE: src/VeganHelper.BLL/Services/MealPlanAccessPolicy.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/MealPlanAccessPolicy.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1123,7 +1085,7 @@ flowchart TD
 - Guest is sent to the locked page/auth experience; the shops API requires authentication.
 - A missing public map key can affect rendering even while the backend shop list is available.
 
-**Source evidence:** [FE: src/pages/member/FindVeganStores.jsx](src/pages/member/FindVeganStores.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/ShopService.cs); [BE: src/VeganHelper.DAL/Repositories/ShopRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/ShopRepository.cs).
+**Source evidence:** [FE: src/pages/member/FindVeganStores.jsx](src/pages/member/FindVeganStores.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/ShopService.cs); [BE: src/VeganHelper.DAL/Repositories/ShopRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/ShopRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1157,7 +1119,7 @@ flowchart TD
 - The page currently requests only the first 50 items. A paginated BE response does not prove that every additional page is reachable in the current map UI.
 - Results are stored shops/menu items, not a generative AI recommendation or live Google Places lookup.
 
-**Source evidence:** [FE: src/pages/member/FindVeganStores.jsx](src/pages/member/FindVeganStores.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/ShopService.cs); [BE: src/VeganHelper.DAL/Repositories/ShopRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/ShopRepository.cs).
+**Source evidence:** [FE: src/pages/member/FindVeganStores.jsx](src/pages/member/FindVeganStores.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/ShopService.cs); [BE: src/VeganHelper.DAL/Repositories/ShopRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/ShopRepository.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1190,7 +1152,7 @@ flowchart TD
 - External directions links do not require a backend Google Maps Places integration or an AI API.
 - Unknown opening periods produce unknown open-now state; do not invent opening hours.
 
-**Source evidence:** [FE: src/pages/member/StoreDetail.jsx](src/pages/member/StoreDetail.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/ShopService.cs).
+**Source evidence:** [FE: src/pages/member/StoreDetail.jsx](src/pages/member/StoreDetail.jsx); [FE: src/services/shopService.js](src/services/shopService.js); [BE: src/VeganHelper.BLL/Services/ShopService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/ShopService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1227,7 +1189,7 @@ flowchart TD
 - History is ownership-scoped and limited to the latest 100 messages in the current history API. Model raw history is bounded separately, combined with summary/profile context.
 - System prompt supports Vietnamese/English according to the latest message, defaults other languages to English, keeps vegetarian scope and treats user/tool text as untrusted data. Health answers are informational.
 
-**Source evidence:** [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx); [FE: src/components/chat/ChatMarkdown.jsx](src/components/chat/ChatMarkdown.jsx); [FE: src/services/aiChatService.js](src/services/aiChatService.js); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs); [BE: src/VeganHelper.API/Prompts/VeganNutrition.v2.json](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Prompts/VeganNutrition.v2.json).
+**Source evidence:** [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx); [FE: src/components/chat/ChatMarkdown.jsx](src/components/chat/ChatMarkdown.jsx); [FE: src/services/aiChatService.js](src/services/aiChatService.js); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs); [BE: src/VeganHelper.API/Prompts/VeganNutrition.v2.json](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Prompts/VeganNutrition.v2.json).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1268,7 +1230,7 @@ flowchart TD
 - No underlying-disease diagnosis, invented missing health data or automatic claim that the user has no allergies. BMI need not be mentioned in every food answer.
 - Post-card allergy filtering is performed by BE during FN32; prompt instructions alone are not the database filter.
 
-**Source evidence:** [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.API/Prompts/VeganNutrition.v2.json](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Prompts/VeganNutrition.v2.json); [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx).
+**Source evidence:** [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.API/Prompts/VeganNutrition.v2.json](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Prompts/VeganNutrition.v2.json); [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1302,9 +1264,9 @@ flowchart TD
 - A request for a dish with mushrooms makes mushrooms required, not the only allowed ingredient. The stricter setting requires an explicit only-these-ingredients request.
 - When profile allergies exist, candidates must have verified structured ingredients; exact IDs and implemented name aliases are excluded. This is a conservative matching policy, not proof against every unknown allergen.
 - More-results searches exclude cards already recommended in the same conversation. Changing/reloading to a new session changes that deduplication scope; there is no explicit replay-old-cards parameter.
-- Current ranking is newest-first after filters, implemented with EF/PostgreSQL text matching. There is no vector retrieval, free-form DB access or invented post ID.
+- Eligible cards are ranked newest-first after relational text and ingredient filters. The model receives structured criteria and repository results, not SQL or arbitrary database access.
 
-**Source evidence:** [BE: src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs); [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx).
+**Source evidence:** [BE: src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Infrastructure/AI/DeepSeekChatClient.cs); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/PostRepository.cs); [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1322,65 +1284,9 @@ flowchart TD
 
 ---
 
-### FN33 — Tìm bài theo ngữ nghĩa — Vector semantic search
-
-**Actor / entry:** Planned extension; No separate implemented route/action.
-
-**API contract** (paths include the /api prefix):
-- No implemented endpoint for this FN.
-
-**Current workflow:**
-1. The original backlog describes embedding/vector semantic similarity.
-2. Current food discovery inside chat is FN32: model-understood criteria followed by a bounded relational query.
-3. Normal search remains FN09. Do not label either path as vector/cosine retrieval.
-
-**Conditions and outcomes:**
-- A PostEmbedding entity/table is not evidence of a working embedding provider, vector index or vector-search consumer.
-- No semantic-search endpoint, vector-store query or embedding-based ranking was found in the reviewed execution paths.
-
-**Source evidence:** [BE: src/VeganHelper.DAL/Entities/PostEmbedding.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Entities/PostEmbedding.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs); [FE: src/components/home/SearchCore.jsx](src/components/home/SearchCore.jsx).
-
-**Implementation status:** Planned; vector retrieval is not implemented.
-
-```mermaid
-flowchart LR
-    A["Planned FN33: vector semantic search"] -.-> B["No current vector retrieval implementation"]
-    C["Current chat food request"] --> D["FN32 structured criteria + relational search"]
-    E["Current search screen"] --> F["FN09 keyword search"]
-```
-
 ---
 
-### FN34 — Đồng bộ vector bài mới — Embedding synchronization
-
-**Actor / entry:** Planned system worker; No implemented event handler or background job.
-
-**API contract** (paths include the /api prefix):
-- No implemented endpoint for this FN.
-
-**Current workflow:**
-1. No embedding generation/synchronization worker is registered in the current Program/Hangfire setup.
-2. New public posts are visible to FN32 because it queries relational post/ingredient tables directly.
-3. Existing background post scans are content moderation, not vector embedding jobs.
-
-**Conditions and outcomes:**
-- No claim is made that publishing/admin approval generates or updates post embeddings.
-- A future implementation must define eligible revisions, deletion/hold handling, retries, provider/storage and privacy; these are future design decisions, not current workflow steps.
-
-**Source evidence:** [BE: src/VeganHelper.API/Program.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Program.cs); [BE: src/VeganHelper.DAL/Entities/PostEmbedding.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Entities/PostEmbedding.cs); [BE: src/VeganHelper.DAL/Repositories/PostRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/PostRepository.cs).
-
-**Implementation status:** Planned; no vector synchronization worker is registered.
-
-```mermaid
-flowchart LR
-    A["Post created/updated"] --> B["Relational post data + moderation scan"]
-    B --> C["Public eligible post can match FN32 immediately"]
-    A -.-> D["Future FN34 embedding worker: not implemented"]
-```
-
----
-
-### FN35 — Giới hạn AI Guest — Three-question trial
+### FN33 — Giới hạn AI Guest — Three-question trial
 
 **Actor / entry:** Guest; AI Genie popup.
 
@@ -1391,7 +1297,7 @@ flowchart LR
 1. FE maintains a browser guest GUID and a remaining-count hint in localStorage, independently of the current conversation ID.
 2. BE atomically reserves a trial turn for that guest GUID with a limit of 3. Completed usage and pending requests created within the last three minutes consume the allowance; recorded failed usage can release a reservation.
 3. Response returns guestQuestionsRemaining, or 429 with GUEST_CHAT_LIMIT_REACHED and a registration requirement when exhausted.
-4. FE disables guest input and shows sign-in/sign-up CTAs inside the chatbox. Member requests are not subject to this three-question cap.
+4. FE keeps the third answer visible and leaves the composer available. When the guest tries to send a fourth question, FE blocks the request and opens the sign-in/sign-up prompt; closing it does not restore the trial. Member requests are not subject to this cap.
 
 **Conditions and outcomes:**
 - Client remaining count is a UI hint; the server check is authoritative. F5 clearing the displayed conversation does not reset the stored guest GUID/quota.
@@ -1399,7 +1305,7 @@ flowchart LR
 - An additional per-IP guest limiter permits 12 requests/hour in the current API configuration; its GUEST_CHAT_RATE_LIMITED response differs from the three-question registration limit.
 - A network/cancellation race can delay quota-release bookkeeping; Stop does not guarantee that no provider quota was consumed.
 
-**Source evidence:** [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.DAL/Repositories/ChatRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Repositories/ChatRepository.cs); [BE: src/VeganHelper.API/Program.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Program.cs).
+**Source evidence:** [FE: src/components/chat/AIChatbot.jsx](src/components/chat/AIChatbot.jsx); [BE: src/VeganHelper.BLL/Services/AiChatService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AiChatService.cs); [BE: src/VeganHelper.DAL/Repositories/ChatRepository.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Repositories/ChatRepository.cs); [BE: src/VeganHelper.API/Program.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Program.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1408,8 +1314,8 @@ flowchart TD
     A["Anonymous chat request + guest GUID"] --> B["Per-IP rate limiter"]
     B -->|Exceeded| C["429 network rate limit"]
     B --> D["Atomic server reservation for guest GUID"]
-    D -->|3 already reserved/completed| E["429 GUEST_CHAT_LIMIT_REACHED"]
-    E --> F["Disable input, sign-in / registration CTAs"]
+    D -->|3 already reserved/completed| E["429 GUEST_CHAT_LIMIT_REACHED as server fallback"]
+    E --> F["Keep prior answers visible; fourth send opens sign-in / sign-up prompt and is blocked"]
     D -->|Allowed| G["Provider request"]
     G -->|Success| H["Return answer and remaining count"]
     G -->|Failure recorded| I["Usage failed, reservation no longer counted"]
@@ -1417,7 +1323,7 @@ flowchart TD
 
 ---
 
-### FN36 — Thông báo — In-app and optional web push
+### FN34 — Thông báo — In-app and optional web push
 
 **Actor / entry:** Member / Admin; Header NotificationBell / browser push opt-in.
 
@@ -1432,7 +1338,7 @@ flowchart TD
 1. Business services persist recipient-scoped notifications for implemented social/moderation/meal events with deduplication keys.
 2. NotificationBell fetches unread count on mount and at 60-second intervals while the document is visible; opening the bell loads its list.
 3. If configured and permission is granted, the browser/service worker subscribes for push; a background dispatcher sends pending web-push deliveries.
-4. Selecting a notification can open its target URL and invoke FN37.
+4. Selecting a notification can open its target URL and invoke FN35.
 
 **Conditions and outcomes:**
 - In-app polling is not an instant WebSocket/SignalR stream. Web push is a separate optional channel.
@@ -1440,7 +1346,7 @@ flowchart TD
 - Self-interaction notifications are suppressed where the publisher checks actor/recipient. Only actually implemented event publishers should be claimed.
 - No global permanent 'unlimited notification history' guarantee is made by a paged UI.
 
-**Source evidence:** [FE: src/components/notifications/NotificationBell.jsx](src/components/notifications/NotificationBell.jsx); [FE: src/services/browserPushService.js](src/services/browserPushService.js); [BE: src/VeganHelper.BLL/Services/NotificationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/NotificationService.cs); [BE: src/VeganHelper.BLL/Services/NotificationPushDispatcher.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/NotificationPushDispatcher.cs).
+**Source evidence:** [FE: src/components/notifications/NotificationBell.jsx](src/components/notifications/NotificationBell.jsx); [FE: src/services/browserPushService.js](src/services/browserPushService.js); [BE: src/VeganHelper.BLL/Services/NotificationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/NotificationService.cs); [BE: src/VeganHelper.BLL/Services/NotificationPushDispatcher.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/NotificationPushDispatcher.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1457,7 +1363,7 @@ flowchart TD
 
 ---
 
-### FN37 — Đánh dấu thông báo đã đọc — Read state
+### FN35 — Đánh dấu thông báo đã đọc — Read state
 
 **Actor / entry:** Notification recipient; Notification popover.
 
@@ -1475,7 +1381,7 @@ flowchart TD
 - A concurrent new notification can leave unreadCount above zero after Mark all; use the returned count instead of forcing zero.
 - On error, FE preserves/restores a usable display and shows feedback.
 
-**Source evidence:** [FE: src/components/notifications/NotificationBell.jsx](src/components/notifications/NotificationBell.jsx); [BE: src/VeganHelper.BLL/Services/NotificationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/NotificationService.cs).
+**Source evidence:** [FE: src/components/notifications/NotificationBell.jsx](src/components/notifications/NotificationBell.jsx); [BE: src/VeganHelper.BLL/Services/NotificationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/NotificationService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1490,7 +1396,7 @@ flowchart TD
 
 ---
 
-### FN38 — Quản lý thành viên — Admin directory
+### FN36 — Quản lý thành viên — Admin directory
 
 **Actor / entry:** Active administrator; /admin/members.
 
@@ -1502,14 +1408,14 @@ flowchart TD
 **Current workflow:**
 1. FE admin guard opens the member table; BE active-admin policy checks authorization.
 2. Query list/summary with keyword, role, status and pagination; open a detail modal.
-3. From an eligible member row, proceed to FN39. Admin reads/writes covered by AdminAuditService record an audit event.
+3. From an eligible member row, proceed to FN37. Admin reads/writes covered by AdminAuditService record an audit event.
 
 **Conditions and outcomes:**
 - Roles are member/admin. Supported status filters include active, inactive, pending_verification, locked, banned and deleted; these are projections, not one account-status enum.
 - Keyword maximum 100; shared page validation caps size at 100. Sensitive account operations still validate actor/target in service.
 - A token containing an old admin claim alone is insufficient after the user's role/session becomes unavailable.
 
-**Source evidence:** [FE: src/pages/admin/AdminMemberManagement.jsx](src/pages/admin/AdminMemberManagement.jsx); [FE: src/services/adminService.js](src/services/adminService.js); [BE: src/VeganHelper.BLL/Services/AdminMemberService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminMemberService.cs).
+**Source evidence:** [FE: src/pages/admin/AdminMemberManagement.jsx](src/pages/admin/AdminMemberManagement.jsx); [FE: src/services/adminService.js](src/services/adminService.js); [BE: src/VeganHelper.BLL/Services/AdminMemberService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminMemberService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1524,7 +1430,7 @@ flowchart TD
 
 ---
 
-### FN39 — Khóa / mở thành viên — Ban/unban and sessions
+### FN37 — Khóa / mở thành viên — Ban/unban and sessions
 
 **Actor / entry:** Active administrator; Member detail/table.
 
@@ -1543,7 +1449,7 @@ flowchart TD
 - Cannot ban/unban yourself or another admin using this feature. Already-banned/no-active-ban returns 409.
 - The ban record is distinct from inactive registration and 15-minute failed-login lockout. Expiration is evaluated by active-ban queries.
 
-**Source evidence:** [FE: src/pages/admin/AdminMemberManagement.jsx](src/pages/admin/AdminMemberManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminMemberService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminMemberService.cs); [BE: src/VeganHelper.API/Authorization/AccountTokenValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Authorization/AccountTokenValidation.cs).
+**Source evidence:** [FE: src/pages/admin/AdminMemberManagement.jsx](src/pages/admin/AdminMemberManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminMemberService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminMemberService.cs); [BE: src/VeganHelper.API/Authorization/AccountTokenValidation.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Authorization/AccountTokenValidation.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1559,7 +1465,7 @@ flowchart TD
 
 ---
 
-### FN40 — Quản lý danh mục — Post category CRUD
+### FN38 — Quản lý danh mục — Post category CRUD
 
 **Actor / entry:** Active administrator; /admin/categories.
 
@@ -1581,7 +1487,7 @@ flowchart TD
 - A category referenced by posts cannot be deleted or have its kind changed; conflicts return 409.
 - Admin category service manages post categories. It is not a generic editor for every category/table in the database.
 
-**Source evidence:** [FE: src/pages/admin/AdminCategoryManagement.jsx](src/pages/admin/AdminCategoryManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminCategoryService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminCategoryService.cs).
+**Source evidence:** [FE: src/pages/admin/AdminCategoryManagement.jsx](src/pages/admin/AdminCategoryManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminCategoryService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminCategoryService.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1596,7 +1502,7 @@ flowchart TD
 
 ---
 
-### FN41 — Kiểm duyệt thủ công — Post and comment decisions
+### FN39 — Kiểm duyệt thủ công — Post and comment decisions
 
 **Actor / entry:** Active administrator; /admin/content.
 
@@ -1609,28 +1515,28 @@ flowchart TD
 - `POST /api/admin/moderation/comment-reports/{id}/decision`
 
 **Current workflow:**
-1. Active AdminContentManagement presents three queues: AI flags, user post reports and comment reviews (keyword/user flags).
+1. Active AdminContentManagement presents three queues: “AI Flagged Posts”, reported posts and reported comments. The first tab requests posts with `status=pending_review`, so it can include held posts beyond a strict AI-flag-only list.
 2. Admin inspects source/evidence and submits a supported action and reason.
 3. BE locks the affected data, revalidates revision/status, changes visibility and resolves pending flags transactionally with audit/notifications as applicable.
-4. The generic pending-post approve/reject API and FE service exist, but that generic list/action is not called by the active AdminContentManagement page; its UI primarily uses queue decisions described in FN43/section 3.
+4. The first tab submits `approve` or `remove` through the pending-review post decision endpoint. Separate AI-flag endpoints exist in BE and the FE service, but the active page does not call the dedicated AI-flag list/decision pair.
 
 **Conditions and outcomes:**
-- General post review uses approve/reject only for pending_review, with expectedRevision and reason ≤1000. Approve→published; reject→rejected.
+- The active pending-review tab offers Approve post and Keep post hidden; it does not expose the API-supported reject action.
 - AI-flag decisions use keep/remove; post-report decisions use dismiss/keep/remove. UI labels such as Hide post map to remove, which sets hidden rather than hard-deleting the post.
 - Comment-review decisions are keep/remove, with dismiss supported by BE when allowed. Admin may restore visibility or delete/hide, never rewrite another user's comment text.
 - No reviewed-code timer automatically deletes all comments after seven unreviewed days; that must not be shown as an existing worker.
 
-**Source evidence:** [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [FE: src/services/adminService.js](src/services/adminService.js); [BE: src/VeganHelper.BLL/Services/AdminModerationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminModerationService.cs); [BE: src/VeganHelper.BLL/Services/AdminCommentReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminCommentReportService.cs).
+**Source evidence:** [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [FE: src/services/adminService.js](src/services/adminService.js); [BE: src/VeganHelper.BLL/Services/AdminModerationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminModerationService.cs); [BE: src/VeganHelper.BLL/Services/AdminCommentReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminCommentReportService.cs).
 
-**Implementation status:** Queue moderation is integrated; generic pending-post approve/reject is BE+FE-service only in the active UI.
+**Implementation status:** Report queues and the pending-review tab are integrated. The dedicated AI-flag endpoints are not wired into the active page; its “AI Flagged Posts” label is broader than its pending_review query.
 
 ```mermaid
 flowchart TD
     A["Open Admin Content"] --> B{"Queue?"}
-    B -->|AI flags| C["Inspect current post/revision + AI findings"]
+    B -->|AI Flagged Posts (tab label)| C["Load pending_review post + any scan evidence"]
     B -->|Post reports| D["Inspect reported snapshot + current post"]
     B -->|Comments| E["Inspect keyword/user review"]
-    C --> F["Submit supported decision + reason"]
+    C --> F["Approve or keep hidden + reason"]
     D --> F
     E --> F
     F --> G["BE locks, validates and commits visibility + audit"]
@@ -1639,9 +1545,9 @@ flowchart TD
 
 ---
 
-### FN42 — Hàng đợi AI — Background post assessment
+### FN40 — Hàng đợi AI — Background post assessment
 
-**Actor / entry:** Background worker; Admin reads queue; /admin/content → AI queue.
+**Actor / entry:** Background assessment worker; Admin reviews held posts in /admin/content.
 
 **API contract** (paths include the /api prefix):
 - `GET /api/admin/moderation/ai-flags`
@@ -1650,9 +1556,9 @@ flowchart TD
 
 **Current workflow:**
 1. Post create/update saves a revision-scoped moderation scan; Hangfire wakes the processor when moderation is enabled.
-2. Gemini evaluates text/images; configured TwelveLabs Pegasus can evaluate each video, with Gemini as video fallback when the key is absent.
+2. Gemini reviews text and images. If videos exist and the TwelveLabs key is configured, Gemini text/image review and TwelveLabs Pegasus 1.6 video review run concurrently. Without that key, Gemini receives the full post including its videos.
 3. A valid flagged/uncertain assessment from a normal scan puts the post on pending_review with ModerationHold and creates a pending AI flag.
-4. Admin opens the AI queue/detail to see findings, scan state and available score/model metadata; decision is FN43.
+4. Dedicated AI-flag endpoints expose findings and decisions. The active page instead loads the broader pending_review post list and uses the post decision endpoint; it does not call the dedicated AI-flag endpoints.
 
 **Conditions and outcomes:**
 - These are implemented features, not Stretch placeholders. AI moderation is separate from DeepSeek chat and Groq summary.
@@ -1661,26 +1567,26 @@ flowchart TD
 - Report-triggered AI rechecks supply evidence for admin and do not automatically sanction the reported post.
 - Moderation settings PUT currently returns 410; do not document an active UI toggle that changes auto-publish policy. Score may be absent, so do not require a confidence percentage for every result.
 
-**Source evidence:** [BE: src/VeganHelper.BLL/Services/PostModerationProcessor.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostModerationProcessor.cs); [BE: src/VeganHelper.DAL/Integrations/Moderation/GeminiPostModerationClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Integrations/Moderation/GeminiPostModerationClient.cs); [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [BE: src/VeganHelper.API/Controllers/Admin/AdminModerationController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.API/Controllers/Admin/AdminModerationController.cs).
+**Source evidence:** [BE: src/VeganHelper.BLL/Services/PostModerationProcessor.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostModerationProcessor.cs); [BE: src/VeganHelper.DAL/Integrations/Moderation/GeminiPostModerationClient.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Integrations/Moderation/GeminiPostModerationClient.cs); [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [BE: src/VeganHelper.API/Controllers/Admin/AdminModerationController.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.API/Controllers/Admin/AdminModerationController.cs).
 
-**Implementation status:** Integrated in source; runtime not re-tested in this review.
+**Implementation status:** Background assessment is integrated. The dedicated AI-flag endpoints exist, but the active admin page uses the broader pending_review list; runtime not re-tested in this review.
 
 ```mermaid
 flowchart TD
     A["Queued scan for post revision"] --> B["Worker claims scan without holding DB lock during provider call"]
-    B --> C["Gemini, optional Pegasus video review"]
+    B --> C["Gemini text/image review; Pegasus 1.6 video review when configured"]
     C -->|Provider failure/quota| D["Retry/defer or manual-required scan, no invented violation"]
     C -->|Safe| E["Record safe assessment, do not release existing hold"]
     C -->|Flagged/uncertain| F{"Normal scan or report recheck?"}
     F -->|Normal| G["Hold post + pending AI flag"]
     F -->|Report recheck| H["Evidence for admin, no automatic sanction"]
-    G --> I["Admin AI queue"]
+    G --> I["pending_review list (UI label: AI Flagged Posts)"]
     H --> I
 ```
 
 ---
 
-### FN43 — Xử lý AI flag — Human decision
+### FN41 — Xử lý AI flag — Human decision
 
 **Actor / entry:** Active administrator; /admin/content → AI detail.
 
@@ -1701,13 +1607,13 @@ flowchart TD
 - Comment keep sets visible; comment remove sets IsDeleted/hidden and notifies that selected owner. Root display is hidden with its subtree by public-tree filtering.
 - Human restoration is required for a held post even after a later safe AI assessment.
 
-**Source evidence:** [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminModerationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminModerationService.cs); [BE: src/VeganHelper.BLL/Services/PostReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/PostReportService.cs); [BE: src/VeganHelper.BLL/Services/AdminCommentReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminCommentReportService.cs).
+**Source evidence:** [FE: src/pages/admin/AdminContentManagement.jsx](src/pages/admin/AdminContentManagement.jsx); [BE: src/VeganHelper.BLL/Services/AdminModerationService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminModerationService.cs); [BE: src/VeganHelper.BLL/Services/PostReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/PostReportService.cs); [BE: src/VeganHelper.BLL/Services/AdminCommentReportService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminCommentReportService.cs).
 
-**Implementation status:** Integrated in source; runtime not re-tested in this review.
+**Implementation status:** Report decisions are wired in the active page. Dedicated AI-flag decision endpoints exist in BE and FE service code, but the active AI-labelled tab uses the pending-review post decision endpoint; runtime not re-tested in this review.
 
 ```mermaid
 flowchart TD
-    A["Admin inspects pending AI flag"] --> B["Submit keep/remove + reason + expectedRevision"]
+    A["Admin inspects held post or report"] --> B["Submit supported decision + reason + expectedRevision"]
     B --> C["Lock post/flag and validate current revision"]
     C -->|Stale/resolved| D["409, reload"]
     C -->|Valid keep| E["published, release hold"]
@@ -1719,7 +1625,7 @@ flowchart TD
 
 ---
 
-### FN44 — Nhật ký quản trị — Append-only application audit
+### FN42 — Nhật ký quản trị — Append-only application audit
 
 **Actor / entry:** Active administrator; /admin/audit-logs.
 
@@ -1738,7 +1644,7 @@ flowchart TD
 - Current audit page requests the first 100 importantOnly rows and filters/paginates them locally in pages of 10. This is not complete global server pagination for all audit rows.
 - Covered administrative reads may also append audit entries. The wrapper does not mean every failed or unrelated application operation is automatically logged.
 
-**Source evidence:** [FE: src/pages/admin/AdminAuditLogs.jsx](src/pages/admin/AdminAuditLogs.jsx); [BE: src/VeganHelper.BLL/Services/AdminAuditService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminAuditService.cs); [BE: src/VeganHelper.DAL/Entities/AdminAuditLog.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.DAL/Entities/AdminAuditLog.cs).
+**Source evidence:** [FE: src/pages/admin/AdminAuditLogs.jsx](src/pages/admin/AdminAuditLogs.jsx); [BE: src/VeganHelper.BLL/Services/AdminAuditService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminAuditService.cs); [BE: src/VeganHelper.DAL/Entities/AdminAuditLog.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.DAL/Entities/AdminAuditLog.cs).
 
 **Implementation status:** Integrated in source; runtime not re-tested in this review.
 
@@ -1756,10 +1662,89 @@ flowchart TD
 
 ---
 
+### FN43 — Chỉnh sửa bình luận — Edit comment
+
+**Actor / entry:** Comment owner; Post detail / CommentModal. `PUT /api/posts/{postId}/comments/{commentId}`.
+
+The owner can edit their own comment with 1–500 trimmed characters. The keyword filter runs again and `UpdatedAt` supports the edited marker; there is no version-history viewer. See FN17 and section 3.7. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN44 — Xóa bình luận — Delete comment
+
+**Actor / entry:** Comment owner, post owner, or authorized admin; Post detail / CommentModal. `DELETE /api/posts/{postId}/comments/{commentId}`.
+
+Comment/post owners can delete without a reason or notice. An admin deleting another user's comment on someone else's post must supply a reason (maximum 500 characters); only the selected comment owner is notified. Root deletion hides the thread; deleting a reply preserves descendants behind a compact deleted-comment placeholder. See section 3.7. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN45 — Báo cáo bình luận — Report comment
+
+**Actor / entry:** Authenticated user reporting another user's visible comment. `POST /api/posts/{postId}/comments/{commentId}/reports`.
+
+The first two distinct pending reports do not hide a visible comment. At least three distinct pending reporters hide it for admin review. A pending duplicate is rejected; the database unique key also blocks another report row by the same user for that comment after resolution. See section 3.8. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN46 — Báo cáo bài viết — Report post
+
+**Actor / entry:** Authenticated user other than the post author; post detail report action. `POST /api/Posts/{postId}/reports`.
+
+The request records a reason/category and content revision. A post report creates review evidence and may request an AI recheck; it does not by itself hide the post. Duplicate pending reports for the same reporter/revision return the existing receipt. See section 3.8. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN47 — Theo dõi tác giả — Follow author
+
+**Actor / entry:** Authenticated member/admin; public author profile. `POST /api/users/{userId}/follow` and `DELETE /api/users/{userId}/follow`.
+
+Self-follow is rejected. Duplicate follow returns conflict; unfollow without an active relationship returns not found. Follow/unfollow returns updated status/counts and follow creates an in-app notification. See FN21 and FN48. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN48 — Xem danh sách follower/following — Follow lists
+
+**Actor / entry:** Authenticated member/admin; follower/following dialogs on `/users/:id`. `GET /api/users/{userId}/followers` and `GET /api/users/{userId}/following`.
+
+Both lists are paginated; current defaults are 10 and the maximum is 50. Selecting a row opens that user's profile. See FN21 and FN47. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN49 — Thanh toán gói thực đơn tuần — PayOS meal-plan access
+
+**Actor / entry:** Authenticated user; `/meal-plans/payment`. Package/checkout/order-verify endpoints and signed PayOS webhook.
+
+The server supplies 1-, 6- and 12-month package prices, creates a pending order, verifies return/webhook data, and applies paid access idempotently. The FE does not trust the return URL's `status=PAID` by itself. Existing plans remain viewable according to the access rules in section 3.9. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN50 — Chủ bài viết xóa bình luận — Post owner comment removal
+
+**Actor / entry:** Post author; Post detail / CommentModal. Uses the comment DELETE endpoint.
+
+A post author may remove any comment in their own post without entering a reason and without sending a deletion notice. Root/reply behavior follows the same tree rules in section 3.7. An admin acting on another user's post remains subject to the admin reason/notification rule in FN44. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN51 — Chuyển giọng nói thành văn bản — Video speech-to-text
+
+**Actor / entry:** Guest may view an existing shared result; an authenticated viewer can request creation from post detail. `POST /api/posts/{postId}/summary` starts the shared asynchronous pipeline.
+
+The worker fetches each eligible video in post order, extracts temporary audio with FFmpeg, transcribes each clip with Groq Whisper, and stores labeled transcript segments with the source revision. Users can reveal and copy the transcript. This is speech-to-text, not text-to-speech. See section 3.11. Integrated in source; runtime not re-tested in this review.
+
+---
+
+### FN52 — Tóm tắt công thức từ video — AI summary
+
+**Actor / entry:** Guest may view an existing result; an authenticated viewer can request generation from post detail. `GET /api/posts/{postId}/summary` reads the shared result and the POST endpoint requests generation.
+
+Groq summarizes the combined transcript. Results are reused across viewers for the same post/source revision/model; every viewer still clicks to reveal them. A source change makes the previous result stale. See section 3.11. Integrated in source; runtime not re-tested in this review.
+
+---
+
 ## 3. End-to-End Workflows & State Diagrams
 
 ### 3.1 Main journeys
-
 | Journey | Actual transitions | Endpoint / terminal state |
 |---|---|---|
 | Onboarding | Guest landing → SignUp → inactive registration → verification dialog → email OTP → Login → token pair → self profile | /home or saved return path; verification alone does not log in. |
@@ -1949,7 +1934,9 @@ flowchart TD
     V --> U["Another user reports with reason 1–500"]
     U --> P{"Already has pending report?"}
     P -->|Yes| C["409 duplicate pending report"]
-    P -->|No| S["Save pending user flag"]
+    P -->|No pending duplicate| UQ{"Has a prior report row for this user/comment?"}
+    UQ -->|Yes| DB["Unique-index conflict; current service does not normalize it"]
+    UQ -->|No| S["Insert pending user flag"]
     S --> N{"At least 3 distinct pending user reporters?"}
     N -->|No| O["Comment remains visible"]
     N -->|Yes| Q["Comment becomes hidden"]
@@ -1962,13 +1949,13 @@ flowchart TD
     DEC -->|Dismiss allowed visible/deleted report| DIS["Close remaining review without restoration"]
 ```
 
-BE admin lists use shared pagination with a maximum of 100; the active queue UI requests 10. Visible comments are reported without instant hiding on the first or second report. A hidden comment cannot accept another normal report through this endpoint. No implemented LLM worker or seven-day auto-deletion timer is implied.
+BE admin lists use shared pagination with a maximum of 100; the active queue UI requests 10. Visible comments remain visible after the first and second distinct pending reports. A hidden comment cannot accept another normal report through this endpoint. No implemented LLM worker or seven-day auto-deletion timer is implied.
 
 Post reports are a separate flow: POST /api/Posts/{id}/reports uses reasonCategory, reason (≤1000) and expectedRevision; the author cannot report their own post, duplicate pending same-revision reports return the existing receipt, and reporter rate limit is 10 new reports/hour. Report-triggered AI recheck supplies evidence for admin; it does not automatically hide the post even if that recheck flags it.
 
 ### 3.9 Weekly plan access and PayOS confirmation
 
-Package prices are obtained from GET /api/meal-plan-payments/packages. Current migration/seed values are 1 month = 1,000 VND, 6 months = 5,000 VND, 12 months = 10,000 VND. These are current project test prices, not a reason to hard-code amounts in FE.
+Package prices are obtained from GET /api/meal-plan-payments/packages. Current local migration/seed values are 1 month = 1,000 VND, 6 months = 5,000 VND, 12 months = 10,000 VND. These are current project test prices, not a reason to hard-code amounts in FE.
 
 ```mermaid
 sequenceDiagram
@@ -2014,7 +2001,6 @@ sequenceDiagram
 - Return verification works when local BE can make an outbound PayOS request. Incoming webhook delivery needs a public reachable BE URL. A user closing checkout without returning still needs webhook or a later verification/reconciliation call for timely update.
 - A valid success update locks the user/order and grants exactly one access row per order. StartsAt is the later of confirmed receipt time or previous furthest expiry; ExpiresAt adds the purchased 1/6/12 calendar months. Repeated success delivery must not extend twice.
 - Missing/expired sessionStorage checkout context is an explicit recovery state; the current UI does not offer a complete order-history/reconciliation screen.
-
 | Access projection | New generation | Existing paid plans | Trial plans |
 |---|---|---|---|
 | active | Allowed | Allowed | Allowed |
@@ -2113,13 +2099,12 @@ flowchart TD
     G --> H["Navigate to members, categories, content or full audit page"]
 ```
 
-**Source evidence:** [FE: src/pages/admin/AdminDashboard.jsx](src/pages/admin/AdminDashboard.jsx); [BE: src/VeganHelper.BLL/Services/AdminDashboardService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/3edb60d02eef3b96654e08c96bd653113806d8bd/src/VeganHelper.BLL/Services/AdminDashboardService.cs).
+**Source evidence:** [FE: src/pages/admin/AdminDashboard.jsx](src/pages/admin/AdminDashboard.jsx); [BE: src/VeganHelper.BLL/Services/AdminDashboardService.cs](https://github.com/HoangAnh250/VeganHelperProject/blob/910eebf725dbaab0faac7ac1e171494e442a2ead/src/VeganHelper.BLL/Services/AdminDashboardService.cs).
 
 
 ## 4. Consolidated FN Coverage
 
 This matrix is a navigation index. Conditions and errors are in the individual FN sections; source-level integration must not be promoted to a blanket live-verification claim.
-
 | FN | Function | Actor | Entry / route | Source implementation |
 |---|---|---|---|---|
 | FN01 | Đăng ký tài khoản — Registration and email activation | Guest | /sign-up → /verify-otp → /login | Integrated in source; runtime not re-tested in this review |
@@ -2138,11 +2123,11 @@ This matrix is a navigation index. Conditions and errors are in the individual F
 | FN14 | Chỉnh sửa bài — Owner update and re-scan | Post owner | /posts/edit/:id | Integrated in source; runtime not re-tested in this review |
 | FN15 | Xóa bài — Owner soft deletion | Post owner | My Posts / owned post action | Integrated in source; runtime not re-tested in this review |
 | FN16 | Quản lý bài của tôi — Own post collection | Member / Admin as author | /my-posts | Integrated in source; runtime not re-tested in this review |
-| FN17 | Bình luận — Nested comments, editing and moderation | Guest read; authenticated writes | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
+| FN17 | Bình luận và trả lời — Comment tree | Guest read; authenticated create/reply | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
 | FN18 | Thích bài — Like / unlike | Member / Admin | Post card or detail | Integrated in source; runtime not re-tested in this review |
 | FN19 | Lưu bài — Save / unsave toggle | Member / Admin | Post card or detail | Integrated in source; runtime not re-tested in this review |
 | FN20 | Xem bài đã lưu — Saved posts | Member / Admin | /saved-posts | Integrated in source; runtime not re-tested in this review |
-| FN21 | Hồ sơ tác giả và Follow — Profile / follower lists | Member / Admin | /users/:id | Integrated in source; runtime not re-tested in this review |
+| FN21 | Hồ sơ tác giả — Public author profile | Member / Admin | /users/:id | Integrated in source; runtime not re-tested in this review |
 | FN22 | Hồ sơ sức khỏe — Health profile and calorie baseline | Member / Admin | /health or Weekly Menu → Health & Wellness | Integrated in source; runtime not re-tested in this review |
 | FN23 | Khai báo dị ứng — Ingredient and custom allergies | Member / Admin | Health & Wellness allergy form | Health allergy declarations integrated; recipe-warning UI not connected |
 | FN24 | Tính BMI — BMI result | Member / Admin | /health/bmi or Health & Wellness tab | Integrated in source; runtime not re-tested in this review |
@@ -2154,27 +2139,33 @@ This matrix is a navigation index. Conditions and errors are in the individual F
 | FN30 | AI Genie — Nutrition chat and conversation context | Guest / Member / Admin | Floating chat popup | Integrated in source; runtime not re-tested in this review |
 | FN31 | AI Genie cá nhân hóa — Allowed profile context | Member / Admin | Inside the same chat popup | Integrated in source; runtime not re-tested in this review |
 | FN32 | AI tìm bài theo nguyên liệu/bữa — Controlled relational retrieval | Guest within trial / Member / Admin | Natural-language food/post request in chat | Integrated in source; runtime not re-tested in this review |
-| FN33 | Tìm bài theo ngữ nghĩa — Vector semantic search | Planned extension | No separate implemented route/action | Planned; vector retrieval is not implemented |
-| FN34 | Đồng bộ vector bài mới — Embedding synchronization | Planned system worker | No implemented event handler or background job | Planned; no vector synchronization worker is registered |
-| FN35 | Giới hạn AI Guest — Three-question trial | Guest | AI Genie popup | Integrated in source; runtime not re-tested in this review |
-| FN36 | Thông báo — In-app and optional web push | Member / Admin | Header NotificationBell / browser push opt-in | Integrated in source; runtime not re-tested in this review |
-| FN37 | Đánh dấu thông báo đã đọc — Read state | Notification recipient | Notification popover | Integrated in source; runtime not re-tested in this review |
-| FN38 | Quản lý thành viên — Admin directory | Active administrator | /admin/members | Integrated in source; runtime not re-tested in this review |
-| FN39 | Khóa / mở thành viên — Ban/unban and sessions | Active administrator | Member detail/table | Integrated in source; runtime not re-tested in this review |
-| FN40 | Quản lý danh mục — Post category CRUD | Active administrator | /admin/categories | Integrated in source; runtime not re-tested in this review |
-| FN41 | Kiểm duyệt thủ công — Post and comment decisions | Active administrator | /admin/content | Queue moderation is integrated; generic pending-post approve/reject is BE+FE-service only in the active UI |
-| FN42 | Hàng đợi AI — Background post assessment | Background worker; Admin reads queue | /admin/content → AI queue | Integrated in source; runtime not re-tested in this review |
-| FN43 | Xử lý AI flag — Human decision | Active administrator | /admin/content → AI detail | Integrated in source; runtime not re-tested in this review |
-| FN44 | Nhật ký quản trị — Append-only application audit | Active administrator | /admin/audit-logs | Integrated in source; runtime not re-tested in this review |
+| FN33 | Giới hạn AI Guest — Three-question trial | Guest | AI Genie popup | Integrated in source; runtime not re-tested in this review |
+| FN34 | Thông báo — In-app and optional web push | Member / Admin | Header NotificationBell / browser push opt-in | Integrated in source; runtime not re-tested in this review |
+| FN35 | Đánh dấu thông báo đã đọc — Read state | Notification recipient | Notification popover | Integrated in source; runtime not re-tested in this review |
+| FN36 | Quản lý thành viên — Admin directory | Active administrator | /admin/members | Integrated in source; runtime not re-tested in this review |
+| FN37 | Khóa / mở thành viên — Ban/unban and sessions | Active administrator | Member detail/table | Integrated in source; runtime not re-tested in this review |
+| FN38 | Quản lý danh mục — Post category CRUD | Active administrator | /admin/categories | Integrated in source; runtime not re-tested in this review |
+| FN39 | Kiểm duyệt thủ công — Post and comment decisions | Active administrator | /admin/content | Pending-review and report queues are wired; first tab queries all pending_review posts and offers approve/remove |
+| FN40 | Hàng đợi AI — Background post assessment | Background worker; Admin reviews held posts | /admin/content | Background assessment is integrated; dedicated AI-flag API is not wired into the active page |
+| FN41 | Xử lý AI flag — Human decision | Active administrator | /admin/content | BE and FE service expose dedicated decisions; active page uses pending-review decision endpoint |
+| FN42 | Nhật ký quản trị — Append-only application audit | Active administrator | /admin/audit-logs | Integrated in source; runtime not re-tested in this review |
+| FN43 | Chỉnh sửa bình luận — Edit comment | Comment owner | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
+| FN44 | Xóa bình luận — Delete comment | Comment owner, post owner or Admin | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
+| FN45 | Báo cáo bình luận — Report comment | Authenticated user | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
+| FN46 | Báo cáo bài viết — Report post | Authenticated non-author | Post detail | Integrated in source; runtime not re-tested in this review |
+| FN47 | Theo dõi tác giả — Follow author | Member / Admin | /users/:id | Integrated in source; runtime not re-tested in this review |
+| FN48 | Xem danh sách follower/following — Follow lists | Member / Admin | /users/:id follow dialogs | Integrated in source; runtime not re-tested in this review |
+| FN49 | Thanh toán gói thực đơn tuần — PayOS meal-plan access | Authenticated user | /meal-plans/payment | Integrated in source; runtime not re-tested in this review |
+| FN50 | Chủ bài viết xóa bình luận — Post owner comment removal | Post owner | Post detail / CommentModal | Integrated in source; runtime not re-tested in this review |
+| FN51 | Chuyển giọng nói thành văn bản — Video speech-to-text | Authenticated requester; public viewer of cached result | Post detail summary panel | Integrated in source; runtime not re-tested in this review |
+| FN52 | Tóm tắt công thức từ video — AI summary | Authenticated requester; public viewer of cached result | Post detail summary panel | Integrated in source; runtime not re-tested in this review |
 
 
 ## 5. Confirmed Implementation Gaps & Boundaries
 
 These observations were found by following current code, not copied from the initial backlog. They are documentation findings; this review does not implement the missing application behavior.
-
 | Area | Current source evidence | Consequence for workflow/design |
 |---|---|---|
-| FN33/FN34 | No embedding generation/worker/vector query is wired. | Mark as planned. FN32 relational search can include new eligible public posts without embedding synchronization. |
 | Registration retry | Pending-registration branch awaits resend but ignores its ServiceResult. | Success response is not proof that the new OTP email was delivered. |
 | Password rules | Current FE/DTO require length and confirmation, not the previously described full character-class policy. | Do not draw strong-password checks that do not exist. |
 | Access-token revocation | change-password/ban increment TokenVersion; normal logout/reset-password/change-email only revoke refresh tokens in their current implementations. | Do not claim immediate global access-JWT revocation for all three flows. |
@@ -2186,10 +2177,11 @@ These observations were found by following current code, not copied from the ini
 | Trial viewing | CanViewTrialPlans depends on trial history; repository applies no EndDate+7 cutoff. | Do not promise a trial-plan seven-day viewing expiry that code does not enforce. |
 | Grace writes | Rename/archive/regenerate use view eligibility; generation/revision has its own access gate. | The term read-only grace is not a uniform backend write ban. |
 | BMI threshold | WeightGoalSafety rejects current BMI >40; exactly 40 proceeds to further checks. | Record the existing business rule explicitly; do not present it as clinical validation. |
-| Comment reports | Duplicate prevention is scoped to a pending user report; hidden comments reject normal reports. | “One report ever per user/comment” is stronger than current behavior. |
+| Health input bounds | General profile and meal-planning health validators currently use different height/weight ranges. | Do not imply one shared range until the API rules are unified. |
+| Comment reports | Service rejects duplicate pending reports; a unique `(comment_id, reporter_id)` database index also prevents a second report after resolution. | Later retries can surface a database conflict because the service precheck only looks for pending reports. |
 | Comment delete paths | Direct DELETE root marks subtree; admin report decision marks selected item and public filtering hides a deleted-root tree. | Same public disappearance, different descendant stored flags. Preserve this distinction for future maintenance. |
 | Comment scalability | GET comments is maxDepth-limited but not paginated. | Depth limit does not bound the total number of comments returned. |
-| Moderation page | Active UI has AI/post-report/comment queues; generic pending-post service is unused by that page. | Generic approve/reject is API/service-available, not a completed independent UI journey. |
+| Moderation page | The “AI Flagged Posts” tab calls the pending_review post list and offers approve/remove; the separate dedicated AI-flag endpoints are not used by the active page. | The label does not guarantee every listed post has an AI flag; do not document an AI-only queue or a visible reject action. |
 | Moderation settings | PUT settings returns 410 in controller. | Treat the current settings flow as read-only. |
 | Store search | BE minimum 2 characters; FE debounces any nonempty input. Map requests first 50 results. | One-character query may error; do not claim complete pagination/UI load-more. |
 | Audit | No before/after JSON in AdminAuditLog; FE requests first 100 importantOnly rows and pages locally. | No universal audit JSON diff or complete global pagination claim. |
@@ -2203,7 +2195,7 @@ These observations were found by following current code, not copied from the ini
 - FE source: routes in App.jsx; services in src/services; real forms/pages/components are traced in each FN.
 - BE source: controllers in src/VeganHelper.API/Controllers; business services/DTOs in BLL; repository queries and entities in DAL.
 - Current PostgreSQL migrations are under src/VeganHelper.DAL/PostgresMigrations. VeganHelper.DAL.csproj explicitly excludes Migrations/**/*.cs from compilation. The legacy SQL Server folder moved out locally was already excluded from the application assembly; it is not an active PostgreSQL migration set.
-- Current latest checked-in PostgreSQL migration is 20261102114934_LowerMealPlanPackagePrices. This document edit neither creates a migration nor applies schema/data updates to Supabase.
+- Current latest local PostgreSQL migration is 20261108082645_RemoveUnusedSchemaObjects; it retires unused recommendation and available-ingredient schema objects. This document edit neither creates a migration nor applies schema/data updates to Supabase.
 - Tests in the repositories are evidence of intended scenarios only. This review checks Markdown/Mermaid syntax and source references; it does not claim live payment, email, Google login, provider inference, R2 upload or every user-journey execution.
 - Runtime configuration controls model names, provider enablement, origins, worker startup and URLs. Secrets belong to the backend deployment configuration; none are included in this document.
 
@@ -2211,7 +2203,6 @@ These observations were found by following current code, not copied from the ini
 ## 7. Project-Wide Date Format Standardization Policy
 
 ### 7.1 API dates and visible dates
-
 | Context | Format / behavior |
 |---|---|
 | UI calendar dates | DD/MM/YYYY through shared date utilities and DateInput where used. |
