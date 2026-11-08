@@ -259,7 +259,7 @@ export async function getAdminModerationPostDetail(id) {
 /**
  * Submit moderation decision on a post (FN41)
  * @param {number|string} id
- * @param {Object} data { action: 'approve' | 'reject', reason: string, expectedRevision: number }
+ * @param {Object} data { action: 'approve' | 'reject' | 'remove', reason: string, expectedRevision: number }
  */
 export async function decideModerationPost(id, data) {
   try {
