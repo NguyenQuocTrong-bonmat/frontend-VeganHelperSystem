@@ -91,6 +91,7 @@ export default function AIChatbot() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [limitReached, setLimitReached] = useState(false);
+  const [signupPromptOpen, setSignupPromptOpen] = useState(false);
   const endRef = useRef(null);
   const activeScope = useRef('');
   const skipHistoryForSession = useRef(null);
@@ -114,6 +115,7 @@ export default function AIChatbot() {
     const guestRemaining = isAuthenticated ? 3 : readGuestRemaining();
     setRemaining(guestRemaining);
     setLimitReached(!isAuthenticated && guestRemaining === 0);
+    setSignupPromptOpen(false);
   }, [storageKey, isAuthenticated]);
 
   useEffect(() => {
@@ -165,7 +167,12 @@ export default function AIChatbot() {
   async function send(event) {
     event.preventDefault();
     const message = draft.trim();
-    if (!message || busy || pendingRequest.current || authLoading || !storageKey || limitReached) return;
+    if (!message || busy || pendingRequest.current || authLoading || !storageKey) return;
+    if (!isAuthenticated && remaining <= 0) {
+      setLimitReached(true);
+      setSignupPromptOpen(true);
+      return;
+    }
     const scope = storageKey;
     const guestSessionId = isAuthenticated ? null : session?.guestSessionId || localStorage.getItem(guestIdentityKey) || crypto.randomUUID();
     if (!isAuthenticated) localStorage.setItem(guestIdentityKey, guestSessionId);
@@ -204,7 +211,11 @@ export default function AIChatbot() {
       setDraft((current) => current || message);
       setError(errorText(cause));
       if (cause.response?.data?.code === 'GUEST_CHAT_LIMIT_REACHED') {
+        setMessages((previous) => previous.filter((item) => item.id !== request.messageId));
+        setDraft((current) => current || message);
+        setError('');
         setLimitReached(true);
+        setSignupPromptOpen(true);
         setRemaining(0);
         if (guestSessionId) saveGuestRemaining(guestSessionId, 0);
       }
@@ -235,7 +246,7 @@ export default function AIChatbot() {
               </h2>
               <p className="text-xs text-[#6B6F63] mt-0.5">{isAuthenticated ? 'Uses your health profile when available' : `${remaining} of 3 free questions remaining`}</p>
             </div>
-            <button type="button" onClick={() => setIsOpen(false)} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">×</button>
+            <button type="button" onClick={() => { setSignupPromptOpen(false); setIsOpen(false); }} aria-label="Close AI assistant" className="rounded-lg px-2 py-1 text-[#2B2A25] hover:bg-[#EAF0E9] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none cursor-pointer">×</button>
           </header>
           <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-3 overflow-y-auto bg-[#F3F6EE]/40 p-4 text-sm">
             <p className="max-w-[88%] rounded-xl border border-[#DCE3D5] bg-white p-3 text-[#2B2A25]">{welcome}</p>
@@ -282,15 +293,15 @@ export default function AIChatbot() {
           </div>
           {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
           <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
-            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading || limitReached} placeholder={limitReached && !isAuthenticated ? 'Sign in to continue chatting…' : 'Ask about plant-based food…'} className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
+            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading} placeholder={limitReached && !isAuthenticated ? 'Sign in to continue chatting…' : 'Ask about plant-based food…'} className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
             {sending ? (
               <button type="button" onClick={stopResponse} aria-label="Stop AI response" className="flex min-h-11 items-center gap-2 rounded-xl bg-[#2F5233] px-3 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
                 <svg aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
                 Stop
               </button>
-            ) : <button type="submit" disabled={busy || authLoading || limitReached || !draft.trim()} className="min-h-11 rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>}
+            ) : <button type="submit" disabled={busy || authLoading || !draft.trim()} className="min-h-11 rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>}
           </form>
-          {limitReached && !isAuthenticated && (
+          {signupPromptOpen && limitReached && !isAuthenticated && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">
               <div className="rounded-2xl bg-white p-5 text-center shadow-xl">
                 <h3 className="font-semibold text-[#2B2A25]" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', fontSize: '16px', lineHeight: '1.3', letterSpacing: 'normal' }}>Continue your conversation</h3>
@@ -299,7 +310,7 @@ export default function AIChatbot() {
                   <Link to="/login" className="rounded-lg bg-[#2F5233] px-4 py-2 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Log in</Link>
                   <Link to="/sign-up" className="rounded-lg border border-[#2F5233] px-4 py-2 text-[#2F5233] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-95 motion-reduce:transform-none">Sign up</Link>
                 </div>
-                <button type="button" onClick={() => setIsOpen(false)} className="mt-4 text-sm text-[#6B6F63] underline hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80">Close</button>
+                <button type="button" onClick={() => setSignupPromptOpen(false)} className="mt-4 text-sm text-[#6B6F63] underline hover:text-[#2F5233] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] rounded px-1 active:opacity-80">Not now</button>
               </div>
             </div>
           )}
