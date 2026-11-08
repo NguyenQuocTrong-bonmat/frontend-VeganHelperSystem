@@ -27,3 +27,28 @@ yarn-error.log*
 .agents/
 .antigravityignore
 skills-lock.json
+
+# Local browser runs and generated code graphs
+.playwright-cli/
+graphify-out/
+
+# Local tooling caches, logs and temporary editor files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.vite/
+*.log
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# One-off source patching and favicon experiments (not build inputs)
+/fix.js
+/fix.py
+/get_meta.js
+/generate_favicon.js
+/process_favicon.py
+
+# Standalone design prototype; the app entry is index.html
+/prototype.html
