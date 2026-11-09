@@ -48,7 +48,7 @@ afterEach(async () => {
   vi.clearAllMocks();
 });
 
-test('guest chat sends to API, shows remaining trial, and opens sign-in prompt at the limit', async () => {
+test('guest sees the third answer and gets the sign-in prompt only after trying another question', async () => {
   aiChatService.send.mockResolvedValue({ sessionId: 7, guestSessionId: guestId, answer: 'Try tofu.', guestQuestionsRemaining: 0 });
   aiChatService.history.mockResolvedValue({ messages: [
     { id: 1, senderType: 'user', messageText: 'Protein?' },
@@ -60,8 +60,23 @@ test('guest chat sends to API, shows remaining trial, and opens sign-in prompt a
 
   expect(aiChatService.send).toHaveBeenCalledWith('Protein?', null, guestId, { signal: expect.any(AbortSignal) });
   expect(container.textContent).toContain('Try tofu.');
+  expect(container.textContent).not.toContain('Continue your conversation');
+  expect(container.querySelector('a[href="/login"]')).toBeNull();
+
+  await ask('One more?');
   expect(container.textContent).toContain('Continue your conversation');
   expect(container.querySelector('a[href="/login"]')).not.toBeNull();
+  expect(container.querySelector('input[aria-label="Ask the AI assistant"]').value).toBe('One more?');
+  expect(aiChatService.send).toHaveBeenCalledTimes(1);
+
+  const dismissButton = [...container.querySelectorAll('button')].find((item) => item.textContent.trim() === 'Not now');
+  expect(dismissButton).toBeDefined();
+  await act(async () => dismissButton.click());
+  expect(container.textContent).not.toContain('Continue your conversation');
+
+  await ask('Try again?');
+  expect(container.textContent).toContain('Continue your conversation');
+  expect(aiChatService.send).toHaveBeenCalledTimes(1);
   expect(JSON.parse(sessionStorage.getItem('veganhelper-ai-chat-guest'))).toEqual({ sessionId: 7, guestSessionId: guestId });
 });
 

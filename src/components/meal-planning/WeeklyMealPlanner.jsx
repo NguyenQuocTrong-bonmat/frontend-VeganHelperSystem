@@ -7,6 +7,9 @@ import CalendarCreationProgress from './CalendarCreationProgress';
 import WeeklyCalendar from './WeeklyCalendar';
 
 import MealRoutinePanel from './MealRoutinePanel';
+import CompletedWeekPanel from './CompletedWeekPanel';
+import usePlannerToday from './usePlannerToday';
+import { trackingSummary, weekIsComplete } from './mealPlanLifecycle';
 import PlannerIcon from './PlannerIcon';
 import InlineAlert from '../ui/InlineAlert';
 import { useNotification } from '../../hooks/useNotification';
@@ -14,8 +17,11 @@ import plannerInspiration from '../../assets/images/hero/hero-vietnamese-vegan-s
 import { wholeNumber, dateLabel, dietLabel, number, rangeLabel, utcToday, zonedToday } from './plannerFormat';
 import './weekly-menu.css';
 
-export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange }) {
+export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange, onHealthProfileChanged }) {
   const { confirm, notify } = useNotification();
+  const generationNotice = ['grace_period', 'expired'].includes(access?.status)
+    ? 'Your package has expired. You can finish your current weekly menu. Please renew your package to create the next week.'
+    : 'Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.';
   const [pageIndex, setPageIndex] = useState(1);
   const [refresh, setRefresh] = useState(0);
   const [calendarRevision, setCalendarRevision] = useState(0);
@@ -119,7 +125,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
   async function generate(selectedStartDate) {
     if (submitting.current || opening) return;
     if (access?.canGenerate === false) {
-      setError('Your free meal-plan generations have been used. Choose a package above to create more plans.');
+      setError(generationNotice);
       return;
     }
     const { clientPreview, ...request } = typeof selectedStartDate === 'string'
@@ -249,6 +255,12 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
   const busy = generating || regenerating || opening || renameBusy || renaming || deleting;
   const choices = plan && !saved.items.some(item => item.id === plan.id) ? [plan, ...saved.items] : saved.items;
   const menu = plan?.menu;
+  const today = usePlannerToday(plan?.routine?.timeZoneId);
+  const completed = weekIsComplete(plan, today);
+  function acceptContinuation(updated) {
+    setPlan(updated); setRefresh(value => value + 1); onHealthProfileChanged?.();
+    getMealPlanAccess().then(onAccessChange || (() => {})).catch(() => {});
+  }
   const regenerationBlocked = !plan?.routine
     ? 'This older menu cannot be regenerated. Create a new weekly menu instead.'
     : plan.routine.state === 'superseded'
@@ -266,7 +278,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       <button type="button" ref={createButton} className="wm-button wm-button-primary" disabled={busy || loading || access?.canGenerate === false} onClick={() => { setSetupOpen(true); setError(''); setSuccess(''); }}><PlannerIcon name="plus" />New weekly menu</button>
     </div>
     <p role="status" className={generating || regenerating || opening || deleting || success ? 'wm-status' : 'sr-only'}>{regenerating ? 'Regenerating your weekly menu…' : generating ? 'Creating and saving your weekly menu. Please wait…' : deleting ? 'Deleting your weekly menu…' : opening ? 'Opening saved menu…' : success}</p>
-    {access?.canGenerate === false && <p role="status" className="wm-notice">Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.</p>}
+    {access?.canGenerate === false && <p role="status" className="wm-notice">{generationNotice}</p>}
     {access && !access.canViewExistingPlans && !access.canViewTrialPlans && <p className="wm-notice">No saved meal plans are available to view yet. Create a plan with your free trial or activate a package to unlock saved plans.</p>}
     {/* HORIZONTAL DASHBOARD OVERVIEW */}
     <section className="wm-dashboard-overview wm-saved-plans" aria-label="Plan overview and saved menus">
@@ -433,8 +445,10 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
         </section>}
         {!creation && plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
         {!creation && menu && <>
-          <WeeklyCalendar key={`calendar-${plan.id}-${calendarRevision}`} plan={plan} opening={opening} onRoutineChanged={routine => setPlan(current => current?.id === plan.id ? { ...current, routine } : current)}>
-            {({ calendarView, setView }) => <div className="wm-calendar-plan-context">
+          <WeeklyCalendar key={`calendar-${plan.id}-${calendarRevision}`} plan={plan} opening={opening} onRoutineChanged={routine => setPlan(current => current?.id === plan.id ? { ...current, routine } : current)}
+            completionContent={({ onViewHistory }) => <CompletedWeekPanel key={`completed-${plan.id}`} plan={plan} canGenerate={access?.canGenerate !== false} profileRevision={profileRevision} onViewHistory={onViewHistory}
+              onOpenPlan={openPlan} onCreateBalanced={() => setSetupOpen(true)} onPlanChanged={acceptContinuation} onEditProfile={onEditProfile} />}>
+            {({ calendarView, setView, showCalendar }) => <div className="wm-calendar-plan-context">
               <div className="wm-selected-plan wm-selected-plan-embedded" role="group" aria-label="Selected weekly menu">
                 {renaming ? <form className="wm-rename-form" onSubmit={saveRename}>
                   <div className="wm-rename-input"><label htmlFor="selected-plan-name">Menu name</label><input id="selected-plan-name" className="wm-control" type="text" maxLength={100} required autoFocus value={renameName} onChange={event => { setRenameName(event.target.value); setRenameError(''); }} aria-describedby={renameError ? 'selected-plan-name-error' : undefined} />{renameError && <p id="selected-plan-name-error" role="alert" className="wm-inline-error">{renameError}</p>}</div>
@@ -442,7 +456,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
                 </form> : <>
                   <div className="wm-selected-plan-details"><span className="wm-eyebrow">Selected weekly menu</span><h2>{plan.name || rangeLabel(plan)}</h2><p>{rangeLabel(plan)}{plan.routine?.mode === 'weight_goal' ? ' · Weight goal plan with tracking' : ' · Balanced menu'}</p></div>
                   <div className="wm-selected-plan-tools">
-                    <div className="wm-view-switch" role="group" aria-label="Calendar view"><button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" /><span>Week view</span></button><button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" /><span>Day view</span></button></div>
+                    {showCalendar && <div className="wm-view-switch" role="group" aria-label="Calendar view"><button type="button" className="wm-week-toggle" aria-pressed={calendarView === 'week'} onClick={() => setView('week')}><PlannerIcon name="calendar" /><span>Week view</span></button><button type="button" aria-pressed={calendarView === 'day'} onClick={() => setView('day')}><PlannerIcon name="sun" /><span>Day view</span></button></div>}
                     <div className="wm-plan-actions">
                       <button ref={renameButton} type="button" className="wm-action-btn wm-action-rename" disabled={busy || !plan.id} onClick={beginRename}><PlannerIcon name="pencil" /><span>Rename menu</span></button>
                       <button type="button" className="wm-action-btn wm-action-regenerate" disabled={busy || !plan.id || Boolean(regenerationBlocked)} title={regenerationBlocked || undefined} onClick={regenerate}><PlannerIcon name="refresh" /><span>Regenerate menu</span></button>
@@ -458,12 +472,11 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
                 <span>Allergies used <strong>{menu.allergies?.length ? menu.allergies.join(', ') : 'None declared'}</strong></span>
                 {plan.routine?.mode === 'weight_goal' && (() => {
                   const entries = plan.routine.entries || [];
-                  const logged = entries.filter(e => e.status !== 'unlogged');
-                  const followed = logged.filter(e => e.status === 'followed').length;
+                  const summary = trackingSummary(entries);
                   return (
                     <span className="wm-context-adherence">
                       <PlannerIcon name="target" />
-                      Tracking adherence <strong>{logged.length ? `${Math.round(followed / logged.length * 100)}% (${logged.length}/${entries.length})` : `0/${entries.length} logged`}</strong>
+                      Tracking adherence <strong>{summary.percent === null ? 'No meals due yet' : `${summary.percent}% (${summary.followed}/${summary.elapsed} followed)`}</strong>
                     </span>
                   );
                 })()}
@@ -471,7 +484,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
             </div>}
           </WeeklyCalendar>
           <div className="wm-planning-nutrition-section">
-            {plan.routine?.mode === 'weight_goal' && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated => { setPlan(updated); setRefresh(value => value + 1); }} onEditProfile={onEditProfile} />}
+            {plan.routine?.mode === 'weight_goal' && !completed && <MealRoutinePanel key={`routine-${plan.id}-${calendarRevision}`} plan={plan} profileRevision={profileRevision} onPlanChanged={updated => { setPlan(updated); setRefresh(value => value + 1); }} onEditProfile={onEditProfile} />}
             <MenuJourney plan={plan} menu={menu} />
             <details className="wm-menu-notes"><summary><PlannerIcon name="info" />About this menu and its estimates</summary><div><p>Calorie targets are estimates. This menu does not guarantee weight change or nutritional adequacy. Check ingredients and product labels for allergens.</p>{menu.mealCalorieSplit && <p>Daily calorie split: breakfast {menu.mealCalorieSplit.breakfastPercent}%, lunch {menu.mealCalorieSplit.lunchPercent}%, dinner {menu.mealCalorieSplit.dinnerPercent}%. These shares divide the daily target and do not change it.</p>}{menu.notes?.map((note, index) => <p key={index}>{note}</p>)}</div></details>
           </div>
