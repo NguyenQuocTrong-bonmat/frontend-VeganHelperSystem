@@ -66,3 +66,20 @@ test('a balanced plan has no weight form', async () => {
   await render({ ...plan, routine: { ...plan.routine, mode: 'maintenance' } });
   expect(textButton('Create a balanced week')).toBeDefined(); expect(host.querySelector('input[type="number"]')).toBeNull();
 });
+
+
+test('an expired package keeps history available but does not offer next-week generation', async () => {
+  await act(async () => root.render(<CompletedWeekPanel plan={plan} canGenerate={false} onViewHistory={onViewHistory} />));
+  expect(host.textContent).toContain('Please renew your package');
+  expect(textButton('Plan next week')).toBeUndefined();
+  expect(host.querySelector('form')).toBeNull();
+  await click(textButton('View completed week'));
+  expect(onViewHistory).toHaveBeenCalledOnce();
+  expect(requests).toHaveLength(0);
+});
+
+test('an expired package does not offer a new balanced week either', async () => {
+  await act(async () => root.render(<CompletedWeekPanel plan={{ ...plan, routine: { ...plan.routine, mode: 'maintenance' } }} canGenerate={false} onViewHistory={onViewHistory} />));
+  expect(textButton('Create a balanced week')).toBeUndefined();
+  expect(textButton('View completed week')).toBeDefined();
+});

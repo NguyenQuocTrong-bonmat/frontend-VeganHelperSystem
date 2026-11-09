@@ -19,6 +19,9 @@ import './weekly-menu.css';
 
 export default function WeeklyMealPlanner({ onEditProfile, profileRevision, access, onAccessChange, onHealthProfileChanged }) {
   const { confirm, notify } = useNotification();
+  const generationNotice = ['grace_period', 'expired'].includes(access?.status)
+    ? 'Your package has expired. You can finish your current weekly menu. Please renew your package to create the next week.'
+    : 'Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.';
   const [pageIndex, setPageIndex] = useState(1);
   const [refresh, setRefresh] = useState(0);
   const [calendarRevision, setCalendarRevision] = useState(0);
@@ -122,7 +125,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
   async function generate(selectedStartDate) {
     if (submitting.current || opening) return;
     if (access?.canGenerate === false) {
-      setError('Your free meal-plan generations have been used. Choose a package above to create more plans.');
+      setError(generationNotice);
       return;
     }
     const { clientPreview, ...request } = typeof selectedStartDate === 'string'
@@ -275,7 +278,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
       <button type="button" ref={createButton} className="wm-button wm-button-primary" disabled={busy || loading || access?.canGenerate === false} onClick={() => { setSetupOpen(true); setError(''); setSuccess(''); }}><PlannerIcon name="plus" />New weekly menu</button>
     </div>
     <p role="status" className={generating || regenerating || opening || deleting || success ? 'wm-status' : 'sr-only'}>{regenerating ? 'Regenerating your weekly menu…' : generating ? 'Creating and saving your weekly menu. Please wait…' : deleting ? 'Deleting your weekly menu…' : opening ? 'Opening saved menu…' : success}</p>
-    {access?.canGenerate === false && <p role="status" className="wm-notice">Your 3 free weekly-menu generations have been used. Choose a package above to create another meal plan.</p>}
+    {access?.canGenerate === false && <p role="status" className="wm-notice">{generationNotice}</p>}
     {access && !access.canViewExistingPlans && !access.canViewTrialPlans && <p className="wm-notice">No saved meal plans are available to view yet. Create a plan with your free trial or activate a package to unlock saved plans.</p>}
     {/* HORIZONTAL DASHBOARD OVERVIEW */}
     <section className="wm-dashboard-overview wm-saved-plans" aria-label="Plan overview and saved menus">
@@ -443,7 +446,7 @@ export default function WeeklyMealPlanner({ onEditProfile, profileRevision, acce
         {!creation && plan && !menu && <div className="wm-notice"><PlannerIcon name="info" /><p>This older plan has no saved menu snapshot. Create a new weekly menu to see its meals and ingredients.</p></div>}
         {!creation && menu && <>
           <WeeklyCalendar key={`calendar-${plan.id}-${calendarRevision}`} plan={plan} opening={opening} onRoutineChanged={routine => setPlan(current => current?.id === plan.id ? { ...current, routine } : current)}
-            completionContent={({ onViewHistory }) => <CompletedWeekPanel key={`completed-${plan.id}`} plan={plan} profileRevision={profileRevision} onViewHistory={onViewHistory}
+            completionContent={({ onViewHistory }) => <CompletedWeekPanel key={`completed-${plan.id}`} plan={plan} canGenerate={access?.canGenerate !== false} profileRevision={profileRevision} onViewHistory={onViewHistory}
               onOpenPlan={openPlan} onCreateBalanced={() => setSetupOpen(true)} onPlanChanged={acceptContinuation} onEditProfile={onEditProfile} />}>
             {({ calendarView, setView, showCalendar }) => <div className="wm-calendar-plan-context">
               <div className="wm-selected-plan wm-selected-plan-embedded" role="group" aria-label="Selected weekly menu">

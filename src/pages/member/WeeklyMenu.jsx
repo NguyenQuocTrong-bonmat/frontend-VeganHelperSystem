@@ -78,6 +78,8 @@ function WeeklyMenu() {
             <p className="wm-upgrade-cta-message">
               {mealPlanAccess?.status === 'active'
                 ? `Your access is active${mealPlanAccess.expiresAt ? ` until ${formatDate(mealPlanAccess.expiresAt)}` : ''}. Need to extend?`
+                : ['grace_period', 'expired'].includes(mealPlanAccess?.status)
+                  ? 'Your package has expired. Finish your current week and renew to create the next one.'
                 : mealPlanAccess?.canGenerate
                   ? `${mealPlanAccess.trialGenerationsRemaining ?? 3} free generation${mealPlanAccess.trialGenerationsRemaining === 1 ? '' : 's'} remaining.`
                   : 'Your free generations have been used. Upgrade to continue planning.'}

@@ -4,7 +4,7 @@ import DateInput from '../common/DateInput';
 import PlannerIcon from './PlannerIcon';
 import { dateLabel, wholeNumber, zonedToday } from './plannerFormat';
 
-export default function CompletedWeekPanel({ plan, onViewHistory, onOpenPlan, onCreateBalanced, onPlanChanged, onEditProfile, profileRevision }) {
+export default function CompletedWeekPanel({ plan, canGenerate = true, onViewHistory, onOpenPlan, onCreateBalanced, onPlanChanged, onEditProfile, profileRevision }) {
   const r = plan.routine;
   const id = useId();
   const [formOpen, setFormOpen] = useState(false);
@@ -23,7 +23,7 @@ export default function CompletedWeekPanel({ plan, onViewHistory, onOpenPlan, on
   useEffect(() => { setProposal(null); setError(''); }, [weight, target, deadline, start, eligible, profileRevision]);
   const goal = r?.mode === 'weight_goal';
   const nextId = r?.nextPlanId;
-  const canContinue = goal && r?.state === 'active' && !nextId;
+  const canContinue = canGenerate && goal && r?.state === 'active' && !nextId;
 
   async function perform(action) {
     if (lock.current) return;
@@ -46,7 +46,7 @@ export default function CompletedWeekPanel({ plan, onViewHistory, onOpenPlan, on
     });
   }
   async function confirm() {
-    if (!proposal?.allowed || !eligible) return;
+    if (!canGenerate || !proposal?.allowed || !eligible) return;
     await perform(async () => {
       const updated = await confirmMealRevision(plan.id, { ...proposal.request,
         expectedVersion: proposal.version, profileFingerprint: proposal.profileFingerprint });
@@ -59,13 +59,14 @@ export default function CompletedWeekPanel({ plan, onViewHistory, onOpenPlan, on
     <span className="wm-eyebrow">A moment to check in</span>
     <h3>Your week is complete</h3>
     <p>{nextId ? 'Your next week is already planned. Open it to continue, or revisit your completed meals.'
+      : !canGenerate ? 'Please renew your package before creating another week. Your completed menu remains available in Plan history.'
       : goal ? 'Would you like to continue planning toward your weight goal? Check in with your current weight before we prepare another week.'
       : 'Your completed menu is saved in Plan history. Would you like to plan another balanced week?'}</p>
     {deferred && <p role="status" className="wm-muted">No new plan has been created. You can return whenever you are ready.</p>}
     {!formOpen && <div className="wm-completed-actions">
       {nextId ? <button type="button" className="wm-button wm-button-primary" onClick={() => onOpenPlan(nextId)}>Open next week <PlannerIcon name="arrow" /></button>
         : canContinue ? <button type="button" className="wm-button wm-button-primary" onClick={() => { setFormOpen(true); setDeferred(false); }}>Plan next week <PlannerIcon name="arrow" /></button>
-          : !goal ? <button type="button" className="wm-button wm-button-primary" onClick={onCreateBalanced}>Create a balanced week <PlannerIcon name="arrow" /></button>
+          : !canGenerate ? null : !goal ? <button type="button" className="wm-button wm-button-primary" onClick={onCreateBalanced}>Create a balanced week <PlannerIcon name="arrow" /></button>
             : <p className="wm-muted">Select the latest plan from Plan history to continue your goal.</p>}
       <button type="button" className="wm-button wm-button-secondary" onClick={onViewHistory}>View completed week</button>
       {!deferred && <button type="button" className="wm-text-button" onClick={() => setDeferred(true)}>Not now</button>}
