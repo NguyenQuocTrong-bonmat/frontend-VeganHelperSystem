@@ -86,10 +86,10 @@ test('shows the calendar tracking summary without a duplicate tracking form', as
   expect(requests).toHaveLength(0);
 });
 
-test('handles zero recorded meals gracefully without NaN and displays "No records yet"', async () => {
+test('counts elapsed unrecorded meals as not followed without NaN', async () => {
   await act(async () => root.render(<MealRoutinePanel plan={plan} onPlanChanged={() => {}} onEditProfile={() => {}} />));
   expect(host.textContent).toContain('0 / 1');
-  expect(host.textContent).toContain('No records yet');
+  expect(host.textContent).toContain('0%');
   expect(host.textContent).not.toContain('NaN');
   expect(host.textContent).toContain('1 unrecorded');
 });

@@ -93,7 +93,7 @@ function WeeklyMenu() {
           </Link>
         </div>
 
-        <WeeklyMealPlanner access={mealPlanAccess} onAccessChange={setMealPlanAccess} profileRevision={profileRevision} onEditProfile={() => { setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); }} />
+        <WeeklyMealPlanner onHealthProfileChanged={() => setProfileRevision(value => value + 1)} access={mealPlanAccess} onAccessChange={setMealPlanAccess} profileRevision={profileRevision} onEditProfile={() => { setActiveTab('wellness'); document.getElementById('wellness-tab')?.focus(); }} />
       </main>
 
       <div id="wellness-panel" role="tabpanel" aria-labelledby="wellness-tab" hidden={activeTab !== 'wellness'}>{activeTab === 'wellness' && <HealthAndWellness isComponent={true} onProfileUpdated={() => setProfileRevision(value => value + 1)} />}</div>
