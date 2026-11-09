@@ -91,3 +91,22 @@ test('defaults to week view on desktop (> 1100px) and day view on tablet/mobile 
     window.matchMedia = original;
   }
 });
+
+
+test('day eight replaces calendar with check-in, while completed meals remain accessible', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-24T00:00:00Z'));
+  await act(async () => root.render(<WeeklyCalendar plan={plan} initialView="day" completionContent={({ onViewHistory }) => <div><h3>Your week is complete</h3><button onClick={onViewHistory}>View completed week</button></div>} />));
+  expect(host.querySelector('[data-view]')).toBeNull(); expect(host.textContent).not.toContain('Your weekly calendar');
+  await click([...host.querySelectorAll('button')].find(b => b.textContent === 'View completed week'));
+  expect(host.querySelector('[data-view="day"]')).not.toBeNull(); expect(host.textContent).toContain('Tofu congee');
+});
+
+test('day seven still shows its calendar, using the plan timezone at midnight', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-23T16:59:00Z'));
+  const localPlan = { ...plan, routine: { ...plan.routine, timeZoneId: 'Asia/Ho_Chi_Minh' } };
+  await act(async () => root.render(<WeeklyCalendar plan={localPlan} initialView="day" completionContent={() => <p>Your week is complete</p>} />));
+  expect(host.querySelector('[data-view="day"]')).not.toBeNull();
+  vi.setSystemTime(new Date('2026-10-23T17:01:00Z'));
+  await act(async () => root.render(<WeeklyCalendar plan={localPlan} initialView="day" completionContent={() => <p>Your week is complete</p>} />));
+  expect(host.querySelector('[data-view]')).toBeNull(); expect(host.textContent).toContain('Your week is complete');
+});

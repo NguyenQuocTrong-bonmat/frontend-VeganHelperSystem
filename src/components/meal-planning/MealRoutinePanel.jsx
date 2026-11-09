@@ -4,6 +4,7 @@ import { wholeNumber, dateLabel, number } from './plannerFormat';
 import PlannerIcon from './PlannerIcon';
 import DateInput from '../common/DateInput';
 import TimeZoneSelect from './TimeZoneSelect';
+import { trackingSummary } from './mealPlanLifecycle';
 
 export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, profileRevision }) {
   const r = plan.routine;
@@ -36,9 +37,9 @@ export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, p
 
   const active = r.state === 'active' || r.state === 'continued';
   const entries = r.entries || [];
-  const logged = entries.filter(e => e.status !== 'unlogged');
-  const followed = logged.filter(e => e.status === 'followed').length;
-  const unloggedCount = entries.length - logged.length;
+  const summary = trackingSummary(entries);
+  const followed = summary.followed;
+  const unloggedCount = summary.notRecorded;
 
   async function run(operation) {
     if (lock.current) return;
@@ -114,7 +115,7 @@ export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, p
           <div className="wm-metric-icon"><PlannerIcon name="calendar" /></div>
           <div className="wm-metric-content">
             <span className="wm-metric-label">Meals Recorded</span>
-            <strong className="wm-metric-value">{logged.length} / {entries.length}</strong>
+            <strong className="wm-metric-value">{followed} / {summary.elapsed}</strong>
             <span className="wm-metric-sub">{unloggedCount > 0 ? `${unloggedCount} unrecorded` : 'All meals recorded'}</span>
           </div>
         </div>
@@ -123,8 +124,8 @@ export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, p
           <div className="wm-metric-icon"><PlannerIcon name="target" /></div>
           <div className="wm-metric-content">
             <span className="wm-metric-label">Followed Rate</span>
-            <strong className="wm-metric-value">{logged.length ? `${Math.round(followed / logged.length * 100)}%` : 'No records yet'}</strong>
-            <span className="wm-metric-sub">{logged.length ? `${followed} of ${logged.length} followed` : 'Record meals to view'}</span>
+            <strong className="wm-metric-value">{summary.percent === null ? 'No meals due yet' : `${summary.percent}%`}</strong>
+            <span className="wm-metric-sub">{summary.elapsed ? `${followed} of ${summary.elapsed} due meals followed` : 'No meals due yet'}</span>
           </div>
         </div>
 
@@ -147,7 +148,7 @@ export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, p
         </div>
       </div>
 
-      <p className="wm-muted">Record meals directly on the calendar above. Unlogged meals stay unlogged. Three-day reviews use at least six recorded meals; they may recommend a health profile update.</p>
+      <p className="wm-muted">Record meals directly on the calendar above. After each complete three-day period, meals not marked Followed count as not followed. Below 70% adherence, we invite you to review your health profile.</p>
 
       {active && (
         <div className="wm-upcoming-grid wm-routine-panels-grid">
@@ -254,9 +255,7 @@ export default function MealRoutinePanel({ plan, onPlanChanged, onEditProfile, p
                     <button type="button" className="wm-button wm-button-secondary" disabled={busy} onClick={() => run(() => review(false))}>
                       Review adjustment
                     </button>
-                    <button type="button" className="wm-button wm-button-secondary" disabled={busy} onClick={() => run(() => review(true))}>
-                      Plan next week
-                    </button>
+
                   </div>
                 </fieldset>
 

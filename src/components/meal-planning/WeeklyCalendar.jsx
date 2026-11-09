@@ -3,6 +3,8 @@ import PlannerIcon from './PlannerIcon';
 import { wholeNumber, servingPercent, dateLabel, number, zonedToday, weekday } from './plannerFormat';
 import { getMealPlan, logMeal } from '../../services/mealPlanService';
 import MealTrackingControl from './MealTrackingControl';
+import usePlannerNow from './usePlannerNow';
+import { weekIsComplete } from './mealPlanLifecycle';
 
 const mealIcons = { breakfast: 'sun', lunch: 'bowl', dinner: 'moon' };
 
@@ -47,7 +49,7 @@ function MealDetailPanel({ meal, onClose }) {
   </section>;
 }
 
-export default function WeeklyCalendar({ plan, opening, onRoutineChanged, children, initialView }) {
+export default function WeeklyCalendar({ plan, opening, onRoutineChanged, children, initialView, completionContent }) {
   const today = zonedToday(plan.routine?.timeZoneId);
 
   const checkWide = () => {
@@ -88,17 +90,15 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged, childr
   const [saving, setSaving] = useState(null);
   const [trackingError, setTrackingError] = useState('');
   const [trackingMessage, setTrackingMessage] = useState('');
-  const [now, setNow] = useState(Date.now);
+  const now = usePlannerNow();
+  const [showHistory, setShowHistory] = useState(false);
+  const completed = weekIsComplete(plan, today);
   const requestLock = useRef(false);
   const alive = useRef(true);
   const routine = plan.routine;
   const trackable = routine?.mode === 'weight_goal';
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => {
-    if (!trackable) return;
-    const timer = setInterval(() => setNow(Date.now()), 30000);
-    return () => clearInterval(timer);
-  }, [trackable]);
+
   const day = days.find(item => item.dayIndex === dayIndex) || days[0];
   const calendarHeading = (
     <div className="wm-calendar-heading">
@@ -139,11 +139,13 @@ export default function WeeklyCalendar({ plan, opening, onRoutineChanged, childr
       disabled={Boolean(saving) || opening || future || !onRoutineChanged || !['active', 'continued'].includes(routine.state)} onChange={status => record(entry, status)} />;
   }
 
-  const planHeader = typeof children === 'function' ? children({ calendarView, setView: handleSetView }) : children;
+  const planHeader = typeof children === 'function' ? children({ calendarView, setView: handleSetView, showCalendar: !completed || showHistory }) : children;
+  if (completed && completionContent && !showHistory) return <section className="wm-calendar" aria-label="Completed weekly menu">{planHeader}{completionContent({ onViewHistory: () => setShowHistory(true) })}</section>;
   if (!days.length) return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>{planHeader}{calendarHeading}<div className="wm-empty"><h2>No scheduled meals in this menu</h2><p>Create another weekly menu to see its saved meals.</p></div></section>;
 
   return <section className="wm-calendar" aria-label="Weekly meal calendar" aria-busy={opening || Boolean(saving)}>
     {planHeader}
+    {completed && completionContent && <div className="wm-calendar-feedback"><button type="button" className="wm-text-button" onClick={() => setShowHistory(false)}>Back to week check-in</button></div>}
     {calendarHeading}
     {trackingError && <div role="alert" className="wm-alert wm-calendar-feedback">{trackingError}<button type="button" className="wm-text-button" disabled={Boolean(saving)} onClick={reloadRoutine}>Reload calendar</button></div>}
     <p role="status" className={trackingMessage ? 'wm-status wm-calendar-feedback' : 'sr-only'}>{trackingMessage}</p>

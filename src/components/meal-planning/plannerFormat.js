@@ -4,9 +4,9 @@ export const number = value => value == null || !Number.isFinite(Number(value)) 
 export const wholeNumber = value => value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
 export const servingPercent = meal => wholeNumber(meal.portionPercent ?? (meal.portionMultiplier == null ? null : Number(meal.portionMultiplier) * 100));
 export const dateLabel = value => value ? formatDate(value) : 'Unknown date';
-export const utcToday = () => new Date().toISOString().slice(0, 10);
-export const zonedToday = zone => {
-  try { return new Intl.DateTimeFormat('en-CA', { timeZone: zone || 'UTC', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+export const utcToday = () => new Date(Date.now()).toISOString().slice(0, 10);
+export const zonedToday = (zone, now = new Date(Date.now())) => {
+  try { return new Intl.DateTimeFormat('en-CA', { timeZone: zone || 'UTC', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now); }
   catch { return utcToday(); }
 };
 export const weekday = (value, short = false) => new Date(`${value}T00:00:00Z`).toLocaleDateString('en-GB', { weekday: short ? 'short' : 'long', timeZone: 'UTC' });
