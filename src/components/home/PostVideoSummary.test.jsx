@@ -36,10 +36,10 @@ describe('Video summary disclosure and request lifecycle', () => {
     vi.useRealTimers();
   });
 
-  it('does not fetch on mount and lets guests reveal an existing summary without generating', async () => {
+  it('does not fetch on mount and lets members reveal an existing summary without generating', async () => {
     const onAuthRequired = vi.fn();
     getPostSummary.mockResolvedValue(completed);
-    await render({ isGuest: true, onAuthRequired });
+    await render({ isGuest: false, onAuthRequired });
     expect(getPostSummary).not.toHaveBeenCalled();
     await click('View video summary');
     expect(container.textContent).toContain(completed.summary);
@@ -68,6 +68,7 @@ describe('Video summary disclosure and request lifecycle', () => {
     await render({ isGuest: true, onAuthRequired });
     await click('View video summary');
     expect(onAuthRequired).toHaveBeenCalledTimes(1);
+    expect(getPostSummary).not.toHaveBeenCalled();
     expect(requestPostSummary).not.toHaveBeenCalled();
   });
 
@@ -125,5 +126,30 @@ describe('Video summary disclosure and request lifecycle', () => {
     await click('Check again');
     expect(getPostSummary).toHaveBeenCalledTimes(2);
     expect(requestPostSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks guest reads even when the server has a completed summary, prompting on every click', async () => {
+    getPostSummary.mockResolvedValue(completed);
+    const onAuthRequired = vi.fn();
+    await render({isGuest:true,onAuthRequired});
+    await click('View video summary'); await click('View video summary');
+    expect(onAuthRequired).toHaveBeenCalledTimes(2);
+    expect(getPostSummary).not.toHaveBeenCalled();
+    expect(requestPostSummary).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain(completed.summary);
+    expect(container.textContent).not.toContain(completed.transcript);
+    expect(container.querySelector('[aria-busy]').hidden).toBe(true);
+  });
+  it('removes cached member summary and transcript when the viewer becomes a guest', async () => {
+    getPostSummary.mockResolvedValue(completed);
+    await render({isGuest:false}); await click('View video summary');
+    expect(container.textContent).toContain(completed.summary);
+    const onAuthRequired=vi.fn();
+    await render({isGuest:true,onAuthRequired});
+    expect(container.textContent).not.toContain(completed.summary);
+    expect(container.textContent).not.toContain(completed.transcript);
+    await click('View video summary');
+    expect(getPostSummary).toHaveBeenCalledTimes(1);
+    expect(onAuthRequired).toHaveBeenCalledTimes(1);
   });
 });

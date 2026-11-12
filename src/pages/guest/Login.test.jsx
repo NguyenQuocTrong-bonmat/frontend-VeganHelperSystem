@@ -117,6 +117,10 @@ describe('Login Page Viewport & Authentication Layout', () => {
     const rememberLabel = container.querySelector('label[for="remember"]');
     expect(rememberCheckbox).not.toBeNull();
     expect(rememberLabel).not.toBeNull();
+    expect(rememberCheckbox.checked).toBe(true);
+    await act(async () => rememberCheckbox.click());
+    expect(rememberCheckbox.checked).toBe(false);
+
 
     // Forgot password link
     const forgotLink = container.querySelector('a[href="/forgot-password"]');

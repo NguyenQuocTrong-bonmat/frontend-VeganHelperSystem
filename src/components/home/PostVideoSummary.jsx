@@ -8,7 +8,7 @@ const canGenerate = (status) => ['not_requested', 'failed', 'stale'].includes(st
 const buttonClass = 'min-h-11 rounded-lg border border-[#DCE3D5] px-3 py-2 text-sm font-medium text-[#2F5233] hover:bg-[#F3F6EE] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-60';
 
 export default function PostVideoSummary(props) {
-  return <VideoSummaryPanel key={props.postId} {...props} />;
+  return <VideoSummaryPanel key={`${props.postId}:${props.isGuest ? "guest" : "member"}`} {...props} />;
 }
 
 function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
@@ -36,7 +36,7 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
   useEffect(() => () => requestRef.current?.abort(), []);
 
   useEffect(() => {
-    if (!expanded || busy || !isPending(result?.status)) return undefined;
+    if (isGuest || !expanded || busy || !isPending(result?.status)) return undefined;
     const controller = new AbortController();
     let timer;
     async function refresh() {
@@ -52,9 +52,10 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
     }
     timer = window.setTimeout(refresh, 4000);
     return () => { controller.abort(); window.clearTimeout(timer); };
-  }, [expanded, busy, postId, result?.status]);
+  }, [isGuest, expanded, busy, postId, result?.status]);
 
   async function loadSummary(generate = false) {
+    if (isGuest) { onAuthRequired?.(); return; }
     if (requestRef.current) return;
     const controller = new AbortController();
     requestRef.current = controller;
@@ -90,6 +91,7 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
   }
 
   function toggleSummary() {
+    if (isGuest) { onAuthRequired?.(); return; }
     if (expanded) {
       setExpanded(false);
       setShowTranscript(false);
@@ -101,6 +103,7 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
   }
 
   async function copyTranscript() {
+    if (isGuest) { onAuthRequired?.(); return; }
     try {
       await navigator.clipboard.writeText(result.transcript);
       toast.success('Transcript copied');
@@ -114,7 +117,7 @@ function VideoSummaryPanel({ postId, isGuest, onAuthRequired }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-fraunces text-xl font-medium text-[#2B2A25]">Video recipe summary</h2>
-          <p className="mt-1 text-sm text-[#6B6F63]">Open a short recipe summary and the video transcript.</p>
+          <p className="mt-1 text-sm text-[#6B6F63]">{isGuest ? 'Sign in to view the recipe summary and video transcript.' : 'Open a short recipe summary and the video transcript.'}</p>
         </div>
         <button type="button" onClick={toggleSummary} disabled={busy} aria-expanded={expanded} aria-controls={panelId}
           className="min-h-11 shrink-0 rounded-lg bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#25401F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233] disabled:opacity-60">

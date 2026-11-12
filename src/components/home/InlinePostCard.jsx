@@ -1,3 +1,4 @@
+import { getAccessToken } from '../../utils/authStorage';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -44,11 +45,13 @@ export default function InlinePostCard({
   const [detailsLoading, setDetailsLoading] = useState(false);
 
   // Interaction states
-  const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
+  const [likedState, setIsLiked] = useState(Boolean(post.isLiked));
   const [likeCount, setLikeCount] = useState(Number(post.likeCount) || 0);
+  const isLiked = !isGuest && likedState;
   const [isLikeUpdating, setIsLikeUpdating] = useState(false);
 
-  const [isSaved, setIsSaved] = useState(Boolean(post.isSaved));
+  const [savedState, setIsSaved] = useState(Boolean(post.isSaved));
+  const isSaved = !isGuest && savedState;
   const [isSaveUpdating, setIsSaveUpdating] = useState(false);
 
   const [commentCount, setCommentCount] = useState(Number(post.commentCount) || 0);
@@ -146,7 +149,7 @@ export default function InlinePostCard({
     return () => {
       isCancelled = true;
     };
-  }, [postId, post]);
+  }, [postId, post, isGuest]);
 
   // Handle Like
   const handleLike = async (e) => {
@@ -169,7 +172,9 @@ export default function InlinePostCard({
     setIsLikeUpdating(true);
 
     try {
+      const actorToken = getAccessToken();
       const res = await toggleLike(postId);
+      if (actorToken !== getAccessToken()) return;
       const authoritativeLiked = Boolean(res.isLiked);
       const authoritativeCount = res.likeCount !== undefined ? res.likeCount : nextCount;
 
@@ -208,7 +213,9 @@ export default function InlinePostCard({
     setIsSaveUpdating(true);
 
     try {
+      const actorToken = getAccessToken();
       const res = await toggleSave(postId);
+      if (actorToken !== getAccessToken()) return;
       const authoritativeSaved = Boolean(res.isSaved);
       setIsSaved(authoritativeSaved);
 

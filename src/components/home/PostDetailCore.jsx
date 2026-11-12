@@ -74,9 +74,11 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('Recipe');
 
-  const [isLiked, setIsLiked] = useState(false);
+  const [likedState, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [isSaved, setIsSaved] = useState(false);
+  const [savedState, setIsSaved] = useState(false);
+  const isLiked = !isGuest && likedState;
+  const isSaved = !isGuest && savedState;
   const [isLikeUpdating, setIsLikeUpdating] = useState(false);
   const [isSaveUpdating, setIsSaveUpdating] = useState(false);
   const [comments, setComments] = useState([]);

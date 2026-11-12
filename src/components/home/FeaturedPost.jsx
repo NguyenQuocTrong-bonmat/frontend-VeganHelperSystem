@@ -1,3 +1,4 @@
+import { getAccessToken } from '../../utils/authStorage';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -18,8 +19,9 @@ export default function FeaturedPost({
   const { ref, isVisible } = useScrollReveal();
   const videoRef = useRef(null);
   const [mediaError, setMediaError] = useState(false);
-  const [isLiked, setIsLiked] = useState(Boolean(post?.isLiked));
+  const [likedState, setIsLiked] = useState(Boolean(post?.isLiked));
   const [likeCount, setLikeCount] = useState(Number(post?.likeCount) || 0);
+  const isLiked = !isGuest && likedState;
   const [isLikeUpdating, setIsLikeUpdating] = useState(false);
 
   const [localProfilePreview, setLocalProfilePreview] = useState({
@@ -56,7 +58,7 @@ export default function FeaturedPost({
     return () => {
       cancelled = true;
     };
-  }, [post?.id, post?.isLiked, post?.likeCount]);
+  }, [post?.id, post?.isLiked, post?.likeCount, isGuest]);
 
   if (!post) return null;
 
@@ -155,7 +157,9 @@ export default function FeaturedPost({
     setIsLikeUpdating(true);
 
     try {
+      const actorToken = getAccessToken();
       const res = await toggleLike(post.id);
+      if (actorToken !== getAccessToken()) return;
       const authoritativeLiked = Boolean(res.isLiked);
       const authoritativeCount = res.likeCount !== undefined ? res.likeCount : nextCount;
 
