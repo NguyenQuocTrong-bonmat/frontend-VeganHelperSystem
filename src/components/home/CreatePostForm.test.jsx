@@ -104,7 +104,12 @@ describe('CreatePostForm', () => {
     });
 
     expect(postService.createPost).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('Please enter a title for your post.');
+    expect(container.querySelector('#post-title-input-error').textContent).toBe('Title is required.');
+    expect(container.querySelector('#post-content-textarea-error').textContent).toBe('Content is required.');
+    expect(container.querySelector('#post-category-select-error').textContent).toBe('Category is required.');
+    expect(container.querySelector('#post-media-input-error').textContent).toContain('Media is required.');
+    expect(document.activeElement).toBe(container.querySelector('#post-title-input'));
+    expect(container.querySelectorAll('[aria-invalid="true"]').length).toBe(4);
   });
 
   it('tracks dirty state when user enters title or content', async () => {
@@ -132,7 +137,7 @@ describe('CreatePostForm', () => {
     expect(handleDirtyChange).toHaveBeenCalledWith(true);
   });
 
-  it('submits valid post and triggers onSuccess callback', async () => {
+  it.each(['Spicy Lemongrass Tofu', 'a'.repeat(255)])('submits valid required fields including title %s with optional fields empty', async (validTitle) => {
     const handleSuccess = vi.fn();
     postService.createPost.mockResolvedValueOnce({
       id: 202,
@@ -157,7 +162,9 @@ describe('CreatePostForm', () => {
         window.HTMLInputElement.prototype,
         'value'
       ).set;
-      titleSetter.call(titleInput, 'Spicy Lemongrass Tofu');
+      const category = container.querySelector('#post-category-select');
+      category.value = '1'; category.dispatchEvent(new Event('change', { bubbles: true }));
+      titleSetter.call(titleInput, validTitle);
       titleInput.dispatchEvent(new Event('input', { bubbles: true }));
       titleInput.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -183,8 +190,49 @@ describe('CreatePostForm', () => {
     });
 
     expect(postService.createPost).toHaveBeenCalledTimes(1);
+    expect(postService.createPost.mock.calls[0][0]).toMatchObject({title:validTitle,categoryId:1,ingredients:[],steps:[]});
     expect(handleSuccess).toHaveBeenCalledWith(
       expect.objectContaining({ id: 202, title: 'Spicy Lemongrass Tofu' })
     );
+  });
+
+  it.each([['   ', 'Title is required.'], ['a'.repeat(256), 'Title cannot exceed 255 characters.']])('rejects invalid title %s without calling createPost', async (value, message) => {
+    await act(async () => root.render(<BrowserRouter><CreatePostForm /></BrowserRouter>));
+    const input = container.querySelector('#post-title-input');
+    expect(input.maxLength).toBe(255);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, value);
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+    });
+    await act(async () => container.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+    expect(container.querySelector('#post-title-input-error').textContent).toBe(message);
+    expect(postService.createPost).not.toHaveBeenCalled();
+  });
+
+  it('shows a per-ingredient character limit and updates each counter independently', async () => {
+    await act(async()=>root.render(<BrowserRouter><CreatePostForm /></BrowserRouter>));
+    const ingredient=container.querySelector('[aria-label="Ingredient 1"]');
+    expect(ingredient.maxLength).toBe(100);
+    expect(container.querySelector('#create-ingredient-count-0').textContent).toBe('0/100 characters');
+    await act(async()=>{
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(ingredient,'a'.repeat(100));
+      ingredient.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    expect(container.querySelector('#create-ingredient-count-0').textContent).toBe('100/100 characters');
+    await act(async()=>[...container.querySelectorAll('button')].find(b=>b.textContent.includes('Add Ingredient')).click());
+    expect(container.querySelector('#create-ingredient-count-1').textContent).toBe('0/100 characters');
+    expect(container.querySelector('#post-content-textarea').hasAttribute('maxlength')).toBe(false);
+    expect(container.querySelector('textarea[placeholder="Describe step 1..."]').hasAttribute('maxlength')).toBe(false);
+  });
+  it('rejects an oversized ingredient if a value bypasses the input maxlength', async () => {
+    await act(async()=>root.render(<BrowserRouter><CreatePostForm /></BrowserRouter>));
+    await act(async()=>{
+      const input=container.querySelector('[aria-label="Ingredient 1"]');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'a'.repeat(101));
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    await act(async()=>container.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+    expect(container.textContent).toContain('Each ingredient must be 100 characters or fewer.');
+    expect(postService.createPost).not.toHaveBeenCalled();
   });
 });

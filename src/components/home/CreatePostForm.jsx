@@ -1,3 +1,4 @@
+import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH } from '../../utils/postFieldLimits';
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { createPost, getCategories } from '../../services/postService';
@@ -45,6 +46,18 @@ export default function CreatePostForm({
   // UI state
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const fieldIds = { title: 'post-title-input', category: 'post-category-select', content: 'post-content-textarea', media: 'post-media-input', prep: 'prep-time-input', cook: 'cook-time-input' };
+  const clearFieldError = (name) => setFieldErrors(previous => {
+    if (!previous[name]) return previous;
+    const next = { ...previous }; delete next[name]; return next;
+  });
+  const fieldErrorProps = (name) => ({
+    'aria-invalid': Boolean(fieldErrors[name]),
+    'aria-describedby': [fieldErrors[name] ? `${fieldIds[name]}-error` : '', name === 'title' ? 'post-title-count' : ''].filter(Boolean).join(' ') || undefined,
+  });
+  const fieldError = (name) => fieldErrors[name] ? <p id={`${fieldIds[name]}-error`} role="alert" className="mt-1.5 text-xs font-medium text-vh-error">{fieldErrors[name]}</p> : null;
+
 
   // Focus photo input if focusPhoto requested
   useEffect(() => {
@@ -66,9 +79,6 @@ export default function CreatePostForm({
         if (isCancelled) return;
         const cats = Array.isArray(data) ? data : data.items || [];
         setCategories(cats);
-        if (cats.length > 0 && !categoryId) {
-          setCategoryId(cats[0].id);
-        }
       } catch (err) {
         if (!isCancelled) {
           console.error('Failed to load categories:', err);
@@ -119,25 +129,26 @@ export default function CreatePostForm({
     e.preventDefault();
     setErrorMessage('');
 
-    if (!title.trim()) {
-      setErrorMessage('Please enter a title for your post.');
-      return;
+    const errors = {};
+    if (ingredients.some(value => value.trim().length > POST_INGREDIENT_MAX_LENGTH)) {
+      setErrorMessage(`Each ingredient must be ${POST_INGREDIENT_MAX_LENGTH} characters or fewer.`); return;
     }
-    if (!categoryId) {
-      setErrorMessage('Please select a category.');
-      return;
+    if (!title.trim()) errors.title = 'Title is required.';
+    else if (title.length > POST_TITLE_MAX_LENGTH) errors.title = 'Title cannot exceed 255 characters.';
+    if (!categories.some(category => String(category.id) === String(categoryId))) errors.category = 'Category is required.';
+    if (!content.trim()) errors.content = 'Content is required.';
+    if (mediaFiles.length === 0) errors.media = 'Media is required. Upload at least 1 image or video.';
+    else {
+      const mediaError = validatePostMediaSelection(mediaFiles);
+      if (mediaError) errors.media = mediaError;
     }
-    if (!content.trim()) {
-      setErrorMessage('Please enter content for your post.');
-      return;
+    for (const [name, value, label] of [['prep', prepTimeMins, 'Prep time'], ['cook', cookingTimeMins, 'Cook time']]) {
+      if (String(value).trim() && (!Number.isInteger(Number(value)) || Number(value) < 0)) errors[name] = `${label} must be a whole number of 0 or more.`;
     }
-    if (mediaFiles.length === 0) {
-      setErrorMessage('Please upload at least 1 image or video for the post cover.');
-      return;
-    }
-    const mediaValidationError = validatePostMediaSelection(mediaFiles);
-    if (mediaValidationError) {
-      setErrorMessage(mediaValidationError);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) {
+      setErrorMessage('Please check the highlighted fields.');
+      document.getElementById(fieldIds[Object.keys(errors)[0]])?.focus();
       return;
     }
 
@@ -222,7 +233,7 @@ export default function CreatePostForm({
           <p className="font-dm-sans text-sm font-medium">Preparing post studio...</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-7 text-left font-dm-sans">
+        <form noValidate onSubmit={handleSubmit} className="space-y-7 text-left font-dm-sans">
           {/* 1. General Information */}
           <section className="space-y-4">
             <h3 className="font-dm-serif text-lg sm:text-xl text-vh-forest border-b border-vh-border/70 pb-2">
@@ -237,12 +248,15 @@ export default function CreatePostForm({
                 id="post-title-input"
                 type="text"
                 required
-                maxLength={255}
+                maxLength={POST_TITLE_MAX_LENGTH}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => { setTitle(e.target.value); clearFieldError('title'); }}
+                {...fieldErrorProps('title')}
                 placeholder="Give your post an inviting title..."
                 className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all"
               />
+              <p id="post-title-count" className="mt-1 text-right text-xs text-vh-text-secondary">{title.length}/{POST_TITLE_MAX_LENGTH} characters</p>
+              {fieldError('title')}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -253,15 +267,19 @@ export default function CreatePostForm({
                 <select
                   id="post-category-select"
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
+                  onChange={(e) => { setCategoryId(e.target.value); clearFieldError('category'); }}
+                  required
+                  {...fieldErrorProps('category')}
                   className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all cursor-pointer"
                 >
+                  <option value="">Select a category</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
                   ))}
                 </select>
+                {fieldError('category')}
               </div>
 
               <div>
@@ -289,10 +307,12 @@ export default function CreatePostForm({
                 rows={isModal ? 3 : 4}
                 required
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={(e) => { setContent(e.target.value); clearFieldError('content'); }}
+                {...fieldErrorProps('content')}
                 placeholder="Share your thoughts, story, or recipe details..."
                 className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm sm:text-base text-vh-text-primary transition-all resize-y"
               />
+              {fieldError('content')}
             </div>
           </section>
 
@@ -300,12 +320,15 @@ export default function CreatePostForm({
           {/* 2. Media / Cover Upload */}
           <section className="space-y-3">
             <h3 className="font-dm-serif text-lg sm:text-xl text-vh-forest border-b border-vh-border/70 pb-2">
-              Post Media & Cover <span className="text-vh-error">*</span>
+              <label htmlFor="post-media-input">Post Media & Cover <span className="text-vh-error">*</span></label>
             </h3>
 
             <div className="w-full">
               <input
+                id="post-media-input"
                 type="file"
+                required
+                {...fieldErrorProps('media')}
                 multiple
                 accept="image/*,video/*"
                 ref={fileInputRef}
@@ -316,8 +339,10 @@ export default function CreatePostForm({
                     const validationError = validatePostMediaSelection(combinedFiles);
                     if (validationError) {
                       setErrorMessage(validationError);
+                      setFieldErrors(previous => ({ ...previous, media: validationError }));
                     } else {
                       setMediaFiles(combinedFiles);
+                      clearFieldError('media');
                       setErrorMessage('');
                     }
                   }
@@ -325,6 +350,7 @@ export default function CreatePostForm({
                 }}
                 className="w-full text-xs sm:text-sm text-vh-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-vh-mint file:text-vh-forest hover:file:bg-vh-sage/40 transition-colors cursor-pointer"
               />
+              {fieldError('media')}
               <p className="mt-2 text-xs text-vh-text-secondary">
                 Up to 10 files and 200 MB per upload. Images: 5 MB each; videos: 200 MB each.
               </p>
@@ -387,7 +413,7 @@ export default function CreatePostForm({
                 Cooking Details (Optional)
               </h3>
               <p className="text-xs text-vh-text-secondary mt-0.5">
-                Add preparation time, difficulty level, ingredients, and steps if your post includes a recipe.
+                Add preparation time, difficulty level, ingredients, and steps if your post includes a recipe. Use whole minutes (0 or more).
               </p>
             </div>
 
@@ -401,9 +427,11 @@ export default function CreatePostForm({
                   type="number"
                   min="0"
                   value={prepTimeMins}
-                  onChange={(e) => setPrepTimeMins(e.target.value)}
+                  onChange={(e) => { setPrepTimeMins(e.target.value); clearFieldError('prep'); }}
+                  {...fieldErrorProps('prep')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm text-vh-text-primary transition-all"
                 />
+                {fieldError('prep')}
               </div>
               <div>
                 <label htmlFor="cook-time-input" className="block text-xs sm:text-sm font-medium text-vh-text-primary mb-1.5">
@@ -414,9 +442,11 @@ export default function CreatePostForm({
                   type="number"
                   min="0"
                   value={cookingTimeMins}
-                  onChange={(e) => setCookingTimeMins(e.target.value)}
+                  onChange={(e) => { setCookingTimeMins(e.target.value); clearFieldError('cook'); }}
+                  {...fieldErrorProps('cook')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-sm text-vh-text-primary transition-all"
                 />
+                {fieldError('cook')}
               </div>
               <div>
                 <label htmlFor="difficulty-select" className="block text-xs sm:text-sm font-medium text-vh-text-primary mb-1.5">
@@ -447,13 +477,19 @@ export default function CreatePostForm({
                   <span className="text-vh-forest/80 font-medium text-xs sm:text-sm w-5 shrink-0 text-right">
                     {idx + 1}.
                   </span>
+                  <div className="min-w-0 flex-1">
                   <input
                     type="text"
+                    maxLength={POST_INGREDIENT_MAX_LENGTH}
+                    aria-label={`Ingredient ${idx + 1}`}
+                    aria-describedby={`create-ingredient-count-${idx}`}
                     value={ing}
                     onChange={(e) => handleIngredientChange(e.target.value, idx)}
                     placeholder="e.g. 2 cups of fresh Thai basil or 200g firm tofu"
-                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all"
+                    className="w-full min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all"
                   />
+                    <p id={`create-ingredient-count-${idx}`} className="mt-1 text-right text-xs text-vh-text-secondary">{ing.length}/{POST_INGREDIENT_MAX_LENGTH} characters</p>
+                  </div>
                   {ingredients.length > 1 && (
                     <button
                       type="button"

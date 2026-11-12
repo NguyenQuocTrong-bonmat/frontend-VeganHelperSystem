@@ -394,7 +394,7 @@ export default function InlinePostCard({
             )}
             {dietType && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-vh-mint/40 border border-vh-border/70 text-vh-forest font-medium">
-                <span>{dietType}</span>
+                <span>{dietType.replace(/_/g, ' ')}</span>
               </span>
             )}
             {ingredientsCount > 0 && (
