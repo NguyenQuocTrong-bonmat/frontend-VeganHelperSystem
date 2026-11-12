@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { searchPosts } from '../../services/postService';
+import { searchPosts, getCategories } from '../../services/postService';
 import { searchUsers } from '../../services/userService';
 import UserCard from './UserCard';
 import InlinePostCard from './InlinePostCard';
@@ -52,6 +52,10 @@ function SearchCore({ isGuest }) {
   const navigate = useNavigate();
 
   const queryKeyword = searchParams.get('q') || '';
+  const hasSearchQuery = searchParams.has('q');
+  const rawCategory = searchParams.get('categoryId') || '';
+  const queryCategoryId = /^\d+$/.test(rawCategory) && Number.isSafeInteger(Number(rawCategory)) && Number(rawCategory) > 0
+    ? Number(rawCategory) : null;
   let queryTab = (searchParams.get('tab') || 'all').toLowerCase();
   if (queryTab === 'recipes') queryTab = 'posts';
   if (!['all', 'posts', 'people'].includes(queryTab)) queryTab = 'all';
@@ -59,6 +63,25 @@ function SearchCore({ isGuest }) {
 
   const shouldReduceMotion = useReducedMotion();
   const [inputValue, setInputValue] = useState(queryKeyword);
+  const [searchError, setSearchError] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState('');
+  const [categoryRetry, setCategoryRetry] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCategoriesLoading(true);
+    setCategoriesError('');
+    getCategories().then(data => {
+      if (!cancelled) setCategories(Array.isArray(data) ? data : data?.items || []);
+    }).catch(() => {
+      if (!cancelled) setCategoriesError('Categories could not be loaded. You can still browse or search.');
+    }).finally(() => {
+      if (!cancelled) setCategoriesLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [categoryRetry]);
   const [activeTab, setActiveTab] = useState(queryTab);
   const [currentPage, setCurrentPage] = useState(queryPage);
 
@@ -156,12 +179,16 @@ function SearchCore({ isGuest }) {
     setActiveTab(queryTab);
     setCurrentPage(queryPage);
 
-    if (queryKeyword.trim()) {
-      executeSearch(queryKeyword.trim(), queryTab, queryPage);
-    } else {
+    if (hasSearchQuery && !queryKeyword.trim()) {
+      ++latestRequest.current;
       clearAllResults();
+      setSearchError('Enter at least 1 non-space character to search.');
+    } else {
+      setSearchError('');
+      executeSearch(queryKeyword.trim(), queryTab, queryPage);
     }
-  }, [queryKeyword, queryTab, queryPage]);
+    return () => { ++latestRequest.current; };
+  }, [queryKeyword, hasSearchQuery, queryTab, queryPage, queryCategoryId]);
 
   const clearAllResults = () => {
     setPosts([]);
@@ -202,7 +229,7 @@ function SearchCore({ isGuest }) {
       try {
         const pageSize = tab === 'all' ? 6 : 10;
         const pageIdx = tab === 'all' ? 1 : page;
-        const result = await searchPosts({ keyword, pageIndex: pageIdx, pageSize });
+        const result = await searchPosts({ keyword, pageIndex: pageIdx, pageSize, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}) });
         if (latestRequest.current === requestId) {
           setPosts(result.items || []);
           const count = result.totalCount ?? result.totalItems ?? (result.items || []).length;
@@ -276,26 +303,39 @@ function SearchCore({ isGuest }) {
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
     const cleanKeyword = inputValue.trim();
-    if (!cleanKeyword) return;
-
+    if (!cleanKeyword) {
+      setSearchError('Enter at least 1 non-space character to search.');
+      return;
+    }
+    setSearchError('');
     setSearchParams({
       q: cleanKeyword,
       tab: activeTab,
       page: 1,
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
     });
   };
 
   const clearSearch = () => {
     setInputValue('');
+    setSearchError('');
     setSearchParams({
       tab: activeTab,
       page: 1,
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
     });
+  };
+
+  const changeCategory = (value) => {
+    const params = { tab: activeTab, page: 1 };
+    if (queryKeyword.trim()) params.q = queryKeyword.trim();
+    if (value) params.categoryId = value;
+    setSearchParams(params);
   };
 
   const switchTab = (tabName) => {
     setActiveTab(tabName);
-    const params = { tab: tabName, page: 1 };
+    const params = { tab: tabName, page: 1, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}) };
     if (queryKeyword.trim()) {
       params.q = queryKeyword.trim();
     }
@@ -306,9 +346,10 @@ function SearchCore({ isGuest }) {
     const maxPages = activeTab === 'posts' ? totalPostsPages : totalUsersPages;
     if (newPage < 1 || newPage > maxPages) return;
     setSearchParams({
-      q: queryKeyword,
+      ...(queryKeyword.trim() ? { q: queryKeyword.trim() } : {}),
       tab: activeTab,
       page: newPage,
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -346,7 +387,7 @@ function SearchCore({ isGuest }) {
 
   // Reliable Summary Count
   const renderSummaryCount = () => {
-    if (!queryKeyword) return null;
+
 
     if (activeTab === 'posts') {
       if (postsLoading) return 'Searching posts...';
@@ -461,6 +502,7 @@ function SearchCore({ isGuest }) {
 
             {/* Top Search Input Box */}
             <div className="bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
+              <label htmlFor="search-input" className="mb-2 block text-sm font-semibold text-text-charcoal">Search VeganHelper</label>
               <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6B6F63]">
@@ -473,7 +515,9 @@ function SearchCore({ isGuest }) {
                     id="search-input"
                     type="text"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={(e) => { setInputValue(e.target.value); setSearchError(''); }}
+                    aria-invalid={Boolean(searchError)}
+                    aria-describedby={searchError ? 'search-input-error' : undefined}
                     placeholder="Search recipes, articles, videos, people..."
                     aria-label="Search query"
                     className="w-full h-12 pl-11 pr-11 bg-white border border-[#DCE3D5] rounded-xl text-[15px] text-[#2B2A25] placeholder-[#6B6F63] focus:border-[#2F5233] focus:outline-none focus:ring-2 focus:ring-[#2F5233]/20 transition-all font-medium"
@@ -505,6 +549,36 @@ function SearchCore({ isGuest }) {
                   <span>Search</span>
                 </button>
               </form>
+
+              {searchError && <p id="search-input-error" role="alert" className="mt-2 text-sm text-error-chili">{searchError}</p>}
+
+              {activeTab !== 'people' && (
+                <div className="mt-4 flex flex-col gap-2 border-t border-border-sage-mist pt-4 sm:flex-row sm:items-center sm:gap-3">
+                  <label htmlFor="search-category" className="flex items-center gap-2 text-sm font-semibold text-text-charcoal">
+                    <svg aria-hidden="true" className="h-4 w-4 text-primary-moss" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 5h16l-6 7v6l-4 2v-8L4 5z" /></svg>
+                    Category
+                  </label>
+                  <select
+                    id="search-category"
+                    value={queryCategoryId ?? ''}
+                    onChange={event => changeCategory(event.target.value)}
+                    disabled={categoriesLoading || Boolean(categoriesError)}
+                    aria-describedby={categoriesError ? 'search-category-error' : undefined}
+                    className="min-h-12 w-full min-w-0 rounded-xl border border-border-sage-mist bg-surface-paper px-3 py-2 text-base text-text-charcoal transition-colors hover:border-primary-moss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:max-w-xs cursor-pointer"
+                  >
+                    <option value="">{categoriesLoading ? 'Loading categories...' : 'All categories'}</option>
+                    {queryCategoryId && !categories.some(category => category.id === queryCategoryId) && <option value={queryCategoryId}>Selected category #{queryCategoryId}</option>}
+                    {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                  </select>
+                  {queryCategoryId && <button type="button" onClick={() => changeCategory('')} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-primary-moss hover:bg-bg-herb-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss cursor-pointer">Reset category</button>}
+                </div>
+              )}
+              {activeTab !== 'people' && categoriesError && (
+                <div id="search-category-error" role="status" className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text-stem-gray">
+                  <span>{categoriesError}</span>
+                  <button type="button" onClick={() => setCategoryRetry(value => value + 1)} className="min-h-11 rounded-lg px-3 font-semibold text-primary-moss hover:bg-bg-herb-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss cursor-pointer">Retry categories</button>
+                </div>
+              )}
 
               {/* MOBILE & TABLET HORIZONTAL FILTER PILLS */}
               <div className="lg:hidden mt-4 pt-3 border-t border-[#DCE3D5]/60 flex items-center gap-2 overflow-x-auto pb-1" role="tablist">
@@ -540,16 +614,18 @@ function SearchCore({ isGuest }) {
             </div>
 
             {/* QUERY SUMMARY BAR */}
-            {queryKeyword && (
+            {(
               <div
                 id="search-status-bar"
+                role="status"
+                aria-live="polite"
                 className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-sm"
               >
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[#6B6F63]">Search results for:</span>
-                  <span className="font-semibold text-[#2B2A25] px-2.5 py-0.5 bg-[#E9EFE6] rounded-md border border-[#DCE3D5]/80">
-                    "{queryKeyword}"
-                  </span>
+                  {queryKeyword.trim() ? <>
+                    <span className="text-[#6B6F63]">Search results for:</span>
+                    <span className="font-semibold text-[#2B2A25] px-2.5 py-0.5 bg-[#E9EFE6] rounded-md border border-[#DCE3D5]/80">"{queryKeyword}"</span>
+                  </> : <span className="text-text-stem-gray">{activeTab === 'people' ? 'Newest community members' : activeTab === 'posts' ? 'Latest published posts' : 'Latest posts and community members'}</span>}
                 </div>
 
                 <div className="text-xs sm:text-sm font-semibold text-[#2F5233]">
@@ -560,34 +636,7 @@ function SearchCore({ isGuest }) {
 
             {/* RESULTS CONTAINER */}
             <div id="results-section">
-              {!queryKeyword ? (
-                /* EMPTY SEARCH INPUT PROMPT */
-                <div className="text-center py-16 px-6 bg-[#FDFBF6] border border-[#DCE3D5] rounded-2xl flex flex-col items-center">
-                  <div className="w-20 h-20 bg-[#E9EFE6] text-[#2F5233] rounded-full flex items-center justify-center text-3xl mb-4 shadow-sm border border-[#DCE3D5]">
-                    🌱
-                  </div>
-                  <h3 className="font-fraunces text-2xl font-semibold text-[#2B2A25] mb-2">
-                    Search VeganHelper
-                  </h3>
-                  <p className="text-[#6B6F63] text-[15px] max-w-md mx-auto leading-relaxed mb-6">
-                    Enter keywords to discover plant-based recipes, cooking stories, videos, and connect with fellow vegans in the community.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {['Tofu', 'Pho Chay', 'Spring Rolls', 'Mushroom', 'Salad'].map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => {
-                          setInputValue(tag);
-                          setSearchParams({ q: tag, tab: activeTab, page: 1 });
-                        }}
-                        className="px-3.5 py-1.5 bg-[#F3F6EE] hover:bg-[#E9EFE6] text-[#2F5233] rounded-full text-xs font-medium border border-[#DCE3D5] transition-colors cursor-pointer"
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : activeTab === 'all' ? (
+              {activeTab === 'all' ? (
                 /* ================= ALL VIEW (PEOPLE + POSTS) ================= */
                 <div className="flex flex-col gap-10">
 
@@ -646,7 +695,7 @@ function SearchCore({ isGuest }) {
                       </div>
                     ) : users.length === 0 ? (
                       <div className="py-8 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[#6B6F63] text-sm">
-                        No people found matching "{queryKeyword}".
+                        {queryKeyword.trim() ? `No people found matching "${queryKeyword}".` : 'No community members to show yet.'}
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -706,7 +755,7 @@ function SearchCore({ isGuest }) {
                       </div>
                     ) : posts.length === 0 ? (
                       <div className="py-8 text-center bg-[#FDFBF6] border border-[#DCE3D5] rounded-xl text-[#6B6F63] text-sm">
-                        No posts found matching "{queryKeyword}".
+                        {queryKeyword.trim() ? `No posts found matching "${queryKeyword}".` : 'No published posts in this category yet.'}
                       </div>
                     ) : (
                       <div className="flex flex-col gap-6">
@@ -769,7 +818,7 @@ function SearchCore({ isGuest }) {
                         No posts found
                       </h3>
                       <p className="text-[#6B6F63] text-sm max-w-md mx-auto">
-                        We couldn't find any posts matching "{queryKeyword}". Try searching with different keywords or check your spelling.
+                        {queryKeyword.trim() ? `We couldn't find any posts matching "${queryKeyword}". Try different keywords or another category.` : 'No published posts to show. Try another category or check back later.'}
                       </p>
                     </div>
                   ) : (
@@ -873,7 +922,7 @@ function SearchCore({ isGuest }) {
                         No members found
                       </h3>
                       <p className="text-[#6B6F63] text-sm max-w-md mx-auto">
-                        We couldn't find any community members matching "{queryKeyword}". Try adjusting your keywords or username.
+                        {queryKeyword.trim() ? `We couldn't find any community members matching "${queryKeyword}". Try different keywords or a username.` : 'No community members to show yet.'}
                       </p>
                     </div>
                   ) : (

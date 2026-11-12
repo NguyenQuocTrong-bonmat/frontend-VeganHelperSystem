@@ -274,13 +274,14 @@ export async function updatePost(id, postData) {
 }
 
 export async function searchPosts(params = {}) {
-  const { keyword = '', pageIndex = 1, pageSize = 10 } = params;
+  const { keyword = '', pageIndex = 1, pageSize = 10, categoryId } = params;
   const query = new URLSearchParams();
   if (keyword) query.append('keyword', keyword);
   query.append('pageIndex', pageIndex);
   query.append('pageSize', pageSize);
 
   try {
+    if (categoryId != null) query.append('categoryId', categoryId);
     const response = await axiosInstance.get(`/Posts/search?${query.toString()}`);
     return response.data;
   } catch (err) {

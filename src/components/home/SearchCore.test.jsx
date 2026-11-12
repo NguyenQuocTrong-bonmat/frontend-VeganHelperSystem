@@ -8,6 +8,7 @@ import * as userService from '../../services/userService';
 
 vi.mock('../../services/postService', () => ({
   searchPosts: vi.fn(),
+  getCategories: vi.fn(),
 }));
 
 vi.mock('../../services/userService', () => ({
@@ -29,7 +30,10 @@ describe('SearchCore - Facebook-style Search Experience', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    postService.getCategories.mockResolvedValue([{ id: 1, name: 'Recipes' }, { id: 2, name: 'Soups' }]);
+    postService.searchPosts.mockResolvedValue({ items: [], totalCount: 0, totalPages: 0 });
+    userService.searchUsers.mockResolvedValue({ items: [], totalCount: 0, totalPages: 0 });
   });
 
   afterEach(async () => {
@@ -87,7 +91,7 @@ describe('SearchCore - Facebook-style Search Experience', () => {
     pageSize: 10,
   };
 
-  it('renders initial empty search prompt when no query is present', async () => {
+  it('loads latest posts and people when opening All without a query', async () => {
     await act(async () => {
       root.render(
         <MemoryRouter initialEntries={['/search']}>
@@ -96,8 +100,9 @@ describe('SearchCore - Facebook-style Search Experience', () => {
       );
     });
 
-    expect(container.textContent).toContain('Search VeganHelper');
-    expect(container.textContent).toContain('Search results');
+    expect(container.textContent).toContain('Latest posts and community members');
+    expect(postService.searchPosts).toHaveBeenCalledWith({ keyword: '', pageIndex: 1, pageSize: 6 });
+    expect(userService.searchUsers).toHaveBeenCalledWith({ keyword: '', pageIndex: 1, pageSize: 4 });
     expect(container.querySelector('#search-input')).toBeTruthy();
   });
 
@@ -294,7 +299,8 @@ describe('SearchCore - Facebook-style Search Experience', () => {
     });
 
     expect(container.querySelector('#search-input').value).toBe('');
-    expect(container.textContent).toContain('Search VeganHelper');
+    expect(container.textContent).toContain('Latest published posts');
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({ keyword: '', pageIndex: 1, pageSize: 10 });
   });
 
   it('switches filter tab while preserving active search query', async () => {
@@ -385,4 +391,64 @@ describe('SearchCore - Facebook-style Search Experience', () => {
     expect(postService.searchPosts).toHaveBeenCalledTimes(2);
     expect(container.textContent).toContain('Vietnamese Vegan Pho');
   });
+  const mountSearch = async (url) => {
+    await act(async () => {
+      root.render(<MemoryRouter initialEntries={[url]}><SearchCore isGuest={false} /></MemoryRouter>);
+    });
+  };
+
+  it.each([['posts', 10], ['people', 12]])('browses default %s results with pagination and no keyword', async (tab, pageSize) => {
+    await mountSearch('/search?tab=' + tab + '&page=2');
+    const api = tab === 'posts' ? postService.searchPosts : userService.searchUsers;
+    expect(api).toHaveBeenCalledWith({ keyword: '', pageIndex: 2, pageSize });
+  });
+
+  it('blocks space-only submit, shows inline feedback, and keeps current results', async () => {
+    postService.searchPosts.mockResolvedValue(mockPostData);
+    await mountSearch('/search?tab=posts');
+    const calls = postService.searchPosts.mock.calls.length;
+    await act(async () => {
+      const input = container.querySelector('#search-input');
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '   ');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    expect(container.querySelector('#search-input-error').textContent).toContain('at least 1 non-space character');
+    expect(postService.searchPosts).toHaveBeenCalledTimes(calls);
+    expect(container.textContent).toContain('Vietnamese Vegan Pho');
+  });
+
+  it('blocks a direct URL containing only whitespace instead of loading all results', async () => {
+    await mountSearch('/search?q=%20%20');
+    expect(postService.searchPosts).not.toHaveBeenCalled();
+    expect(userService.searchUsers).not.toHaveBeenCalled();
+    expect(container.querySelector('#search-input-error')).toBeTruthy();
+  });
+
+  it('applies category on the server, resets page, and preserves it across tabs', async () => {
+    await mountSearch('/search?q=tofu&tab=posts&page=2&categoryId=1');
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({ keyword: 'tofu', pageIndex: 2, pageSize: 10, categoryId: 1 });
+    await act(async () => {
+      const select = container.querySelector('#search-category');
+      select.value = '2';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({ keyword: 'tofu', pageIndex: 1, pageSize: 10, categoryId: 2 });
+    await act(async () => { container.querySelector('#filter-tab-people').click(); });
+    expect(container.querySelector('#search-category')).toBeNull();
+    expect(userService.searchUsers).toHaveBeenLastCalledWith({ keyword: 'tofu', pageIndex: 1, pageSize: 12 });
+    await act(async () => { container.querySelector('#filter-tab-all').click(); });
+    expect(container.querySelector('#search-category').value).toBe('2');
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({ keyword: 'tofu', pageIndex: 1, pageSize: 6, categoryId: 2 });
+  });
+
+  it('Clear loads latest results while retaining the selected category', async () => {
+    await mountSearch('/search?q=tofu&tab=posts&categoryId=2');
+    await act(async () => { container.querySelector('button[title="Clear search query"]').click(); });
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({ keyword: '', pageIndex: 1, pageSize: 10, categoryId: 2 });
+    expect(container.querySelector('#search-category').value).toBe('2');
+  });
+
 });

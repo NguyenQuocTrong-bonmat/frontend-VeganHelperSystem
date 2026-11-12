@@ -67,6 +67,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
   }
 
   const [post, setPost] = useState(null);
+  const isPreview = Boolean(post?.moderationHold || (post?.status && post.status !== 'published'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
@@ -139,6 +140,12 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
         setIsLiked(Boolean(data.isLiked));
         setIsSaved(Boolean(data.isSaved));
         setLikeCount(data.likeCount ?? 0);
+        if (data.moderationHold || (data.status && data.status !== 'published')) {
+          setComments([]);
+          setCommentsLoading(false);
+        } else {
+          loadComments();
+        }
 
         try {
           const catsData = await getCategories();
@@ -176,7 +183,6 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
     }
 
     loadPost();
-    loadComments();
 
     return () => {
       cancelled = true;
@@ -807,6 +813,12 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
       </div>
 
       <article className="space-y-6">
+        {isPreview && (
+          <div role="status" className="rounded-xl border border-border-sage-mist bg-bg-herb-white p-4 text-sm text-text-charcoal">
+            <p className="font-semibold">Post preview ? {String(post.status || 'pending_review').replaceAll('_', ' ')}</p>
+            <p className="mt-1 text-text-stem-gray">This post is not public. Interactions are unavailable until it is published.</p>
+          </div>
+        )}
         <h1 className="font-fraunces font-semibold text-3xl sm:text-4xl text-[#2B2A25] leading-tight tracking-tight">
           {post.title}
         </h1>
@@ -887,7 +899,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           />
         )}
 
-        {post.media?.some((item) => item.mediaType === 'video') && (
+        {!isPreview && post.media?.some((item) => item.mediaType === 'video') && (
           <PostVideoSummary postId={id} isGuest={isGuest} onAuthRequired={onAuthRequired} />
         )}
 
@@ -927,7 +939,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           )}
         </div>
 
-        <div className="py-6 my-8 border-y border-[#DCE3D5] flex flex-wrap items-center justify-between gap-4">
+        {!isPreview && <div className="py-6 my-8 border-y border-[#DCE3D5] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={handleLike}
@@ -964,9 +976,9 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
               Report
             </button>
           )}
-        </div>
+        </div>}
 
-        <section className="pt-8 pb-12 space-y-8" id="comments">
+        {!isPreview && <section className="pt-8 pb-12 space-y-8" id="comments">
           <div className="flex items-center justify-between border-b border-[#DCE3D5] pb-4">
             <h2 className="font-fraunces font-medium text-2xl text-[#2B2A25] flex items-center gap-2">
               <span>Comments</span>
@@ -1018,7 +1030,7 @@ function PostDetailCore({ isGuest, onAuthRequired }) {
           ) : (
             <div className="space-y-4">{comments.map(renderComment)}</div>
           )}
-        </section>
+        </section>}
       </article>
 
       <ImageLightbox
