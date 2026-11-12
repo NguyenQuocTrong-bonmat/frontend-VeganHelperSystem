@@ -344,7 +344,7 @@ describe('SearchCore - Facebook-style Search Experience', () => {
 
     const titleLink = container.querySelector('#post-title-1 a');
     expect(titleLink).toBeTruthy();
-    expect(titleLink.getAttribute('href')).toBe('/posts/1/guest');
+    expect(titleLink.getAttribute('href')).toBe('/posts/1');
     expect(titleLink.textContent).toContain('Vietnamese Vegan Pho');
   });
 

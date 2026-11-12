@@ -240,7 +240,7 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
                   }
                 >
                   <Link
-                    to={`/posts/${post.id}/guest`}
+                    to={`/posts/${post.id}`}
                     className="lp-recipe-cover"
                     aria-label={`Read ${post.title}`}
                   >
@@ -264,7 +264,7 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
                       </motion.button>
                     </div>
                     <h3>
-                      <Link to={`/posts/${post.id}/guest`}>{post.title}</Link>
+                      <Link to={`/posts/${post.id}`}>{post.title}</Link>
                     </h3>
                     <div className="lp-recipe-bottom">
                       <span className="lp-author-initial" aria-hidden="true">

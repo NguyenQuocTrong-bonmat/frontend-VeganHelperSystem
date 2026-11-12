@@ -60,7 +60,7 @@ export default function FeaturedPost({
 
   if (!post) return null;
 
-  const linkTo = isGuest ? `/posts/${post.id}/guest` : `/posts/${post.id}`;
+  const linkTo = `/posts/${post.id}`;
 
   // Robust video candidate detection
   const isExplicitVideo = Boolean(

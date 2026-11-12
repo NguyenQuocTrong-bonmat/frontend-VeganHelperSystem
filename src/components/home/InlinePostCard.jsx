@@ -105,7 +105,7 @@ export default function InlinePostCard({
   };
 
   const postId = post.id;
-  const postLink = isGuest ? `/posts/${postId}/guest` : `/posts/${postId}`;
+  const postLink = `/posts/${postId}`;
 
   // Fetch full details if needed (for content, recipe metadata, and authoritative like/save status)
   useEffect(() => {

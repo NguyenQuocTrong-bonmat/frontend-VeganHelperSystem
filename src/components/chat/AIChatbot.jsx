@@ -264,7 +264,7 @@ export default function AIChatbot() {
                       return (
                         <Link
                           key={postId}
-                          to={isAuthenticated ? `/posts/${postId}` : `/posts/${postId}/guest`}
+                          to={`/posts/${postId}`}
                           onClick={() => setIsOpen(false)}
                           aria-label={`Open recipe post: ${title}`}
                           className="flex min-h-16 min-w-0 items-center gap-3 rounded-xl border border-[#DCE3D5] bg-[#F8FAF5] p-2 text-[#2B2A25] transition-colors hover:bg-[#EAF0E9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2F5233]"

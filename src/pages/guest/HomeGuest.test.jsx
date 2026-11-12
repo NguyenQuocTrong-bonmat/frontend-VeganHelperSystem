@@ -35,7 +35,7 @@ test('uses public post routes, actual community totals and the existing sign-up 
   await render();
   expect(container.querySelectorAll('main > section')).toHaveLength(7);
   expect(container.querySelectorAll('h1')).toHaveLength(1);
-  expect(container.querySelector('a[href="/posts/7/guest"]')).not.toBeNull();
+  expect(container.querySelector('a[href="/posts/7"]')).not.toBeNull();
   expect(container.querySelector('.lp-community-stats').textContent).toContain('27Public posts');
   expect(container.querySelector('a[href="/register"]')).toBeNull();
   expect(container.querySelectorAll('a[href="/sign-up"]').length).toBeGreaterThan(0);
