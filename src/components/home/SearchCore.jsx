@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { searchPosts, getCategories } from '../../services/postService';
 import { searchUsers } from '../../services/userService';
 import UserCard from './UserCard';
+import RecipeDifficultyFilter from './RecipeDifficultyFilter';
 import InlinePostCard from './InlinePostCard';
 import CommentModal from './CommentModal';
 import ImageLightbox from '../ui/ImageLightbox';
@@ -53,6 +54,7 @@ function SearchCore({ isGuest }) {
 
   const queryKeyword = searchParams.get('q') || '';
   const hasSearchQuery = searchParams.has('q');
+  const queryDifficulty = (searchParams.get('difficultyLevel') || '').trim().toLowerCase();
   const rawCategory = searchParams.get('categoryId') || '';
   const queryCategoryId = /^\d+$/.test(rawCategory) && Number.isSafeInteger(Number(rawCategory)) && Number(rawCategory) > 0
     ? Number(rawCategory) : null;
@@ -188,7 +190,7 @@ function SearchCore({ isGuest }) {
       executeSearch(queryKeyword.trim(), queryTab, queryPage);
     }
     return () => { ++latestRequest.current; };
-  }, [queryKeyword, hasSearchQuery, queryTab, queryPage, queryCategoryId]);
+  }, [queryKeyword, hasSearchQuery, queryTab, queryPage, queryCategoryId, queryDifficulty]);
 
   const clearAllResults = () => {
     setPosts([]);
@@ -229,7 +231,7 @@ function SearchCore({ isGuest }) {
       try {
         const pageSize = tab === 'all' ? 6 : 10;
         const pageIdx = tab === 'all' ? 1 : page;
-        const result = await searchPosts({ keyword, pageIndex: pageIdx, pageSize, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}) });
+        const result = await searchPosts({ keyword, pageIndex: pageIdx, pageSize, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}), ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}) });
         if (latestRequest.current === requestId) {
           setPosts(result.items || []);
           const count = result.totalCount ?? result.totalItems ?? (result.items || []).length;
@@ -312,7 +314,7 @@ function SearchCore({ isGuest }) {
       q: cleanKeyword,
       tab: activeTab,
       page: 1,
-      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}), ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}),
     });
   };
 
@@ -322,20 +324,27 @@ function SearchCore({ isGuest }) {
     setSearchParams({
       tab: activeTab,
       page: 1,
-      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}), ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}),
     });
   };
 
   const changeCategory = (value) => {
-    const params = { tab: activeTab, page: 1 };
+    const params = { tab: activeTab, page: 1, ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}) };
     if (queryKeyword.trim()) params.q = queryKeyword.trim();
     if (value) params.categoryId = value;
     setSearchParams(params);
   };
 
+  const changeDifficulty = (value) => {
+    const params = { tab: activeTab, page: 1, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}) };
+    if (queryKeyword.trim()) params.q = queryKeyword.trim();
+    if (value) params.difficultyLevel = value;
+    setSearchParams(params);
+  };
+
   const switchTab = (tabName) => {
     setActiveTab(tabName);
-    const params = { tab: tabName, page: 1, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}) };
+    const params = { tab: tabName, page: 1, ...(queryCategoryId ? { categoryId: queryCategoryId } : {}), ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}) };
     if (queryKeyword.trim()) {
       params.q = queryKeyword.trim();
     }
@@ -349,7 +358,7 @@ function SearchCore({ isGuest }) {
       ...(queryKeyword.trim() ? { q: queryKeyword.trim() } : {}),
       tab: activeTab,
       page: newPage,
-      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}),
+      ...(queryCategoryId ? { categoryId: queryCategoryId } : {}), ...(queryDifficulty ? { difficultyLevel: queryDifficulty } : {}),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -553,8 +562,9 @@ function SearchCore({ isGuest }) {
               {searchError && <p id="search-input-error" role="alert" className="mt-2 text-sm text-error-chili">{searchError}</p>}
 
               {activeTab !== 'people' && (
-                <div className="mt-4 flex flex-col gap-2 border-t border-border-sage-mist pt-4 sm:flex-row sm:items-center sm:gap-3">
-                  <label htmlFor="search-category" className="flex items-center gap-2 text-sm font-semibold text-text-charcoal">
+                <div className="mt-4 grid grid-cols-1 gap-3 border-t border-border-sage-mist pt-4 min-[360px]:grid-cols-2 sm:gap-4">
+                  <div className="min-w-0">
+                  <label htmlFor="search-category" className="mb-2 flex items-center gap-2 text-sm font-semibold text-text-charcoal">
                     <svg aria-hidden="true" className="h-4 w-4 text-primary-moss" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 5h16l-6 7v6l-4 2v-8L4 5z" /></svg>
                     Category
                   </label>
@@ -564,13 +574,15 @@ function SearchCore({ isGuest }) {
                     onChange={event => changeCategory(event.target.value)}
                     disabled={categoriesLoading || Boolean(categoriesError)}
                     aria-describedby={categoriesError ? 'search-category-error' : undefined}
-                    className="min-h-12 w-full min-w-0 rounded-xl border border-border-sage-mist bg-surface-paper px-3 py-2 text-base text-text-charcoal transition-colors hover:border-primary-moss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:max-w-xs cursor-pointer"
+                    className="min-h-11 w-full min-w-0 rounded-xl border border-border-sage-mist bg-surface-paper px-3 py-2 text-base text-text-charcoal transition-colors hover:border-primary-moss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                   >
                     <option value="">{categoriesLoading ? 'Loading categories...' : 'All categories'}</option>
                     {queryCategoryId && !categories.some(category => category.id === queryCategoryId) && <option value={queryCategoryId}>Selected category #{queryCategoryId}</option>}
                     {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
                   </select>
-                  {queryCategoryId && <button type="button" onClick={() => changeCategory('')} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-primary-moss hover:bg-bg-herb-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss cursor-pointer">Reset category</button>}
+                  {queryCategoryId && <button type="button" onClick={() => changeCategory('')} className="mt-1 min-h-11 rounded-lg px-2 text-xs font-semibold text-primary-moss hover:bg-bg-herb-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-moss cursor-pointer">Reset category</button>}
+                  </div>
+                  <RecipeDifficultyFilter value={queryDifficulty} onChange={changeDifficulty} variant="compact" />
                 </div>
               )}
               {activeTab !== 'people' && categoriesError && (

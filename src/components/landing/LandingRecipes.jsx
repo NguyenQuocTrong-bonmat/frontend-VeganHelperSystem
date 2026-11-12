@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { getCategories, getPostsFeed, searchPosts } from '../../services/postService';
 import { getImageUrl } from '../../utils/imageUtils';
 import LandingIcon from './LandingIcon';
+import RecipeDifficultyFilter from '../home/RecipeDifficultyFilter';
 import LandingReveal from './LandingReveal';
 import { easeEditorial } from './motionVariants';
 
@@ -40,6 +41,7 @@ function RecipeMedia({ post }) {
 export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
   const [keyword, setKeyword] = useState('');
   const [categoryId, setCategoryId] = useState(null);
+  const [difficultyLevel, setDifficultyLevel] = useState('');
   const [categories, setCategories] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,11 +69,11 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
       async () => {
         try {
           const data = keyword.trim()
-            ? await searchPosts({ keyword: keyword.trim(), pageSize: 6 })
-            : await getPostsFeed({ pageSize: 6, categoryId });
+            ? await searchPosts({ keyword: keyword.trim(), pageSize: 6, ...(difficultyLevel ? { difficultyLevel } : {}) })
+            : await getPostsFeed({ pageSize: 6, categoryId, ...(difficultyLevel ? { difficultyLevel } : {}) });
           if (cancelled) return;
           setPosts(data.items ?? []);
-          if (!keyword.trim() && categoryId === null) {
+          if (!keyword.trim() && categoryId === null && !difficultyLevel) {
             const count = data.totalItems ?? data.totalCount;
             onCommunityLoaded({
               items: data.items ?? [],
@@ -93,7 +95,7 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [keyword, categoryId, retry, onCommunityLoaded]);
+  }, [keyword, categoryId, difficultyLevel, retry, onCommunityLoaded]);
 
   return (
     <section
@@ -148,6 +150,7 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
               onClick={() => {
                 setCategoryId(null);
                 setKeyword('');
+                setDifficultyLevel('');
               }}
             >
               All posts
@@ -170,12 +173,18 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
           </div>
         </div>
 
+        <RecipeDifficultyFilter
+          value={difficultyLevel}
+          onChange={setDifficultyLevel}
+          variant="landing"
+        />
+
         <div className="lp-recipe-status" role="status" aria-live="polite">
           {loading
             ? 'Finding fresh inspiration…'
             : keyword.trim()
               ? `Showing results for “${keyword.trim()}”`
-              : ''}
+              : difficultyLevel ? `Showing ${difficultyLevel} recipes` : ''}
         </div>
 
         {loading ? (
@@ -212,6 +221,7 @@ export default function LandingRecipes({ onAuthRequired, onCommunityLoaded }) {
               onClick={() => {
                 setKeyword('');
                 setCategoryId(null);
+                setDifficultyLevel('');
               }}
             >
               Show all posts

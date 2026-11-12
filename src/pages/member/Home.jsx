@@ -7,6 +7,7 @@ import PostList from '../../components/home/PostList';
 import HomeSocialNav from '../../components/home/HomeSocialNav';
 import HomeUtilityRail from '../../components/home/HomeUtilityRail';
 import CategoryFilterRow from '../../components/home/CategoryFilterRow';
+import RecipeDifficultyFilter from '../../components/home/RecipeDifficultyFilter';
 import CreatePostModal from '../../components/home/CreatePostModal';
 import UserProfilePreview from '../../components/home/UserProfilePreview';
 import AIChatbot from '../../components/chat/AIChatbot';
@@ -33,6 +34,7 @@ function Home() {
   const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [difficultyLevel, setDifficultyLevel] = useState('');
   const [sortBy, setSortBy] = useState('trending');
   const [isFollowingEmpty, setIsFollowingEmpty] = useState(false);
   const [authReason, setAuthReason] = useState('');
@@ -192,6 +194,7 @@ function Home() {
             pageIndex: 1,
             pageSize: 6,
             categoryId: selectedCategoryId,
+            ...(difficultyLevel ? { difficultyLevel } : {}),
             sortBy,
           });
           if (isCancelled || generation !== feedGenerationRef.current) return;
@@ -234,7 +237,7 @@ function Home() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategoryId, sortBy, feedRefreshKey, user?.id]);
+  }, [selectedCategoryId, difficultyLevel, sortBy, feedRefreshKey, user?.id]);
 
   // The list requests the next page when its end enters the viewport.
   const handleLoadMore = useCallback(async () => {
@@ -272,6 +275,7 @@ function Home() {
           pageIndex: nextPage,
           pageSize: 6,
           categoryId: selectedCategoryId,
+            ...(difficultyLevel ? { difficultyLevel } : {}),
           sortBy,
         });
         if (generation !== feedGenerationRef.current) return;
@@ -315,7 +319,7 @@ function Home() {
         setLoadingMore(false);
       }
     }
-  }, [hasMore, loadMoreError, exploreRecipes.length, featuredPost, selectedCategoryId, sortBy]);
+  }, [hasMore, loadMoreError, exploreRecipes.length, featuredPost, selectedCategoryId, difficultyLevel, sortBy]);
 
   const retryLoadMore = useCallback(() => {
     setLoadMoreError(null);
@@ -479,6 +483,13 @@ function Home() {
               onSelectCategory={setSelectedCategoryId}
             />
 
+            <RecipeDifficultyFilter
+              value={sortBy === 'following' ? '' : difficultyLevel}
+              onChange={setDifficultyLevel}
+              disabled={sortBy === 'following'}
+              hint={sortBy === 'following' ? 'Difficulty filtering is available in Trending and Latest.' : ''}
+            />
+
             {/* Feed State Display */}
             <div className="space-y-8">
               {!loading && !feedError && featuredPost && !(sortBy === 'following' && isFollowingEmpty) && (
@@ -506,7 +517,7 @@ function Home() {
                 loadingMore={loadingMore}
                 loadMoreError={loadMoreError}
                 onAuthRequired={(reason) => setAuthReason(reason || 'Log in to follow creators and see their latest posts.')}
-                onClearFilters={() => setSelectedCategoryId(null)}
+                onClearFilters={() => { setSelectedCategoryId(null); setDifficultyLevel(''); }}
                 onOpenProfilePreview={handleOpenProfilePreview}
               />
             </div>

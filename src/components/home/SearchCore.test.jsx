@@ -451,4 +451,21 @@ describe('SearchCore - Facebook-style Search Experience', () => {
     expect(container.querySelector('#search-category').value).toBe('2');
   });
 
+
+  it('combines difficulty with query/category and keeps it through People and All tabs', async () => {
+    await mountSearch('/search?q=tofu&tab=posts&page=2&categoryId=1&difficultyLevel=easy');
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({keyword:'tofu',pageIndex:2,pageSize:10,categoryId:1,difficultyLevel:'easy'});
+    const select = [...container.querySelectorAll('select')].find(s => s.id !== 'search-category');
+    await act(async () => { select.value='hard'; select.dispatchEvent(new Event('change',{bubbles:true})); });
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({keyword:'tofu',pageIndex:1,pageSize:10,categoryId:1,difficultyLevel:'hard'});
+    await act(async () => container.querySelector('#filter-tab-people').click());
+    expect(container.querySelector('select')).toBeNull();
+    expect(userService.searchUsers).toHaveBeenLastCalledWith({keyword:'tofu',pageIndex:1,pageSize:12});
+    await act(async () => container.querySelector('#filter-tab-all').click());
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({keyword:'tofu',pageIndex:1,pageSize:6,categoryId:1,difficultyLevel:'hard'});
+    await act(async () => container.querySelector('button[title="Clear search query"]').click());
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({keyword:'',pageIndex:1,pageSize:6,categoryId:1,difficultyLevel:'hard'});
+    await act(async () => container.querySelector('button[aria-label="Clear difficulty filter"]').click());
+    expect(postService.searchPosts).toHaveBeenLastCalledWith({keyword:'',pageIndex:1,pageSize:6,categoryId:1});
+  });
 });
