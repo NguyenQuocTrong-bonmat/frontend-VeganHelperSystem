@@ -1,194 +1,89 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MemoryRouter } from 'react-router-dom';
-import AdminAuditLogs from './AdminAuditLogs';
-import { useAuth } from '../../context/AuthContext';
-import { getAdminAuditLogs } from '../../services/adminService';
+import AdminAuditLogs, { auditCsv, formatAuditTime } from './AdminAuditLogs';
+import { getAdminAuditLogs, getAdminAuditLogById } from '../../services/adminService';
 
-// Mock AuthContext
-vi.mock('../../context/AuthContext', () => ({
-  useAuth: vi.fn(),
-}));
-
-// Mock NotificationBell
-vi.mock('../../components/notifications/NotificationBell', () => ({
-  default: () => <div data-testid="mock-notification-bell">NotificationBell</div>,
-}));
-
-vi.mock('../../services/adminService', () => ({
-  getAdminAuditLogs: vi.fn(),
-  getAdminAuditLogById: vi.fn(),
-}));
-
-let container;
-let root;
-
+vi.mock('../../components/admin/AdminLayout', () => ({ default: ({ children }) => <main>{children}</main> }));
+vi.mock('../../services/adminService', () => ({ getAdminAuditLogs: vi.fn(), getAdminAuditLogById: vi.fn() }));
+const entry = { id: 1, adminId: 100, adminName: 'Hoang Anh', adminUsername: 'hoanganh', action: 'post.approve',
+  subjectType: 'post', subjectName: 'Pumpkin soup', ownerName: 'Linh Nguyen', ownerUsername: 'linh',
+  targetId: '892', traceId: 'secret-trace', ipAddress: '127.0.0.1', createdAt: '2026-10-17T14:45:12Z' };
+let container, root;
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
-  getAdminAuditLogs.mockResolvedValue({ items: [
-    { id: 1, adminId: 1, action: 'member.ban', targetType: 'member', targetId: '892', createdAt: '2026-10-17T14:45:12Z' },
-    { id: 2, adminId: 1, action: 'member.unban', targetType: 'member', targetId: '615', createdAt: '2026-10-17T10:05:22Z' },
-    { id: 3, adminId: 2, action: 'category.create', targetType: 'category', targetId: '108', createdAt: '2026-10-17T12:30:19Z' },
-  ] });
-  useAuth.mockReturnValue({
-    user: { id: 'admin-1', username: 'superadmin', role: 'ADMIN' },
-    isAuthenticated: true,
-    logout: vi.fn(),
-  });
-  container = document.createElement('div');
-  document.body.appendChild(container);
-  root = createRoot(container);
+  getAdminAuditLogs.mockResolvedValue({ items: [entry], totalCount: 125, totalPages: 13 });
+  getAdminAuditLogById.mockResolvedValue(entry);
+  container = document.createElement('div'); document.body.appendChild(container); root = createRoot(container);
 });
+afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.resetAllMocks(); });
+const render = async () => { await act(async () => root.render(<AdminAuditLogs />)); };
+const click = async (label) => { const button = [...container.querySelectorAll('button')].find((el) => el.textContent === label); await act(async () => button.click()); };
 
-afterEach(async () => {
-  await act(async () => {
-    root.unmount();
+describe('Readable admin activity', () => {
+  it('shows names, meaningful activities and affected posts without technical metadata', async () => {
+    await render();
+    expect(container.textContent).toContain('Hoang Anh');
+    expect(container.textContent).toContain('Pumpkin soup');
+    expect(container.textContent).toContain('Linh Nguyen');
+    expect(container.textContent).toContain('Approved a post');
+    for (const text of ['post.approve', 'secret-trace', '127.0.0.1', 'Client IP', 'Trace ID']) expect(container.textContent).not.toContain(text);
   });
-  container.remove();
-  vi.clearAllMocks();
-});
-
-const renderComponent = async () => {
-  await act(async () => {
-    root.render(
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AdminAuditLogs />
-      </MemoryRouter>
-    );
+  it('loads real server pages beyond the former first 100 records', async () => {
+    await render();
+    expect(getAdminAuditLogs).toHaveBeenLastCalledWith({ pageIndex: 1, pageSize: 10, importantOnly: true }, expect.any(AbortSignal));
+    expect(container.textContent).toContain('Page 1 of 13');
+    await click('Next');
+    expect(getAdminAuditLogs).toHaveBeenLastCalledWith({ pageIndex: 2, pageSize: 10, importantOnly: true }, expect.any(AbortSignal));
+    expect(container.textContent).toContain('Page 2 of 13');
   });
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+  it('filters activity on the server and resets pagination', async () => {
+    await render(); await click('Next');
+    const select = container.querySelector('select');
+    await act(async () => { select.value = 'member.ban'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+    expect(getAdminAuditLogs).toHaveBeenLastCalledWith({ pageIndex: 1, pageSize: 10, importantOnly: true, action: 'member.ban' }, expect.any(AbortSignal));
   });
-};
-
-describe('AdminAuditLogs', () => {
-  it('requests only important target changes from the backend', async () => {
-    await renderComponent();
-    expect(getAdminAuditLogs).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 100, importantOnly: true });
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(3);
+  it('shows friendly details with truthful historical limitations', async () => {
+    await render(); await click('View details');
+    const modal = container.querySelector('[role="dialog"]');
+    expect(modal.textContent).toContain('The post was approved for publication.');
+    expect(modal.textContent).toContain('before-and-after values were not stored');
+    expect(modal.textContent).not.toContain('Raw Event Payload');
+    expect(modal.textContent).not.toContain('secret-trace');
+    expect(document.activeElement.getAttribute('aria-label')).toBe('Close activity details');
+    await click('Close');
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
-
-  it('shows a load error without inventing audit records', async () => {
-    getAdminAuditLogs.mockRejectedValueOnce(new Error('Audit service unavailable'));
-    await renderComponent();
-    expect(container.querySelector('[role="alert"]').textContent).toContain('Audit service unavailable');
-    expect(container.textContent).not.toContain('member.ban');
+  it('does not reopen a closed dialog when a slow detail response arrives', async () => {
+    let resolve;
+    getAdminAuditLogById.mockReturnValue(new Promise((done) => { resolve = done; }));
+    await render(); await click('View details'); await click('Close');
+    await act(async () => resolve(entry));
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
-
-  it('renders page header, KPI summary cards, and audit log table', async () => {
-    await renderComponent();
-
-    // Check heading
-    const heading = container.querySelector('h1');
-    expect(heading).not.toBeNull();
-    expect(heading.textContent).toContain('Audit Logs');
-
-    // Check KPI cards
-    expect(container.textContent).toContain('Total Log Records');
-    expect(container.textContent).toContain('Active Admins');
-    expect(container.textContent).toContain('Target Resource Types');
-    expect(container.textContent).toContain('Client IP Addresses');
-
-    // Check table headers
-    expect(container.textContent).toContain('Timestamp');
-    expect(container.textContent).toContain('ID');
-    expect(container.textContent).toContain('Admin');
-    expect(container.textContent).toContain('Action');
-    expect(container.textContent).toContain('Target Entity');
-    expect(container.textContent).toContain('Client IP');
-    expect(container.textContent).toContain('Trace ID');
+  it('allows retrying failed loads without invented activity', async () => {
+    getAdminAuditLogs.mockRejectedValueOnce(new Error('Activity could not be loaded.'));
+    await render();
+    expect(container.querySelector('[role="alert"]').textContent).toContain('could not be loaded');
+    expect(container.textContent).not.toContain('Pumpkin soup');
+    await click('Try again');
+    expect(container.textContent).toContain('Pumpkin soup');
   });
-
-  it('filters audit logs when user types into search input', async () => {
-    await renderComponent();
-
-    const searchInput = container.querySelector('input[type="text"]');
-    expect(searchInput).not.toBeNull();
-
-    // Type a specific action or target
-    await act(async () => {
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        'value'
-      ).set;
-      nativeInputValueSetter.call(searchInput, 'member.ban');
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      searchInput.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-
-    // Should display only the matching log
-    expect(container.textContent).toContain('member.ban');
-    expect(container.textContent).toContain('#892');
-    expect(container.textContent).not.toContain('category.create');
+  it('does not fabricate a date or identity when a related record is unavailable', async () => {
+    getAdminAuditLogs.mockResolvedValue({ items: [{ id: 9, action: 'category.delete' }], totalCount: 1 });
+    await render();
+    expect(container.textContent).toContain('Time not recorded');
+    expect(container.textContent).toContain('Category information unavailable');
+    expect(container.textContent).toContain('Administrator name unavailable');
+    expect(formatAuditTime('invalid')).toBe('Time not recorded');
+    expect(formatAuditTime(entry.createdAt)).toMatch(/2026.*\d{2}:\d{2}:\d{2}.*GMT/);
   });
-
-  it('filters audit logs by target type selection', async () => {
-    await renderComponent();
-
-    const selects = container.querySelectorAll('select');
-    const targetTypeSelect = selects[0]; // first select is Target Type
-    expect(targetTypeSelect).not.toBeNull();
-
-    await act(async () => {
-      targetTypeSelect.value = 'member';
-      targetTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-
-    // Should only contain member target events
-    expect(container.textContent).toContain('member.ban');
-    expect(container.textContent).toContain('member.unban');
-    expect(container.textContent).not.toContain('category.create');
-  });
-
-  it('opens and closes event detail inspection modal', async () => {
-    await renderComponent();
-
-    const inspectButtons = container.querySelectorAll('button');
-    const inspectBtn = Array.from(inspectButtons).find((b) => b.textContent.includes('Inspect'));
-    expect(inspectBtn).not.toBeNull();
-
-    // Open modal
-    await act(async () => {
-      inspectBtn.click();
-    });
-
-    // Verify modal is open
-    const modalTitle = container.querySelector('#audit-modal-title');
-    expect(modalTitle).not.toBeNull();
-    expect(modalTitle.textContent).toContain('Audit Event Details');
-    expect(container.textContent).toContain('Raw Event Payload');
-    expect(container.textContent).toContain('Copy JSON');
-
-    // Click Close button
-    const closeBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => b.textContent.trim() === 'Close'
-    );
-    expect(closeBtn).not.toBeNull();
-    await act(async () => {
-      closeBtn.click();
-    });
-
-    // Verify modal is closed
-    expect(container.querySelector('#audit-modal-title')).toBeNull();
-  });
-
-  it('triggers CSV export without crashing', async () => {
-    await renderComponent();
-
-    // Mock URL.createObjectURL and URL.revokeObjectURL
-    window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
-    window.URL.revokeObjectURL = vi.fn();
-
-    const exportBtn = Array.from(container.querySelectorAll('button')).find((b) =>
-      b.textContent.includes('Export CSV')
-    );
-    expect(exportBtn).not.toBeNull();
-
-    await act(async () => {
-      exportBtn.click();
-    });
-
-    expect(window.URL.createObjectURL).toHaveBeenCalled();
+  it('exports business details, escapes quotes and neutralizes spreadsheet formulas', () => {
+    const csv = auditCsv([{ ...entry, subjectName: '=HYPERLINK("bad")' }]);
+    expect(csv).toContain('Approved a post');
+    expect(csv).toContain(`"'=HYPERLINK(""bad"")"`);
+    expect(csv).not.toContain('secret-trace');
+    expect(csv).not.toContain('127.0.0.1');
+    expect(csv).not.toContain('post.approve');
   });
 });

@@ -5,6 +5,7 @@ import { aiChatService } from '../../services/aiChatService';
 import ChatMarkdown from './ChatMarkdown';
 
 const welcome = 'Hello! Ask me about plant-based meals, ingredients, or balanced nutrition.';
+const maxPromptCharacters = 4000;
 const guestIdentityKey = 'veganhelper-ai-chat-guest-id';
 const guestStateKey = 'veganhelper-ai-chat-guest-state';
 const guestConversationKey = 'veganhelper-ai-chat-guest';
@@ -292,14 +293,19 @@ export default function AIChatbot() {
             <div ref={endRef} />
           </div>
           {error && <p role="alert" className="px-4 py-2 text-sm text-red-700">{error}</p>}
-          <form onSubmit={send} className="flex gap-2 border-t border-[#DCE3D5] p-3">
-            <input aria-label="Ask the AI assistant" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={authLoading} placeholder={limitReached && !isAuthenticated ? 'Sign in to continue chatting…' : 'Ask about plant-based food…'} className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
+          <form onSubmit={send} className="border-t border-[#DCE3D5] p-3">
+            <div className="flex gap-2">
+            <input aria-label="Ask the AI assistant" aria-describedby="ai-genie-prompt-limit" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={maxPromptCharacters} disabled={authLoading} placeholder={limitReached && !isAuthenticated ? 'Sign in to continue chatting…' : 'Ask about plant-based food…'} className="min-w-0 flex-1 rounded-xl border border-[#DCE3D5] bg-white px-3 py-2 text-sm text-[#2B2A25] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233] disabled:opacity-60" />
             {sending ? (
               <button type="button" onClick={stopResponse} aria-label="Stop AI response" className="flex min-h-11 items-center gap-2 rounded-xl bg-[#2F5233] px-3 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F5233]">
                 <svg aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
                 Stop
               </button>
             ) : <button type="submit" disabled={busy || authLoading || !draft.trim()} className="min-h-11 rounded-xl bg-[#2F5233] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3B21] transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-1 active:scale-95 motion-reduce:transform-none cursor-pointer disabled:active:scale-100">Send</button>}
+            </div>
+            <p id="ai-genie-prompt-limit" className={`mt-2 text-right text-xs tabular-nums ${draft.length >= maxPromptCharacters ? 'font-medium text-amber-800' : 'text-[#6B6F63]'}`}>
+              {draft.length >= maxPromptCharacters && 'Character limit reached · '}{draft.length.toLocaleString('en-US')} / {maxPromptCharacters.toLocaleString('en-US')} characters
+            </p>
           </form>
           {signupPromptOpen && limitReached && !isAuthenticated && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1E3B21]/35 p-5">

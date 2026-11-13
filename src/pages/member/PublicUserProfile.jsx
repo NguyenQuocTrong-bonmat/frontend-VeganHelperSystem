@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import HeaderMember from '../../components/layout/HeaderMember';
@@ -11,6 +11,7 @@ import {
   getFollowStatus,
   followUser,
   unfollowUser,
+  setFollowNotifications,
   getFollowers,
   getFollowing,
 } from '../../services/userService';
@@ -41,6 +42,16 @@ function PublicUserProfile() {
 
   const [followStatus, setFollowStatus] = useState(null);
   const [isFollowUpdating, setIsFollowUpdating] = useState(false);
+  const [isNotificationUpdating, setIsNotificationUpdating] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
+  const activeProfile = useRef(id);
+  useEffect(() => {
+    activeProfile.current = id;
+    setIsNotificationUpdating(false);
+    setIsFollowUpdating(false);
+    setNotificationError('');
+    return () => { activeProfile.current = null; };
+  }, [id]);
   const [followListModal, setFollowListModal] = useState({
     isOpen: false,
     initialTab: 'followers',
@@ -142,7 +153,7 @@ function PublicUserProfile() {
       return;
     }
 
-    if (isSelf || isFollowUpdating || !id) return;
+    if (isSelf || isFollowUpdating || isNotificationUpdating || !id) return;
 
     const previousFollow = followStatus?.isFollowing ?? false;
     const previousFollowers = followStatus?.followersCount ?? 0;
@@ -166,6 +177,8 @@ function PublicUserProfile() {
         res = await unfollowUser(id);
       }
 
+      if (activeProfile.current !== id) return;
+      setNotificationError('');
       const authoritativeStatus = {
         userId: id,
         isFollowing: res?.isFollowing !== undefined ? res.isFollowing : nextFollow,
@@ -188,6 +201,7 @@ function PublicUserProfile() {
 
       toast.success(nextFollow ? `Following ${profile?.displayName || 'creator'}` : `Unfollowed ${profile?.displayName || 'creator'}`);
     } catch (err) {
+      if (activeProfile.current !== id) return;
       // Rollback on failure
       setFollowStatus((prev) => ({
         ...prev,
@@ -196,7 +210,24 @@ function PublicUserProfile() {
       }));
       toast.error('Could not update follow status. Please try again.');
     } finally {
-      setIsFollowUpdating(false);
+      if (activeProfile.current === id) setIsFollowUpdating(false);
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!isAuthenticated || isSelf || !followStatus?.isFollowing || isFollowUpdating || isNotificationUpdating) return;
+    setIsNotificationUpdating(true);
+    setNotificationError('');
+    try {
+      const updated = await setFollowNotifications(id, !followStatus.notifyOnNewPost);
+      if (activeProfile.current !== id) return;
+      setFollowStatus(updated);
+      window.dispatchEvent(new CustomEvent('veganhelper:follow-changed', { detail: { ...updated, userId: id } }));
+      toast.success(updated.notifyOnNewPost ? 'New post notifications enabled.' : 'New post notifications turned off.');
+    } catch {
+      if (activeProfile.current === id) setNotificationError('Could not save your notification preference. Please try again.');
+    } finally {
+      if (activeProfile.current === id) setIsNotificationUpdating(false);
     }
   };
 
@@ -300,7 +331,7 @@ function PublicUserProfile() {
                 <button
                   type="button"
                   onClick={handleToggleFollow}
-                  disabled={isFollowUpdating}
+                  disabled={isFollowUpdating || isNotificationUpdating}
                   className={`h-11 px-7 rounded-full font-dm-sans text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transform-none disabled:active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed ${followStatus?.isFollowing
                     ? 'border-2 border-[#2F5233] text-[#2F5233] bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-300'
                     : 'bg-[#2F5233] text-white hover:bg-[#25401F]'
@@ -324,6 +355,26 @@ function PublicUserProfile() {
                     </>
                   )}
                 </button>
+                {isAuthenticated && followStatus?.isFollowing && (
+                  <div className="mt-4 w-full max-w-md rounded-2xl border border-vh-border bg-vh-surface p-4 text-left">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p id="creator-notification-label" className="text-sm font-semibold text-vh-forest">New post notifications</p>
+                        <p id="creator-notification-help" className="mt-1 text-xs leading-5 text-vh-text-secondary">Get a notification when this creator publishes a new post.</p>
+                      </div>
+                      <button type="button" role="switch" aria-checked={Boolean(followStatus.notifyOnNewPost)}
+                        aria-labelledby="creator-notification-label" aria-describedby="creator-notification-help creator-notification-status"
+                        disabled={isFollowUpdating || isNotificationUpdating} aria-busy={isNotificationUpdating}
+                        onClick={handleToggleNotifications}
+                        className={`inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 ${followStatus.notifyOnNewPost ? 'border-vh-forest bg-vh-forest text-white' : 'border-vh-border bg-white text-vh-text-secondary hover:bg-vh-mint'}`}>
+                        <span aria-hidden="true" className={`h-2 w-2 rounded-full ${followStatus.notifyOnNewPost ? 'bg-white' : 'bg-vh-text-secondary'}`} />
+                        {isNotificationUpdating ? 'Saving...' : followStatus.notifyOnNewPost ? 'On' : 'Off'}
+                      </button>
+                    </div>
+                    <p id="creator-notification-status" role="status" className="sr-only">{isNotificationUpdating ? 'Saving notification preference.' : followStatus.notifyOnNewPost ? 'New post notifications are on.' : 'New post notifications are off.'}</p>
+                    {notificationError && <p role="alert" className="mt-2 text-xs text-vh-error">{notificationError}</p>}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="mb-8 flex items-center gap-3">
