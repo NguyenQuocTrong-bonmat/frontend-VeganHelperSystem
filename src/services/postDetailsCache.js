@@ -1,113 +1,84 @@
 import { getPostDetail } from './postService';
+import { getAccessToken } from '../utils/authStorage';
 
-/**
- * In-memory bounded cache and deduplicated concurrency queue for post details.
- * Prevents redundant fetches and limits concurrency so the Home feed does not
- * flood the API when scrolling or loading multiple cards.
- */
-
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_CONCURRENT_REQUESTS = 3;
-
 const cache = new Map();
 const pendingRequests = new Map();
 const requestQueue = [];
 let activeRequestsCount = 0;
+let sessionToken = getAccessToken();
+let generation = 0;
 
-function processQueue() {
-  if (activeRequestsCount >= MAX_CONCURRENT_REQUESTS || requestQueue.length === 0) {
-    return;
+function currentGeneration() {
+  const token = getAccessToken();
+  if (token !== sessionToken) {
+    sessionToken = token;
+    generation++;
+    cache.clear();
+    pendingRequests.clear();
   }
-
-  const { postId, resolve, reject } = requestQueue.shift();
-  activeRequestsCount++;
-
-  getPostDetail(postId)
-    .then((data) => {
-      cache.set(String(postId), {
-        data,
-        timestamp: Date.now(),
-      });
-      resolve(data);
-    })
-    .catch((err) => {
-      reject(err);
-    })
-    .finally(() => {
-      activeRequestsCount--;
-      pendingRequests.delete(String(postId));
-      processQueue();
-    });
+  return generation;
 }
 
-/**
- * Fetch post details with cache, promise deduplication, and concurrency limiting.
- * @param {string|number} postId
- * @returns {Promise<Object>}
- */
+function processQueue() {
+  while (activeRequestsCount < MAX_CONCURRENT_REQUESTS && requestQueue.length) {
+    const job = requestQueue.shift();
+    if (job.generation !== currentGeneration()) {
+      job.reject(new Error('Post request belongs to a previous session.'));
+      continue;
+    }
+    activeRequestsCount++;
+    Promise.resolve().then(() => {
+      if (job.generation !== currentGeneration()) throw new Error('Session changed before loading post.');
+      return getPostDetail(job.postId);
+    }).then(data => {
+      if (job.generation !== currentGeneration()) throw new Error('Session changed while loading post.');
+      cache.set(job.key, { data, timestamp: Date.now() });
+      job.resolve(data);
+    }).catch(job.reject).finally(() => {
+      activeRequestsCount--;
+      pendingRequests.delete(job.key);
+      processQueue();
+    });
+  }
+}
+
 export function fetchPostDetailsWithCache(postId) {
   if (!postId) return Promise.reject(new Error('Missing postId'));
-  const key = String(postId);
-
+  const scope = currentGeneration();
+  const key = `${scope}:${postId}`;
   const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return Promise.resolve(cached.data);
-  }
-
-  if (pendingRequests.has(key)) {
-    return pendingRequests.get(key);
-  }
-
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) return Promise.resolve(cached.data);
+  if (pendingRequests.has(key)) return pendingRequests.get(key);
   const promise = new Promise((resolve, reject) => {
-    requestQueue.push({ postId, resolve, reject });
+    requestQueue.push({ postId, key, generation: scope, resolve, reject });
     processQueue();
   });
-
   pendingRequests.set(key, promise);
   return promise;
 }
 
-/**
- * Synchronously retrieves cached details if available and fresh.
- * @param {string|number} postId
- * @returns {Object|null}
- */
 export function getCachedPostDetails(postId) {
-  if (!postId) return null;
-  const cached = cache.get(String(postId));
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data;
-  }
-  return null;
+  const key = `${currentGeneration()}:${postId}`;
+  const cached = cache.get(key);
+  return cached && Date.now() - cached.timestamp < CACHE_TTL_MS ? cached.data : null;
 }
 
-/**
- * Optimistically updates the cached post details (e.g. after like, save, or comment).
- * @param {string|number} postId
- * @param {Function} updater - (prevData) => updatedData
- * @returns {Object|null}
- */
 export function updatePostDetailsCache(postId, updater) {
   if (!postId || typeof updater !== 'function') return null;
-  const key = String(postId);
+  const key = `${currentGeneration()}:${postId}`;
   const cached = cache.get(key);
-  if (cached && cached.data) {
-    const updatedData = updater(cached.data);
-    cache.set(key, {
-      ...cached,
-      data: updatedData,
-    });
-    return updatedData;
-  }
-  return null;
+  if (!cached?.data) return null;
+  const data = updater(cached.data);
+  cache.set(key, { ...cached, data });
+  return data;
 }
 
-/**
- * Clears the cache (useful for tests).
- */
 export function clearPostDetailsCache() {
+  generation++;
   cache.clear();
   pendingRequests.clear();
-  requestQueue.length = 0;
-  activeRequestsCount = 0;
+  for (const job of requestQueue.splice(0)) job.reject(new Error('Post cache was cleared.'));
+  // In-flight requests retain their slots and release them in finally.
 }

@@ -1,0 +1,61 @@
+import React, {act} from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter,Routes,Route,Link} from 'react-router-dom';
+import {vi} from 'vitest';
+import PublicUserProfile from './PublicUserProfile';
+import {useAuth} from '../../context/AuthContext';
+import * as users from '../../services/userService';
+vi.mock('../../context/AuthContext',()=>({useAuth:vi.fn()}));
+vi.mock('../../services/userService',()=>({getPublicProfile:vi.fn(),getFollowStatus:vi.fn(),followUser:vi.fn(),unfollowUser:vi.fn(),getFollowers:vi.fn(),getFollowing:vi.fn(),setFollowNotifications:vi.fn()}));
+vi.mock('../../components/layout/HeaderMember',()=>({default:()=>null}));
+vi.mock('../../components/layout/Footer',()=>({default:()=>null}));
+vi.mock('../../components/chat/AIChatbot',()=>({default:()=>null}));
+vi.mock('../../components/home/FollowListModal',()=>({default:()=>null}));
+vi.mock('react-hot-toast',()=>({default:{success:vi.fn(),error:vi.fn()}}));
+let root,container;
+const status=(isFollowing=false,notifyOnNewPost=false)=>({userId:2,isFollowing,notifyOnNewPost,followersCount:3,followingCount:1});
+const toggle=()=>container.querySelector('[role="switch"]');
+const follow=()=>[...container.querySelectorAll('button')].find(b=>/^(Follow|Following)$/.test(b.textContent.trim()));
+beforeEach(()=>{
+ global.IS_REACT_ACT_ENVIRONMENT=true;vi.resetAllMocks();
+ useAuth.mockReturnValue({user:{id:1},isAuthenticated:true});
+ users.getPublicProfile.mockImplementation(async id=>({id:Number(id),displayName:'Creator '+id,joinedAt:'2026-01-01',posts:[]}));
+ users.getFollowStatus.mockResolvedValue(status());
+ users.getFollowers.mockResolvedValue({items:[],totalCount:0});users.getFollowing.mockResolvedValue({items:[],totalCount:0});
+ users.followUser.mockResolvedValue(status(true));users.unfollowUser.mockResolvedValue(status(false));
+ container=document.createElement('div');document.body.appendChild(container);root=createRoot(container);
+});
+afterEach(async()=>{await act(async()=>root.unmount());container.remove();});
+const mount=async(id=2)=>act(async()=>root.render(<MemoryRouter initialEntries={['/users/'+id]} future={{v7_startTransition:true,v7_relativeSplatPath:true}}><Link to="/users/3">Next creator</Link><Routes><Route path="/users/:id" element={<PublicUserProfile/>}/></Routes></MemoryRouter>));
+test('follow reveals opt-in, serializes updates, supports off and hides preference after unfollow',async()=>{
+ await mount();expect(toggle()).toBeNull();await act(async()=>follow().click());
+ expect(toggle().getAttribute('aria-checked')).toBe('false');
+ let resolve;users.setFollowNotifications.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+ await act(async()=>toggle().click());expect(users.setFollowNotifications).toHaveBeenCalledWith('2',true);
+ expect(toggle().disabled).toBe(true);expect(follow().disabled).toBe(true);
+ await act(async()=>resolve(status(true,true)));expect(toggle().getAttribute('aria-checked')).toBe('true');
+ users.setFollowNotifications.mockResolvedValueOnce(status(true,false));
+ await act(async()=>toggle().click());expect(users.setFollowNotifications).toHaveBeenLastCalledWith('2',false);
+ expect(toggle().getAttribute('aria-checked')).toBe('false');
+ await act(async()=>follow().click());expect(toggle()).toBeNull();
+});
+test('restores saved preference and keeps it on after a failed update, allowing retry',async()=>{
+ users.getFollowStatus.mockResolvedValue(status(true,true));await mount();expect(toggle().getAttribute('aria-checked')).toBe('true');
+ users.setFollowNotifications.mockRejectedValueOnce(new Error('offline'));
+ await act(async()=>toggle().click());expect(toggle().getAttribute('aria-checked')).toBe('true');
+ expect(container.querySelector('[role="alert"]').textContent).toContain('Please try again');expect(toggle().disabled).toBe(false);
+ users.setFollowNotifications.mockResolvedValueOnce(status(true,false));await act(async()=>toggle().click());
+ expect(toggle().getAttribute('aria-checked')).toBe('false');expect(container.querySelector('[role="alert"]')).toBeNull();
+});
+test('does not show a preference for self or a guest',async()=>{
+ await mount(1);expect(toggle()).toBeNull();
+ useAuth.mockReturnValue({user:null,isAuthenticated:false});await mount(1);expect(toggle()).toBeNull();
+ expect(users.setFollowNotifications).not.toHaveBeenCalled();
+});
+test('discards a late preference response when navigating to another creator',async()=>{
+ users.getFollowStatus.mockResolvedValueOnce(status(true,false)).mockResolvedValue(status(false,false));
+ await mount();let resolve;users.setFollowNotifications.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+ await act(async()=>toggle().click());await act(async()=>container.querySelector('a[href="/users/3"]').click());
+ expect(container.textContent).toContain('Creator 3');expect(toggle()).toBeNull();
+ await act(async()=>resolve(status(true,true)));expect(toggle()).toBeNull();expect(container.textContent).toContain('Creator 3');
+});

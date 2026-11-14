@@ -246,3 +246,15 @@ test('Guest user clicking Report triggers onAuthRequired callback', async () => 
   await act(async () => reportBtn.click());
   expect(onAuthRequired).toHaveBeenCalledTimes(1);
 });
+
+
+test('edit post displays title and ingredient limits matching the create form', async () => {
+  getPostDetail.mockResolvedValue({id:11,title:'Recipe',categoryId:1,content:'Cook vegetables',ingredients:[{name:'a'.repeat(100)}],steps:[{description:'Steam tofu'}],media:[]});
+  await act(async()=>root.render(<MemoryRouter initialEntries={['/posts/edit/11']}><Routes><Route path="/posts/edit/:id" element={<EditPost />} /></Routes></MemoryRouter>));
+  expect(container.querySelector('input[placeholder="e.g. Traditional Hue Style Vegan Pho"]').maxLength).toBe(255);
+  expect(container.querySelector('#edit-post-title-count').textContent).toBe('6/255 characters');
+  expect(container.querySelector('[aria-label="Ingredient 1"]').maxLength).toBe(100);
+  expect(container.querySelector('#edit-ingredient-count-0').textContent).toBe('100/100 characters');
+  expect(container.querySelector('textarea[placeholder="Describe this step..."]').maxLength).toBe(999);
+  expect(container.querySelector('#edit-step-count-0').textContent).toContain('/ 999 characters');
+});

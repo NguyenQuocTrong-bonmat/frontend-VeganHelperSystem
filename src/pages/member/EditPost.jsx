@@ -1,3 +1,5 @@
+import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH, POST_STEP_MAX_LENGTH } from '../../utils/postFieldLimits';
+import CharacterCount from '../../components/common/CharacterCount';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { updatePost, getCategories, getPostDetail } from '../../services/postService';
@@ -119,6 +121,9 @@ export default function EditPost() {
       setErrorMessage('Please enter a post title.');
       return;
     }
+    if (title.length > POST_TITLE_MAX_LENGTH) { setErrorMessage(`Title cannot exceed ${POST_TITLE_MAX_LENGTH} characters.`); return; }
+    if (steps.some(value => value.length > POST_STEP_MAX_LENGTH)) { setErrorMessage(`Each cooking step must be ${POST_STEP_MAX_LENGTH} characters or fewer.`); return; }
+    if (ingredients.some(value => value.trim().length > POST_INGREDIENT_MAX_LENGTH)) { setErrorMessage(`Each ingredient must be ${POST_INGREDIENT_MAX_LENGTH} characters or fewer.`); return; }
     if (!categoryId) {
       setErrorMessage('Please select a category.');
       return;
@@ -210,10 +215,13 @@ export default function EditPost() {
                   type="text"
                   required
                   value={title}
+                  maxLength={POST_TITLE_MAX_LENGTH}
+                  aria-describedby="edit-post-title-count"
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Traditional Hue Style Vegan Pho"
                   className="w-full px-4 py-3 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
                 />
+                <p id="edit-post-title-count" className="mt-1 text-right text-xs text-vh-text-secondary">{title.length}/{POST_TITLE_MAX_LENGTH} characters</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -366,6 +374,7 @@ export default function EditPost() {
             {/* Cooking Details */}
             <section className="space-y-6">
               <h2 className="font-dm-serif text-xl sm:text-2xl text-vh-forest border-b border-vh-border pb-2">Cooking Details (Optional)</h2>
+              <p className="text-xs text-vh-text-secondary">Use whole minutes (0 or more).</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-vh-text-primary mb-2">
@@ -415,13 +424,19 @@ export default function EditPost() {
                 {ingredients.map((ing, idx) => (
                   <div key={idx} className="flex gap-3 group items-center">
                     <span className="text-vh-sage font-medium w-6 shrink-0 text-right">{idx + 1}.</span>
+                  <div className="min-w-0 flex-1">
                     <input
                       type="text"
+                    maxLength={POST_INGREDIENT_MAX_LENGTH}
+                    aria-label={`Ingredient ${idx + 1}`}
+                    aria-describedby={`edit-ingredient-count-${idx}`}
                       value={ing}
                       onChange={(e) => handleIngredientChange(e.target.value, idx)}
                       placeholder="e.g. 2 cups of fresh basil"
-                      className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
+                      className="w-full min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal"
                     />
+                    <p id={`edit-ingredient-count-${idx}`} className="mt-1 text-right text-xs text-vh-text-secondary">{ing.length}/{POST_INGREDIENT_MAX_LENGTH} characters</p>
+                  </div>
                     {ingredients.length > 1 && (
                       <button
                         type="button"
@@ -456,13 +471,19 @@ export default function EditPost() {
                 {steps.map((st, idx) => (
                   <div key={idx} className="flex gap-3 group items-start">
                     <span className="text-vh-sage font-medium w-6 shrink-0 pt-3 text-right">{idx + 1}.</span>
+                    <div className="flex-1 min-w-0">
                     <textarea
+                      aria-label={`Cooking step ${idx + 1}`}
+                      aria-describedby={`edit-step-count-${idx}`}
+                      maxLength={POST_STEP_MAX_LENGTH}
                       rows="2"
                       value={st}
                       onChange={(e) => handleStepChange(e.target.value, idx)}
                       placeholder="Describe this step..."
-                      className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
+                      className="w-full min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
                     />
+                    <CharacterCount id={`edit-step-count-${idx}`} value={st} max={POST_STEP_MAX_LENGTH} />
+                    </div>
                     {steps.length > 1 && (
                       <button
                         type="button"

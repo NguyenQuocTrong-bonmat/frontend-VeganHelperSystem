@@ -252,5 +252,30 @@ describe('InlinePostCard', () => {
     });
     expect(container.textContent).toContain('5 comments');
   });
+
+  it('clears selected interaction visuals when a member card becomes a guest card', async () => {
+    const onAuthRequired = vi.fn();
+    const post = {...mockPost, isLiked:true, isSaved:true};
+    const render = guest => <BrowserRouter><InlinePostCard post={post} isGuest={guest} onAuthRequired={onAuthRequired} /></BrowserRouter>;
+    await act(async()=>root.render(render(false)));
+    expect(container.querySelector('[aria-label="Unlike post"]')).not.toBeNull();
+    await act(async()=>root.render(render(true)));
+    expect(container.querySelector('[aria-label="Unlike post"]')).toBeNull();
+    expect(container.querySelector('[aria-label="Remove recipe from saved"]')).toBeNull();
+    await act(async()=>{
+      container.querySelector('[aria-label="Like post"]').click();
+      container.querySelector('[aria-label="Save recipe"]').click();
+    });
+    expect(onAuthRequired).toHaveBeenCalledTimes(2);
+    expect(interactionService.toggleLike).not.toHaveBeenCalled();
+    expect(interactionService.toggleSave).not.toHaveBeenCalled();
+  });
+  it('does not show liked or saved for a guest even if cached details contain member flags', async () => {
+    postDetailsCache.fetchPostDetailsWithCache.mockResolvedValue({...mockPost, isLiked:true,isSaved:true});
+    await act(async()=>root.render(<BrowserRouter><InlinePostCard post={{...mockPost, content:null,isLiked:undefined,isSaved:undefined}} isGuest /></BrowserRouter>));
+    expect(container.querySelector('[aria-label="Like post"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Save recipe"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Unlike post"]')).toBeNull();
+  });
 });
 

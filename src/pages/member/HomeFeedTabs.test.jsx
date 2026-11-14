@@ -283,4 +283,19 @@ describe('Home Community Feed Tabs Lifecycle', () => {
     const authDialog = container.querySelector('.lp-auth-dialog');
     expect(authDialog).not.toBeNull();
   });
+
+  it('reloads page one for difficulty changes and clears the difficulty without a stale request', async () => {
+    await act(async () => root.render(<BrowserRouter><Home /></BrowserRouter>));
+    const select = container.querySelector('select');
+    expect(select).not.toBeNull();
+    await act(async () => {
+      select.value = 'easy';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(postService.getPostsFeed).toHaveBeenLastCalledWith(expect.objectContaining({pageIndex: 1, difficultyLevel: 'easy', sortBy: 'trending'}));
+    const clear = container.querySelector('button[aria-label="Clear difficulty filter"]');
+    await act(async () => clear.click());
+    expect(select.value).toBe('');
+    expect(postService.getPostsFeed.mock.calls.at(-1)[0]).not.toHaveProperty('difficultyLevel');
+  });
 });

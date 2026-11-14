@@ -7,7 +7,7 @@ import SignUp from './pages/guest/SignUp.jsx'
 import VerifyOTP from './pages/guest/VerifyOTP.jsx'
 import ForgotPasswordResetPassword from './pages/guest/ForgotPasswordResetPassword.jsx'
 import SearchResultsGuest from './pages/guest/SearchResultsGuest.jsx'
-import PostDetailGuest from './pages/guest/PostDetailGuest.jsx'
+import PostDetailRoute, { LegacyPostDetailRedirect } from './components/posts/PostDetailRoute.jsx'
 import WeeklyMenuGuestLocked from './pages/guest/WeeklyMenuGuestLocked.jsx'
 import FindVeganStoresGuestLocked from './pages/guest/FindVeganStoresGuestLocked.jsx'
 import MyPostsGuestLocked from './pages/guest/MyPostsGuestLocked.jsx'
@@ -19,7 +19,6 @@ import Security from './pages/member/Security.jsx'
 import ChangeEmail from './pages/member/ChangeEmail.jsx'
 import PublicUserProfile from './pages/member/PublicUserProfile.jsx'
 import MyPosts from './pages/member/MyPosts.jsx'
-import PostDetail from './pages/member/PostDetail.jsx'
 import WeeklyMenu from './pages/member/WeeklyMenu.jsx'
 import MealPlanPayment from './pages/member/MealPlanPayment.jsx'
 import MealPlanPaymentResult from './pages/member/MealPlanPaymentResult.jsx'
@@ -154,7 +153,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/forgot-password" element={<ForgotPasswordResetPassword />} />
         <Route path="/search-guest" element={<SearchResultsGuest />} />
-        <Route path="/posts/:id/guest" element={<PostDetailGuest />} />
+        <Route path="/posts/:id/guest" element={<LegacyPostDetailRedirect />} />
         <Route path="/weekly-menu/locked" element={<WeeklyMenuGuestLocked />} />
         <Route path="/vegan-stores/locked" element={<FindVeganStoresGuestLocked />} />
         <Route path="/my-posts/locked" element={<MyPostsGuestLocked />} />
@@ -168,7 +167,7 @@ function App() {
         <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
         <Route path="/posts/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
         <Route path="/posts/edit/:id" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
-        <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+        <Route path="/posts/:id" element={<PostDetailRoute />} />
         <Route path="/weekly-menu" element={<ProtectedRoute><WeeklyMenu /></ProtectedRoute>} />
         <Route path="/meal-plans/payment" element={<ProtectedRoute><MealPlanPayment /></ProtectedRoute>} />
         <Route path="/meal-plans/payment/success" element={<ProtectedRoute><MealPlanPaymentResult variant="success" /></ProtectedRoute>} />

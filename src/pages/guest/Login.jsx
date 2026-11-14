@@ -92,6 +92,7 @@ function Login() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    defaultValues: { rememberMe: true },
   });
 
   // Motion setup

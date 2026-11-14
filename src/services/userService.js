@@ -63,6 +63,15 @@ export async function unfollowUser(userId) {
   }
 }
 
+export async function setFollowNotifications(userId, notifyOnNewPost) {
+  try {
+    const response = await axiosInstance.patch(`/users/${userId}/follow/notifications`, { notifyOnNewPost });
+    return response.data;
+  } catch (err) {
+    throw extractError(err);
+  }
+}
+
 export async function getFollowers(userId, pageIndex = 1, pageSize = 10) {
   try {
     const query = new URLSearchParams({ pageIndex, pageSize });

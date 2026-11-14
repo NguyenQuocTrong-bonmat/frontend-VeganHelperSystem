@@ -136,9 +136,9 @@ export default function HomeGuest() {
                           </motion.button>
                         </div>
                         <h3>
-                          <Link to={`/posts/${post.id}/guest`}>{post.title}</Link>
+                          <Link to={`/posts/${post.id}`}>{post.title}</Link>
                         </h3>
-                        <Link to={`/posts/${post.id}/guest`} className="lp-text-link">
+                        <Link to={`/posts/${post.id}`} className="lp-text-link">
                           Read their post <LandingIcon name="arrow" width="17" height="17" />
                         </Link>
                       </motion.article>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CharacterCount from '../../components/common/CharacterCount';
 import { useNavigate } from 'react-router-dom';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
@@ -415,11 +416,14 @@ function HealthProfile({ isComponent = false }) {
 
             {/* CUSTOM ALLERGY SELECTOR */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
+              <label htmlFor="health-custom-allergy" className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
               <div className="flex gap-3">
                 <input
                   type="text"
                   value={customInput}
+                  id="health-custom-allergy"
+                  maxLength={100}
+                  aria-describedby="health-allergy-count"
                   onChange={(e) => setCustomInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -439,6 +443,7 @@ function HealthProfile({ isComponent = false }) {
                 </button>
               </div>
 
+              <CharacterCount id="health-allergy-count" value={customInput} max={100} />
               {allergyData.customAllergies.length > 0 && (
                 <div className="mt-4 p-4 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">
                   <span className="block text-xs font-medium text-[#6B6F63] mb-3 uppercase tracking-wider">Your Custom Allergies</span>

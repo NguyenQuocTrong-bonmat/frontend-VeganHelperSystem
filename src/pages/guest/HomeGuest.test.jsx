@@ -35,7 +35,7 @@ test('uses public post routes, actual community totals and the existing sign-up 
   await render();
   expect(container.querySelectorAll('main > section')).toHaveLength(7);
   expect(container.querySelectorAll('h1')).toHaveLength(1);
-  expect(container.querySelector('a[href="/posts/7/guest"]')).not.toBeNull();
+  expect(container.querySelector('a[href="/posts/7"]')).not.toBeNull();
   expect(container.querySelector('.lp-community-stats').textContent).toContain('27Public posts');
   expect(container.querySelector('a[href="/register"]')).toBeNull();
   expect(container.querySelectorAll('a[href="/sign-up"]').length).toBeGreaterThan(0);
@@ -118,4 +118,29 @@ test('calendar selection and store pins update their associated preview content'
   expect(container.querySelector('.lp-calendar-mobile').textContent).not.toContain('Overnight oats');
   await click(container.querySelector('[aria-label="Highlight Fresh produce"]'));
   expect(container.querySelector('.lp-map-location strong').textContent).toBe('Fresh produce');
+});
+
+
+test('filters guest recipes by difficulty with category and combines it with keyword search', async () => {
+  await render();
+  const select = container.querySelector('select');
+  await act(async () => {
+    select.value = 'hard';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(0);
+  });
+  expect(getPostsFeed).toHaveBeenLastCalledWith({pageSize: 6, categoryId: null, difficultyLevel: 'hard'});
+  const category = [...container.querySelectorAll('.lp-category-filters button')].find(button => button.textContent === 'Vietnamese');
+  await click(category);
+  await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+  expect(getPostsFeed).toHaveBeenLastCalledWith({pageSize: 6, categoryId: 4, difficultyLevel: 'hard'});
+  await changeSearch('tofu');
+  await act(async () => { await vi.advanceTimersByTimeAsync(350); });
+  expect(select.disabled).toBe(false);
+  expect(select.value).toBe('hard');
+  expect(searchPosts).toHaveBeenLastCalledWith({keyword: 'tofu', pageSize: 6, difficultyLevel: 'hard'});
+  await changeSearch('');
+  await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+  expect(select.disabled).toBe(false);
+  expect(getPostsFeed).toHaveBeenLastCalledWith({pageSize: 6, categoryId: null, difficultyLevel: 'hard'});
 });
