@@ -255,5 +255,6 @@ test('edit post displays title and ingredient limits matching the create form', 
   expect(container.querySelector('#edit-post-title-count').textContent).toBe('6/255 characters');
   expect(container.querySelector('[aria-label="Ingredient 1"]').maxLength).toBe(100);
   expect(container.querySelector('#edit-ingredient-count-0').textContent).toBe('100/100 characters');
-  expect(container.querySelector('textarea[placeholder="Describe this step..."]').hasAttribute('maxlength')).toBe(false);
+  expect(container.querySelector('textarea[placeholder="Describe this step..."]').maxLength).toBe(999);
+  expect(container.querySelector('#edit-step-count-0').textContent).toContain('/ 999 characters');
 });

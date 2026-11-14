@@ -768,10 +768,12 @@ function Profile() {
                 type="text"
                 value={editForm.displayName}
                 minLength={3}
+                aria-describedby="profile-fullname-help"
                 required
                 aria-invalid={Boolean(editErrors.displayName)}
                 onChange={handleEditChange}
               />
+              <p id="profile-fullname-help" className="mt-1 text-xs text-vh-text-secondary">Minimum 3 characters</p>
               {editErrors.displayName && <p className="mt-1 text-xs text-red-600">{editErrors.displayName}</p>}
             </div>
             {/* Email Address */}

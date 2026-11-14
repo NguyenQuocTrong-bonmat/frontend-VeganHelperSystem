@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import CharacterCount from '../common/CharacterCount';
 import { getHealthProfile } from '../../services/healthProfileService';
 import { wholeNumber, dateLabel, dietLabel, number, utcToday, zonedToday } from './plannerFormat';
 import PlannerIcon from './PlannerIcon';
@@ -414,8 +415,8 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
                   aria-invalid={Boolean(fieldErrors.menuName && touched.menuName)}
                   aria-describedby={
                     fieldErrors.menuName && touched.menuName
-                      ? 'meal-plan-name-error meal-plan-name-help'
-                      : 'meal-plan-name-help'
+                      ? 'meal-plan-name-error meal-plan-name-help meal-plan-name-count'
+                      : 'meal-plan-name-help meal-plan-name-count'
                   }
                   onChange={event => {
                     setMenuName(event.target.value);
@@ -429,6 +430,7 @@ export default function PlanSetupFlow({ busy, onGenerate, onCancel, onEditProfil
                     {fieldErrors.menuName}
                   </p>
                 )}
+                <CharacterCount id="meal-plan-name-count" value={menuName} max={100} />
                 <p id="meal-plan-name-help">Give this menu a name you can recognize later. You can rename it after saving.</p>
               </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import CharacterCount from '../../components/common/CharacterCount';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useForm } from 'react-hook-form';
@@ -100,6 +101,7 @@ function SignUp() {
   // Setup react-hook-form
   const {
     register,
+    watch,
     handleSubmit,
     setError,
     formState: { errors },
@@ -283,11 +285,14 @@ function SignUp() {
                   {...register('fullName')}
                   className={getInputClasses(!!errors.fullName)}
                   id="fullName"
+                  maxLength={100}
+                  aria-describedby="signup-fullname-count"
                   placeholder="John Doe"
                   type="text"
                   autoComplete="name"
                   disabled={isSuccess || isSubmitting}
                 />
+                <CharacterCount id="signup-fullname-count" value={watch('fullName') || ''} min={3} max={100} />
                 <AnimatePresence>
                   {errors.fullName && (
                     <motion.p
@@ -312,11 +317,14 @@ function SignUp() {
                   {...register('username')}
                   className={getInputClasses(!!errors.username)}
                   id="username"
+                  maxLength={100}
+                  aria-describedby="signup-username-count"
                   placeholder="johndoe"
                   type="text"
                   autoComplete="username"
                   disabled={isSuccess || isSubmitting}
                 />
+                <CharacterCount id="signup-username-count" value={watch('username') || ''} min={3} max={100} />
                 <AnimatePresence>
                   {errors.username && (
                     <motion.p

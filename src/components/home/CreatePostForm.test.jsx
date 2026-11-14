@@ -222,7 +222,8 @@ describe('CreatePostForm', () => {
     await act(async()=>[...container.querySelectorAll('button')].find(b=>b.textContent.includes('Add Ingredient')).click());
     expect(container.querySelector('#create-ingredient-count-1').textContent).toBe('0/100 characters');
     expect(container.querySelector('#post-content-textarea').hasAttribute('maxlength')).toBe(false);
-    expect(container.querySelector('textarea[placeholder="Describe step 1..."]').hasAttribute('maxlength')).toBe(false);
+    expect(container.querySelector('textarea[placeholder="Describe step 1..."]').maxLength).toBe(999);
+    expect(container.querySelector('#create-step-count-0').textContent).toContain('0 / 999 characters');
   });
   it('rejects an oversized ingredient if a value bypasses the input maxlength', async () => {
     await act(async()=>root.render(<BrowserRouter><CreatePostForm /></BrowserRouter>));

@@ -1,4 +1,5 @@
-import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH } from '../../utils/postFieldLimits';
+import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH, POST_STEP_MAX_LENGTH } from '../../utils/postFieldLimits';
+import CharacterCount from '../common/CharacterCount';
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { createPost, getCategories } from '../../services/postService';
@@ -130,6 +131,9 @@ export default function CreatePostForm({
     setErrorMessage('');
 
     const errors = {};
+    if (steps.some(value => value.length > POST_STEP_MAX_LENGTH)) {
+      setErrorMessage(`Each cooking step must be ${POST_STEP_MAX_LENGTH} characters or fewer.`); return;
+    }
     if (ingredients.some(value => value.trim().length > POST_INGREDIENT_MAX_LENGTH)) {
       setErrorMessage(`Each ingredient must be ${POST_INGREDIENT_MAX_LENGTH} characters or fewer.`); return;
     }
@@ -529,13 +533,19 @@ export default function CreatePostForm({
                   <span className="text-vh-forest/80 font-medium text-xs sm:text-sm w-5 shrink-0 pt-2 text-right">
                     {idx + 1}.
                   </span>
+                  <div className="flex-1 min-w-0">
                   <textarea
+                    aria-label={`Cooking step ${idx + 1}`}
+                    aria-describedby={`create-step-count-${idx}`}
+                    maxLength={POST_STEP_MAX_LENGTH}
                     rows={2}
                     value={st}
                     onChange={(e) => handleStepChange(e.target.value, idx)}
                     placeholder={`Describe step ${idx + 1}...`}
-                    className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all resize-y min-h-[52px]"
+                    className="w-full min-w-0 px-3.5 py-2 rounded-xl border border-vh-border bg-vh-surface focus:bg-white focus:outline-none focus-visible:border-vh-forest focus-visible:ring-2 focus-visible:ring-vh-forest text-xs sm:text-sm text-vh-text-primary transition-all resize-y min-h-[52px]"
                   />
+                  <CharacterCount id={`create-step-count-${idx}`} value={st} max={POST_STEP_MAX_LENGTH} />
+                  </div>
                   {steps.length > 1 && (
                     <button
                       type="button"

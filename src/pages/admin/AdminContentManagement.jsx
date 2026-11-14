@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import CharacterCount from '../../components/common/CharacterCount';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
@@ -492,7 +493,8 @@ export default function AdminContentManagement() {
                   </fieldset>
                   <label className="block">
                     <span className="text-xs font-bold text-[#3D493F]">Decision reason</span>
-                    <textarea required maxLength={1000} rows={4} value={decision.reason} onChange={(event) => setDecision((value) => ({ ...value, reason: event.target.value }))} placeholder="Explain the evidence and why this action is appropriate." className="mt-2 w-full resize-y rounded-xl border border-[#CED8C9] bg-white p-3 text-sm leading-6 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233]" />
+                    <textarea required maxLength={1000} aria-describedby="moderation-reason-count" rows={4} value={decision.reason} onChange={(event) => setDecision((value) => ({ ...value, reason: event.target.value }))} placeholder="Explain the evidence and why this action is appropriate." className="mt-2 w-full resize-y rounded-xl border border-[#CED8C9] bg-white p-3 text-sm leading-6 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] focus-visible:border-[#2F5233]" />
+                    <CharacterCount id="moderation-reason-count" value={decision.reason} max={1000} />
                   </label>
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-[11px] leading-5 text-[#788078]">This action is saved to the Admin audit log.</p>

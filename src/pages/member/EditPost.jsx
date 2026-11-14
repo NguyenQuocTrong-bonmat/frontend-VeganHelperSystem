@@ -1,4 +1,5 @@
-import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH } from '../../utils/postFieldLimits';
+import { POST_TITLE_MAX_LENGTH, POST_INGREDIENT_MAX_LENGTH, POST_STEP_MAX_LENGTH } from '../../utils/postFieldLimits';
+import CharacterCount from '../../components/common/CharacterCount';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { updatePost, getCategories, getPostDetail } from '../../services/postService';
@@ -121,6 +122,7 @@ export default function EditPost() {
       return;
     }
     if (title.length > POST_TITLE_MAX_LENGTH) { setErrorMessage(`Title cannot exceed ${POST_TITLE_MAX_LENGTH} characters.`); return; }
+    if (steps.some(value => value.length > POST_STEP_MAX_LENGTH)) { setErrorMessage(`Each cooking step must be ${POST_STEP_MAX_LENGTH} characters or fewer.`); return; }
     if (ingredients.some(value => value.trim().length > POST_INGREDIENT_MAX_LENGTH)) { setErrorMessage(`Each ingredient must be ${POST_INGREDIENT_MAX_LENGTH} characters or fewer.`); return; }
     if (!categoryId) {
       setErrorMessage('Please select a category.');
@@ -469,13 +471,19 @@ export default function EditPost() {
                 {steps.map((st, idx) => (
                   <div key={idx} className="flex gap-3 group items-start">
                     <span className="text-vh-sage font-medium w-6 shrink-0 pt-3 text-right">{idx + 1}.</span>
+                    <div className="flex-1 min-w-0">
                     <textarea
+                      aria-label={`Cooking step ${idx + 1}`}
+                      aria-describedby={`edit-step-count-${idx}`}
+                      maxLength={POST_STEP_MAX_LENGTH}
                       rows="2"
                       value={st}
                       onChange={(e) => handleStepChange(e.target.value, idx)}
                       placeholder="Describe this step..."
-                      className="flex-1 min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
+                      className="w-full min-w-0 px-4 py-2.5 rounded-control border border-vh-border bg-vh-surface/80 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-vh-forest focus-visible:border-vh-forest text-base transition-all duration-normal resize-y"
                     />
+                    <CharacterCount id={`edit-step-count-${idx}`} value={st} max={POST_STEP_MAX_LENGTH} />
+                    </div>
                     {steps.length > 1 && (
                       <button
                         type="button"

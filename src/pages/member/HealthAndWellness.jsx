@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import CharacterCount from '../../components/common/CharacterCount';
 import HeaderMember from '../../components/layout/HeaderMember';
 import Footer from '../../components/layout/Footer';
 import AIChatbot from '../../components/chat/AIChatbot';
@@ -660,11 +661,14 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
 
                 {/* Custom Allergy Adder */}
                 <div className="space-y-2.5">
-                  <label className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
+                  <label htmlFor="wellness-custom-allergy" className="block text-sm font-medium text-[#2B2A25]">Add Custom Allergy</label>
                   <div className="flex gap-2.5">
                     <input
                       type="text"
                       value={customInput}
+                      id="wellness-custom-allergy"
+                      maxLength={100}
+                      aria-describedby="wellness-allergy-count"
                       onChange={(e) => setCustomInput(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -684,6 +688,7 @@ export default function HealthAndWellness({ isComponent = false, onProfileUpdate
                     </button>
                   </div>
 
+                  <CharacterCount id="wellness-allergy-count" value={customInput} max={100} />
                   {/* Custom Allergies Tags */}
                   {allergyData.customAllergies.length > 0 && (
                     <div className="p-3.5 border border-[#E9EFE6] bg-[#FDFBF6] rounded-xl">

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import CharacterCount from '../../components/common/CharacterCount';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AdminLayout from '../../components/admin/AdminLayout';
 import ModalMotion, { toastVariants, reducedToastVariants } from '../../components/ui/ModalMotion';
@@ -634,6 +635,7 @@ export default function AdminCategoryManagement() {
                 id="category-name"
                 required
                 maxLength={100}
+                aria-describedby="category-name-count"
                 placeholder="e.g., Soups, Stir-fried Dishes, Vegan Desserts"
                 value={formModal.name}
                 onChange={(e) => handleNameChange(e.target.value)}
@@ -641,6 +643,7 @@ export default function AdminCategoryManagement() {
               />
             </div>
 
+            <CharacterCount id="category-name-count" value={formModal.name} max={100} />
             {/* Category Type */}
             <div>
               <div>
