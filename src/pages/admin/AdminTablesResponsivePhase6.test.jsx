@@ -149,7 +149,11 @@ describe('Phase 6: Admin Suite Tables Responsive & Sticky Behavior', () => {
           {
             id: 501,
             adminId: '99',
-            action: 'MEMBER_BAN',
+            action: 'member.ban',
+            adminName: 'Review Administrator',
+            adminUsername: 'reviewadmin',
+            subjectType: 'user',
+            subjectName: 'Community Member',
             targetType: 'Member',
             targetId: '101',
             ipAddress: '192.168.1.1',
@@ -164,53 +168,26 @@ describe('Phase 6: Admin Suite Tables Responsive & Sticky Behavior', () => {
       });
     });
 
-    it('enforces min-w-[970px], accessible scroll wrapper, sticky timestamp on sm+, and sticky inspection on md+', async () => {
+    it('presents readable activity in a desktop table and mobile cards without technical metadata', async () => {
       await act(async () => {
-        root.render(
-          <MemoryRouter>
-            <AdminAuditLogs />
-          </MemoryRouter>
-        );
+        root.render(<MemoryRouter><AdminAuditLogs /></MemoryRouter>);
       });
-
-      // Accessible scroll wrapper
-      const scrollRegion = container.querySelector('[role="region"][aria-label="Platform audit trail table"]');
-      expect(scrollRegion).not.toBeNull();
-      expect(scrollRegion.getAttribute('tabindex')).toBe('0');
-      expect(scrollRegion.className).toContain('overflow-x-auto');
-
-      // Table minimum width
-      const table = scrollRegion.querySelector('table');
+      const table = container.querySelector('table');
       expect(table).not.toBeNull();
-      expect(table.className).toContain('min-w-[970px]');
-      expect(table.className).toContain('table-fixed');
-
-      // Mobile/tablet scroll cue (visible up to 767px)
-      const mobileCue = container.querySelector('.md\\:hidden');
-      expect(mobileCue).not.toBeNull();
-      expect(mobileCue.textContent).toContain('Swipe horizontally to view full audit trail');
-
-      // Sticky columns
-      const thList = table.querySelectorAll('thead th');
-      const timestampTh = thList[0];
-      expect(timestampTh.textContent).toBe('Timestamp');
-      expect(timestampTh.className).toContain('sm:sticky');
-      expect(timestampTh.className).toContain('sm:left-0');
-      expect(timestampTh.className).toContain('z-20');
-
-      const inspectTh = thList[7];
-      expect(inspectTh.textContent).toBe('Inspection');
-      expect(inspectTh.className).toContain('md:sticky');
-      expect(inspectTh.className).toContain('md:right-0');
-      expect(inspectTh.className).toContain('z-20');
-
-      // Body cells
-      const row = table.querySelector('tbody tr');
-      const cells = row.querySelectorAll('td');
-      expect(cells[0].className).toContain('sm:sticky');
-      expect(cells[0].className).toContain('sm:left-0');
-      expect(cells[7].className).toContain('md:sticky');
-      expect(cells[7].className).toContain('md:right-0');
+      expect([...table.querySelectorAll('thead th')].map(header => header.textContent)).toEqual([
+        'Date and time', 'Administrator', 'Activity', 'Affected item', 'Details',
+      ]);
+      expect(table.textContent).toContain('Review Administrator');
+      expect(table.textContent).toContain('Restricted an account');
+      expect(table.textContent).toContain('Community Member');
+      const mobileList = container.querySelector('ul.md\\:hidden');
+      expect(mobileList).not.toBeNull();
+      expect(mobileList.textContent).toContain('Restricted an account');
+      expect(mobileList.textContent).toContain('Community Member');
+      expect(mobileList.querySelector('button').getAttribute('aria-label')).toContain('View details');
+      for (const technicalText of ['192.168.1.1', 'tr_test_trace_123', 'Trace ID', 'Client IP']) {
+        expect(container.textContent).not.toContain(technicalText);
+      }
     });
   });
 
