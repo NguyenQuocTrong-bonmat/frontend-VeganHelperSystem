@@ -3,8 +3,8 @@ import {
   clearAuthTokens,
   getAccessToken,
   getRefreshToken,
-  storeAuthTokens,
 } from '../utils/authStorage';
+import { refreshSession } from './refreshSession';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7180/api';
 
@@ -80,10 +80,9 @@ axiosInstance.interceptors.response.use(
     }
 
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 10000 });
-      const rememberMe = Boolean(localStorage.getItem('refreshToken'));
-      storeAuthTokens(data, rememberMe);
-      const newAccessToken = data.accessToken;
+      const newAccessToken = await refreshSession(() =>
+        axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken: getRefreshToken() }, { timeout: 10000 })
+          .then(response => response.data));
 
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -91,7 +90,7 @@ axiosInstance.interceptors.response.use(
       return axiosInstance(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError);
-      if ([400, 401, 403].includes(refreshError.response?.status)) {
+      if ([400, 401, 403].includes(refreshError.response?.status) && getRefreshToken() === refreshToken) {
         clearAuthTokens();
         window.location.href = '/login';
       }
