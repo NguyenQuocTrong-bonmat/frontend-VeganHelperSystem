@@ -16,6 +16,11 @@ export const authService = {
   },
 
   // FN01: Đăng ký tài khoản
+  startRegistration: async (registrationData) => {
+    const response = await axiosInstance.post('/auth/register/start', registrationData, { skipAuthRedirect: true });
+    return response.data;
+  },
+
   register: async (userData) => {
     const response = await axiosInstance.post('/auth/register/complete', userData, { skipAuthRedirect: true });
     return response.data;
@@ -29,7 +34,7 @@ export const authService = {
 
   // Gửi lại mã OTP
   resendVerification: async (data) => {
-    const response = await axiosInstance.post('/auth/register/start', data, { skipAuthRedirect: true });
+    const response = await axiosInstance.post('/auth/register/resend', data, { skipAuthRedirect: true });
     return response.data;
   },
 
