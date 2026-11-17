@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import CharacterCount from '../../components/common/CharacterCount';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +9,6 @@ import { authService } from '../../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import HeaderAuth from '../../components/layout/HeaderAuth';
-import UnverifiedEmailModal from '../../components/auth/UnverifiedEmailModal';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { motionTokens } from '../../lib/motion';
 import loginMorningLight from '../../assets/login-morning-light.jpg';
@@ -19,8 +18,7 @@ import loginSceneSoup from '../../assets/login-scene-soup.jpg';
 // 1. Define validation schema
 const registerSchema = z.object({
   fullName: z.string().min(3, 'Full Name must be at least 3 characters').max(100, 'Full Name is too long'),
-  username: z.string().min(3, 'Username must be at least 3 characters').max(100, 'Username is too long'),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(100, 'Username is too long').refine(value => !value.includes('@'), 'Username cannot contain @'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   terms: z.boolean().refine(val => val === true, {
@@ -92,11 +90,33 @@ function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [unverifiedModal, setUnverifiedModal] = useState({
-    isOpen: false,
-    email: '',
-    isExisting: false,
-  });
+  const location = useLocation();
+  const [email, setEmail] = useState(() => typeof location.state?.email === 'string' && location.state.email.includes('@') ? location.state.email : '');
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [registrationToken, setRegistrationToken] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+
+  async function verifyEmail(event, resend = false) {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setVerificationError('');
+    setIsSubmitting(true);
+    try {
+      if (!verificationSent || resend) {
+        await authService.resendVerification({ email: email.trim() });
+        setVerificationSent(true);
+        if (resend) toast.success('If eligible, a verification code will be sent.');
+      } else {
+        const result = await authService.verifyEmail({ email: email.trim(), otp });
+        setRegistrationToken(result.registrationToken);
+      }
+    } catch (error) {
+      setVerificationError(error.response?.data?.error || 'Email verification could not be completed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   // Setup react-hook-form
   const {
@@ -116,54 +136,23 @@ function SignUp() {
   const prefersReducedMotion = useReducedMotion();
   const { duration, distance, scale, easing } = motionTokens;
 
-  const onSubmit = async (data) => {
+  const onSubmit = async ({ fullName, username, password, confirmPassword }) => {
+    if (!registrationToken) return;
     setIsSubmitting(true);
     try {
-      // Map to backend expected DTO
-      const payload = {
-        fullName: data.fullName,
-        username: data.username,
-        email: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword
-      };
-
-      const response = await authService.register(payload);
-
-      const isExistingUnverified = Boolean(response?.isExistingUnverified) ||
-        (typeof response?.message === 'string' && (
-          response.message.toLowerCase().includes('already been registered') ||
-          response.message.toLowerCase().includes('already registered') ||
-          response.message.toLowerCase().includes('not yet verified') ||
-          response.message.toLowerCase().includes('not verified')
-        ));
-
-      setUnverifiedModal({
-        isOpen: true,
-        email: data.email,
-        isExisting: isExistingUnverified,
-      });
-    } catch (err) {
-      const errorData = err.response?.data || {};
-      const errorMsg = (typeof errorData === 'string' ? errorData : errorData.error || errorData.message || '').toLowerCase();
-
-      // If backend explicitly rejected due to unverified existing account
-      if (errorMsg.includes('not verified') || errorMsg.includes('not yet verified') || errorData.isExistingUnverified) {
-        setUnverifiedModal({
-          isOpen: true,
-          email: data.email,
-          isExisting: true,
-        });
-        return;
-      }
-
-      if (errorMsg.includes('email') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
-        setError('email', { type: 'manual', message: 'Email is already in use' });
-      } else if (errorMsg.includes('username') && (errorMsg.includes('exist') || errorMsg.includes('already') || errorMsg.includes('registered'))) {
-        setError('username', { type: 'manual', message: 'Username is already taken' });
-      } else {
-        toast.error(err.response?.data?.error || err.response?.data?.message || 'Registration failed. Please try again.');
-      }
+      await authService.register({ registrationToken, fullName, username, password, confirmPassword });
+      toast.success('Your account is ready. Sign in to continue.');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      const message = error.response?.data?.error || 'Registration failed. Please try again.';
+      if (message.toLowerCase().includes('username'))
+        setError('username', { type: 'manual', message });
+      else if (message.toLowerCase().includes('expired')) {
+        setRegistrationToken('');
+        setVerificationSent(false);
+        setOtp('');
+        setVerificationError(message);
+      } else toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -273,8 +262,35 @@ function SignUp() {
             </motion.p>
           </div>
 
-          {/* Form */}
-          <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit(onSubmit)}>
+          {!registrationToken && (
+            <form className="space-y-3" onSubmit={verifyEmail}>
+              <div>
+                <label htmlFor="registration-email" className="block text-sm font-medium">Email address</label>
+                <input id="registration-email" type="email" autoComplete="email" required maxLength={255}
+                  readOnly={verificationSent} value={email} onChange={event => setEmail(event.target.value)}
+                  className="w-full rounded-lg border border-border-sage-mist bg-white px-3 py-2" />
+              </div>
+              {verificationSent && (
+                <div>
+                  <p className="text-sm text-text-stem-gray">If this email is eligible, a six-digit code will arrive shortly.</p>
+                  <label htmlFor="registration-code" className="block text-sm font-medium">Verification code</label>
+                  <input id="registration-code" autoComplete="one-time-code" inputMode="numeric" required pattern="[0-9]{6}"
+                    maxLength={6} value={otp} onChange={event => setOtp(event.target.value)}
+                    className="w-full rounded-lg border border-border-sage-mist bg-white px-3 py-2" />
+                  <div className="mt-2 flex gap-4 text-sm text-primary-moss">
+                    <button type="button" disabled={isSubmitting} onClick={event => verifyEmail(event, true)}>Resend code</button>
+                    <button type="button" disabled={isSubmitting} onClick={() => { setVerificationSent(false); setOtp(''); setVerificationError(''); }}>Change email</button>
+                  </div>
+                </div>
+              )}
+              {verificationError && <p role="alert" className="text-sm text-red-700">{verificationError}</p>}
+              <button type="submit" disabled={isSubmitting}
+                className="w-full min-h-[44px] rounded-lg bg-primary-moss px-4 py-2.5 font-medium text-white disabled:opacity-60">
+                {verificationSent ? 'Verify email' : 'Send verification code'}
+              </button>
+            </form>
+          )}
+          {registrationToken && <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit(onSubmit)}>
             {/* 2-Column Row: Full Name & Username */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <motion.div variants={itemVariants}>
@@ -341,36 +357,6 @@ function SignUp() {
                 </AnimatePresence>
               </motion.div>
             </div>
-
-            {/* Email Address */}
-            <motion.div variants={itemVariants}>
-              <label className="block text-[10.5px] sm:text-[11px] font-semibold text-text-charcoal mb-0.5 uppercase tracking-wider" htmlFor="email">
-                Email address
-              </label>
-              <input
-                {...register('email')}
-                className={getInputClasses(!!errors.email)}
-                id="email"
-                placeholder="email@example.com"
-                type="email"
-                autoComplete="email"
-                disabled={isSuccess || isSubmitting}
-              />
-              <AnimatePresence>
-                {errors.email && (
-                  <motion.p
-                    variants={errorVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    role="alert"
-                    className="text-red-500 text-[10.5px] font-medium leading-tight overflow-hidden"
-                  >
-                    {errors.email.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
 
             {/* 2-Column Row: Password & Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
@@ -565,6 +551,7 @@ function SignUp() {
             </motion.div>
 
             {/* GoogleLogin */}
+          </form>}
             <motion.div variants={itemVariants} className="flex justify-center w-full min-h-[38px]">
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
@@ -589,7 +576,7 @@ function SignUp() {
                 width="100%"
               />
             </motion.div>
-          </form>
+
 
           {/* Footer link inside card */}
           <motion.div variants={itemVariants} className="mt-2.5 sm:mt-3 pt-2 sm:pt-2.5 border-t border-border-sage-mist/50 text-center">
@@ -614,13 +601,6 @@ function SignUp() {
         </div>
       </footer>
 
-      {/* Unverified Email Popup */}
-      <UnverifiedEmailModal
-        isOpen={unverifiedModal.isOpen}
-        onClose={() => setUnverifiedModal((prev) => ({ ...prev, isOpen: false }))}
-        email={unverifiedModal.email}
-        isExisting={unverifiedModal.isExisting}
-      />
     </div>
   );
 }

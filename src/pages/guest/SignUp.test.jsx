@@ -14,6 +14,8 @@ vi.mock('../../context/AuthContext', () => ({
 vi.mock('../../services/authService', () => ({
   authService: {
     register: vi.fn(),
+    resendVerification: vi.fn(),
+    verifyEmail: vi.fn(),
   },
 }));
 
@@ -53,8 +55,30 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     });
   };
 
+  const fill = async (selector, value) => {
+    await act(async () => {
+      const input = container.querySelector(selector);
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  };
+
+  const submit = () => act(async () => {
+    container.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  });
+
+  const proveEmail = async () => {
+    authService.resendVerification.mockResolvedValue({});
+    authService.verifyEmail.mockResolvedValue({ registrationToken: 'one-time-proof' });
+    await fill('#registration-email', 'chef@example.com');
+    await submit();
+    await fill('#registration-code', '123456');
+    await submit();
+  };
+
   it('renders a shared viewport-height shell with responsive 2-column input pairing', async () => {
     await renderSignUp();
+    await proveEmail();
 
     // 1. Root container enforces 100dvh viewport budget
     const rootEl = container.firstElementChild;
@@ -96,6 +120,7 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
 
   it('renders all required registration fields, labels, autocomplete, and password toggles', async () => {
     await renderSignUp();
+    await proveEmail();
 
     // Heading
     const heading = container.querySelector('h1');
@@ -113,12 +138,6 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     expect(usernameInput).not.toBeNull();
     expect(container.querySelector('label[for="username"]')).not.toBeNull();
     expect(usernameInput.getAttribute('autocomplete')).toBe('username');
-
-    // Email
-    const emailInput = container.querySelector('#email');
-    expect(emailInput).not.toBeNull();
-    expect(container.querySelector('label[for="email"]')).not.toBeNull();
-    expect(emailInput.getAttribute('autocomplete')).toBe('email');
 
     // Password & Confirm Password
     const passwordInput = container.querySelector('#password');
@@ -163,6 +182,7 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
 
   it('displays accessible validation error messages when submitted empty', async () => {
     await renderSignUp();
+    await proveEmail();
 
     const form = container.querySelector('form');
     await act(async () => {
@@ -173,99 +193,30 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     expect(errorAlerts.length).toBeGreaterThanOrEqual(4);
     expect(container.textContent).toContain('Full Name must be at least 3 characters');
     expect(container.textContent).toContain('Username must be at least 3 characters');
-    expect(container.textContent).toContain('Email is required');
     expect(container.textContent).toContain('Password must be at least 8 characters');
     expect(container.textContent).toContain('You must agree to the Terms of Service');
   });
 
-  it('displays UnverifiedEmailModal when registering a new account', async () => {
-    authService.register.mockResolvedValueOnce({
-      message: 'Registration successful. Verify your email before logging in.',
-      isExistingUnverified: false,
-    });
-
+  it('does not show or send credentials until the email is verified', async () => {
     await renderSignUp();
+    expect(container.querySelector('#password')).toBeNull();
+    expect(container.querySelector('#registration-email').autocomplete).toBe('email');
+    await proveEmail();
+    expect(authService.resendVerification).toHaveBeenCalledWith({ email: 'chef@example.com' });
+    expect(authService.verifyEmail).toHaveBeenCalledWith({ email: 'chef@example.com', otp: '123456' });
+    expect(authService.register).not.toHaveBeenCalled();
+    expect(container.querySelector('#password')).not.toBeNull();
 
-    const fullNameInput = container.querySelector('#fullName');
-    const usernameInput = container.querySelector('#username');
-    const emailInput = container.querySelector('#email');
-    const passwordInput = container.querySelector('#password');
-    const confirmPasswordInput = container.querySelector('#confirmPassword');
-    const termsCheckbox = container.querySelector('#terms');
-
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      'value'
-    ).set;
-
-    await act(async () => {
-      nativeInputValueSetter.call(fullNameInput, 'Nguyen Van A');
-      fullNameInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(usernameInput, 'nguyenvana');
-      usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(emailInput, 'nguyenvana@example.com');
-      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(passwordInput, 'Password123!');
-      passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(confirmPasswordInput, 'Password123!');
-      confirmPasswordInput.dispatchEvent(new Event('input', { bubbles: true }));
-      termsCheckbox.click();
+    authService.register.mockResolvedValueOnce({});
+    await fill('#fullName', 'Verified Chef');
+    await fill('#username', 'verifiedchef');
+    await fill('#password', 'Password123!');
+    await fill('#confirmPassword', 'Password123!');
+    await act(async () => container.querySelector('#terms').click());
+    await submit();
+    expect(authService.register).toHaveBeenCalledWith({
+      registrationToken: 'one-time-proof', fullName: 'Verified Chef', username: 'verifiedchef',
+      password: 'Password123!', confirmPassword: 'Password123!',
     });
-
-    const form = container.querySelector('form');
-    await act(async () => {
-      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    });
-
-    const dialog = container.querySelector('[role="dialog"]');
-    expect(dialog).not.toBeNull();
-    expect(dialog.textContent).toContain('Account Verification Required');
-    expect(dialog.textContent).toContain('nguyenvana@example.com');
-  });
-
-  it('displays UnverifiedEmailModal with existing message when email was already registered but unverified', async () => {
-    authService.register.mockResolvedValueOnce({
-      message: 'This email has already been registered but is not yet verified.',
-      isExistingUnverified: true,
-    });
-
-    await renderSignUp();
-
-    const fullNameInput = container.querySelector('#fullName');
-    const usernameInput = container.querySelector('#username');
-    const emailInput = container.querySelector('#email');
-    const passwordInput = container.querySelector('#password');
-    const confirmPasswordInput = container.querySelector('#confirmPassword');
-    const termsCheckbox = container.querySelector('#terms');
-
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      'value'
-    ).set;
-
-    await act(async () => {
-      nativeInputValueSetter.call(fullNameInput, 'Tran Thi B');
-      fullNameInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(usernameInput, 'tranthib');
-      usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(emailInput, 'pending@example.com');
-      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(passwordInput, 'Password123!');
-      passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
-      nativeInputValueSetter.call(confirmPasswordInput, 'Password123!');
-      confirmPasswordInput.dispatchEvent(new Event('input', { bubbles: true }));
-      termsCheckbox.click();
-    });
-
-    const form = container.querySelector('form');
-    await act(async () => {
-      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    });
-
-    const dialog = container.querySelector('[role="dialog"]');
-    expect(dialog).not.toBeNull();
-    expect(dialog.textContent).toContain('Email Already Registered');
-    expect(dialog.textContent).toContain('pending@example.com');
-    expect(dialog.textContent).toContain('not been verified yet');
   });
 });

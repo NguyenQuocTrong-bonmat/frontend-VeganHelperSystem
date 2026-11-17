@@ -17,19 +17,19 @@ export const authService = {
 
   // FN01: Đăng ký tài khoản
   register: async (userData) => {
-    const response = await axiosInstance.post('/auth/register', userData);
+    const response = await axiosInstance.post('/auth/register/complete', userData, { skipAuthRedirect: true });
     return response.data;
   },
 
   // Xác minh email (OTP)
   verifyEmail: async (data) => {
-    const response = await axiosInstance.post('/auth/verify-email', data);
+    const response = await axiosInstance.post('/auth/register/verify', data, { skipAuthRedirect: true });
     return response.data;
   },
 
   // Gửi lại mã OTP
   resendVerification: async (data) => {
-    const response = await axiosInstance.post('/auth/resend-verification', data);
+    const response = await axiosInstance.post('/auth/register/start', data, { skipAuthRedirect: true });
     return response.data;
   },
 
