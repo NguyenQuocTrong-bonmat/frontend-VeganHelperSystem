@@ -1,9 +1,5 @@
 import axios from 'axios';
-import {
-  clearAuthTokens,
-  getAccessToken,
-  getRefreshToken,
-} from '../utils/authStorage';
+import { clearAuthTokens, getAuthSession } from '../utils/authStorage';
 import { refreshSession } from './refreshSession';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7180/api';
@@ -12,94 +8,52 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
 });
+const pendingRefreshes = new Map();
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = getAccessToken();
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    } else if (config.headers) {
-      delete config.headers.Authorization;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) reject(error);
-    else resolve(token);
-  });
-  failedQueue = [];
-};
+axiosInstance.interceptors.request.use(config => {
+  const session = getAuthSession();
+  if (config._retry && session?.id !== config._sessionId)
+    throw new axios.CanceledError('Session changed before retrying the request.');
+  config._sessionId = session?.id;
+  config.headers = config.headers || {};
+  if (session) config.headers.Authorization = `Bearer ${session.accessToken}`;
+  else delete config.headers.Authorization;
+  return config;
+});
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config || {};
-    const requestUrl = originalRequest.url || '';
+  response => response,
+  async error => {
+    const original = error.config || {};
+    const url = original.url || '';
+    const session = getAuthSession();
+    if (error.response?.status !== 401 || original._retry || original.skipAuthRedirect ||
+        url.includes('/auth/refresh') || url.includes('/auth/login') ||
+        !session || session.id !== original._sessionId)
+      throw error;
 
-    const shouldRefresh =
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.skipAuthRedirect &&
-      !requestUrl.includes('/auth/refresh') &&
-      !requestUrl.includes('/auth/login') &&
-      Boolean(getAccessToken());
-
-    if (!shouldRefresh) {
-      return Promise.reject(error);
-    }
-
-    if (isRefreshing) {
-      originalRequest._retry = true;
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axiosInstance(originalRequest);
-      });
-    }
-
-    originalRequest._retry = true;
-    isRefreshing = true;
-    const refreshToken = getRefreshToken();
-
-    if (!refreshToken) {
-      clearAuthTokens();
-      window.location.href = '/login';
-      isRefreshing = false;
-      processQueue(error);
-      return Promise.reject(error);
-    }
-
-    try {
-      const newAccessToken = await refreshSession(() =>
-        axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken: getRefreshToken() }, { timeout: 10000 })
-          .then(response => response.data));
-
-      originalRequest.headers = originalRequest.headers || {};
-      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-      processQueue(null, newAccessToken);
-      return axiosInstance(originalRequest);
-    } catch (refreshError) {
-      processQueue(refreshError);
-      if ([400, 401, 403].includes(refreshError.response?.status) && getRefreshToken() === refreshToken) {
+    original._retry = true;
+    const redirectToLogin = () => { window.location.href = '/login'; };
+    if (original.headers?.Authorization === `Bearer ${session.accessToken}`) {
+      if (!session.refreshToken) {
         clearAuthTokens();
-        window.location.href = '/login';
+        redirectToLogin();
+        throw error;
       }
-      return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
+
+      let pending = pendingRefreshes.get(session.id);
+      if (!pending) {
+        pending = refreshSession(refreshToken =>
+          axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 10000 })
+            .then(response => response.data), session, redirectToLogin)
+          .finally(() => pendingRefreshes.delete(session.id));
+        pendingRefreshes.set(session.id, pending);
+      }
+      await pending;
     }
+
+    return axiosInstance(original);
   }
 );
 
 export default axiosInstance;
-

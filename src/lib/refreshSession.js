@@ -1,28 +1,42 @@
-import { getAccessToken, getRefreshToken, storeAuthTokens } from '../utils/authStorage';
+import { clearAuthTokens, getAuthSession, rotateAuthTokens } from '../utils/authStorage';
 
-export async function refreshSession(request) {
-  const original = getRefreshToken();
-  const refresh = async () => {
-    // Another tab may already have rotated the shared session while we waited.
-    if (getRefreshToken() !== original) {
-      if (getRefreshToken() && getAccessToken()) return getAccessToken();
-      throw new Error('Session ended while waiting to refresh.');
-    }
-    const remember = localStorage.getItem('refreshToken') === original;
+export async function refreshSession(request, original = getAuthSession(), onExpired = () => {}) {
+  if (!original) throw new Error('No session to refresh.');
+  const shared = original.storage === localStorage;
+  const locks = shared && globalThis.navigator?.locks;
+
+  function currentSession() {
+    const current = getAuthSession();
+    if (current?.id !== original.id) throw new Error('Session changed while refreshing.');
+    return current;
+  }
+
+  async function refresh() {
+    let current = currentSession();
+    if (current.refreshToken !== original.refreshToken || current.accessToken !== original.accessToken)
+      return current.accessToken;
+
     try {
-      const data = await request();
-      // A logout or a different login must never be overwritten by a late response.
-      if (getRefreshToken() !== original) throw new Error('Session changed while refreshing.');
-      storeAuthTokens(data, remember);
+      const data = await request(current.refreshToken);
+      current = currentSession();
+      if (current.refreshToken !== original.refreshToken || current.accessToken !== original.accessToken)
+        return current.accessToken;
+      rotateAuthTokens(current, data);
       return data.accessToken;
     } catch (error) {
-      if (getRefreshToken() !== original && getRefreshToken() && getAccessToken()) return getAccessToken();
+      const expired = [400, 401, 403].includes(error.response?.status);
+      // Without Web Locks, give another tab's successful rotation time to reach storage.
+      if (expired && shared && !locks) await new Promise(resolve => setTimeout(resolve, 1000));
+      current = currentSession();
+      if (current.refreshToken !== original.refreshToken || current.accessToken !== original.accessToken)
+        return current.accessToken;
+      if (expired) {
+        clearAuthTokens();
+        onExpired();
+      }
       throw error;
     }
-  };
-  // Shared localStorage sessions use a browser-wide lock; sessionStorage sessions are per tab.
-  if (localStorage.getItem('refreshToken') === original && globalThis.navigator?.locks) {
-    return navigator.locks.request('veganhelper-refresh-session', refresh);
   }
-  return refresh();
+
+  return locks ? locks.request('veganhelper-refresh-session', refresh) : refresh();
 }

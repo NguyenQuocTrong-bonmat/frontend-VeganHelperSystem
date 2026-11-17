@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '../services/authService';
-import { getAccessToken, storeAuthTokens, clearAuthTokens } from '../utils/authStorage';
+import { getAuthSession, storeAuthTokens, clearAuthTokens } from '../utils/authStorage';
 
 const AuthContext = createContext(null);
 
@@ -36,15 +36,25 @@ export const AuthProvider = ({ children }) => {
     restoring.current = true;
     setIsLoading(true);
     setRestoreError(false);
-    if (getAccessToken()) {
+    const original = getAuthSession();
+    if (original) {
       try {
         const profile = await authService.getProfile();
-        const role = parseRoleFromToken(getAccessToken());
-        setUser({ ...profile, role });
-        setIsAuthenticated(true);
+        const current = getAuthSession();
+        if (current?.id === original.id) {
+          const role = parseRoleFromToken(current.accessToken);
+          setUser({ ...profile, role });
+          setIsAuthenticated(true);
+        }
       } catch (error) {
-        if ([400, 401, 403].includes(error.response?.status)) clearAuthTokens();
-        else setRestoreError(true);
+        const current = getAuthSession();
+        if (current?.id === original.id) {
+          if ([400, 401, 403].includes(error.response?.status)) {
+            if (current.accessToken === original.accessToken && current.refreshToken === original.refreshToken)
+              clearAuthTokens();
+            else setRestoreError(true);
+          } else setRestoreError(true);
+        }
       }
     }
     restoring.current = false;
