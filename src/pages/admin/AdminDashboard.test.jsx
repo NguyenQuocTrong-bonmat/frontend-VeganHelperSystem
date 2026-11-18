@@ -173,3 +173,12 @@ test('distinguishes current day, week, and month with darker bar color and legen
   await click('Monthly');
   expect(container.textContent).toContain('This Month');
 });
+
+test('StrictMode sends only live dashboard requests instead of immediately aborting probe requests', async () => {
+  await act(async () => root.render(<React.StrictMode><MemoryRouter><AdminDashboard /></MemoryRouter></React.StrictMode>));
+  for (const loader of [service.getAdminDashboardOverview, service.getAdminDashboardActivity, service.getAdminDashboardCategories, service.getAdminAuditLogs]) {
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect(loader.mock.calls[0][1].aborted).toBe(false);
+  }
+  expect(container.textContent).toContain('1,250');
+});

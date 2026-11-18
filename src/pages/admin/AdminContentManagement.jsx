@@ -91,11 +91,13 @@ export default function AdminContentManagement() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
+    Promise.resolve().then(() => active ? Promise.all([
       getAdminModerationPosts({ pageIndex: 1, pageSize: 1, status: 'pending_review' }),
       getAdminPostReports({ pageIndex: 1, pageSize: 1, status: 'pending' }),
       getAdminCommentReports({ pageIndex: 1, pageSize: 1, status: 'pending' }),
-    ]).then(([review, posts, comments]) => {
+    ]) : null).then((responses) => {
+      if (!active) return;
+      const [review, posts, comments] = responses;
       if (active) setQueueCounts({ review: review.totalCount || 0, posts: posts.totalCount || 0, comments: comments.totalCount || 0 });
     }).catch(() => {
       if (active) setQueueCounts({ review: 0, posts: 0, comments: 0 });
@@ -126,7 +128,7 @@ export default function AdminContentManagement() {
         const sortedItems = [...nextItems].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
         setItems(sortedItems);
         setTotalPages(nextTotalPages);
-        if (sortedItems.length > 0) setSelected(sortedItems[0]);
+        if (sortedItems.length > 0) setSelected({ ...sortedItems[0], queue: activeQueue });
       } catch (loadError) {
         if (active) {
           setItems([]);
@@ -137,13 +139,13 @@ export default function AdminContentManagement() {
         if (active) setIsLoading(false);
       }
     };
-    load();
+    Promise.resolve().then(() => { if (active) return load(); });
     return () => { active = false; };
   }, [activeQueue, page, reloadKey]);
 
   useEffect(() => {
     let active = true;
-    if (!selected) {
+    if (!selected || selected.queue !== activeQueue) {
       setDetail(null);
       return () => { active = false; };
     }
@@ -160,13 +162,19 @@ export default function AdminContentManagement() {
       } catch (loadError) {
         if (active) {
           setDetail(null);
-          setDetailError(loadError.message || 'Details could not be loaded.');
+          if (loadError.status === 404) {
+            setSelected(null);
+            setItems(current => current.filter(item => item.id !== selected.id));
+            setToast({ type: 'error', message: 'This report or content is no longer available. Refresh the queue to see the latest items.' });
+          } else {
+            setDetailError(loadError.message || 'Details could not be loaded.');
+          }
         }
       } finally {
         if (active) setIsDetailLoading(false);
       }
     };
-    loadDetail();
+    Promise.resolve().then(() => { if (active) return loadDetail(); });
     return () => { active = false; };
   }, [activeQueue, selected]);
 
@@ -199,7 +207,7 @@ export default function AdminContentManagement() {
 
   const submitDecision = async (event) => {
     event.preventDefault();
-    if (!selected || !decision.action || !decision.reason.trim()) return;
+    if (!selected || selected.queue !== activeQueue || !decision.action || !decision.reason.trim()) return;
     setIsSubmitting(true);
     try {
       if (activeQueue === 'review') {
@@ -220,6 +228,9 @@ export default function AdminContentManagement() {
       setToast({ type: 'success', message: 'The moderation decision was saved.' });
       setReloadKey((value) => value + 1);
     } catch (submitError) {
+      if (submitError.status === 409 || submitError.status === 404) {
+        setReloadKey((value) => value + 1);
+      }
       setToast({ type: 'error', message: submitError.message || 'The moderation decision could not be saved.' });
     } finally {
       setIsSubmitting(false);
@@ -323,7 +334,7 @@ export default function AdminContentManagement() {
               ) : filteredItems.map((item) => {
                 const isSelected = selected?.id === item.id;
                 return (
-                  <button type="button" key={item.id} onClick={() => setSelected(item)} className={`w-full rounded-2xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none cursor-pointer ${isSelected ? 'border-[#2F5233] bg-[#F1F5ED] shadow-sm' : 'border-transparent hover:border-[#D5DED0] hover:bg-[#FAFBF8]'}`}>
+                  <button type="button" key={item.id} onClick={() => setSelected({ ...item, queue: activeQueue })} className={`w-full rounded-2xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2F5233] active:scale-[0.99] motion-reduce:transform-none cursor-pointer ${isSelected ? 'border-[#2F5233] bg-[#F1F5ED] shadow-sm' : 'border-transparent hover:border-[#D5DED0] hover:bg-[#FAFBF8]'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#27342A]">{queueTitle(activeQueue, item)}</p>

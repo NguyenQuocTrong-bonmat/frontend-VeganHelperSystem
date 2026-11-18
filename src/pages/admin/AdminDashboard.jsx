@@ -52,7 +52,9 @@ function useDashboardResource(kind, range, interval, retry) {
       categories: () => getAdminDashboardCategories({ ...range, limit: 3 }, controller.signal),
       audit: () => getAdminAuditLogs({ pageSize: 5, from: `${range.from}T00:00:00Z`, to: `${range.to}T23:59:59.999999Z` }, controller.signal),
     };
-    loaders[kind]().then((data) => {
+    // StrictMode cleans up its probe effect before this microtask runs.
+    // Send only the live effect request; keep aborting requests when leaving the page.
+    Promise.resolve().then(() => active ? loaders[kind]() : undefined).then((data) => {
       if (active) setState({ data, loading: false, error: '' });
     }).catch((err) => {
       if (active) setState({ data: null, loading: false, error: `${kind}: ${err.message || 'Unable to load data.'}` });

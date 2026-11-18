@@ -161,3 +161,48 @@ test('displays user/author information in moderation queue items and detail view
 });
 
 
+
+test('refreshes the reported-post queue when the author deletes a post before a decision', async () => {
+  await act(async () => root.render(<AdminContentManagement />));
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('Reported posts')).click());
+  service.decidePostReport.mockImplementation(async () => {
+    service.getAdminPostReports.mockResolvedValue({ items: [], totalCount: 0, totalPages: 1 });
+    throw Object.assign(new Error('Deleted posts cannot be restored or hidden.'), { status: 409 });
+  });
+  await act(async () => container.querySelector('input[value="remove"]').click());
+  await act(async () => {
+    const input = container.querySelector('textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, 'Review spam');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+  expect(container.textContent).not.toContain('Community reported content');
+  expect(container.querySelector('form')).toBeNull();
+});
+test('switching queues never uses the previous queue item ID as a report ID', async () => {
+  await act(async () => root.render(<AdminContentManagement />));
+  expect(service.getAdminModerationPostDetail).toHaveBeenCalledWith(33);
+  let finish;
+  service.getAdminPostReports.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('Reported posts')).click());
+  expect(service.getAdminPostReportDetail).not.toHaveBeenCalled();
+  await act(async () => finish({ items: [report], totalCount: 1 }));
+  expect(service.getAdminPostReportDetail).toHaveBeenCalledTimes(1);
+  expect(service.getAdminPostReportDetail).toHaveBeenCalledWith(901);
+});
+
+test('a missing report is removed from selection without leaving moderation actions', async () => {
+  service.getAdminPostReportDetail.mockRejectedValue(Object.assign(new Error('Report not found.'), { status: 404 }));
+  await act(async () => root.render(<AdminContentManagement />));
+  await act(async () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('Reported posts')).click());
+  expect(container.querySelector('form')).toBeNull();
+  expect(container.textContent).toContain('no longer available');
+  expect(service.getAdminPostReportDetail).toHaveBeenCalledTimes(1);
+});
+test('StrictMode does not duplicate report counts and initial detail requests', async () => {
+  await act(async () => root.render(<React.StrictMode><AdminContentManagement /></React.StrictMode>));
+  expect(service.getAdminPostReports).toHaveBeenCalledTimes(1);
+  expect(service.getAdminCommentReports).toHaveBeenCalledTimes(1);
+  expect(service.getAdminModerationPosts).toHaveBeenCalledTimes(2); // count and visible page
+  expect(service.getAdminModerationPostDetail).toHaveBeenCalledTimes(1);
+});

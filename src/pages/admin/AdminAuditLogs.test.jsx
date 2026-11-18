@@ -87,3 +87,10 @@ describe('Readable admin activity', () => {
     expect(csv).not.toContain('post.approve');
   });
 });
+
+it('StrictMode sends only the live audit request', async () => {
+  await act(async () => root.render(<React.StrictMode><AdminAuditLogs /></React.StrictMode>));
+  expect(getAdminAuditLogs).toHaveBeenCalledTimes(1);
+  expect(getAdminAuditLogs.mock.calls[0][1].aborted).toBe(false);
+  expect(container.textContent).toContain('Pumpkin soup');
+});

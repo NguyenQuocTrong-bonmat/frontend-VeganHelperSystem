@@ -83,7 +83,8 @@ export default function AdminAuditLogs() {
       else start.setDate(start.getDate() - Number(period));
       params.from = start.toISOString();
     }
-    getAdminAuditLogs(params, controller.signal).then((data) => {
+    // Avoid sending the StrictMode probe request that would immediately be aborted.
+    Promise.resolve().then(() => active ? getAdminAuditLogs(params, controller.signal) : undefined).then((data) => {
       if (!active) return;
       setLogs(data.items || []);
       setTotal(Number(data.totalItems ?? data.totalCount ?? 0));
