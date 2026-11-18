@@ -17,6 +17,7 @@ vi.mock('../../context/AuthContext', () => ({
 
 vi.mock('../../services/authService', () => ({
   authService: {
+    startRegistration: vi.fn(),
     register: vi.fn(),
     resendVerification: vi.fn(),
     verifyEmail: vi.fn(),
@@ -114,7 +115,7 @@ describe('AUTH-FIT-SCREEN-01 Layout & Viewport Budget Verification', () => {
     });
   });
 
-  it('SignUp email step satisfies the viewport and touch-target contract', async () => {
+  it('SignUp credentials step satisfies the viewport and touch-target contract', async () => {
     await act(async () => {
       root.render(
         <MemoryRouter>
@@ -148,8 +149,8 @@ describe('AUTH-FIT-SCREEN-01 Layout & Viewport Budget Verification', () => {
     const submitBtn = container.querySelector('button[type="submit"]');
     expect(submitBtn.className).toContain('min-h-[44px]');
 
-    expect(container.querySelector('#registration-email')).not.toBeNull();
-    expect(container.querySelector('#password')).toBeNull();
+    expect(container.querySelector('#signup-email')).not.toBeNull();
+    expect(container.querySelector('#password')).not.toBeNull();
 
     // 6. Test each viewport configuration
     targetViewports.forEach((vp) => {
@@ -162,7 +163,7 @@ describe('AUTH-FIT-SCREEN-01 Layout & Viewport Budget Verification', () => {
   });
 
   it('redirects legacy OTP links and provides one accessible verification input', async () => {
-    authService.resendVerification.mockResolvedValueOnce({});
+    authService.startRegistration.mockResolvedValueOnce({});
     await act(async () => root.render(
       <MemoryRouter initialEntries={[{ pathname: '/verify-otp', state: { email: 'chef@veganhelper.org' } }]}>
         <Routes>
@@ -171,7 +172,18 @@ describe('AUTH-FIT-SCREEN-01 Layout & Viewport Budget Verification', () => {
         </Routes>
       </MemoryRouter>
     ));
-    expect(container.querySelector('#registration-email').value).toBe('chef@veganhelper.org');
+    expect(container.querySelector('#signup-email').value).toBe('chef@veganhelper.org');
+    for (const [selector, value] of [
+      ['#fullName', 'Vegan Chef'], ['#username', 'veganchef'],
+      ['#password', 'Password123!'], ['#confirmPassword', 'Password123!'],
+    ]) {
+      await act(async () => {
+        const input = container.querySelector(selector);
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+    await act(async () => container.querySelector('#terms').click());
     await act(async () => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
     const otpInputs = container.querySelectorAll('input#registration-code');
     expect(otpInputs).toHaveLength(1);

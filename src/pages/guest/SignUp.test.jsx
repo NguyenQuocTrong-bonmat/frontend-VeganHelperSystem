@@ -13,6 +13,7 @@ vi.mock('../../context/AuthContext', () => ({
 
 vi.mock('../../services/authService', () => ({
   authService: {
+    startRegistration: vi.fn(),
     register: vi.fn(),
     resendVerification: vi.fn(),
     verifyEmail: vi.fn(),
@@ -34,6 +35,7 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
   let container, root;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     global.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -67,18 +69,8 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     container.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   });
 
-  const proveEmail = async () => {
-    authService.resendVerification.mockResolvedValue({});
-    authService.verifyEmail.mockResolvedValue({ registrationToken: 'one-time-proof' });
-    await fill('#registration-email', 'chef@example.com');
-    await submit();
-    await fill('#registration-code', '123456');
-    await submit();
-  };
-
   it('renders a shared viewport-height shell with responsive 2-column input pairing', async () => {
     await renderSignUp();
-    await proveEmail();
 
     // 1. Root container enforces 100dvh viewport budget
     const rootEl = container.firstElementChild;
@@ -120,7 +112,6 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
 
   it('renders all required registration fields, labels, autocomplete, and password toggles', async () => {
     await renderSignUp();
-    await proveEmail();
 
     // Heading
     const heading = container.querySelector('h1');
@@ -171,7 +162,7 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     // Primary submit button
     const submitBtn = container.querySelector('button[type="submit"]');
     expect(submitBtn).not.toBeNull();
-    expect(submitBtn.textContent).toContain('Sign Up');
+    expect(submitBtn.textContent).toContain('Continue to email verification');
 
     // Google Sign-In and Navigation to Login
     expect(container.querySelector('[data-testid="google-signup"]')).not.toBeNull();
@@ -182,7 +173,6 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
 
   it('displays accessible validation error messages when submitted empty', async () => {
     await renderSignUp();
-    await proveEmail();
 
     const form = container.querySelector('form');
     await act(async () => {
@@ -197,26 +187,29 @@ describe('SignUp Page Viewport & Authentication Layout', () => {
     expect(container.textContent).toContain('You must agree to the Terms of Service');
   });
 
-  it('does not show or send credentials until the email is verified', async () => {
+  it('sends draft credentials then completes only after verifying OTP', async () => {
     await renderSignUp();
-    expect(container.querySelector('#password')).toBeNull();
-    expect(container.querySelector('#registration-email').autocomplete).toBe('email');
-    await proveEmail();
-    expect(authService.resendVerification).toHaveBeenCalledWith({ email: 'chef@example.com' });
-    expect(authService.verifyEmail).toHaveBeenCalledWith({ email: 'chef@example.com', otp: '123456' });
-    expect(authService.register).not.toHaveBeenCalled();
+    authService.startRegistration.mockResolvedValue({});
+    authService.verifyEmail.mockResolvedValue({ registrationToken: 'one-time-proof' });
+    authService.register.mockResolvedValue({});
     expect(container.querySelector('#password')).not.toBeNull();
-
-    authService.register.mockResolvedValueOnce({});
+    expect(container.querySelector('#signup-email').autocomplete).toBe('email');
+    await fill('#signup-email', 'chef@example.com');
     await fill('#fullName', 'Verified Chef');
     await fill('#username', 'verifiedchef');
     await fill('#password', 'Password123!');
     await fill('#confirmPassword', 'Password123!');
     await act(async () => container.querySelector('#terms').click());
     await submit();
-    expect(authService.register).toHaveBeenCalledWith({
-      registrationToken: 'one-time-proof', fullName: 'Verified Chef', username: 'verifiedchef',
+    expect(authService.startRegistration).toHaveBeenCalledWith({
+      email: 'chef@example.com', fullName: 'Verified Chef', username: 'verifiedchef',
       password: 'Password123!', confirmPassword: 'Password123!',
     });
+    expect(authService.verifyEmail).not.toHaveBeenCalled();
+    expect(authService.register).not.toHaveBeenCalled();
+    await fill('#registration-code', '123456');
+    await submit();
+    expect(authService.verifyEmail).toHaveBeenCalledWith({ email: 'chef@example.com', otp: '123456' });
+    expect(authService.register).toHaveBeenCalledWith({ registrationToken: 'one-time-proof' });
   });
 });
