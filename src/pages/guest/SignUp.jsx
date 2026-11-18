@@ -143,6 +143,7 @@ function SignUp() {
     watch,
     handleSubmit,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -183,6 +184,8 @@ function SignUp() {
       const message = error.response?.data?.error || 'Registration failed. Please try again.';
       if (message.toLowerCase().includes('username'))
         setError('username', { type: 'manual', message });
+      else if (error.response?.status === 409 && message.toLowerCase().includes('email'))
+        setError('email', { type: 'manual', message: 'This email is already registered. Please log in instead.' }, { shouldFocus: true });
       else if (message.toLowerCase().includes('expired')) {
         setRegistrationToken('');
         setVerificationSent(false);
@@ -330,7 +333,7 @@ function SignUp() {
                 Email Address
               </label>
               <input
-                {...register('email', { onChange: event => setEmail(event.target.value) })}
+                {...register('email', { onChange: event => { setEmail(event.target.value); clearErrors('email'); } })}
                 className={getInputClasses(!!errors.email)}
                 id="signup-email"
                 maxLength={255}
